@@ -1,0 +1,58 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "La API está disponible y responde correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Consulta el estado de disponibilidad de la API.",
+        "tags": [
+          "health"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Plataforma Timbo — API",
+    "description": "Documentación de las operaciones expuestas por la API de Plataforma Timbo.",
+    "version": "0.1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "HealthResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok",
+            "description": "Estado de disponibilidad de la API."
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2026-08-17T20:15:00.000Z",
+            "description": "Marca de tiempo UTC, en formato ISO 8601, en la que se generó la respuesta."
+          }
+        },
+        "required": [
+          "status",
+          "timestamp"
+        ]
+      }
+    }
+  }
+}

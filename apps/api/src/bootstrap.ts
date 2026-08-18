@@ -4,7 +4,7 @@ import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 export const API_GLOBAL_PREFIX = 'api';
 export const SWAGGER_UI_PATH = 'docs';
 
-function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
+export function createOpenApiDocument(app: INestApplication): OpenAPIObject {
   const openApiConfig = new DocumentBuilder()
     .setTitle('Plataforma Timbo — API')
     .setDescription('Documentación de las operaciones expuestas por la API de Plataforma Timbo.')
@@ -19,12 +19,14 @@ function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
  * y las pruebas e2e, para que ambos verifiquen exactamente el mismo prefijo,
  * CORS y documento OpenAPI publicado.
  */
-export function configureApp(app: INestApplication, corsOrigin: string): void {
+export function configureApp(app: INestApplication, corsOrigin: string): OpenAPIObject {
   app.setGlobalPrefix(API_GLOBAL_PREFIX);
   app.enableCors({ origin: corsOrigin });
 
-  const openApiDocument = buildOpenApiDocument(app);
+  const openApiDocument = createOpenApiDocument(app);
   SwaggerModule.setup(SWAGGER_UI_PATH, app, openApiDocument, {
     useGlobalPrefix: true,
   });
+
+  return openApiDocument;
 }

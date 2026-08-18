@@ -8,10 +8,13 @@
   "packageManager": "pnpm@11.22.0",
   "scripts": {
     "dev": "pnpm --filter @timbo/api dev",
+    "dev:web": "pnpm --filter @timbo/web dev",
     "build": "pnpm -r run build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "eslint .",
     "test": "pnpm -r run test",
+    "generate:contracts": "pnpm --filter @timbo/api export:openapi ../../packages/contracts/openapi.json && pnpm --filter @timbo/contracts generate",
+    "check:contracts": "node scripts/check-contracts.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -28,7 +31,7 @@
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
     "ts-node": "^10.9.2",
-    "typescript": "~6.0.3",
+    "typescript": "~5.9.3",
     "typescript-eslint": "^8.67.0"
   }
 }

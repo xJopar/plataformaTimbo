@@ -1,0 +1,17 @@
+{
+  "name": "@timbo/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./openapi": "./src/generated/openapi.ts"
+  },
+  "scripts": {
+    "generate": "openapi-typescript openapi.json -o src/generated/openapi.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node ../../scripts/check-contracts.mjs"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.13.0"
+  }
+}

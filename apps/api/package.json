@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "node --watch --env-file-if-exists=../../.env -r ts-node/register src/main.ts",
     "build": "tsc -p tsconfig.build.json",
+    "export:openapi": "node -r ts-node/register src/export-openapi.ts",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
     "typecheck": "tsc -p tsconfig.json",
     "test": "jest"

@@ -2,7 +2,9 @@
 
 Monorepo privado de la Plataforma Timbo, administrado con **pnpm workspaces** (sin Turbo ni Nx).
 
-Este primer incremento contiene únicamente la base ejecutable de la API: una operación de estado (`GET /api/health`) documentada con OpenAPI/Swagger. Todavía no incluye frontend, base de datos, autenticación ni módulos de negocio.
+Este incremento contiene la base ejecutable de la API y una web React mínima que verifica
+`GET /api/health` mediante contratos OpenAPI tipados. Todavía no incluye Home definitivo,
+autenticación, base de datos ni módulos de negocio.
 
 ## Requisitos
 
@@ -19,24 +21,28 @@ pnpm install
 
 Copiar `.env.example` a `.env` (en la **raíz del workspace**) y ajustar si es necesario. Ninguna de estas variables es secreta.
 
-| Variable      | Descripción                                          | Valor por defecto       |
-| ------------- | ---------------------------------------------------- | ----------------------- |
-| `PORT`        | Puerto en el que escucha la API.                     | `3000`                  |
-| `CORS_ORIGIN` | Origen permitido por CORS para el cliente web local. | `http://localhost:5173` |
+| Variable            | Descripción                                          | Valor por defecto       |
+| ------------------- | ---------------------------------------------------- | ----------------------- |
+| `PORT`              | Puerto en el que escucha la API.                     | `3000`                  |
+| `CORS_ORIGIN`       | Origen permitido por CORS para el cliente web local. | `http://localhost:5173` |
+| `VITE_API_BASE_URL` | Origen público de la API que consume la web.         | `http://localhost:3000` |
 
-El `.env` raíz se carga con el flag nativo de Node `--env-file-if-exists`, sin agregar `dotenv` ni `@nestjs/config`. Los scripts `dev` y `start` de `apps/api` lo invocan apuntando a `../../.env` (la ruta del `.env` raíz vista desde `apps/api`); si el archivo no existe, Node continúa sin él y la API usa los valores por defecto. Antes de crear la aplicación de Nest, `apps/api/src/runtime-config.ts` valida `PORT` (entero entre 1 y 65535) y `CORS_ORIGIN` (origen HTTP o HTTPS, sin ruta, query ni fragmento); un valor inválido aborta el arranque con un mensaje claro en español y código de salida distinto de cero, antes de levantar Nest.
+El `.env` raíz se carga con el flag nativo de Node `--env-file-if-exists` para la API y Vite lo usa también como directorio de variables de la web. No se agrega `dotenv` ni `@nestjs/config`. Los scripts `dev` y `start` de `apps/api` lo invocan apuntando a `../../.env` (la ruta del `.env` raíz vista desde `apps/api`); si el archivo no existe, Node continúa sin él y la API usa los valores por defecto. Antes de crear la aplicación de Nest, `apps/api/src/runtime-config.ts` valida `PORT` (entero entre 1 y 65535) y `CORS_ORIGIN` (origen HTTP o HTTPS, sin ruta, query ni fragmento); un valor inválido aborta el arranque con un mensaje claro en español y código de salida distinto de cero, antes de levantar Nest. La web aplica la misma validación de origen a `VITE_API_BASE_URL` y representa el error como API no disponible.
 
 ## Comandos raíz
 
-| Comando             | Descripción                                                                  |
-| ------------------- | ---------------------------------------------------------------------------- |
-| `pnpm dev`          | Levanta `apps/api` en modo desarrollo, con reinicio automático ante cambios. |
-| `pnpm build`        | Compila todos los paquetes del workspace.                                    |
-| `pnpm typecheck`    | Verifica los tipos de TypeScript sin emitir archivos.                        |
-| `pnpm lint`         | Ejecuta ESLint sobre todo el repositorio.                                    |
-| `pnpm test`         | Ejecuta las pruebas de todos los paquetes del workspace.                     |
-| `pnpm format`       | Formatea el repositorio con Prettier.                                        |
-| `pnpm format:check` | Verifica el formato sin modificar archivos.                                  |
+| Comando                   | Descripción                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------- |
+| `pnpm dev`                | Levanta `apps/api` en modo desarrollo, con reinicio automático ante cambios.          |
+| `pnpm dev:web`            | Levanta `apps/web` con Vite.                                                          |
+| `pnpm generate:contracts` | Exporta OpenAPI desde Nest y regenera el documento y los tipos versionados.           |
+| `pnpm check:contracts`    | Comprueba en un directorio temporal que los contratos versionados están actualizados. |
+| `pnpm build`              | Compila todos los paquetes del workspace.                                             |
+| `pnpm typecheck`          | Verifica los tipos de TypeScript sin emitir archivos.                                 |
+| `pnpm lint`               | Ejecuta ESLint sobre todo el repositorio.                                             |
+| `pnpm test`               | Ejecuta las pruebas de todos los paquetes del workspace.                              |
+| `pnpm format`             | Formatea el repositorio con Prettier.                                                 |
+| `pnpm format:check`       | Verifica el formato sin modificar archivos.                                           |
 
 ## Estructura
 
@@ -53,23 +59,34 @@ apps/
         health.service.ts      # Resuelve el estado de disponibilidad
         dto/health-response.dto.ts  # Forma documentada de la respuesta
     test/                 # Pruebas end-to-end (recorrido HTTP y documento OpenAPI)
+  web/                  # Web React/Vite (paquete @timbo/web)
+    src/
+      api/              # Configuración, transporte tipado y fachada api.system
+      app.tsx           # Estados verificando, disponible y no disponible
+packages/
+  contracts/            # Documento OpenAPI y tipos generados, ambos versionados
+    src/generated/      # Salida de openapi-typescript; no se edita manualmente
+scripts/
+  check-contracts.mjs   # Regenera temporalmente y compara sin ensuciar el workspace
 docs/
   CODING_CONVENTIONS.md   # Convenciones de código durables del repositorio
 AGENTS.md                 # Reglas durables para agentes que trabajen en este repositorio
 ```
 
-## Recorrido para ejecutar y comprobar la API
+## Recorrido para ejecutar y comprobar la integración
 
 1. Instalar dependencias: `pnpm install`.
-2. Levantar la API en modo desarrollo: `pnpm dev` (escucha por defecto en `http://localhost:3000`).
-3. Consultar el estado de disponibilidad: `GET http://localhost:3000/api/health`. Debe responder `200` con un cuerpo como:
+2. Generar el contrato si cambió la API: `pnpm generate:contracts`. Para comprobar que lo versionado está actualizado sin escribir archivos: `pnpm check:contracts`.
+3. Levantar la API en modo desarrollo: `pnpm dev` (escucha por defecto en `http://localhost:3000`).
+4. En otra terminal, levantar la web: `pnpm dev:web` (Vite escucha por defecto en `http://localhost:5173`). La pantalla muestra primero **Verificando conexión** y luego **API disponible**; ante un fallo de red, HTTP o configuración, muestra **API no disponible** con un botón nativo para reintentar.
+5. Consultar el estado de disponibilidad: `GET http://localhost:3000/api/health`. Debe responder `200` con un cuerpo como:
 
    ```json
    { "status": "ok", "timestamp": "2026-08-17T20:36:55.847Z" }
    ```
 
-4. Explorar la documentación navegable (Swagger UI): `http://localhost:3000/api/docs`.
-5. Obtener el documento OpenAPI en JSON, insumo de la siguiente tanda (generación de contratos tipados para el cliente web): `http://localhost:3000/api/docs-json`.
+6. Explorar la documentación navegable (Swagger UI): `http://localhost:3000/api/docs`.
+7. Obtener el documento OpenAPI en JSON: `http://localhost:3000/api/docs-json`.
 
 ## Recorrido de lectura del código
 
@@ -82,6 +99,10 @@ El flujo de la única operación expuesta se lee de punta a punta sin capas inte
 5. `apps/api/src/health/health.controller.ts`: recibe la petición HTTP `GET /health` y delega en el servicio.
 6. `apps/api/src/health/health.service.ts`: resuelve el estado de disponibilidad.
 7. `apps/api/src/health/dto/health-response.dto.ts`: forma documentada de la respuesta, usada tanto en tiempo de ejecución como en el esquema OpenAPI.
+8. `apps/api/src/export-openapi.ts`: crea Nest sin escuchar un puerto, aplica la misma configuración y escribe el documento determinista que alimenta el paquete de contratos.
+9. `packages/contracts/openapi.json` y `packages/contracts/src/generated/openapi.ts`: artefactos versionados generados desde la API; no se editan manualmente.
+10. `apps/web/src/api/system.ts`: único lugar que conoce `GET /api/health`; usa `openapi-fetch` y expone `api.system.getHealth()` mediante una fachada legible.
+11. `apps/web/src/app.tsx`: consume la fachada y representa los estados de conexión, sin conocer rutas ni tipos de OpenAPI.
 
 ## Pruebas
 
@@ -89,5 +110,8 @@ El flujo de la única operación expuesta se lee de punta a punta sin capas inte
 - `apps/api/src/health/*.spec.ts`: pruebas unitarias del servicio y del controlador.
 - `apps/api/test/health.e2e-spec.ts`: recorrido HTTP real de `GET /api/health` sobre una instancia de Nest levantada con la misma configuración (`bootstrap.ts`) que usa `main.ts`.
 - `apps/api/test/openapi.e2e-spec.ts`: solicita realmente `/api/docs-json` (documento OpenAPI con la operación `getHealth`) y `/api/docs` (Swagger UI publicado).
+- `packages/contracts` ejecuta el chequeo de contrato actualizado, regenerando en un directorio temporal y comparando el documento y los tipos con lo versionado.
+- `apps/web/src/api/*.spec.ts`: comprueba URL pública, transporte tipado y errores HTTP/red.
+- `apps/web/src/app.spec.tsx`: comprueba carga, disponibilidad, fallo y reintento.
 
 Ejecutar todas las pruebas con `pnpm test`.

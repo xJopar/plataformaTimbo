@@ -2,3 +2,5 @@ node_modules
 dist
 coverage
 pnpm-lock.yaml
+packages/contracts/openapi.json
+packages/contracts/src/generated/openapi.ts
