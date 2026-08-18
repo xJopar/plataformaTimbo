@@ -33,11 +33,25 @@ Reglas durables que se aplican a todo el código de este repositorio, independie
 
 - El código generado automáticamente (por ejemplo, clientes o tipos derivados de un contrato OpenAPI) se guarda en una ubicación separada del código escrito a mano.
 - El código generado nunca se edita manualmente: si algo generado está mal, se corrige la fuente (el contrato o el generador), no el archivo generado.
+- El cliente de Prisma se genera reproduciblemente antes de typecheck, pruebas y build, y permanece ignorado por Git, lint y formato.
 
 ## Secretos
 
 - Ningún secreto (contraseñas, tokens, claves de API, cadenas de conexión con credenciales) entra al repositorio, al código fuente, a los logs ni a los ejemplos.
 - Las variables de entorno no secretas se documentan en `.env.example`, con su valor por defecto explicado en un comentario.
+
+## Errores y diagnóstico
+
+- Un error inesperado nunca se silencia, se transforma en éxito ni activa un valor por defecto engañoso. Los `catch` se reservan para aportar contexto, traducir una falla esperada o hacer cleanup; después de eso el fallo sigue siendo explícito.
+- Los diagnósticos conservan operación, clase, código y stack cuando están disponibles, junto con identificadores seguros que ayuden a investigar.
+- Antes de registrar o exponer un error se redactan `DATABASE_URL`, cabeceras `Authorization`, cookies, tokens, contraseñas, secretos y PII innecesaria. No se serializan ciegamente objetos de error ni `process.env`.
+
+## Persistencia y migraciones
+
+- Prisma y las migraciones de persistencia viven sólo en `apps/api`. Las migraciones versionadas se revisan como SQL, incluido cualquier `CHECK` personalizado que el schema declarativo no pueda expresar.
+- `DATABASE_URL` es obligatoria para el arranque y las migraciones, y es siempre secreta: sólo se documentan placeholders o referencias privadas, nunca su valor real.
+- `prisma migrate dev` se usa únicamente con la base aislada de development. Producción aplica exclusivamente migraciones versionadas con `prisma migrate deploy`; `db push`, `migrate dev` y `migrate reset` quedan prohibidos allí.
+- Las pruebas que escriben en PostgreSQL son opt-in, exigen guardas explícitas de development y limpian sólo fixtures propios identificados. La suite normal de pruebas no abre conexiones a la base.
 
 ## Dependencias
 

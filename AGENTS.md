@@ -4,7 +4,7 @@ Reglas durables para cualquier agente (humano o automático) que trabaje en este
 
 ## Alcance del repositorio
 
-Este es el monorepo de **App Shell Plataforma Timbo**, administrado con `pnpm workspaces` (sin Turbo ni Nx). Contiene `apps/api` (NestJS), `apps/web` (React/Vite) y `packages/contracts` (OpenAPI generado). La web sólo comprueba la conexión tipada con la API; todavía no hay base de datos, autenticación ni módulos de negocio.
+Este es el monorepo de **App Shell Plataforma Timbo**, administrado con `pnpm workspaces` (sin Turbo ni Nx). Contiene `apps/api` (NestJS), `apps/web` (React/Vite) y `packages/contracts` (OpenAPI generado). La web sólo comprueba la conexión tipada con la API; todavía no hay autenticación ni módulos de negocio.
 
 No copiar código de otros proyectos ni introducir capacidades fuera del alcance acordado en el ticket o la actividad vigente. Ante una ambigüedad que exceda el alcance, se informa en vez de decidirse unilateralmente.
 
@@ -23,6 +23,7 @@ Ver `docs/CODING_CONVENTIONS.md` para el detalle completo. Resumen operativo:
 - Los comentarios explican el motivo (una decisión no obvia, una restricción), nunca traducen la línea de código.
 - El código generado (por ejemplo, clientes o tipos derivados de OpenAPI) se guarda separado del código escrito a mano y nunca se edita manualmente.
 - Ningún secreto (claves, tokens, contraseñas) entra al repositorio, al código, a los logs ni a los ejemplos. Las variables de entorno no secretas se documentan en `.env.example` con su valor por defecto.
+- Los errores inesperados fallan explícitamente: no se silencian, no se convierten en éxito ni activan defaults engañosos. Los diagnósticos preservan operación, clase, código y stack cuando existen, redactando secretos, credenciales y PII innecesaria.
 - Toda dependencia agregada debe resolver un problema concreto del incremento en curso; no se agregan dependencias especulativas.
 - `any` no se usa sin una justificación excepcional documentada en el propio código.
 

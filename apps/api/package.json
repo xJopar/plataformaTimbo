@@ -4,22 +4,36 @@
   "private": true,
   "scripts": {
     "dev": "node --watch --env-file-if-exists=../../.env -r ts-node/register src/main.ts",
+    "prisma:validate": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js validate --config prisma.config.ts",
+    "prisma:generate": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js generate --config prisma.config.ts",
+    "prisma:migrate:dev": "node --env-file=../../.env ./node_modules/prisma/build/index.js migrate dev --config prisma.config.ts",
+    "prisma:migrate:deploy": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js migrate deploy --config prisma.config.ts",
+    "prebuild": "pnpm run prisma:generate",
+    "pretypecheck": "pnpm run prisma:generate",
+    "pretest": "pnpm run prisma:generate",
+    "pretest:users:integration": "pnpm run prisma:generate",
     "build": "tsc -p tsconfig.build.json",
     "export:openapi": "node -r ts-node/register src/export-openapi.ts",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "jest"
+    "test": "jest",
+    "test:users:integration": "node --env-file-if-exists=../../.env --experimental-vm-modules test/run-users-integration.cjs"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "7.9.1",
+    "@prisma/client": "7.9.1",
     "@nestjs/common": "^11.2.1",
     "@nestjs/core": "^11.2.1",
     "@nestjs/platform-express": "^11.2.1",
     "@nestjs/swagger": "^11.4.6",
+    "pg": "8.23.0",
+    "prisma": "7.9.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
-    "@nestjs/testing": "^11.2.1"
+    "@nestjs/testing": "^11.2.1",
+    "@types/pg": "8.23.1"
   }
 }

@@ -2,5 +2,9 @@ packages:
   - 'apps/*'
   - 'packages/*'
 allowBuilds:
+  '@prisma/engines': true
   '@scarf/scarf': false
+  prisma: true
   unrs-resolver: false
+minimumReleaseAgeExclude:
+  - '@types/pg@8.23.1'

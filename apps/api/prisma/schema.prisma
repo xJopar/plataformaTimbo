@@ -1,0 +1,30 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("user_status")
+}
+
+model User {
+  id             String     @id @default(uuid()) @db.Uuid
+  displayName    String?    @map("display_name")
+  corporateEmail String     @unique @map("corporate_email")
+  googleSubject  String?    @unique @map("google_subject")
+  zohoCrmUserId  String?    @unique @map("zoho_crm_user_id")
+  status         UserStatus @default(ACTIVE)
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deactivatedAt  DateTime?  @map("deactivated_at") @db.Timestamptz(6)
+
+  @@map("users")
+}

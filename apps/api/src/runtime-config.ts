@@ -1,6 +1,7 @@
 export interface RuntimeConfig {
   port: number;
   corsOrigin: string;
+  databaseUrl: string;
 }
 
 export const DEFAULT_PORT = 3000;
@@ -51,6 +52,30 @@ function resolveCorsOrigin(rawCorsOrigin: string | undefined): string {
   return parsedUrl.origin;
 }
 
+export function resolveDatabaseUrl(rawDatabaseUrl: string | undefined): string {
+  const invalidDatabaseUrlMessage =
+    'La variable de entorno DATABASE_URL es obligatoria y debe ser una URL PostgreSQL valida.';
+
+  if (rawDatabaseUrl === undefined || rawDatabaseUrl.trim() === '') {
+    throw new Error(invalidDatabaseUrlMessage);
+  }
+
+  try {
+    const parsedUrl = new URL(rawDatabaseUrl);
+    if (parsedUrl.protocol !== 'postgresql:' && parsedUrl.protocol !== 'postgres:') {
+      throw new Error(invalidDatabaseUrlMessage);
+    }
+  } catch {
+    throw new Error(invalidDatabaseUrlMessage);
+  }
+
+  return rawDatabaseUrl;
+}
+
+export function resolveDatabaseUrlFromEnvironment(env: NodeJS.ProcessEnv = process.env): string {
+  return resolveDatabaseUrl(env.DATABASE_URL);
+}
+
 /**
  * Resuelve y valida la configuración de runtime a partir de variables de entorno.
  * Se ejecuta antes de `NestFactory.create` para que una configuración inválida
@@ -61,5 +86,6 @@ export function resolveRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runt
   return {
     port: resolvePort(env.PORT),
     corsOrigin: resolveCorsOrigin(env.CORS_ORIGIN),
+    databaseUrl: resolveDatabaseUrl(env.DATABASE_URL),
   };
 }
