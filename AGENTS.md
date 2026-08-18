@@ -4,7 +4,7 @@ Reglas durables para cualquier agente (humano o automático) que trabaje en este
 
 ## Alcance del repositorio
 
-Este es el monorepo de **App Shell Plataforma Timbo**, administrado con `pnpm workspaces` (sin Turbo ni Nx). El primer incremento contiene únicamente `apps/api` (NestJS): una operación de estado documentada por OpenAPI. No hay frontend, base de datos, autenticación ni módulos de negocio todavía.
+Este es el monorepo de **App Shell Plataforma Timbo**, administrado con `pnpm workspaces` (sin Turbo ni Nx). Contiene `apps/api` (NestJS), `apps/web` (React/Vite) y `packages/contracts` (OpenAPI generado). La web sólo comprueba la conexión tipada con la API; todavía no hay base de datos, autenticación ni módulos de negocio.
 
 No copiar código de otros proyectos ni introducir capacidades fuera del alcance acordado en el ticket o la actividad vigente. Ante una ambigüedad que exceda el alcance, se informa en vez de decidirse unilateralmente.
 

@@ -9,6 +9,8 @@
   "scripts": {
     "dev": "pnpm --filter @timbo/api dev",
     "dev:web": "pnpm --filter @timbo/web dev",
+    "start:api": "pnpm --filter @timbo/api start",
+    "start:web": "pnpm --filter @timbo/web start",
     "build": "pnpm -r run build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "eslint .",

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "RAILPACK",
+    "buildCommand": "corepack pnpm --filter @timbo/web build",
+    "watchPatterns": [
+      "apps/web/**",
+      "packages/contracts/**",
+      "package.json",
+      "pnpm-lock.yaml",
+      "pnpm-workspace.yaml",
+      "tsconfig.base.json"
+    ]
+  },
+  "deploy": {
+    "startCommand": "corepack pnpm --filter @timbo/web exec serve --single --listen $PORT dist",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 120,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
+  }
+}

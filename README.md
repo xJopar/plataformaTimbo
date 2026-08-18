@@ -35,6 +35,8 @@ El `.env` raíz se carga con el flag nativo de Node `--env-file-if-exists` para 
 | ------------------------- | ------------------------------------------------------------------------------------- |
 | `pnpm dev`                | Levanta `apps/api` en modo desarrollo, con reinicio automático ante cambios.          |
 | `pnpm dev:web`            | Levanta `apps/web` con Vite.                                                          |
+| `pnpm start:api`          | Inicia la API compilada; Railway usa este recorrido con su `PORT`.                    |
+| `pnpm start:web`          | Sirve localmente el build estático de la web en el puerto `4173`.                     |
 | `pnpm generate:contracts` | Exporta OpenAPI desde Nest y regenera el documento y los tipos versionados.           |
 | `pnpm check:contracts`    | Comprueba en un directorio temporal que los contratos versionados están actualizados. |
 | `pnpm build`              | Compila todos los paquetes del workspace.                                             |
@@ -115,3 +117,13 @@ El flujo de la única operación expuesta se lee de punta a punta sin capas inte
 - `apps/web/src/app.spec.tsx`: comprueba carga, disponibilidad, fallo y reintento.
 
 Ejecutar todas las pruebas con `pnpm test`.
+
+## Despliegue
+
+El repositorio se despliega en Railway como dos servicios llamados `api` y `web`, ambos desde la
+raíz compartida del monorepo. La configuración como código vive en
+`apps/api/railway.json` y `apps/web/railway.json`.
+
+No se necesita base de datos en este incremento. Consultar
+[`docs/RAILWAY_DEPLOYMENT.md`](docs/RAILWAY_DEPLOYMENT.md) para publicar en GitHub, crear los
+servicios, configurar dominios y cargar las variables correctas.
