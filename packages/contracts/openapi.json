@@ -1,6 +1,73 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/auth/google": {
+      "get": {
+        "operationId": "startGoogleLogin",
+        "parameters": [],
+        "responses": {
+          "302": {
+            "description": "Redirección al proveedor Google."
+          }
+        },
+        "summary": "Inicia el acceso con Google.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/google/callback": {
+      "get": {
+        "operationId": "completeGoogleLogin",
+        "parameters": [],
+        "responses": {
+          "303": {
+            "description": "Sesión creada y redirección al origen web configurado."
+          }
+        },
+        "summary": "Completa el acceso con Google.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/session": {
+      "get": {
+        "operationId": "getAuthSession",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthSessionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtiene la sesión autenticada vigente.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Sesión revocada o cookie ya ausente."
+          }
+        },
+        "summary": "Revoca la sesión actual.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "getHealth",
@@ -34,6 +101,29 @@
   "servers": [],
   "components": {
     "schemas": {
+      "AuthSessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6"
+          },
+          "corporateEmail": {
+            "type": "string",
+            "example": "persona@timbo.com"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Persona Timbo",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "corporateEmail",
+          "displayName"
+        ]
+      },
       "HealthResponseDto": {
         "type": "object",
         "properties": {

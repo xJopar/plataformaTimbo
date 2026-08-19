@@ -8,6 +8,7 @@
     "prisma:generate": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js generate --config prisma.config.ts",
     "prisma:migrate:dev": "node --env-file=../../.env ./node_modules/prisma/build/index.js migrate dev --config prisma.config.ts",
     "prisma:migrate:deploy": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js migrate deploy --config prisma.config.ts",
+    "preauthorize-user": "node scripts/run-preauthorize-user.cjs",
     "prebuild": "pnpm run prisma:generate",
     "pretypecheck": "pnpm run prisma:generate",
     "pretest": "pnpm run prisma:generate",
@@ -22,12 +23,13 @@
     "test:auth:persistence:integration": "node --env-file=../../.env --experimental-vm-modules test/run-auth-persistence-integration.cjs"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "7.9.1",
-    "@prisma/client": "7.9.1",
     "@nestjs/common": "^11.2.1",
     "@nestjs/core": "^11.2.1",
     "@nestjs/platform-express": "^11.2.1",
     "@nestjs/swagger": "^11.4.6",
+    "@prisma/adapter-pg": "7.9.1",
+    "@prisma/client": "7.9.1",
+    "google-auth-library": "11.0.2",
     "pg": "8.23.0",
     "prisma": "7.9.1",
     "reflect-metadata": "^0.2.2",
@@ -36,6 +38,7 @@
   },
   "devDependencies": {
     "@nestjs/testing": "^11.2.1",
+    "@types/express": "5.0.6",
     "@types/pg": "8.23.1"
   }
 }

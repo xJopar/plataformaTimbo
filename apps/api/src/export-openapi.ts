@@ -1,13 +1,31 @@
 import 'reflect-metadata';
 import { writeFile } from 'node:fs/promises';
 import { basename, resolve } from 'node:path';
+import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { configureApp } from './bootstrap';
+import { HealthModule } from './health/health.module';
+import { AuthController } from './modules/auth/auth.controller';
+import { AuthService } from './modules/auth/auth.service';
+import { SessionAuthenticationGuard } from './modules/auth/session-authentication.guard';
+import { USERS_SERVICE, USER_SESSIONS_SERVICE } from './modules/auth/auth.tokens';
 import { DEFAULT_CORS_ORIGIN } from './runtime-config';
+import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
+
+@Module({
+  imports: [HealthModule],
+  controllers: [AuthController],
+  providers: [
+    { provide: AuthService, useValue: {} },
+    { provide: SessionAuthenticationGuard, useValue: { canActivate: () => true } },
+    { provide: USER_SESSIONS_SERVICE, useValue: {} },
+    { provide: USERS_SERVICE, useValue: {} },
+  ],
+})
+class OpenApiExportModule {}
 
 async function exportOpenApiDocument(outputPath: string): Promise<void> {
-  const app = await NestFactory.create(AppModule, { logger: false });
+  const app = await NestFactory.create(OpenApiExportModule, { logger: false, abortOnError: false });
 
   try {
     // Se aplica la misma configuración que el runtime para conservar prefijo y documento publicados.
@@ -31,7 +49,6 @@ if (
 }
 
 exportOpenApiDocument(outputPath).catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
+  console.error(JSON.stringify(createStartupFailureDiagnostic(error)));
   process.exitCode = 1;
 });

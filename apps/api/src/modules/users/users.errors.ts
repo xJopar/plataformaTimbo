@@ -20,6 +20,12 @@ export class UserNotFoundError extends UsersDomainError {
   }
 }
 
+export class UserInactiveError extends UsersDomainError {
+  public constructor(operation: string) {
+    super('El usuario se encuentra inactivo.', operation);
+  }
+}
+
 export class CorporateEmailAlreadyInUseError extends UsersDomainError {
   public constructor(operation: string, cause: unknown) {
     super('Ya existe un usuario con el correo corporativo indicado.', operation, cause);

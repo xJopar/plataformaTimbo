@@ -6,6 +6,7 @@ import {
   GoogleSubjectAlreadyLinkedError,
   InvalidCorporateEmailError,
   InvalidUserStatusTransitionError,
+  UserInactiveError,
   UserNotFoundError,
   ZohoCrmUserIdAlreadyInUseError,
 } from './users.errors';
@@ -31,6 +32,10 @@ export interface SaveZohoCrmUserIdInput {
 
 export interface ChangeUserStatusInput {
   corporateEmail: string;
+}
+
+export interface FindActiveUserByIdInput {
+  userId: string;
 }
 
 interface PrismaKnownRequestError {
@@ -79,6 +84,12 @@ export class UsersService {
     return user;
   }
 
+  public async findActiveUserById(input: FindActiveUserByIdInput): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: { id: input.userId, status: UserStatus.ACTIVE },
+    });
+  }
+
   public async linkGoogleSubject(input: LinkGoogleSubjectInput): Promise<User> {
     const corporateEmail = this.normalizeCorporateEmail(
       input.corporateEmail,
@@ -89,6 +100,7 @@ export class UsersService {
         where: {
           corporateEmail,
           googleSubject: null,
+          status: UserStatus.ACTIVE,
         },
         data: { googleSubject: input.googleSubject },
       }),
@@ -104,6 +116,10 @@ export class UsersService {
       corporateEmail,
       OPERATION_LINK_GOOGLE,
     );
+
+    if (currentUser.status !== UserStatus.ACTIVE) {
+      throw new UserInactiveError(OPERATION_LINK_GOOGLE);
+    }
 
     if (currentUser.googleSubject === input.googleSubject) {
       return currentUser;

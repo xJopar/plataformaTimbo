@@ -17,6 +17,9 @@ const SENSITIVE_FINAL_SEGMENTS = new Set([
   'secret',
   'authorization',
   'cookie',
+  'state',
+  'verifier',
+  'code',
 ]);
 
 function splitKeySegments(key: string): string[] {

@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import { AuthExceptionFilter } from './modules/auth/auth-exception.filter';
 
 export const API_GLOBAL_PREFIX = 'api';
 export const SWAGGER_UI_PATH = 'docs';
@@ -21,7 +22,16 @@ export function createOpenApiDocument(app: INestApplication): OpenAPIObject {
  */
 export function configureApp(app: INestApplication, corsOrigin: string): OpenAPIObject {
   app.setGlobalPrefix(API_GLOBAL_PREFIX);
-  app.enableCors({ origin: corsOrigin });
+  app.enableCors({
+    credentials: true,
+    origin: (
+      origin: string | undefined,
+      callback: (error: Error | null, allow?: boolean) => void,
+    ) => {
+      callback(null, origin === undefined || origin === corsOrigin);
+    },
+  });
+  app.useGlobalFilters(new AuthExceptionFilter());
 
   const openApiDocument = createOpenApiDocument(app);
   SwaggerModule.setup(SWAGGER_UI_PATH, app, openApiDocument, {

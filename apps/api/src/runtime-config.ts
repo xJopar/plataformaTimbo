@@ -45,7 +45,7 @@ function resolvePort(rawPort: string | undefined): number {
   return parsedPort;
 }
 
-function resolveCorsOrigin(rawCorsOrigin: string | undefined): string {
+export function resolveCorsOrigin(rawCorsOrigin: string | undefined): string {
   if (rawCorsOrigin === undefined) {
     return DEFAULT_CORS_ORIGIN;
   }
@@ -68,6 +68,10 @@ function resolveCorsOrigin(rawCorsOrigin: string | undefined): string {
   }
 
   return parsedUrl.origin;
+}
+
+export function resolveCorsOriginFromEnvironment(env: NodeJS.ProcessEnv = process.env): string {
+  return resolveCorsOrigin(env.CORS_ORIGIN);
 }
 
 export function resolveDatabaseUrl(rawDatabaseUrl: string | undefined): string {
@@ -173,7 +177,7 @@ export function resolveRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runt
 
   return {
     port: resolvePort(env.PORT),
-    corsOrigin: resolveCorsOrigin(env.CORS_ORIGIN),
+    corsOrigin: resolveCorsOriginFromEnvironment(env),
     databaseUrl: resolveDatabaseUrl(env.DATABASE_URL),
     googleOAuth: {
       clientId: googleOAuthConfig.clientId,

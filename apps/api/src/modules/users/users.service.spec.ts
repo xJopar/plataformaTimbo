@@ -159,6 +159,7 @@ describe('UsersService', () => {
         where: {
           corporateEmail: 'persona@example.test',
           googleSubject: null,
+          status: UserStatus.ACTIVE,
         },
         data: { googleSubject: 'google-subject-1' },
       });
@@ -181,6 +182,7 @@ describe('UsersService', () => {
         where: {
           corporateEmail: user.corporateEmail,
           googleSubject: null,
+          status: UserStatus.ACTIVE,
         },
         data: { googleSubject: 'google-subject-1' },
       });
