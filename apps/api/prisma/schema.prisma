@@ -16,15 +16,42 @@ enum UserStatus {
 }
 
 model User {
-  id             String     @id @default(uuid()) @db.Uuid
-  displayName    String?    @map("display_name")
-  corporateEmail String     @unique @map("corporate_email")
-  googleSubject  String?    @unique @map("google_subject")
-  zohoCrmUserId  String?    @unique @map("zoho_crm_user_id")
-  status         UserStatus @default(ACTIVE)
-  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deactivatedAt  DateTime?  @map("deactivated_at") @db.Timestamptz(6)
+  id             String        @id @default(uuid()) @db.Uuid
+  displayName    String?       @map("display_name")
+  corporateEmail String        @unique @map("corporate_email")
+  googleSubject  String?       @unique @map("google_subject")
+  zohoCrmUserId  String?       @unique @map("zoho_crm_user_id")
+  status         UserStatus    @default(ACTIVE)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deactivatedAt  DateTime?     @map("deactivated_at") @db.Timestamptz(6)
+  sessions       UserSession[]
 
   @@map("users")
+}
+
+model OAuthLoginAttempt {
+  id           String    @id @default(uuid()) @db.Uuid
+  stateHash    String    @unique @map("state_hash")
+  pkceVerifier String    @map("pkce_verifier")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt    DateTime  @map("expires_at") @db.Timestamptz(6)
+  consumedAt   DateTime? @map("consumed_at") @db.Timestamptz(6)
+
+  @@index([expiresAt])
+  @@map("oauth_login_attempts")
+}
+
+model UserSession {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("user_sessions")
 }

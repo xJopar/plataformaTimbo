@@ -1,25 +1,51 @@
 import {
   DEFAULT_CORS_ORIGIN,
   DEFAULT_PORT,
+  SESSION_DURATION_MS,
   resolveDatabaseUrl,
+  resolveGoogleOAuthConfig,
   resolveRuntimeConfig,
 } from './runtime-config';
 
 const TEST_DATABASE_URL = 'postgresql://user:password@localhost:5432/timbo';
+const TEST_GOOGLE_OAUTH_ENVIRONMENT = {
+  GOOGLE_OAUTH_CLIENT_ID: 'test-client-id.apps.googleusercontent.com',
+  GOOGLE_OAUTH_CLIENT_SECRET: 'test-client-secret',
+  GOOGLE_OAUTH_REDIRECT_URI: 'http://localhost:3000/api/auth/google/callback',
+};
 
 describe('resolveRuntimeConfig', () => {
   it('usa los valores por defecto cuando PORT y CORS_ORIGIN estan ausentes', () => {
-    const config = resolveRuntimeConfig({ DATABASE_URL: TEST_DATABASE_URL });
+    const config = resolveRuntimeConfig({
+      DATABASE_URL: TEST_DATABASE_URL,
+      ...TEST_GOOGLE_OAUTH_ENVIRONMENT,
+    });
 
     expect(config).toEqual({
       port: DEFAULT_PORT,
       corsOrigin: DEFAULT_CORS_ORIGIN,
       databaseUrl: TEST_DATABASE_URL,
+      googleOAuth: {
+        clientId: TEST_GOOGLE_OAUTH_ENVIRONMENT.GOOGLE_OAUTH_CLIENT_ID,
+        clientSecret: TEST_GOOGLE_OAUTH_ENVIRONMENT.GOOGLE_OAUTH_CLIENT_SECRET,
+        redirectUri: TEST_GOOGLE_OAUTH_ENVIRONMENT.GOOGLE_OAUTH_REDIRECT_URI,
+      },
+      sessionCookie: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAgeMs: SESSION_DURATION_MS,
+        path: '/',
+      },
     });
   });
 
   it('acepta un PORT numerico valido dentro del rango permitido', () => {
-    const config = resolveRuntimeConfig({ PORT: '8080', DATABASE_URL: TEST_DATABASE_URL });
+    const config = resolveRuntimeConfig({
+      PORT: '8080',
+      DATABASE_URL: TEST_DATABASE_URL,
+      ...TEST_GOOGLE_OAUTH_ENVIRONMENT,
+    });
 
     expect(config.port).toBe(8080);
   });
@@ -28,7 +54,11 @@ describe('resolveRuntimeConfig', () => {
     'rechaza un PORT invalido: "%s"',
     (invalidPort) => {
       expect(() =>
-        resolveRuntimeConfig({ PORT: invalidPort, DATABASE_URL: TEST_DATABASE_URL }),
+        resolveRuntimeConfig({
+          PORT: invalidPort,
+          DATABASE_URL: TEST_DATABASE_URL,
+          ...TEST_GOOGLE_OAUTH_ENVIRONMENT,
+        }),
       ).toThrow(/La variable de entorno PORT debe ser un/);
     },
   );
@@ -37,6 +67,7 @@ describe('resolveRuntimeConfig', () => {
     const config = resolveRuntimeConfig({
       CORS_ORIGIN: 'https://timbo.example.com',
       DATABASE_URL: TEST_DATABASE_URL,
+      ...TEST_GOOGLE_OAUTH_ENVIRONMENT,
     });
 
     expect(config.corsOrigin).toBe('https://timbo.example.com');
@@ -50,7 +81,11 @@ describe('resolveRuntimeConfig', () => {
     'http://localhost:5173#section',
   ])('rechaza un CORS_ORIGIN invalido: "%s"', (invalidOrigin) => {
     expect(() =>
-      resolveRuntimeConfig({ CORS_ORIGIN: invalidOrigin, DATABASE_URL: TEST_DATABASE_URL }),
+      resolveRuntimeConfig({
+        CORS_ORIGIN: invalidOrigin,
+        DATABASE_URL: TEST_DATABASE_URL,
+        ...TEST_GOOGLE_OAUTH_ENVIRONMENT,
+      }),
     ).toThrow(/La variable de entorno CORS_ORIGIN debe ser un origen HTTP o HTTPS/);
   });
 
@@ -85,4 +120,53 @@ describe('resolveRuntimeConfig', () => {
       );
     },
   );
+
+  it.each([
+    [
+      'GOOGLE_OAUTH_CLIENT_ID',
+      { ...TEST_GOOGLE_OAUTH_ENVIRONMENT, GOOGLE_OAUTH_CLIENT_ID: undefined },
+    ],
+    [
+      'GOOGLE_OAUTH_CLIENT_SECRET',
+      { ...TEST_GOOGLE_OAUTH_ENVIRONMENT, GOOGLE_OAUTH_CLIENT_SECRET: undefined },
+    ],
+    [
+      'GOOGLE_OAUTH_REDIRECT_URI',
+      { ...TEST_GOOGLE_OAUTH_ENVIRONMENT, GOOGLE_OAUTH_REDIRECT_URI: undefined },
+    ],
+  ] as const)('rechaza %s ausente sin incluir valores sensibles', (variableName, environment) => {
+    expect(() => resolveGoogleOAuthConfig(environment)).toThrow(
+      `La variable de entorno ${variableName} es obligatoria.`,
+    );
+  });
+
+  it.each([
+    'not-a-url',
+    'ftp://localhost/api/auth/google/callback',
+    'http://localhost:3000/otra-ruta',
+    'http://localhost:3000/api/auth/google/callback?unexpected=true',
+    'http://example.test/api/auth/google/callback',
+  ])('rechaza un redirect URI invalido: %s', (redirectUri) => {
+    expect(() =>
+      resolveGoogleOAuthConfig({
+        ...TEST_GOOGLE_OAUTH_ENVIRONMENT,
+        GOOGLE_OAUTH_REDIRECT_URI: redirectUri,
+      }),
+    ).toThrow(/GOOGLE_OAUTH_REDIRECT_URI/);
+  });
+
+  it('usa cookie Secure y SameSite=None para un callback HTTPS de Railway', () => {
+    const config = resolveGoogleOAuthConfig({
+      ...TEST_GOOGLE_OAUTH_ENVIRONMENT,
+      GOOGLE_OAUTH_REDIRECT_URI: 'https://api-development.example.test/api/auth/google/callback',
+    });
+
+    expect(config.sessionCookie).toEqual({
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAgeMs: SESSION_DURATION_MS,
+      path: '/',
+    });
+  });
 });

@@ -12,12 +12,14 @@
     "pretypecheck": "pnpm run prisma:generate",
     "pretest": "pnpm run prisma:generate",
     "pretest:users:integration": "pnpm run prisma:generate",
+    "pretest:auth:persistence:integration": "pnpm run prisma:generate",
     "build": "tsc -p tsconfig.build.json",
     "export:openapi": "node -r ts-node/register src/export-openapi.ts",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
     "typecheck": "tsc -p tsconfig.json",
     "test": "jest",
-    "test:users:integration": "node --env-file-if-exists=../../.env --experimental-vm-modules test/run-users-integration.cjs"
+    "test:users:integration": "node --env-file-if-exists=../../.env --experimental-vm-modules test/run-users-integration.cjs",
+    "test:auth:persistence:integration": "node --env-file=../../.env --experimental-vm-modules test/run-auth-persistence-integration.cjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.9.1",

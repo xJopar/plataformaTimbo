@@ -60,6 +60,16 @@ DATABASE_URL=${{dev-base-datos.DATABASE_URL}}
 La referencia anterior es la configuración confirmada para `development`; es una referencia
 privada, no una URL que deba copiarse fuera de Railway.
 
+La autenticación Google se configura sólo en el servicio `api` de **development**. Mantener
+`GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` y `GOOGLE_OAUTH_REDIRECT_URI` como
+variables de backend; el secreto no se copia a `web`, al repositorio ni a los logs. El callback
+debe coincidir exactamente con el registrado en Google Cloud. Esta tanda no autoriza configurar
+estas variables, ni modificar las existentes, en production.
+
+La cookie de sesión se emitirá posteriormente desde la API, sin atributo `Domain`: en localhost
+usa HTTP con `SameSite=Lax`; con el callback HTTPS de Railway usa `Secure` y `SameSite=None`.
+Su vencimiento absoluto es de ocho horas.
+
 En el servicio `api` de **production**, conservar la separación y configurar la referencia al
 servicio PostgreSQL homónimo del entorno productivo:
 
