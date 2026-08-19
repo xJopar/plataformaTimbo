@@ -8,10 +8,16 @@ import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/bootstrap';
 import { PrismaService } from '../src/database/prisma.service';
 import { GoogleOAuthService } from '../src/modules/auth/google-oauth.service';
+import { AuthPublicError } from '../src/modules/auth/auth-public.errors';
 import { OAuthLoginAttemptUnavailableError } from '../src/modules/auth/auth-persistence.errors';
 import { OAuthLoginAttemptsService } from '../src/modules/auth/oauth-login-attempts.service';
 import { UserSessionsService } from '../src/modules/auth/user-sessions.service';
 import { UsersService } from '../src/modules/users/users.service';
+import {
+  GoogleSubjectAlreadyLinkedError,
+  UserInactiveError,
+  UserNotFoundError,
+} from '../src/modules/users/users.errors';
 
 const TEST_ORIGIN = 'http://localhost:5173';
 const createUser = (): User => ({
@@ -149,9 +155,11 @@ describe('autenticación HTTP (e2e)', () => {
 
     const response = await request(app.getHttpServer() as Server)
       .get(`/api/auth/google/callback?state=${randomUUID()}&code=${randomUUID()}`)
-      .expect(400);
+      .expect(303);
 
-    expect(response.body).toEqual({ code: 'LOGIN_ATTEMPT_INVALID' });
+    expect(response.headers.location).toBe(`${TEST_ORIGIN}/?auth_error=LOGIN_ATTEMPT_INVALID`);
+    expect(response.headers.location).not.toContain('state=');
+    expect(response.headers.location).not.toContain('code=');
     expect(response.headers['set-cookie']).toBeUndefined();
     expect(userSessionsService.createSession).not.toHaveBeenCalled();
   });
@@ -169,14 +177,18 @@ describe('autenticación HTTP (e2e)', () => {
 
     const cancelledResponse = await request(app.getHttpServer() as Server)
       .get(`/api/auth/google/callback?state=${state}&error=access_denied`)
-      .expect(400);
-    expect(cancelledResponse.body).toEqual({ code: 'LOGIN_RESPONSE_INVALID' });
+      .expect(303);
+    expect(cancelledResponse.headers.location).toBe(
+      `${TEST_ORIGIN}/?auth_error=LOGIN_RESPONSE_INVALID`,
+    );
     expect(cancelledResponse.headers['set-cookie']).toBeUndefined();
 
     const reusedResponse = await request(app.getHttpServer() as Server)
       .get(`/api/auth/google/callback?state=${state}&code=${randomUUID()}`)
-      .expect(400);
-    expect(reusedResponse.body).toEqual({ code: 'LOGIN_ATTEMPT_INVALID' });
+      .expect(303);
+    expect(reusedResponse.headers.location).toBe(
+      `${TEST_ORIGIN}/?auth_error=LOGIN_ATTEMPT_INVALID`,
+    );
     expect(userSessionsService.createSession).not.toHaveBeenCalled();
   });
 
@@ -184,15 +196,61 @@ describe('autenticación HTTP (e2e)', () => {
     const state = randomUUID();
     await request(app.getHttpServer() as Server)
       .get(`/api/auth/google/callback?state=${state}`)
-      .expect(400)
-      .expect({ code: 'LOGIN_RESPONSE_INVALID' });
+      .expect(303);
     expect(oauthLoginAttemptsService.consumeLoginAttempt).toHaveBeenCalledWith(state);
 
     await request(app.getHttpServer() as Server)
       .get(`/api/auth/google/callback?code=${randomUUID()}`)
-      .expect(400)
-      .expect({ code: 'LOGIN_ATTEMPT_INVALID' });
+      .expect(303);
     expect(oauthLoginAttemptsService.consumeLoginAttempt).toHaveBeenCalledTimes(1);
+  });
+
+  it('redirige los rechazos públicos OAuth al origen configurado con un código estable', async () => {
+    const cases = [
+      {
+        errorCode: 'USER_NOT_AUTHORIZED',
+        prepare: () =>
+          usersService.linkGoogleSubject.mockRejectedValue(new UserNotFoundError('corporateEmail')),
+      },
+      {
+        errorCode: 'USER_INACTIVE',
+        prepare: () =>
+          usersService.linkGoogleSubject.mockRejectedValue(new UserInactiveError('userId')),
+      },
+      {
+        errorCode: 'GOOGLE_IDENTITY_MISMATCH',
+        prepare: () =>
+          usersService.linkGoogleSubject.mockRejectedValue(
+            new GoogleSubjectAlreadyLinkedError('googleSubject'),
+          ),
+      },
+      {
+        errorCode: 'GOOGLE_IDENTITY_INVALID',
+        prepare: () =>
+          googleOAuthService.exchangeAuthorizationCode.mockRejectedValue(
+            new AuthPublicError('GOOGLE_IDENTITY_INVALID', 401),
+          ),
+      },
+    ];
+
+    for (const { errorCode, prepare } of cases) {
+      prepare();
+
+      const response = await request(app.getHttpServer() as Server)
+        .get(`/api/auth/google/callback?state=${randomUUID()}&code=${randomUUID()}`)
+        .expect(303);
+
+      expect(response.headers.location).toBe(`${TEST_ORIGIN}/?auth_error=${errorCode}`);
+      expect(response.headers.location).not.toContain('state=');
+      expect(response.headers.location).not.toContain('code=');
+      expect(response.headers['set-cookie']).toBeUndefined();
+      expect(userSessionsService.createSession).not.toHaveBeenCalled();
+      jest.mocked(googleOAuthService.exchangeAuthorizationCode).mockResolvedValue({
+        subject: randomUUID(),
+        email: 'persona@example.test',
+      });
+      jest.mocked(usersService.linkGoogleSubject).mockResolvedValue(createUser());
+    }
   });
 
   it('aplica CORS con credenciales sólo al origen exacto', async () => {

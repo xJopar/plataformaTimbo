@@ -79,8 +79,12 @@ export class AuthService {
     return resolveGoogleOAuthConfig().sessionCookie;
   }
 
-  public getWebHomeUrl(): string {
-    return new URL('/', resolveCorsOriginFromEnvironment()).toString();
+  public getWebHomeUrl(publicErrorCode?: string): string {
+    const webHomeUrl = new URL('/', resolveCorsOriginFromEnvironment());
+    if (publicErrorCode !== undefined) {
+      webHomeUrl.searchParams.set('auth_error', publicErrorCode);
+    }
+    return webHomeUrl.toString();
   }
 
   public async logout(sessionToken: string | undefined): Promise<void> {

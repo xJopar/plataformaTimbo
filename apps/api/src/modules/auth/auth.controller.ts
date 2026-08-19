@@ -8,6 +8,7 @@ import {
 } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
+import { AuthPublicError } from './auth-public.errors';
 import { CsrfProtectionGuard } from './csrf-protection.guard';
 import { AuthSessionResponseDto } from './dto/auth-session-response.dto';
 import {
@@ -40,7 +41,16 @@ export class AuthController {
     @Query('error') providerError: string | undefined,
     @Res() response: Response,
   ): Promise<void> {
-    const session = await this.authService.completeGoogleLogin({ state, code, providerError });
+    let session: { token: string };
+    try {
+      session = await this.authService.completeGoogleLogin({ state, code, providerError });
+    } catch (error) {
+      if (error instanceof AuthPublicError) {
+        response.redirect(303, this.authService.getWebHomeUrl(error.code));
+        return;
+      }
+      throw error;
+    }
     response.cookie(
       SESSION_COOKIE_NAME,
       session.token,

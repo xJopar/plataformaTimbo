@@ -43,17 +43,33 @@ export class GoogleOAuthService {
   ): Promise<GoogleIdentity> {
     const config = resolveGoogleOAuthConfig();
     const client = new OAuth2Client(config.clientId, config.clientSecret, config.redirectUri);
-    const tokenResponse = await client.getToken({
-      code: input.code,
-      codeVerifier: input.pkceVerifier,
-    });
+    let tokenResponse;
+    try {
+      tokenResponse = await client.getToken({
+        code: input.code,
+        codeVerifier: input.pkceVerifier,
+      });
+    } catch (error) {
+      if (isExpectedGoogleProviderFailure(error)) {
+        throw new AuthPublicError('GOOGLE_IDENTITY_INVALID', 401);
+      }
+      throw error;
+    }
     const idToken = tokenResponse.tokens.id_token;
 
     if (typeof idToken !== 'string') {
       throw new AuthPublicError('GOOGLE_IDENTITY_INVALID', 401);
     }
 
-    const ticket = await client.verifyIdToken({ idToken, audience: config.clientId });
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({ idToken, audience: config.clientId });
+    } catch (error) {
+      if (isExpectedGoogleProviderFailure(error) || isExpectedIdTokenVerificationFailure(error)) {
+        throw new AuthPublicError('GOOGLE_IDENTITY_INVALID', 401);
+      }
+      throw error;
+    }
     const payload = ticket.getPayload();
     const email = payload?.email;
     const subject = payload?.sub;
@@ -74,4 +90,41 @@ export class GoogleOAuthService {
       ...(typeof payload.name === 'string' ? { displayName: payload.name } : {}),
     };
   }
+}
+
+function isExpectedGoogleProviderFailure(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('response' in error)) {
+    return false;
+  }
+
+  const response = error.response;
+  if (typeof response !== 'object' || response === null || !('status' in response)) {
+    return false;
+  }
+
+  return response.status === 400 || response.status === 401;
+}
+
+// google-auth-library@11.0.2 (oauth2client.js, verifySignedJwtWithCertsAsync) no expone clases ni
+// códigos estables para rechazos locales de verificación del ID token: lanza `Error` planos con
+// estos prefijos de mensaje literales para firma, issuer, audience y ventana temporal (early/late).
+// Es el criterio más estrecho disponible en esta versión; otros mensajes de la misma función
+// (token malformado, certificado ausente, etc.) quedan deliberadamente fuera y siguen fail-fast.
+// Si se actualiza la dependencia, revisar que estos mensajes sigan vigentes.
+const EXPECTED_ID_TOKEN_VERIFICATION_MESSAGE_PREFIXES = [
+  'Invalid token signature: ',
+  'Invalid issuer, expected one of [',
+  'Wrong recipient, payload audience != requiredAudience',
+  'Token used too early, ',
+  'Token used too late, ',
+] as const;
+
+function isExpectedIdTokenVerificationFailure(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return EXPECTED_ID_TOKEN_VERIFICATION_MESSAGE_PREFIXES.some((prefix) =>
+    error.message.startsWith(prefix),
+  );
 }

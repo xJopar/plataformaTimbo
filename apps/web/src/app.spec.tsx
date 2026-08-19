@@ -3,98 +3,121 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { App } from './app';
-import type { Api, HealthResponse, SystemApi } from './api';
+import { ApiHttpError, type Api, type AuthApi, type AuthSession } from './api';
 
-interface PendingHealthRequest {
-  resolve(health: HealthResponse): void;
-  reject(error: Error): void;
+const session: AuthSession = {
+  id: '3f8a7c4e-6597-42d6-891b-7c7cb1fab2bc',
+  corporateEmail: 'persona@timbo.com',
+  displayName: 'Persona Timbo',
+};
+
+function createApi(overrides: Partial<AuthApi> = {}): Api {
+  return {
+    auth: {
+      getSession: vi.fn<AuthApi['getSession']>().mockResolvedValue(session),
+      logout: vi.fn<AuthApi['logout']>().mockResolvedValue(undefined),
+      getGoogleLoginUrl: vi
+        .fn<AuthApi['getGoogleLoginUrl']>()
+        .mockReturnValue('http://localhost:3000/api/auth/google'),
+      ...overrides,
+    },
+    system: { getHealth: vi.fn() },
+  };
 }
 
 describe('App', () => {
-  it('muestra verificación y luego disponibilidad', async () => {
-    let resolveHealth: ((value: HealthResponse) => void) | undefined;
-    const getHealth = vi.fn<SystemApi['getHealth']>();
-    getHealth.mockImplementation(
-      () =>
-        new Promise<HealthResponse>((resolve) => {
-          resolveHealth = resolve;
-        }),
-    );
-    const systemApi: SystemApi = {
-      getHealth,
-    };
-
-    render(<App api={{ system: systemApi }} />);
-    expect(screen.getByRole('heading', { name: 'Verificando conexión' })).toBeInTheDocument();
-
-    resolveHealth?.({ status: 'ok', timestamp: '2026-08-18T12:00:00.000Z' });
-
-    expect(await screen.findByRole('heading', { name: 'API disponible' })).toBeInTheDocument();
-  });
-
-  it('muestra el fallo y permite reintentar la consulta', async () => {
-    const getHealth = vi
-      .fn<SystemApi['getHealth']>()
-      .mockRejectedValueOnce(new Error('No se pudo conectar.'))
-      .mockResolvedValueOnce({ status: 'ok', timestamp: '2026-08-18T12:00:00.000Z' });
-    const systemApi: SystemApi = { getHealth };
-    const user = userEvent.setup();
-
-    const api: Api = { system: systemApi };
+  it('muestra acceso corporativo cuando la sesión no existe', async () => {
+    const api = createApi({ getSession: vi.fn().mockRejectedValue(new ApiHttpError(401)) });
     render(<App api={api} />);
 
-    expect(await screen.findByRole('heading', { name: 'API no disponible' })).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent('No se pudo conectar.');
-
-    await user.click(screen.getByRole('button', { name: 'Reintentar conexión' }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'API disponible' })).toBeInTheDocument();
-    });
-    expect(getHealth).toHaveBeenCalledTimes(2);
+    expect(await screen.findByRole('heading', { name: 'Acceso corporativo' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ingresar con Google' })).toBeInTheDocument();
   });
 
-  it('muestra un error de configuración como indisponibilidad', () => {
-    render(<App configurationError={new Error('VITE_API_BASE_URL no es válida.')} />);
+  it('muestra el Home seguro y el estado vacío cuando existe sesión', async () => {
+    render(<App api={createApi()} />);
 
-    expect(screen.getByRole('heading', { name: 'API no disponible' })).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent('VITE_API_BASE_URL no es válida.');
+    expect(await screen.findByRole('heading', { name: 'Tablero de despacho' })).toBeInTheDocument();
+    expect(screen.getByText('Persona Timbo')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Sin aplicaciones asignadas' })).toBeInTheDocument();
+    expect(document.querySelector('[data-layout="continuous-empty-surface"]')).toBeInTheDocument();
   });
 
-  it('conserva la respuesta más reciente cuando StrictMode completa solicitudes fuera de orden', async () => {
-    const pendingRequests: PendingHealthRequest[] = [];
-    const getHealth = vi.fn<SystemApi['getHealth']>().mockImplementation(
-      () =>
-        new Promise<HealthResponse>((resolve, reject) => {
-          pendingRequests.push({ resolve, reject });
-        }),
-    );
-    const api: Api = { system: { getHealth } };
+  it('consume una vez el resultado OAuth, limpia la URL y permite recuperar el acceso', async () => {
+    window.history.replaceState({}, '', '/?auth_error=USER_NOT_AUTHORIZED');
+    const api = createApi();
+    render(<App api={api} />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('no está autorizada');
+    expect(window.location.search).toBe('');
+    expect(api.auth.getSession).not.toHaveBeenCalled();
+  });
+
+  it('muestra un fallo técnico recuperable para errores que no son 401', async () => {
+    const getSession = vi
+      .fn<AuthApi['getSession']>()
+      .mockRejectedValueOnce(new ApiHttpError(503))
+      .mockResolvedValueOnce(session);
+    const user = userEvent.setup();
+    render(<App api={createApi({ getSession })} />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'No pudimos verificar tu acceso' }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(await screen.findByRole('heading', { name: 'Tablero de despacho' })).toBeInTheDocument();
+  });
+
+  it('no muestra éxito de logout si la revocación falla y permite reintentar', async () => {
+    const logout = vi
+      .fn<AuthApi['logout']>()
+      .mockRejectedValueOnce(new ApiHttpError(500))
+      .mockResolvedValueOnce(undefined);
+    const user = userEvent.setup();
+    render(<App api={createApi({ logout })} />);
+
+    await screen.findByRole('heading', { name: 'Tablero de despacho' });
+    await user.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo cerrar la sesión');
+    expect(screen.getByRole('heading', { name: 'Tablero de despacho' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Reintentar cierre de sesión' }));
+    expect(await screen.findByRole('heading', { name: 'Acceso corporativo' })).toBeInTheDocument();
+  });
+
+  it('conserva el resultado más reciente bajo StrictMode y respuestas fuera de orden', async () => {
+    let resolveFirst: ((value: AuthSession) => void) | undefined;
+    const getSession = vi
+      .fn<AuthApi['getSession']>()
+      .mockImplementationOnce(
+        () =>
+          new Promise<AuthSession>((resolve) => {
+            resolveFirst = resolve;
+          }),
+      )
+      .mockResolvedValueOnce(session);
 
     render(
       <StrictMode>
-        <App api={api} />
+        <App api={createApi({ getSession })} />
       </StrictMode>,
     );
 
-    await waitFor(() => {
-      expect(getHealth.mock.calls.length).toBeGreaterThan(1);
-    });
+    expect(await screen.findByRole('heading', { name: 'Tablero de despacho' })).toBeInTheDocument();
+    resolveFirst?.({ ...session, displayName: 'Respuesta anterior' });
+    await waitFor(() => expect(screen.getByText('Persona Timbo')).toBeInTheDocument());
+  });
 
-    const firstRequest = pendingRequests[0];
-    const mostRecentRequest = pendingRequests.at(-1);
-    if (firstRequest === undefined || mostRecentRequest === undefined) {
-      throw new Error('Se esperaban al menos dos solicitudes de estado.');
-    }
+  it('no usa almacenamiento del navegador para la autenticación', async () => {
+    const getItem = vi.spyOn(Storage.prototype, 'getItem');
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    const removeItem = vi.spyOn(Storage.prototype, 'removeItem');
+    const api = createApi({ getSession: vi.fn().mockRejectedValue(new ApiHttpError(401)) });
 
-    mostRecentRequest.resolve({ status: 'ok', timestamp: '2026-08-18T12:00:00.000Z' });
-    expect(await screen.findByRole('heading', { name: 'API disponible' })).toBeInTheDocument();
+    render(<App api={api} />);
 
-    firstRequest.reject(new Error('La solicitud anterior falló.'));
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'API disponible' })).toBeInTheDocument();
-    });
-    expect(screen.queryByRole('heading', { name: 'API no disponible' })).not.toBeInTheDocument();
+    await screen.findByRole('heading', { name: 'Acceso corporativo' });
+    expect(getItem).not.toHaveBeenCalled();
+    expect(setItem).not.toHaveBeenCalled();
+    expect(removeItem).not.toHaveBeenCalled();
   });
 });

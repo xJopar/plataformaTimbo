@@ -20,7 +20,11 @@ export function createSystemApi(
   baseUrl: string,
   fetchImplementation: typeof fetch = fetch,
 ): SystemApi {
-  const client = createClient<paths>({ baseUrl, fetch: fetchImplementation });
+  const client = createClient<paths>({
+    baseUrl,
+    credentials: 'include',
+    fetch: fetchImplementation,
+  });
 
   return {
     async getHealth(): Promise<HealthResponse> {
