@@ -33,12 +33,27 @@ describe('createStartupFailureDiagnostic', () => {
     const diagnostic = createStartupFailureDiagnostic({ code: 'E_BOOTSTRAP', token: 'test-token' });
 
     expect(diagnostic).toEqual({
+      timestamp: expect.any(String) as string,
+      level: 'error',
+      service: 'api',
+      environment: expect.any(String) as string,
       event: 'api.bootstrap.failed',
       operation: 'bootstrap',
       name: 'NonErrorThrown',
       code: 'E_BOOTSTRAP',
       message: 'Se lanzó un valor no Error de tipo object.',
     });
+  });
+
+  it('expone el mismo contrato base (timestamp/level/service/environment) que api.request.completed y api.request.failed', () => {
+    const diagnostic = createStartupFailureDiagnostic(new Error('fallo de arranque'));
+
+    expect(diagnostic.level).toBe('error');
+    expect(diagnostic.service).toBe('api');
+    expect(typeof diagnostic.environment).toBe('string');
+    expect(diagnostic.environment.length).toBeGreaterThan(0);
+    expect(() => new Date(diagnostic.timestamp).toISOString()).not.toThrow();
+    expect(new Date(diagnostic.timestamp).toISOString()).toBe(diagnostic.timestamp);
   });
 
   it('redacta claves sensibles compuestas y JSON sin perder sus claves ni límites', () => {

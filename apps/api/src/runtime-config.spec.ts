@@ -1,8 +1,11 @@
 import {
   DEFAULT_CORS_ORIGIN,
+  DEFAULT_ENVIRONMENT,
   DEFAULT_PORT,
   SESSION_DURATION_MS,
   resolveDatabaseUrl,
+  resolveEnvironment,
+  resolveEnvironmentFromEnvironment,
   resolveGoogleOAuthConfig,
   resolveRuntimeConfig,
 } from './runtime-config';
@@ -168,5 +171,23 @@ describe('resolveRuntimeConfig', () => {
       maxAge: SESSION_DURATION_MS,
       path: '/',
     });
+  });
+});
+
+describe('resolveEnvironment', () => {
+  it('usa development por defecto cuando NODE_ENV está ausente o vacío', () => {
+    expect(resolveEnvironment(undefined)).toBe(DEFAULT_ENVIRONMENT);
+    expect(resolveEnvironment('')).toBe(DEFAULT_ENVIRONMENT);
+    expect(resolveEnvironment('   ')).toBe(DEFAULT_ENVIRONMENT);
+  });
+
+  it('conserva el valor recibido sin normalizarlo a un catálogo fijo', () => {
+    expect(resolveEnvironment('production')).toBe('production');
+    expect(resolveEnvironment(' development ')).toBe('development');
+  });
+
+  it('resuelve NODE_ENV desde el objeto de entorno recibido', () => {
+    expect(resolveEnvironmentFromEnvironment({ NODE_ENV: 'production' })).toBe('production');
+    expect(resolveEnvironmentFromEnvironment({})).toBe(DEFAULT_ENVIRONMENT);
   });
 });

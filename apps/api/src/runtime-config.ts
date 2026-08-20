@@ -22,6 +22,7 @@ export interface SessionCookieConfig {
 
 export const DEFAULT_PORT = 3000;
 export const DEFAULT_CORS_ORIGIN = 'http://localhost:5173';
+export const DEFAULT_ENVIRONMENT = 'development';
 
 const MIN_PORT = 1;
 const MAX_PORT = 65535;
@@ -96,6 +97,21 @@ export function resolveDatabaseUrl(rawDatabaseUrl: string | undefined): string {
 
 export function resolveDatabaseUrlFromEnvironment(env: NodeJS.ProcessEnv = process.env): string {
   return resolveDatabaseUrl(env.DATABASE_URL);
+}
+
+/**
+ * `NODE_ENV` es opcional y no bloquea el arranque: sólo identifica el entorno en los logs
+ * operativos estructurados (campo `environment`), nunca decide comportamiento de seguridad.
+ */
+export function resolveEnvironment(rawEnvironment: string | undefined): string {
+  const trimmedEnvironment = rawEnvironment?.trim();
+  return trimmedEnvironment === undefined || trimmedEnvironment === ''
+    ? DEFAULT_ENVIRONMENT
+    : trimmedEnvironment;
+}
+
+export function resolveEnvironmentFromEnvironment(env: NodeJS.ProcessEnv = process.env): string {
+  return resolveEnvironment(env.NODE_ENV);
 }
 
 function resolveRequiredGoogleValue(rawValue: string | undefined, variableName: string): string {

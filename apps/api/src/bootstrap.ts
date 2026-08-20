@@ -1,6 +1,5 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
-import { AuthExceptionFilter } from './modules/auth/auth-exception.filter';
 
 export const API_GLOBAL_PREFIX = 'api';
 export const SWAGGER_UI_PATH = 'docs';
@@ -31,7 +30,8 @@ export function configureApp(app: INestApplication, corsOrigin: string): OpenAPI
       callback(null, origin === undefined || origin === corsOrigin);
     },
   });
-  app.useGlobalFilters(new AuthExceptionFilter());
+  // El filtro global de excepciones se registra vía DI (APP_FILTER en AppModule): necesita
+  // RequestContextService y OperationalLoggerService, no puede instanciarse con `new`.
 
   const openApiDocument = createOpenApiDocument(app);
   SwaggerModule.setup(SWAGGER_UI_PATH, app, openApiDocument, {
