@@ -5,11 +5,10 @@ import {
   HttpException,
   Injectable,
 } from '@nestjs/common';
+import { generateRequestId, normalizeRequestRoute } from '@timbo/observability';
 import type { Request, Response } from 'express';
 import { OperationalLoggerService } from '../observability/operational-logger.service';
 import { RequestContextService } from '../observability/request-context.service';
-import { generateRequestId } from '../observability/request-id';
-import { normalizeRequestRoute } from '../observability/request-route';
 import { AuthPublicError } from './auth-public.errors';
 
 const UNEXPECTED_FAILURE_STATUS_THRESHOLD = 500;

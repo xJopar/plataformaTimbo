@@ -1,9 +1,9 @@
 import { EventEmitter } from 'node:events';
+import { RESPONSE_REQUEST_ID_HEADER, isValidIncomingRequestId } from '@timbo/observability';
 import type { Request, Response } from 'express';
 import { OperationalLoggerService } from './operational-logger.service';
 import { RequestContextMiddleware } from './request-context.middleware';
 import { RequestContextService } from './request-context.service';
-import { RESPONSE_REQUEST_ID_HEADER, isValidIncomingRequestId } from './request-id';
 
 function createRequest(overrides: {
   headerValue?: string;

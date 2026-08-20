@@ -2,12 +2,12 @@ import { randomUUID } from 'node:crypto';
 import type { Server } from 'node:http';
 import { INestApplication } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { INCOMING_REQUEST_ID_HEADER } from '@timbo/observability';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { API_GLOBAL_PREFIX, configureApp } from '../src/bootstrap';
 import { PrismaService } from '../src/database/prisma.service';
 import { UserSessionsService } from '../src/modules/auth/user-sessions.service';
-import { INCOMING_REQUEST_ID_HEADER } from '../src/modules/observability/request-id';
 import { DEFAULT_CORS_ORIGIN } from '../src/runtime-config';
 
 type StructuredLog = Record<string, unknown>;

@@ -1,6 +1,8 @@
 import type { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'node:http';
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
+import { INCOMING_REQUEST_ID_HEADER } from '@timbo/observability';
+import { logUpstreamUnavailable, type GatewayRequestContext } from './operational-logger.js';
 
 // Encabezados de un único salto: no tienen sentido reenviados entre el gateway
 // y el upstream, que son dos conexiones HTTP independientes.
@@ -37,11 +39,14 @@ export interface ProxyApiRequestOptions {
  * Reenvía una petición `/api/*` al origen interno de la API, preservando método,
  * cuerpo, encabezados y la respuesta (incluido `Set-Cookie`) sin transformarlos.
  * No conoce autenticación ni credenciales: sólo mueve bytes entre dos conexiones HTTP.
+ * Propaga el mismo `requestId` que el gateway ya resolvió y devolvió al navegador,
+ * para que API observe exactamente ese valor en vez de revalidar uno propio.
  */
 export function proxyApiRequest(
   request: IncomingMessage,
   response: ServerResponse,
   apiInternalOrigin: string,
+  requestContext: GatewayRequestContext,
   options: ProxyApiRequestOptions = {},
 ): void {
   const upstreamTimeoutMs = options.upstreamTimeoutMs ?? DEFAULT_UPSTREAM_TIMEOUT_MS;
@@ -50,6 +55,7 @@ export function proxyApiRequest(
 
   const forwardedHeaders = filterHopByHopHeaders(request.headers);
   forwardedHeaders.host = upstreamUrl.host;
+  forwardedHeaders[INCOMING_REQUEST_ID_HEADER] = requestContext.requestId;
 
   const upstreamRequest = makeUpstreamRequest(
     upstreamUrl,
@@ -77,22 +83,16 @@ export function proxyApiRequest(
   upstreamRequest.on('error', (error: NodeJS.ErrnoException) => {
     if (response.writableEnded || response.destroyed) {
       // El cliente ya cortó la conexión (o la respuesta ya se completó): no hay a quién
-      // responder ni una falla de upstream real que diagnosticar.
+      // responder ni una falla de upstream real que diagnosticar. Un aborto benigno libera
+      // recursos y deja su finalización propia; nunca se inventa una falla de upstream.
       return;
     }
 
-    // Diagnóstico sin cookies, cabeceras ni cuerpo: sólo identifica la falla de conexión.
-    console.error(
-      JSON.stringify({
-        event: 'web.gateway.upstream_unavailable',
-        operation: 'proxy',
-        method: request.method,
-        path: upstreamUrl.pathname,
-        name: error.name,
-        code: error.code,
-        message: error.message,
-      }),
-    );
+    // Diagnóstico sin cookies, cabeceras ni cuerpo: sólo identifica la falla de conexión,
+    // correlacionada por requestId. El código (`ECONNREFUSED`, `UPSTREAM_TIMEOUT`, etc.)
+    // distingue indisponibilidad de timeout sin necesitar un evento separado. El origen interno
+    // nunca se filtra: el mensaje de conexión de Node suele incluirlo literalmente.
+    logUpstreamUnavailable(error, requestContext, apiInternalOrigin);
 
     if (response.headersSent) {
       response.destroy();

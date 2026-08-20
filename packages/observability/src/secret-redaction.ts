@@ -128,16 +128,33 @@ function redactAllSensitiveKeyValues(text: string): string {
 }
 
 /**
- * Motor de redacción compartido: lo reutilizan tanto el diagnóstico de arranque como el
- * diagnóstico de peticiones, para no mantener dos contratos incompatibles de secretos.
+ * Motor de redacción compartido: lo reutilizan API y gateway para no mantener dos contratos
+ * incompatibles de secretos.
+ *
+ * `additionalSensitiveValues` permite que el llamador (por ejemplo el gateway, para
+ * `API_INTERNAL_ORIGIN`) redacte valores server-only conocidos que este motor no puede inferir
+ * por patrón. Son literales explícitos entregados por el llamador — nunca se lee `process.env`
+ * dentro de este módulo — y un valor ausente o vacío se ignora sin alterar el resto del texto.
  */
-export function redactDiagnosticText(value: string, databaseUrl: string | undefined): string {
+export function redactDiagnosticText(
+  value: string,
+  databaseUrl: string | undefined,
+  additionalSensitiveValues: readonly (string | undefined)[] = [],
+): string {
   const databaseUrlRedacted =
     databaseUrl === undefined || databaseUrl === ''
       ? value
       : value.replaceAll(databaseUrl, '[DATABASE_URL REDACTED]');
 
-  const withoutSensitiveUrls = databaseUrlRedacted.replace(
+  const withoutAdditionalSensitiveValues = additionalSensitiveValues.reduce<string>(
+    (text, sensitiveValue) =>
+      sensitiveValue === undefined || sensitiveValue === ''
+        ? text
+        : text.replaceAll(sensitiveValue, '[REDACTED]'),
+    databaseUrlRedacted,
+  );
+
+  const withoutSensitiveUrls = withoutAdditionalSensitiveValues.replace(
     POSTGRES_URL_PATTERN,
     '[POSTGRES_URL REDACTED]',
   );

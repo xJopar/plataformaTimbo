@@ -5,13 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "pnpm --filter @timbo/observability run build",
     "build": "vite build && tsc -p server/tsconfig.build.json",
     "start": "node server-dist/start.js",
+    "pretypecheck": "pnpm --filter @timbo/observability run build",
     "typecheck": "tsc -p tsconfig.json && tsc -p server/tsconfig.json",
+    "pretest": "pnpm --filter @timbo/observability run build",
     "test": "vitest run"
   },
   "dependencies": {
     "@timbo/contracts": "workspace:*",
+    "@timbo/observability": "workspace:*",
     "openapi-fetch": "0.17.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { buildErrorDiagnosticFields } from '@timbo/observability';
 import { resolveEnvironmentFromEnvironment } from '../../runtime-config';
-import { buildErrorDiagnosticFields } from './error-diagnostic';
 
 const SERVICE_NAME = 'api';
 const UNEXPECTED_FAILURE_STATUS_THRESHOLD = 500;
@@ -58,7 +58,7 @@ export class OperationalLoggerService {
       requestId: fields.requestId,
       method: fields.method,
       route: fields.route,
-      ...buildErrorDiagnosticFields(error),
+      ...buildErrorDiagnosticFields(error, process.env.DATABASE_URL),
     });
   }
 

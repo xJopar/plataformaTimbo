@@ -1,4 +1,4 @@
-import { buildErrorDiagnosticFields } from './modules/observability/error-diagnostic';
+import { buildErrorDiagnosticFields } from '@timbo/observability';
 import { resolveEnvironmentFromEnvironment } from './runtime-config';
 
 const SERVICE_NAME = 'api';

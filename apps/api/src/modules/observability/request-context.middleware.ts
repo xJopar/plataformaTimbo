@@ -1,13 +1,13 @@
 import { Injectable, type NestMiddleware } from '@nestjs/common';
-import type { NextFunction, Request, Response } from 'express';
-import { OperationalLoggerService } from './operational-logger.service';
-import { RequestContextService } from './request-context.service';
 import {
   INCOMING_REQUEST_ID_HEADER,
   RESPONSE_REQUEST_ID_HEADER,
+  normalizeRequestRoute,
   resolveRequestId,
-} from './request-id';
-import { normalizeRequestRoute } from './request-route';
+} from '@timbo/observability';
+import type { NextFunction, Request, Response } from 'express';
+import { OperationalLoggerService } from './operational-logger.service';
+import { RequestContextService } from './request-context.service';
 
 const NANOSECONDS_PER_MILLISECOND = 1_000_000;
 
