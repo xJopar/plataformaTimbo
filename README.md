@@ -21,35 +21,36 @@ pnpm install
 
 Copiar `.env.example` a `.env` (en la **raíz del workspace**) y ajustar si es necesario. `DATABASE_URL` es un secreto y no se debe copiar a documentación, logs ni control de versiones.
 
-| Variable            | Descripción                                          | Valor por defecto       |
-| ------------------- | ---------------------------------------------------- | ----------------------- |
-| `PORT`              | Puerto en el que escucha la API.                     | `3000`                  |
-| `CORS_ORIGIN`       | Origen permitido por CORS para el cliente web local. | `http://localhost:5173` |
-| `VITE_API_BASE_URL` | Origen público de la API que consume la web.         | `http://localhost:3000` |
-| `DATABASE_URL`      | URL de PostgreSQL para la API y las migraciones.     | Sin valor por defecto   |
+| Variable              | Descripción                                                                                                              | Valor por defecto       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------- |
+| `PORT`                | Puerto en el que escucha la API.                                                                                         | `3000`                  |
+| `CORS_ORIGIN`         | Origen permitido por CORS para el cliente web local.                                                                     | `http://localhost:5173` |
+| `VITE_API_BASE_URL`   | Origen que usa la web para llamar a la API.                                                                              | `http://localhost:3000` |
+| `API_INTERNAL_ORIGIN` | Origen interno de la API para el gateway de `apps/web/server` (`/api/*`). Server-only; no se carga desde el `.env` raíz. | Sin valor por defecto   |
+| `DATABASE_URL`        | URL de PostgreSQL para la API y las migraciones.                                                                         | Sin valor por defecto   |
 
 El `.env` raíz se carga con el flag nativo de Node `--env-file-if-exists` para la API y Vite lo usa también como directorio de variables de la web. No se agrega `dotenv` ni `@nestjs/config`. Los scripts `dev` y `start` de `apps/api` lo invocan apuntando a `../../.env` (la ruta del `.env` raíz vista desde `apps/api`); si el archivo no existe, Node continúa sin él, pero la API aborta porque `DATABASE_URL` es obligatoria. Antes de crear la aplicación de Nest, `apps/api/src/runtime-config.ts` valida `PORT` (entero entre 1 y 65535), `CORS_ORIGIN` (origen HTTP o HTTPS, sin ruta, query ni fragmento) y `DATABASE_URL` (URL PostgreSQL sin mostrar su valor ante un error); un valor inválido aborta el arranque con un mensaje claro en español y código de salida distinto de cero, antes de levantar Nest. La web aplica la misma validación de origen a `VITE_API_BASE_URL` y representa el error como API no disponible.
 
 ## Comandos raíz
 
-| Comando                                           | Descripción                                                                           |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `pnpm dev`                                        | Levanta `apps/api` en modo desarrollo, con reinicio automático ante cambios.          |
-| `pnpm dev:web`                                    | Levanta `apps/web` con Vite.                                                          |
-| `pnpm start:api`                                  | Inicia la API compilada; Railway usa este recorrido con su `PORT`.                    |
-| `pnpm start:web`                                  | Sirve localmente el build estático de la web en el puerto `4173`.                     |
-| `pnpm generate:contracts`                         | Exporta OpenAPI desde Nest y regenera el documento y los tipos versionados.           |
-| `pnpm check:contracts`                            | Comprueba en un directorio temporal que los contratos versionados están actualizados. |
-| `pnpm prisma:validate`                            | Valida el schema Prisma de la API.                                                    |
-| `pnpm prisma:generate`                            | Regenera el cliente Prisma local e ignorado.                                          |
-| `pnpm prisma:migrate:deploy`                      | Aplica migraciones versionadas pendientes; es el pre-deploy de la API.                |
-| `pnpm --filter @timbo/api test:users:integration` | Ejecuta la integración con escritura, opt-in y sólo para development.                 |
-| `pnpm build`                                      | Compila todos los paquetes del workspace.                                             |
-| `pnpm typecheck`                                  | Verifica los tipos de TypeScript sin emitir archivos.                                 |
-| `pnpm lint`                                       | Ejecuta ESLint sobre todo el repositorio.                                             |
-| `pnpm test`                                       | Ejecuta las pruebas de todos los paquetes del workspace.                              |
-| `pnpm format`                                     | Formatea el repositorio con Prettier.                                                 |
-| `pnpm format:check`                               | Verifica el formato sin modificar archivos.                                           |
+| Comando                                           | Descripción                                                                                                             |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                        | Levanta `apps/api` en modo desarrollo, con reinicio automático ante cambios.                                            |
+| `pnpm dev:web`                                    | Levanta `apps/web` con Vite.                                                                                            |
+| `pnpm start:api`                                  | Inicia la API compilada; Railway usa este recorrido con su `PORT`.                                                      |
+| `pnpm start:web`                                  | Sirve la SPA compilada y reenvía `/api/*` a `API_INTERNAL_ORIGIN` (gateway de mismo origen; puerto `4173` por defecto). |
+| `pnpm generate:contracts`                         | Exporta OpenAPI desde Nest y regenera el documento y los tipos versionados.                                             |
+| `pnpm check:contracts`                            | Comprueba en un directorio temporal que los contratos versionados están actualizados.                                   |
+| `pnpm prisma:validate`                            | Valida el schema Prisma de la API.                                                                                      |
+| `pnpm prisma:generate`                            | Regenera el cliente Prisma local e ignorado.                                                                            |
+| `pnpm prisma:migrate:deploy`                      | Aplica migraciones versionadas pendientes; es el pre-deploy de la API.                                                  |
+| `pnpm --filter @timbo/api test:users:integration` | Ejecuta la integración con escritura, opt-in y sólo para development.                                                   |
+| `pnpm build`                                      | Compila todos los paquetes del workspace.                                                                               |
+| `pnpm typecheck`                                  | Verifica los tipos de TypeScript sin emitir archivos.                                                                   |
+| `pnpm lint`                                       | Ejecuta ESLint sobre todo el repositorio.                                                                               |
+| `pnpm test`                                       | Ejecuta las pruebas de todos los paquetes del workspace.                                                                |
+| `pnpm format`                                     | Formatea el repositorio con Prettier.                                                                                   |
+| `pnpm format:check`                               | Verifica el formato sin modificar archivos.                                                                             |
 
 ## Prisma y migraciones
 
@@ -97,8 +98,11 @@ apps/
     test/                 # Pruebas end-to-end (recorrido HTTP y documento OpenAPI)
   web/                  # Web React/Vite (paquete @timbo/web)
     src/
-      api/              # Configuración, transporte tipado y fachada api.system
+      api/              # Configuración, transporte tipado y fachada api.system, api.auth
       app.tsx           # Estados verificando, disponible y no disponible
+    server/              # Gateway HTTP productivo (Node, sin bundlear): sirve la SPA y
+                         # reenvía /api/* a API_INTERNAL_ORIGIN para que el navegador use
+                         # siempre el origen de web (apps/web/server/start.ts es el arranque)
 packages/
   contracts/            # Documento OpenAPI y tipos generados, ambos versionados
     src/generated/      # Salida de openapi-typescript; no se edita manualmente
@@ -149,6 +153,8 @@ El flujo de la única operación expuesta se lee de punta a punta sin capas inte
 - `packages/contracts` ejecuta el chequeo de contrato actualizado, regenerando en un directorio temporal y comparando el documento y los tipos con lo versionado.
 - `apps/web/src/api/*.spec.ts`: comprueba URL pública, transporte tipado y errores HTTP/red.
 - `apps/web/src/app.spec.tsx`: comprueba carga, disponibilidad, fallo y reintento.
+- `apps/web/server/gateway-config.spec.ts`: valida `PORT` y `API_INTERNAL_ORIGIN` (por defecto, válidos, inválidos y ausencia obligatoria).
+- `apps/web/server/gateway.spec.ts`: recorrido HTTP real del gateway contra un upstream de prueba — reenvío de método/cuerpo/encabezados, `Set-Cookie` y cookie reenviada en la petición siguiente, rutas ajenas a `/api` servidas por la SPA sin tocar el upstream, y `502` explícito (nunca HTML) cuando el upstream está caído.
 
 Ejecutar todas las pruebas con `pnpm test`.
 

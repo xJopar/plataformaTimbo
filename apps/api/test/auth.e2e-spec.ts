@@ -7,6 +7,7 @@ import { UserStatus, type User } from '../src/generated/prisma/client';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/bootstrap';
 import { PrismaService } from '../src/database/prisma.service';
+import { SESSION_DURATION_MS } from '../src/runtime-config';
 import { GoogleOAuthService } from '../src/modules/auth/google-oauth.service';
 import { AuthPublicError } from '../src/modules/auth/auth-public.errors';
 import { OAuthLoginAttemptUnavailableError } from '../src/modules/auth/auth-persistence.errors';
@@ -130,9 +131,11 @@ describe('autenticación HTTP (e2e)', () => {
     await request(server).get('/api/auth/google').expect(302);
 
     const agent = request.agent(server);
-    await agent
+    const callbackResponse = await agent
       .get(`/api/auth/google/callback?state=${randomUUID()}&code=${randomUUID()}`)
       .expect(303);
+    const sessionCookie = callbackResponse.headers['set-cookie'] as unknown as string[];
+    expect(sessionCookie[0]).toContain(`Max-Age=${String(SESSION_DURATION_MS / 1000)}`);
     const session = await agent.get('/api/auth/session').expect(200);
 
     // response.body es provisto por supertest como any; sólo se lo usa como entrada de la aserción de Jest.

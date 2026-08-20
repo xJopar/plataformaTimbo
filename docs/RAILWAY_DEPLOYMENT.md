@@ -2,10 +2,18 @@
 
 Esta guía describe el recorrido operativo del monorepo ya publicado como dos servicios Railway:
 
-| Servicio | Paquete      | Healthcheck   | Variable propia     |
-| -------- | ------------ | ------------- | ------------------- |
-| `api`    | `@timbo/api` | `/api/health` | `CORS_ORIGIN`       |
-| `web`    | `@timbo/web` | `/`           | `VITE_API_BASE_URL` |
+| Servicio | Paquete      | Healthcheck   | Variable propia                            |
+| -------- | ------------ | ------------- | ------------------------------------------ |
+| `api`    | `@timbo/api` | `/api/health` | `CORS_ORIGIN`                              |
+| `web`    | `@timbo/web` | `/`           | `VITE_API_BASE_URL`, `API_INTERNAL_ORIGIN` |
+
+El servicio `web` no sirve sólo estáticos: `apps/web/server` es un gateway HTTP mínimo que sirve
+la SPA y reenvía todo lo que empieza con `/api` al servicio `api`, para que el navegador use
+siempre el origen público de `web` y la cookie de sesión funcione como primera parte (Railway
+publica `api` y `web` como sitios `*.up.railway.app` distintos, y las cookies de terceros no
+pueden asumirse habilitadas). El gateway no conoce autenticación ni credenciales Google: sólo
+reenvía método, cuerpo, encabezados y respuesta (incluido `Set-Cookie`) entre el navegador y la
+API.
 
 La API usa PostgreSQL mediante Prisma. Cada entorno Railway referencia solamente el
 `DATABASE_URL` privado de su PostgreSQL del mismo entorno. La migración se aplica antes de
@@ -82,15 +90,37 @@ Railway resuelve la referencia dentro del entorno activo: aunque el servicio se 
 development. No sustituir la referencia por una URL pública. `CORS_ORIGIN` debe seguir apuntando
 al dominio `web` del mismo entorno.
 
-En el servicio `web` de cada entorno, debe mantenerse:
+En el servicio `web` de cada entorno, se mantenía históricamente:
 
 ```dotenv
 VITE_API_BASE_URL=https://${{api.RAILWAY_PUBLIC_DOMAIN}}
 ```
 
-`VITE_API_BASE_URL` se incorpora durante el build de Vite, por lo que un cambio autorizado de esa
-variable requiere un nuevo despliegue de `web`. `CORS_ORIGIN` y `VITE_API_BASE_URL` no son
-secretas; la referencia `DATABASE_URL` sí lo es.
+Esa referencia hace que el navegador llame directamente al sitio público de `api`, un origen
+distinto al de `web`: por eso la cookie de sesión llegaba como cookie de terceros y algunos
+navegadores la bloqueaban. El gateway de mismo origen (`apps/web/server`) resuelve esto sin tocar
+Google ni la API. La configuración objetivo posterior al push, pendiente de aplicar en el
+dashboard con autorización explícita, es:
+
+```dotenv
+VITE_API_BASE_URL=https://${{web.RAILWAY_PUBLIC_DOMAIN}}
+API_INTERNAL_ORIGIN=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}
+```
+
+`VITE_API_BASE_URL` pasa a apuntar al propio origen público de `web`: el navegador llama a `/api`
+en ese mismo origen y el gateway lo reenvía a `api`. `API_INTERNAL_ORIGIN` es una variable
+server-only nueva del servicio `web` (sin prefijo `VITE_`, nunca se incorpora al bundle) que usa
+el dominio privado de Railway (`RAILWAY_PRIVATE_DOMAIN`) y el puerto que Railway le asignó al
+servicio `api` (`api.PORT`) para reenviar `/api/*` dentro de la red privada del proyecto, sin
+pasar por el dominio público de `api`. `VITE_API_BASE_URL` se incorpora durante el build de Vite,
+por lo que un cambio autorizado de esa variable requiere un nuevo despliegue de `web`. Ninguna de
+las dos es secreta; la referencia `DATABASE_URL` sí lo es.
+
+El callback API actual (`https://${{api.RAILWAY_PUBLIC_DOMAIN}}/api/auth/google/callback`) se
+conserva hasta que el gateway esté desplegado y verificado en development. Sólo entonces se agrega
+primero el callback Web en Google Cloud y después se actualiza `GOOGLE_OAUTH_REDIRECT_URI` en el
+servicio `api` a `https://${{web.RAILWAY_PUBLIC_DOMAIN}}/api/auth/google/callback`; ninguno de
+estos cambios está autorizado por esta tanda.
 
 ## Verificación autorizada de development
 

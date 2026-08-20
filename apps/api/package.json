@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node --watch --env-file-if-exists=../../.env -r ts-node/register src/main.ts",
+    "dev": "tsc-watch -p tsconfig.build.json --noClear --onSuccess \"node --env-file-if-exists=../../.env dist/main.js\"",
     "prisma:validate": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js validate --config prisma.config.ts",
     "prisma:generate": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js generate --config prisma.config.ts",
     "prisma:migrate:dev": "node --env-file=../../.env ./node_modules/prisma/build/index.js migrate dev --config prisma.config.ts",
     "prisma:migrate:deploy": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js migrate deploy --config prisma.config.ts",
     "preauthorize-user": "node scripts/run-preauthorize-user.cjs",
+    "predev": "pnpm run prisma:generate",
     "prebuild": "pnpm run prisma:generate",
     "pretypecheck": "pnpm run prisma:generate",
     "pretest": "pnpm run prisma:generate",
@@ -39,6 +40,7 @@
   "devDependencies": {
     "@nestjs/testing": "^11.2.1",
     "@types/express": "5.0.6",
-    "@types/pg": "8.23.1"
+    "@types/pg": "8.23.1",
+    "tsc-watch": "^7.2.1"
   }
 }

@@ -34,7 +34,7 @@ describe('resolveRuntimeConfig', () => {
         httpOnly: true,
         secure: false,
         sameSite: 'lax',
-        maxAgeMs: SESSION_DURATION_MS,
+        maxAge: SESSION_DURATION_MS,
         path: '/',
       },
     });
@@ -165,7 +165,7 @@ describe('resolveRuntimeConfig', () => {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      maxAgeMs: SESSION_DURATION_MS,
+      maxAge: SESSION_DURATION_MS,
       path: '/',
     });
   });

@@ -16,7 +16,7 @@ export interface SessionCookieConfig {
   httpOnly: true;
   secure: boolean;
   sameSite: 'lax' | 'none';
-  maxAgeMs: number;
+  maxAge: number;
   path: '/';
 }
 
@@ -145,7 +145,7 @@ function resolveSessionCookieConfig(redirectUri: URL): SessionCookieConfig {
     httpOnly: true,
     secure: !isLocalhost,
     sameSite: isLocalhost ? 'lax' : 'none',
-    maxAgeMs: SESSION_DURATION_MS,
+    maxAge: SESSION_DURATION_MS,
     path: '/',
   };
 }
