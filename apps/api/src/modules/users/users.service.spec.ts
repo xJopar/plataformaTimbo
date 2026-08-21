@@ -1,4 +1,10 @@
-import { AuditActorType, type Prisma, UserStatus, type User } from '../../generated/prisma/client';
+import {
+  AccessProfileKey,
+  AuditActorType,
+  type Prisma,
+  UserStatus,
+  type User,
+} from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import type { AuditEventsService } from '../audit-events/audit-events.service';
 import {
@@ -6,6 +12,7 @@ import {
   GoogleSubjectAlreadyLinkedError,
   InvalidCorporateEmailError,
   InvalidUserStatusTransitionError,
+  PlatformAdministratorCannotBeDeactivatedError,
   UserNotFoundError,
   ZohoCrmUserIdAlreadyInUseError,
 } from './users.errors';
@@ -42,7 +49,11 @@ describe('UsersService', () => {
     update: jest.fn(),
     updateManyAndReturn: jest.fn(),
   };
-  const transactionClient = { user: userDelegate } as unknown as Prisma.TransactionClient;
+  const userProfileAssignmentDelegate = { findFirst: jest.fn() };
+  const transactionClient = {
+    user: userDelegate,
+    userProfileAssignment: userProfileAssignmentDelegate,
+  } as unknown as Prisma.TransactionClient;
   const prismaTransaction = jest.fn((callback: (tx: typeof transactionClient) => unknown) =>
     callback(transactionClient),
   );
@@ -58,6 +69,8 @@ describe('UsersService', () => {
     userDelegate.findUnique.mockReset();
     userDelegate.update.mockReset();
     userDelegate.updateManyAndReturn.mockReset();
+    userProfileAssignmentDelegate.findFirst.mockReset();
+    userProfileAssignmentDelegate.findFirst.mockResolvedValue(null);
     prismaTransaction.mockClear();
     auditEventsService.append.mockReset();
     auditEventsService.append.mockResolvedValue(undefined);
@@ -297,6 +310,27 @@ describe('UsersService', () => {
   });
 
   describe('cambios de estado', () => {
+    it('no desactiva a un usuario con la asignación PLATFORM_ADMIN, incluido el actor', async () => {
+      userProfileAssignmentDelegate.findFirst.mockResolvedValue({ id: 'assignment-a' });
+
+      await expect(
+        service.deactivateUser({
+          corporateEmail: 'persona@example.test',
+          actorUserId: ACTOR_USER_ID,
+        }),
+      ).rejects.toBeInstanceOf(PlatformAdministratorCannotBeDeactivatedError);
+
+      expect(userProfileAssignmentDelegate.findFirst).toHaveBeenCalledWith({
+        where: {
+          user: { corporateEmail: 'persona@example.test' },
+          profile: { key: AccessProfileKey.PLATFORM_ADMIN },
+        },
+        select: { id: true },
+      });
+      expect(userDelegate.updateManyAndReturn).not.toHaveBeenCalled();
+      expect(auditEventsService.append).not.toHaveBeenCalled();
+    });
+
     it('desactiva un usuario activo con fecha de desactivación y audita al actor administrador', async () => {
       const deactivatedUser = createUser({
         status: UserStatus.INACTIVE,

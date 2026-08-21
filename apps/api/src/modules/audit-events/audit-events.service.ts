@@ -89,7 +89,10 @@ export class AuditEventsService {
     }
 
     if (actor.actorType === AuditActorType.SYSTEM) {
-      if (actor.systemActorKey !== 'preauthorize-user-cli' || 'actorUserId' in actor) {
+      if (
+        !['preauthorize-user-cli', 'assign-platform-admin-cli'].includes(actor.systemActorKey) ||
+        'actorUserId' in actor
+      ) {
         throw new Error('La clave del actor SYSTEM no está autorizada para auditoría.');
       }
     }

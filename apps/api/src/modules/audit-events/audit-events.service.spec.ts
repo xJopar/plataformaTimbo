@@ -51,14 +51,17 @@ describe('AuditEventsService', () => {
     jest.useRealTimers();
   });
 
-  it('declara sólo los seis eventos iniciales con actor, outcome y metadata controlados', () => {
+  it('declara eventos de acceso con actor, outcome y metadata controlados', () => {
     expect(Object.keys(AUDIT_EVENT_CATALOG)).toEqual([
       'security.login_succeeded',
       'security.login_denied',
       'security.logout',
       'access.user_preauthorized',
+      'access.user_preauthorized_by_administrator',
+      'access.user_administrative_data_updated',
       'access.user_deactivated',
       'access.user_reactivated',
+      'access.platform_admin_assigned',
     ]);
     expect(AUDIT_EVENT_CATALOG['security.login_succeeded']).toMatchObject({
       actorType: AuditActorType.USER,
@@ -80,6 +83,16 @@ describe('AuditEventsService', () => {
       outcome: AuditOutcome.SUCCESS,
       metadataFields: [],
     });
+    expect(AUDIT_EVENT_CATALOG['access.user_preauthorized_by_administrator']).toMatchObject({
+      actorType: AuditActorType.USER,
+      outcome: AuditOutcome.SUCCESS,
+      metadataFields: [],
+    });
+    expect(AUDIT_EVENT_CATALOG['access.user_administrative_data_updated']).toMatchObject({
+      actorType: AuditActorType.USER,
+      outcome: AuditOutcome.SUCCESS,
+      metadataFields: [],
+    });
     expect(AUDIT_EVENT_CATALOG['access.user_deactivated']).toMatchObject({
       actorType: AuditActorType.USER,
       outcome: AuditOutcome.SUCCESS,
@@ -87,6 +100,11 @@ describe('AuditEventsService', () => {
     });
     expect(AUDIT_EVENT_CATALOG['access.user_reactivated']).toMatchObject({
       actorType: AuditActorType.USER,
+      outcome: AuditOutcome.SUCCESS,
+      metadataFields: [],
+    });
+    expect(AUDIT_EVENT_CATALOG['access.platform_admin_assigned']).toMatchObject({
+      actorType: AuditActorType.SYSTEM,
       outcome: AuditOutcome.SUCCESS,
       metadataFields: [],
     });

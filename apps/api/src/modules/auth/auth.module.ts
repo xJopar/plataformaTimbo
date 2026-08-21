@@ -44,6 +44,8 @@ import { UserSessionsService } from './user-sessions.service';
     OAuthLoginAttemptsService,
     SessionAuthenticationGuard,
     UserSessionsService,
+    USER_SESSIONS_SERVICE,
+    USERS_SERVICE,
   ],
 })
 export class AuthModule {}

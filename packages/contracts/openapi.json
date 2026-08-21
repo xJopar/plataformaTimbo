@@ -68,6 +68,158 @@
         ]
       }
     },
+    "/api/admin/users": {
+      "get": {
+        "operationId": "listAdministrativeUsers",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Texto a buscar en el correo corporativo.",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdministrativeUserResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista usuarios para Administración.",
+        "tags": [
+          "administration"
+        ]
+      },
+      "post": {
+        "operationId": "preauthorizeAdministrativeUser",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreauthorizeAdministrativeUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdministrativeUserResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Preautoriza un usuario.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/{userId}": {
+      "patch": {
+        "operationId": "updateAdministrativeUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAdministrativeUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdministrativeUserResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Actualiza únicamente el nombre visible de un usuario.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/{userId}/deactivate": {
+      "post": {
+        "operationId": "deactivateAdministrativeUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Usuario desactivado."
+          }
+        },
+        "summary": "Desactiva un usuario.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/{userId}/reactivate": {
+      "post": {
+        "operationId": "reactivateAdministrativeUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Usuario reactivado."
+          }
+        },
+        "summary": "Reactiva un usuario.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "getHealth",
@@ -121,6 +273,86 @@
         "required": [
           "id",
           "corporateEmail",
+          "displayName"
+        ]
+      },
+      "AdministrativeUserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6"
+          },
+          "corporateEmail": {
+            "type": "string",
+            "example": "persona@timbo.com"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Persona Timbo",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ],
+            "example": "ACTIVE"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-08-21T12:00:00.000Z"
+          },
+          "deactivatedAt": {
+            "type": "object",
+            "example": "2026-08-21T12:00:00.000Z",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isPlatformAdministrator": {
+            "type": "boolean",
+            "example": false,
+            "description": "Indica si el usuario tiene la asignación PLATFORM_ADMIN protegida."
+          }
+        },
+        "required": [
+          "id",
+          "corporateEmail",
+          "displayName",
+          "status",
+          "createdAt",
+          "deactivatedAt",
+          "isPlatformAdministrator"
+        ]
+      },
+      "PreauthorizeAdministrativeUserDto": {
+        "type": "object",
+        "properties": {
+          "corporateEmail": {
+            "type": "string",
+            "example": "persona@timbo.com"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Persona Timbo"
+          }
+        },
+        "required": [
+          "corporateEmail"
+        ]
+      },
+      "UpdateAdministrativeUserDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "example": "Persona Timbo",
+            "nullable": true
+          }
+        },
+        "required": [
           "displayName"
         ]
       },

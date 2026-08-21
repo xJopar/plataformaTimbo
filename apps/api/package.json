@@ -9,6 +9,7 @@
     "prisma:migrate:dev": "node --env-file=../../.env ./node_modules/prisma/build/index.js migrate dev --config prisma.config.ts",
     "prisma:migrate:deploy": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js migrate deploy --config prisma.config.ts",
     "preauthorize-user": "node scripts/run-preauthorize-user.cjs",
+    "assign-platform-admin": "node scripts/run-assign-platform-admin.cjs",
     "predev": "pnpm --filter @timbo/observability run build && pnpm run prisma:generate",
     "prebuild": "pnpm --filter @timbo/observability run build && pnpm run prisma:generate",
     "pretypecheck": "pnpm --filter @timbo/observability run build && pnpm run prisma:generate",
@@ -18,6 +19,7 @@
     "pretest:audit-events:integration": "pnpm run prisma:generate",
     "pretest:usage-events:integration": "pnpm run prisma:generate",
     "pretest:auth:transactions:integration": "pnpm run prisma:generate",
+    "pretest:access-profiles:integration": "pnpm run prisma:generate",
     "build": "tsc -p tsconfig.build.json",
     "export:openapi": "node -r ts-node/register src/export-openapi.ts",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
@@ -27,7 +29,8 @@
     "test:auth:persistence:integration": "node --env-file=../../.env --experimental-vm-modules test/run-auth-persistence-integration.cjs",
     "test:audit-events:integration": "node --env-file-if-exists=../../.env --experimental-vm-modules test/run-audit-events-integration.cjs",
     "test:usage-events:integration": "node --env-file-if-exists=../../.env --experimental-vm-modules test/run-usage-events-integration.cjs",
-    "test:auth:transactions:integration": "node --env-file=../../.env --experimental-vm-modules test/run-auth-transactions-integration.cjs"
+    "test:auth:transactions:integration": "node --env-file=../../.env --experimental-vm-modules test/run-auth-transactions-integration.cjs",
+    "test:access-profiles:integration": "node --env-file=../../.env --experimental-vm-modules test/run-access-profiles-integration.cjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.1",

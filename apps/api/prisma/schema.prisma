@@ -15,6 +15,12 @@ enum UserStatus {
   @@map("user_status")
 }
 
+enum AccessProfileKey {
+  PLATFORM_ADMIN
+
+  @@map("access_profile_key")
+}
+
 enum AuditActorType {
   USER
   SYSTEM
@@ -42,10 +48,32 @@ model User {
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   deactivatedAt  DateTime?     @map("deactivated_at") @db.Timestamptz(6)
   sessions       UserSession[]
+  profileAssignments UserProfileAssignment[]
   auditEvents    AuditEvent[]  @relation("AuditEventActorUser")
   usageEvents    UsageEvent[]  @relation("UsageEventActorUser")
 
   @@map("users")
+}
+
+model AccessProfile {
+  id          String                  @id @default(uuid()) @db.Uuid
+  key         AccessProfileKey        @unique
+  assignments UserProfileAssignment[]
+
+  @@map("access_profiles")
+}
+
+model UserProfileAssignment {
+  id        String        @id @default(uuid()) @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  profileId String        @map("profile_id") @db.Uuid
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  profile   AccessProfile @relation(fields: [profileId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, profileId])
+  @@index([profileId])
+  @@map("user_profile_assignments")
 }
 
 model OAuthLoginAttempt {

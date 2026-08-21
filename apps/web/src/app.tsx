@@ -1,5 +1,5 @@
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import type { Api, AuthSession } from './api';
+import { type FormEvent, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import type { AdministrativeUser, Api, AuthSession } from './api';
 import { ApiHttpError } from './api';
 import './app.css';
 
@@ -203,10 +203,24 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
     authenticationState.status === 'logout-failed' ? authenticationState.error : undefined;
   const employeeName = session.displayName ?? session.corporateEmail;
 
+  if (window.location.pathname === '/admin') {
+    if (api === undefined) {
+      return (
+        <AccessShell title="No pudimos cargar Administración" detail="La API no está disponible." />
+      );
+    }
+    return (
+      <AdministrationPanel api={api} session={session} onLogout={() => void logout(session)} />
+    );
+  }
+
   return (
     <main className="platform-shell" data-visual-contract="matriz-continua-tablero-despacho">
       <header className="top-bar">
         <p className="product-name">Plataforma Timbo</p>
+        <a className="top-navigation-link" href="/admin">
+          Administración
+        </a>
         <button
           className="logout-button"
           type="button"
@@ -240,6 +254,271 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
           )}
         </div>
       </section>
+    </main>
+  );
+}
+
+type AdministrationState =
+  | { status: 'loading' }
+  | { status: 'forbidden' }
+  | { status: 'error' }
+  | { status: 'ready'; users: AdministrativeUser[]; search: string };
+
+interface AdministrationPanelProps {
+  api: Api;
+  session: AuthSession;
+  onLogout: () => void;
+}
+
+function AdministrationPanel({
+  api,
+  session,
+  onLogout,
+}: AdministrationPanelProps): React.JSX.Element {
+  const [administrationState, setAdministrationState] = useState<AdministrationState>({
+    status: 'loading',
+  });
+  const [search, setSearch] = useState('');
+  const [newCorporateEmail, setNewCorporateEmail] = useState('');
+  const [newDisplayName, setNewDisplayName] = useState('');
+  const [actionError, setActionError] = useState<string | undefined>(undefined);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const loadUsers = useCallback(
+    async (nextSearch = ''): Promise<void> => {
+      setAdministrationState({ status: 'loading' });
+      setActionError(undefined);
+      try {
+        const users = await api.administration.listUsers(nextSearch || undefined);
+        setAdministrationState({ status: 'ready', users, search: nextSearch });
+      } catch (error) {
+        if (error instanceof ApiHttpError && error.status === 403) {
+          setAdministrationState({ status: 'forbidden' });
+          return;
+        }
+        setAdministrationState({ status: 'error' });
+      }
+    },
+    [api],
+  );
+
+  useEffect(() => {
+    void loadUsers();
+  }, [loadUsers]);
+
+  const submitSearch = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    void loadUsers(search);
+  };
+
+  const preauthorizeUser = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
+    setIsSaving(true);
+    setActionError(undefined);
+    try {
+      await api.administration.preauthorizeUser({
+        corporateEmail: newCorporateEmail,
+        displayName: newDisplayName.trim() || undefined,
+      });
+      setNewCorporateEmail('');
+      setNewDisplayName('');
+      await loadUsers(search);
+    } catch (error) {
+      setActionError(
+        error instanceof ApiHttpError && error.status === 403
+          ? 'Tu sesión no tiene permiso para administrar usuarios.'
+          : 'No pudimos preautorizar el usuario. Revisá los datos e intentá nuevamente.',
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const changeUserStatus = async (user: AdministrativeUser): Promise<void> => {
+    setIsSaving(true);
+    setActionError(undefined);
+    try {
+      if (user.status === 'ACTIVE') {
+        await api.administration.deactivateUser(user.id);
+      } else {
+        await api.administration.reactivateUser(user.id);
+      }
+      await loadUsers(search);
+    } catch {
+      setActionError(
+        user.isPlatformAdministrator
+          ? 'El administrador de plataforma no puede desactivarse en este primer corte.'
+          : 'No pudimos actualizar el estado del usuario. Intentá nuevamente.',
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const updateDisplayName = async (user: AdministrativeUser): Promise<void> => {
+    const nextDisplayName = window.prompt('Nombre visible', user.displayName ?? '');
+    if (nextDisplayName === null) {
+      return;
+    }
+    setIsSaving(true);
+    setActionError(undefined);
+    try {
+      await api.administration.updateUser(user.id, { displayName: nextDisplayName || null });
+      await loadUsers(search);
+    } catch {
+      setActionError('No pudimos guardar el nombre visible. Intentá nuevamente.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <main className="platform-shell administration-shell">
+      <header className="top-bar">
+        <p className="product-name">Plataforma Timbo</p>
+        <button className="logout-button" type="button" onClick={onLogout}>
+          Cerrar sesión
+        </button>
+      </header>
+      <div className="administration-layout">
+        <nav className="administration-navigation" aria-label="Navegación de Administración">
+          <a href="/">Inicio</a>
+          <a aria-current="page" href="/admin">
+            Usuarios
+          </a>
+        </nav>
+        <section className="administration-content" aria-labelledby="administration-title">
+          <p className="eyebrow">Administración</p>
+          <h1 id="administration-title">Usuarios</h1>
+          <p className="administration-description">
+            Gestioná los accesos preautorizados de Plataforma Timbo. Sesión:{' '}
+            {session.corporateEmail}
+          </p>
+          {administrationState.status === 'loading' ? (
+            <p aria-live="polite">Cargando usuarios…</p>
+          ) : null}
+          {administrationState.status === 'forbidden' ? (
+            <section className="state-surface" aria-labelledby="forbidden-title">
+              <h2 id="forbidden-title">No tenés permiso para ver Usuarios</h2>
+              <p>Solicitá a un administrador de plataforma que revise tu asignación.</p>
+              <a className="text-link" href="/">
+                Volver al inicio
+              </a>
+            </section>
+          ) : null}
+          {administrationState.status === 'error' ? (
+            <section className="state-surface" aria-labelledby="administration-error-title">
+              <h2 id="administration-error-title">No pudimos cargar Usuarios</h2>
+              <p>La información no está disponible en este momento.</p>
+              <button
+                className="action-button"
+                type="button"
+                onClick={() => void loadUsers(search)}
+              >
+                Reintentar
+              </button>
+            </section>
+          ) : null}
+          {administrationState.status === 'ready' ? (
+            <>
+              <div className="administration-actions">
+                <form className="search-form" onSubmit={submitSearch} role="search">
+                  <label htmlFor="user-search">Buscar por correo corporativo</label>
+                  <div>
+                    <input
+                      id="user-search"
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                    />
+                    <button className="action-button" type="submit" disabled={isSaving}>
+                      Buscar
+                    </button>
+                  </div>
+                </form>
+                <form
+                  className="preauthorize-form"
+                  onSubmit={(event) => void preauthorizeUser(event)}
+                >
+                  <h2>Preautorizar usuario</h2>
+                  <label htmlFor="new-corporate-email">Correo corporativo</label>
+                  <input
+                    id="new-corporate-email"
+                    type="email"
+                    required
+                    value={newCorporateEmail}
+                    onChange={(event) => setNewCorporateEmail(event.target.value)}
+                  />
+                  <label htmlFor="new-display-name">Nombre visible (opcional)</label>
+                  <input
+                    id="new-display-name"
+                    value={newDisplayName}
+                    onChange={(event) => setNewDisplayName(event.target.value)}
+                  />
+                  <button className="action-button" type="submit" disabled={isSaving}>
+                    Preautorizar
+                  </button>
+                </form>
+              </div>
+              {actionError === undefined ? null : <p role="alert">{actionError}</p>}
+              {administrationState.users.length === 0 ? (
+                <section className="state-surface" aria-labelledby="empty-users-title">
+                  <h2 id="empty-users-title">No encontramos usuarios</h2>
+                  <p>
+                    {administrationState.search.length === 0
+                      ? 'Todavía no hay usuarios preautorizados.'
+                      : 'Probá con otro correo corporativo.'}
+                  </p>
+                </section>
+              ) : (
+                <div className="users-table-wrapper">
+                  <table>
+                    <caption>Usuarios preautorizados</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Usuario</th>
+                        <th scope="col">Correo</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {administrationState.users.map((user) => (
+                        <tr key={user.id}>
+                          <td>{user.displayName ?? 'Sin nombre visible'}</td>
+                          <td>{user.corporateEmail}</td>
+                          <td>{user.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</td>
+                          <td className="user-actions">
+                            <button
+                              className="text-button"
+                              type="button"
+                              disabled={isSaving}
+                              onClick={() => void updateDisplayName(user)}
+                            >
+                              Editar nombre
+                            </button>
+                            {user.isPlatformAdministrator && user.status === 'ACTIVE' ? (
+                              <span className="protected-user-state">Administrador protegido</span>
+                            ) : (
+                              <button
+                                className="text-button"
+                                type="button"
+                                disabled={isSaving}
+                                onClick={() => void changeUserStatus(user)}
+                              >
+                                {user.status === 'ACTIVE' ? 'Desactivar' : 'Reactivar'}
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          ) : null}
+        </section>
+      </div>
     </main>
   );
 }

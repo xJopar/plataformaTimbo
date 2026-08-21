@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AuditActorType, Prisma, UserStatus, type User } from '../../generated/prisma/client';
+import {
+  AccessProfileKey,
+  AuditActorType,
+  Prisma,
+  UserStatus,
+  type User,
+} from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditEventsService } from '../audit-events/audit-events.service';
 import {
@@ -7,6 +13,7 @@ import {
   GoogleSubjectAlreadyLinkedError,
   InvalidCorporateEmailError,
   InvalidUserStatusTransitionError,
+  PlatformAdministratorCannotBeDeactivatedError,
   UserInactiveError,
   UserNotFoundError,
   ZohoCrmUserIdAlreadyInUseError,
@@ -42,6 +49,51 @@ export interface FindActiveUserByIdInput {
   userId: string;
 }
 
+export interface FindUserByIdInput {
+  userId: string;
+}
+
+export interface ListAdministrativeUsersInput {
+  search?: string;
+}
+
+export interface UpdateAdministrativeUserInput {
+  userId: string;
+  displayName: string | null;
+  actorUserId: string;
+}
+
+export interface PreauthorizeUserByAdministratorInput extends PreauthorizeUserInput {
+  actorUserId: string;
+}
+
+const ADMINISTRATIVE_USER_SELECT = {
+  id: true,
+  corporateEmail: true,
+  displayName: true,
+  status: true,
+  createdAt: true,
+  deactivatedAt: true,
+  profileAssignments: {
+    where: { profile: { key: AccessProfileKey.PLATFORM_ADMIN } },
+    select: { id: true },
+  },
+} as const satisfies Prisma.UserSelect;
+
+type AdministrativeUserDatabaseRow = Prisma.UserGetPayload<{
+  select: typeof ADMINISTRATIVE_USER_SELECT;
+}>;
+
+export interface AdministrativeUser {
+  id: string;
+  corporateEmail: string;
+  displayName: string | null;
+  status: UserStatus;
+  createdAt: Date;
+  deactivatedAt: Date | null;
+  isPlatformAdministrator: boolean;
+}
+
 interface PrismaKnownRequestError {
   code?: unknown;
   meta?: unknown;
@@ -49,10 +101,13 @@ interface PrismaKnownRequestError {
 
 const OPERATION_PREAUTHORIZE = 'preauthorizeUser';
 const OPERATION_FIND_BY_EMAIL = 'findByCorporateEmail';
+const OPERATION_FIND_BY_ID = 'findById';
 const OPERATION_LINK_GOOGLE = 'linkGoogleSubject';
 const OPERATION_SAVE_ZOHO = 'saveZohoCrmUserId';
 const OPERATION_DEACTIVATE = 'deactivateUser';
 const OPERATION_REACTIVATE = 'reactivateUser';
+const OPERATION_LIST_ADMINISTRATIVE_USERS = 'listAdministrativeUsers';
+const OPERATION_UPDATE_ADMINISTRATIVE_USER = 'updateAdministrativeUser';
 
 @Injectable()
 export class UsersService {
@@ -62,6 +117,71 @@ export class UsersService {
   ) {}
 
   public async preauthorizeUser(input: PreauthorizeUserInput): Promise<User> {
+    return this.createPreauthorizedUser(input, {
+      eventName: 'access.user_preauthorized',
+      actor: {
+        actorType: AuditActorType.SYSTEM,
+        systemActorKey: PREAUTHORIZE_USER_CLI_SYSTEM_ACTOR_KEY,
+      },
+    });
+  }
+
+  public async preauthorizeUserByAdministrator(
+    input: PreauthorizeUserByAdministratorInput,
+  ): Promise<User> {
+    return this.createPreauthorizedUser(input, {
+      eventName: 'access.user_preauthorized_by_administrator',
+      actor: { actorType: AuditActorType.USER, actorUserId: input.actorUserId },
+    });
+  }
+
+  public async listAdministrativeUsers(
+    input: ListAdministrativeUsersInput = {},
+  ): Promise<AdministrativeUser[]> {
+    const search = this.normalizeAdministrativeSearch(input.search);
+
+    const users = await this.prisma.user.findMany({
+      where:
+        search === undefined
+          ? undefined
+          : { corporateEmail: { contains: search, mode: 'insensitive' } },
+      select: ADMINISTRATIVE_USER_SELECT,
+      orderBy: [{ corporateEmail: 'asc' }],
+    });
+    return users.map(toAdministrativeUser);
+  }
+
+  public async updateAdministrativeUser(
+    input: UpdateAdministrativeUserInput,
+  ): Promise<AdministrativeUser> {
+    const displayName = this.normalizeAdministrativeDisplayName(input.displayName);
+
+    return this.translatePrismaErrors(OPERATION_UPDATE_ADMINISTRATIVE_USER, () =>
+      this.prisma.$transaction(async (transactionClient) => {
+        const user = await transactionClient.user.update({
+          where: { id: input.userId },
+          data: { displayName },
+          select: ADMINISTRATIVE_USER_SELECT,
+        });
+        await this.auditEventsService.append(transactionClient, {
+          eventName: 'access.user_administrative_data_updated',
+          actor: { actorType: AuditActorType.USER, actorUserId: input.actorUserId },
+          target: { targetType: 'user', targetId: user.id },
+        });
+        return toAdministrativeUser(user);
+      }),
+    );
+  }
+
+  private async createPreauthorizedUser(
+    input: PreauthorizeUserInput,
+    audit: {
+      eventName: 'access.user_preauthorized' | 'access.user_preauthorized_by_administrator';
+      actor:
+        | { actorType: typeof AuditActorType.SYSTEM; systemActorKey: 'preauthorize-user-cli' }
+        | { actorType: typeof AuditActorType.USER; actorUserId: string };
+    },
+  ): Promise<User> {
     const corporateEmail = this.normalizeCorporateEmail(
       input.corporateEmail,
       OPERATION_PREAUTHORIZE,
@@ -75,11 +195,8 @@ export class UsersService {
         });
 
         await this.auditEventsService.append(transactionClient, {
-          eventName: 'access.user_preauthorized',
-          actor: {
-            actorType: AuditActorType.SYSTEM,
-            systemActorKey: PREAUTHORIZE_USER_CLI_SYSTEM_ACTOR_KEY,
-          },
+          eventName: audit.eventName,
+          actor: audit.actor,
           target: { targetType: 'user', targetId: user.id },
         });
 
@@ -106,6 +223,14 @@ export class UsersService {
     return this.prisma.user.findFirst({
       where: { id: input.userId, status: UserStatus.ACTIVE },
     });
+  }
+
+  public async findUserById(input: FindUserByIdInput): Promise<User> {
+    const user = await this.prisma.user.findUnique({ where: { id: input.userId } });
+    if (user === null) {
+      throw new UserNotFoundError(OPERATION_FIND_BY_ID);
+    }
+    return user;
   }
 
   public async linkGoogleSubject(
@@ -166,6 +291,17 @@ export class UsersService {
 
     return this.translatePrismaErrors(OPERATION_DEACTIVATE, () =>
       this.prisma.$transaction(async (transactionClient) => {
+        const platformAdministratorAssignment =
+          await transactionClient.userProfileAssignment.findFirst({
+            where: {
+              user: { corporateEmail },
+              profile: { key: AccessProfileKey.PLATFORM_ADMIN },
+            },
+            select: { id: true },
+          });
+        if (platformAdministratorAssignment !== null) {
+          throw new PlatformAdministratorCannotBeDeactivatedError();
+        }
         const users = await transactionClient.user.updateManyAndReturn({
           where: { corporateEmail, status: UserStatus.ACTIVE },
           data: { status: UserStatus.INACTIVE, deactivatedAt: new Date() },
@@ -223,6 +359,30 @@ export class UsersService {
         return user;
       }),
     );
+  }
+
+  private normalizeAdministrativeSearch(search: string | undefined): string | undefined {
+    if (search === undefined) {
+      return undefined;
+    }
+    const normalizedSearch = search.trim();
+    if (normalizedSearch.length > 120) {
+      throw new Error(
+        `La búsqueda de usuarios supera el límite de ${OPERATION_LIST_ADMINISTRATIVE_USERS}.`,
+      );
+    }
+    return normalizedSearch.length === 0 ? undefined : normalizedSearch;
+  }
+
+  private normalizeAdministrativeDisplayName(displayName: string | null): string | null {
+    if (displayName === null) {
+      return null;
+    }
+    if (typeof displayName !== 'string') {
+      throw new Error('El nombre visible administrativo debe ser texto o null.');
+    }
+    const normalizedDisplayName = displayName.trim();
+    return normalizedDisplayName.length === 0 ? null : normalizedDisplayName;
   }
 
   private normalizeCorporateEmail(corporateEmail: string, operation: string): string {
@@ -340,4 +500,12 @@ export class UsersService {
         return undefined;
     }
   }
+}
+
+function toAdministrativeUser(user: AdministrativeUserDatabaseRow): AdministrativeUser {
+  const { profileAssignments, ...administrativeUser } = user;
+  return {
+    ...administrativeUser,
+    isPlatformAdministrator: profileAssignments.length > 0,
+  };
 }

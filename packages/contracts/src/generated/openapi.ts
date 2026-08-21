@@ -72,6 +72,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista usuarios para Administración. */
+        get: operations["listAdministrativeUsers"];
+        put?: never;
+        /** Preautoriza un usuario. */
+        post: operations["preauthorizeAdministrativeUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Actualiza únicamente el nombre visible de un usuario. */
+        patch: operations["updateAdministrativeUser"];
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva un usuario. */
+        post: operations["deactivateAdministrativeUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reactiva un usuario. */
+        post: operations["reactivateAdministrativeUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -98,6 +167,44 @@ export interface components {
             id: string;
             /** @example persona@timbo.com */
             corporateEmail: string;
+            /** @example Persona Timbo */
+            displayName: string | null;
+        };
+        AdministrativeUserResponseDto: {
+            /** @example d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6 */
+            id: string;
+            /** @example persona@timbo.com */
+            corporateEmail: string;
+            /** @example Persona Timbo */
+            displayName: string | null;
+            /**
+             * @example ACTIVE
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE";
+            /**
+             * Format: date-time
+             * @example 2026-08-21T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-08-21T12:00:00.000Z
+             */
+            deactivatedAt: Record<string, never> | null;
+            /**
+             * @description Indica si el usuario tiene la asignación PLATFORM_ADMIN protegida.
+             * @example false
+             */
+            isPlatformAdministrator: boolean;
+        };
+        PreauthorizeAdministrativeUserDto: {
+            /** @example persona@timbo.com */
+            corporateEmail: string;
+            /** @example Persona Timbo */
+            displayName?: string;
+        };
+        UpdateAdministrativeUserDto: {
             /** @example Persona Timbo */
             displayName: string | null;
         };
@@ -187,6 +294,116 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Sesión revocada o cookie ya ausente. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listAdministrativeUsers: {
+        parameters: {
+            query?: {
+                /** @description Texto a buscar en el correo corporativo. */
+                search?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeUserResponseDto"][];
+                };
+            };
+        };
+    };
+    preauthorizeAdministrativeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreauthorizeAdministrativeUserDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeUserResponseDto"];
+                };
+            };
+        };
+    };
+    updateAdministrativeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAdministrativeUserDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeUserResponseDto"];
+                };
+            };
+        };
+    };
+    deactivateAdministrativeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Usuario desactivado. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reactivateAdministrativeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Usuario reactivado. */
             204: {
                 headers: {
                     [name: string]: unknown;

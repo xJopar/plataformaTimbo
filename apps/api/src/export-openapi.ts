@@ -7,17 +7,26 @@ import { configureApp } from './bootstrap';
 import { HealthModule } from './health/health.module';
 import { AuthController } from './modules/auth/auth.controller';
 import { AuthService } from './modules/auth/auth.service';
+import { CsrfProtectionGuard } from './modules/auth/csrf-protection.guard';
 import { SessionAuthenticationGuard } from './modules/auth/session-authentication.guard';
+import { AdministrativeUsersController } from './modules/administration/administrative-users.controller';
+import { ADMINISTRATIVE_USERS_SERVICE } from './modules/administration/administration.tokens';
+import { PlatformAdministratorGuard } from './modules/administration/platform-administrator.guard';
+import { ACCESS_PROFILES_SERVICE } from './modules/access-profiles/access-profiles.tokens';
 import { USERS_SERVICE, USER_SESSIONS_SERVICE } from './modules/auth/auth.tokens';
 import { DEFAULT_CORS_ORIGIN } from './runtime-config';
 import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
 
 @Module({
   imports: [HealthModule],
-  controllers: [AuthController],
+  controllers: [AuthController, AdministrativeUsersController],
   providers: [
     { provide: AuthService, useValue: {} },
     { provide: SessionAuthenticationGuard, useValue: { canActivate: () => true } },
+    { provide: PlatformAdministratorGuard, useValue: { canActivate: () => true } },
+    { provide: CsrfProtectionGuard, useValue: { canActivate: () => true } },
+    { provide: ADMINISTRATIVE_USERS_SERVICE, useValue: {} },
+    { provide: ACCESS_PROFILES_SERVICE, useValue: {} },
     { provide: USER_SESSIONS_SERVICE, useValue: {} },
     { provide: USERS_SERVICE, useValue: {} },
   ],

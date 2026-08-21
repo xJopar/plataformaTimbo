@@ -5,8 +5,11 @@ export type AuditEventName =
   | 'security.login_denied'
   | 'security.logout'
   | 'access.user_preauthorized'
+  | 'access.user_preauthorized_by_administrator'
+  | 'access.user_administrative_data_updated'
   | 'access.user_deactivated'
-  | 'access.user_reactivated';
+  | 'access.user_reactivated'
+  | 'access.platform_admin_assigned';
 
 export type AuditTargetRule = 'forbidden' | 'user-required';
 
@@ -57,6 +60,20 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
     targetRule: 'user-required',
     metadataFields: [],
   },
+  'access.user_preauthorized_by_administrator': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'user-required',
+    metadataFields: [],
+  },
+  'access.user_administrative_data_updated': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'user-required',
+    metadataFields: [],
+  },
   'access.user_deactivated': {
     appKey: 'platform',
     actorType: AuditActorType.USER,
@@ -67,6 +84,13 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
   'access.user_reactivated': {
     appKey: 'platform',
     actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'user-required',
+    metadataFields: [],
+  },
+  'access.platform_admin_assigned': {
+    appKey: 'platform',
+    actorType: AuditActorType.SYSTEM,
     outcome: AuditOutcome.SUCCESS,
     targetRule: 'user-required',
     metadataFields: [],

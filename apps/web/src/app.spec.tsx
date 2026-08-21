@@ -3,7 +3,13 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { App } from './app';
-import { ApiHttpError, type Api, type AuthApi, type AuthSession } from './api';
+import {
+  ApiHttpError,
+  type AdministrationApi,
+  type Api,
+  type AuthApi,
+  type AuthSession,
+} from './api';
 
 const session: AuthSession = {
   id: '3f8a7c4e-6597-42d6-891b-7c7cb1fab2bc',
@@ -11,7 +17,10 @@ const session: AuthSession = {
   displayName: 'Persona Timbo',
 };
 
-function createApi(overrides: Partial<AuthApi> = {}): Api {
+function createApi(
+  authOverrides: Partial<AuthApi> = {},
+  administrationOverrides: Partial<AdministrationApi> = {},
+): Api {
   return {
     auth: {
       getSession: vi.fn<AuthApi['getSession']>().mockResolvedValue(session),
@@ -19,7 +28,15 @@ function createApi(overrides: Partial<AuthApi> = {}): Api {
       getGoogleLoginUrl: vi
         .fn<AuthApi['getGoogleLoginUrl']>()
         .mockReturnValue('http://localhost:3000/api/auth/google'),
-      ...overrides,
+      ...authOverrides,
+    },
+    administration: {
+      listUsers: vi.fn<AdministrationApi['listUsers']>().mockResolvedValue([]),
+      preauthorizeUser: vi.fn<AdministrationApi['preauthorizeUser']>(),
+      updateUser: vi.fn<AdministrationApi['updateUser']>(),
+      deactivateUser: vi.fn<AdministrationApi['deactivateUser']>(),
+      reactivateUser: vi.fn<AdministrationApi['reactivateUser']>(),
+      ...administrationOverrides,
     },
     system: { getHealth: vi.fn() },
   };
@@ -119,5 +136,63 @@ describe('App', () => {
     expect(getItem).not.toHaveBeenCalled();
     expect(setItem).not.toHaveBeenCalled();
     expect(removeItem).not.toHaveBeenCalled();
+  });
+
+  it('muestra el panel de Usuarios vacío cuando el administrador abre /admin', async () => {
+    window.history.replaceState({}, '', '/admin');
+    render(<App api={createApi()} />);
+
+    expect(await screen.findByRole('heading', { name: 'Usuarios' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'No encontramos usuarios' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Usuarios' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('muestra un estado sin permiso cuando la API rechaza el panel', async () => {
+    window.history.replaceState({}, '', '/admin');
+    render(
+      <App
+        api={createApi(
+          {},
+          {
+            listUsers: vi
+              .fn<AdministrationApi['listUsers']>()
+              .mockRejectedValue(new ApiHttpError(403)),
+          },
+        )}
+      />,
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'No tenés permiso para ver Usuarios' }),
+    ).toBeInTheDocument();
+  });
+
+  it('no ofrece desactivar a un administrador de plataforma protegido', async () => {
+    window.history.replaceState({}, '', '/admin');
+    render(
+      <App
+        api={createApi(
+          {},
+          {
+            listUsers: vi.fn<AdministrationApi['listUsers']>().mockResolvedValue([
+              {
+                id: 'admin-a',
+                corporateEmail: 'admin@timbo.com',
+                displayName: 'Administrador',
+                status: 'ACTIVE',
+                createdAt: '2026-08-21T12:00:00.000Z',
+                deactivatedAt: null,
+                isPlatformAdministrator: true,
+              },
+            ]),
+          },
+        )}
+      />,
+    );
+
+    expect(await screen.findByText('Administrador protegido')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Desactivar' })).not.toBeInTheDocument();
   });
 });

@@ -58,3 +58,12 @@ export class InvalidUserStatusTransitionError extends UsersDomainError {
     this.requestedStatus = requestedStatus;
   }
 }
+
+export class PlatformAdministratorCannotBeDeactivatedError extends UsersDomainError {
+  public constructor() {
+    super(
+      'Un administrador de plataforma no puede desactivarse en este primer corte.',
+      'deactivateUser',
+    );
+  }
+}

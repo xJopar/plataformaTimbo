@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { HealthModule } from './health/health.module';
 import { AuditEventsModule } from './modules/audit-events/audit-events.module';
+import { AdministrationModule } from './modules/administration/administration.module';
 import { AuthExceptionFilter } from './modules/auth/auth-exception.filter';
 import { AuthModule } from './modules/auth/auth.module';
 import { ObservabilityModule } from './modules/observability/observability.module';
@@ -13,6 +14,7 @@ import { UsageEventsModule } from './modules/usage-events/usage-events.module';
     ObservabilityModule,
     AuditEventsModule,
     UsageEventsModule,
+    AdministrationModule,
     HealthModule,
     UsersModule,
     AuthModule,
