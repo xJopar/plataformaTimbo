@@ -28,6 +28,13 @@ interface RequestFailedLog {
   message: string;
 }
 
+interface UsageEventAppendFailedLog extends RequestFailedLog {
+  eventId: string;
+  appKey: string;
+  eventName: string;
+  actorUserId: string;
+}
+
 describe('OperationalLoggerService', () => {
   let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
   let consoleErrorSpy: jest.SpiedFunction<typeof console.error>;
@@ -115,6 +122,35 @@ describe('OperationalLoggerService', () => {
       method: 'POST',
       route: '/api/auth/logout',
       name: 'Error',
+    });
+    expect(parsed.message).toContain('[REDACTED]');
+  });
+
+  it('emite el fallo de persistencia analítica redactado con sus identificadores seguros', () => {
+    const logger = new OperationalLoggerService();
+    const error = new Error('fallo con token=secreto-en-mensaje');
+
+    logger.logUsageEventAppendFailed(error, {
+      requestId: 'request-usage-a',
+      eventId: 'event-a',
+      appKey: 'price-list',
+      eventName: 'price-list.brand_viewed',
+      actorUserId: 'actor-a',
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    const [serialized] = consoleErrorSpy.mock.calls[0] as [string];
+    expect(serialized).not.toContain('secreto-en-mensaje');
+    const parsed = JSON.parse(serialized) as UsageEventAppendFailedLog;
+    expect(parsed).toMatchObject({
+      level: 'error',
+      event: 'api.usage-event.append_failed',
+      operation: 'usage-event.append',
+      requestId: 'request-usage-a',
+      eventId: 'event-a',
+      appKey: 'price-list',
+      eventName: 'price-list.brand_viewed',
+      actorUserId: 'actor-a',
     });
     expect(parsed.message).toContain('[REDACTED]');
   });

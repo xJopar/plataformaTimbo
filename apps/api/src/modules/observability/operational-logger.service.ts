@@ -19,6 +19,14 @@ export interface RequestFailureFields {
   route: string;
 }
 
+export interface UsageEventAppendFailureFields {
+  requestId: string;
+  eventId: string;
+  appKey: string;
+  eventName: string;
+  actorUserId: string;
+}
+
 type OperationalLogLevel = 'info' | 'error';
 
 /**
@@ -58,6 +66,19 @@ export class OperationalLoggerService {
       requestId: fields.requestId,
       method: fields.method,
       route: fields.route,
+      ...buildErrorDiagnosticFields(error, process.env.DATABASE_URL),
+    });
+  }
+
+  public logUsageEventAppendFailed(error: unknown, fields: UsageEventAppendFailureFields): void {
+    this.write('error', {
+      timestamp: new Date().toISOString(),
+      level: 'error',
+      service: SERVICE_NAME,
+      environment: resolveEnvironmentFromEnvironment(),
+      event: 'api.usage-event.append_failed',
+      operation: 'usage-event.append',
+      ...fields,
       ...buildErrorDiagnosticFields(error, process.env.DATABASE_URL),
     });
   }

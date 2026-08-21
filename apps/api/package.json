@@ -16,6 +16,7 @@
     "pretest:users:integration": "pnpm run prisma:generate",
     "pretest:auth:persistence:integration": "pnpm run prisma:generate",
     "pretest:audit-events:integration": "pnpm run prisma:generate",
+    "pretest:usage-events:integration": "pnpm run prisma:generate",
     "pretest:auth:transactions:integration": "pnpm run prisma:generate",
     "build": "tsc -p tsconfig.build.json",
     "export:openapi": "node -r ts-node/register src/export-openapi.ts",
@@ -25,6 +26,7 @@
     "test:users:integration": "node --env-file-if-exists=../../.env --experimental-vm-modules test/run-users-integration.cjs",
     "test:auth:persistence:integration": "node --env-file=../../.env --experimental-vm-modules test/run-auth-persistence-integration.cjs",
     "test:audit-events:integration": "node --env-file-if-exists=../../.env --experimental-vm-modules test/run-audit-events-integration.cjs",
+    "test:usage-events:integration": "node --env-file-if-exists=../../.env --experimental-vm-modules test/run-usage-events-integration.cjs",
     "test:auth:transactions:integration": "node --env-file=../../.env --experimental-vm-modules test/run-auth-transactions-integration.cjs"
   },
   "dependencies": {

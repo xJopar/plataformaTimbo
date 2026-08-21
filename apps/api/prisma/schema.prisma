@@ -43,6 +43,7 @@ model User {
   deactivatedAt  DateTime?     @map("deactivated_at") @db.Timestamptz(6)
   sessions       UserSession[]
   auditEvents    AuditEvent[]  @relation("AuditEventActorUser")
+  usageEvents    UsageEvent[]  @relation("UsageEventActorUser")
 
   @@map("users")
 }
@@ -98,4 +99,32 @@ model AuditEvent {
   @@index([appKey, occurredAt])
   @@index([eventName, occurredAt])
   @@map("audit_events")
+}
+
+// La futura migración SQL agrega CHECK para expires_at > occurred_at, textos no vacíos,
+// coherencia de objetivo, metadata JSONB objeto y pg_column_size(metadata) <= 4096. Prisma no
+// puede declarar estas invariantes de PostgreSQL; el servicio limita la entrada a 3072 bytes
+// UTF-8 como margen conservador, sin asumir equivalencia byte a byte con la representación JSONB.
+model UsageEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  eventId     String   @unique @map("event_id") @db.Uuid
+  actorUserId String   @map("actor_user_id") @db.Uuid
+  appKey      String   @map("app_key")
+  eventName   String   @map("event_name")
+  visitId     String   @map("visit_id") @db.Uuid
+  targetType  String?  @map("target_type")
+  targetId    String?  @map("target_id")
+  requestId   String   @map("request_id")
+  metadata    Json
+  occurredAt  DateTime @map("occurred_at") @db.Timestamptz(6)
+  expiresAt   DateTime @map("expires_at") @db.Timestamptz(6)
+  actorUser   User     @relation("UsageEventActorUser", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([expiresAt])
+  @@index([occurredAt])
+  @@index([actorUserId, occurredAt])
+  @@index([appKey, occurredAt])
+  @@index([eventName, occurredAt])
+  @@index([visitId, occurredAt])
+  @@map("usage_events")
 }
