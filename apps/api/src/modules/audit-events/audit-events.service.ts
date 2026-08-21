@@ -4,8 +4,10 @@ import { AuditActorType, Prisma, type AuditEvent } from '../../generated/prisma/
 import { RequestContextService } from '../observability/request-context.service';
 import {
   AUDIT_EVENT_CATALOG,
+  LOGIN_DENIED_REASON_CODES,
   type AuditEventName,
   type AuditTargetRule,
+  type LoginDeniedReasonCode,
 } from './audit-event-catalog';
 
 const AUDIT_RETENTION_MONTHS = 12;
@@ -31,11 +33,13 @@ export interface AuditTarget {
   targetId: string;
 }
 
+export type AuditEventMetadata = Readonly<{ reasonCode: LoginDeniedReasonCode }>;
+
 export interface AppendAuditEventInput {
   eventName: AuditEventName;
   actor: AuditActor;
   target?: AuditTarget;
-  metadata?: Record<string, never>;
+  metadata?: AuditEventMetadata;
 }
 
 @Injectable()
@@ -115,7 +119,7 @@ export class AuditEventsService {
   }
 
   private validateMetadata(
-    metadata: Record<string, never> | undefined,
+    metadata: AuditEventMetadata | undefined,
     allowedFields: readonly string[],
   ): void {
     const unknownField = Object.keys(metadata ?? {}).find(
@@ -124,6 +128,13 @@ export class AuditEventsService {
 
     if (unknownField !== undefined) {
       throw new Error('La metadata contiene un campo no permitido por el catálogo de auditoría.');
+    }
+
+    if (
+      allowedFields.includes('reasonCode') &&
+      (metadata === undefined || !LOGIN_DENIED_REASON_CODES.includes(metadata.reasonCode))
+    ) {
+      throw new Error('El evento de auditoría requiere un reasonCode permitido por el catálogo.');
     }
   }
 }

@@ -30,10 +30,15 @@ describe('Log operativo estructurado y X-Request-Id (e2e)', () => {
     revokeSession: jest.fn(),
   };
 
+  const transactionClient = {};
+  const prismaService = {
+    $transaction: jest.fn((callback: (tx: unknown) => unknown) => callback(transactionClient)),
+  };
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService)
-      .useValue({})
+      .useValue(prismaService)
       .overrideProvider(UserSessionsService)
       .useValue(userSessionsService)
       .compile();
@@ -49,6 +54,9 @@ describe('Log operativo estructurado y X-Request-Id (e2e)', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    prismaService.$transaction.mockImplementation((callback: (tx: unknown) => unknown) =>
+      callback(transactionClient),
+    );
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });

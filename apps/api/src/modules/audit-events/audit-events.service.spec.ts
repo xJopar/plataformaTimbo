@@ -6,7 +6,12 @@ import {
 } from '../../generated/prisma/client';
 import { RequestContextService } from '../observability/request-context.service';
 import { AUDIT_EVENT_CATALOG } from './audit-event-catalog';
-import { addCalendarMonthsUtc, type AuditActor, AuditEventsService } from './audit-events.service';
+import {
+  addCalendarMonthsUtc,
+  type AuditActor,
+  type AuditEventMetadata,
+  AuditEventsService,
+} from './audit-events.service';
 
 const createAuditEvent = (overrides: Partial<AuditEvent> = {}): AuditEvent => ({
   id: '737c5ac8-9385-4ae3-9ac7-f16622a8d1fc',
@@ -63,7 +68,7 @@ describe('AuditEventsService', () => {
     expect(AUDIT_EVENT_CATALOG['security.login_denied']).toMatchObject({
       actorType: AuditActorType.ANONYMOUS,
       outcome: AuditOutcome.DENIED,
-      metadataFields: [],
+      metadataFields: ['reasonCode'],
     });
     expect(AUDIT_EVENT_CATALOG['security.logout']).toMatchObject({
       actorType: AuditActorType.USER,
@@ -133,6 +138,7 @@ describe('AuditEventsService', () => {
     await service.append(transactionClient, {
       eventName: 'security.login_denied',
       actor: { actorType: AuditActorType.ANONYMOUS },
+      metadata: { reasonCode: 'USER_NOT_AUTHORIZED' },
     });
 
     const createArguments = auditEventCreate.mock.calls.at(0);
@@ -161,9 +167,48 @@ describe('AuditEventsService', () => {
       service.append(transactionClient, {
         eventName: 'security.login_denied',
         actor: { actorType: AuditActorType.ANONYMOUS },
-        metadata: { unapproved: 'value' } as unknown as Record<string, never>,
+        metadata: { unapproved: 'value' } as unknown as AuditEventMetadata,
       }),
     ).rejects.toThrow('campo no permitido');
+    expect(auditEventCreate).not.toHaveBeenCalled();
+  });
+
+  it('persiste sólo un reasonCode del catálogo cerrado para login denegado', async () => {
+    const persistedEvent = createAuditEvent({
+      eventName: 'security.login_denied',
+      metadata: { reasonCode: 'USER_INACTIVE' },
+    });
+    auditEventCreate.mockResolvedValue(persistedEvent);
+
+    await expect(
+      service.append(transactionClient, {
+        eventName: 'security.login_denied',
+        actor: { actorType: AuditActorType.ANONYMOUS },
+        metadata: { reasonCode: 'USER_INACTIVE' },
+      }),
+    ).resolves.toBe(persistedEvent);
+
+    const createArguments = auditEventCreate.mock.calls.at(0);
+    if (createArguments === undefined) {
+      throw new Error('No se registró la escritura de auditoría.');
+    }
+    expect(createArguments[0].data.metadata).toEqual({ reasonCode: 'USER_INACTIVE' });
+  });
+
+  it('rechaza login denegado sin reasonCode o con uno fuera del catálogo cerrado', async () => {
+    await expect(
+      service.append(transactionClient, {
+        eventName: 'security.login_denied',
+        actor: { actorType: AuditActorType.ANONYMOUS },
+      }),
+    ).rejects.toThrow('requiere un reasonCode permitido');
+    await expect(
+      service.append(transactionClient, {
+        eventName: 'security.login_denied',
+        actor: { actorType: AuditActorType.ANONYMOUS },
+        metadata: { reasonCode: 'UNKNOWN_REASON' } as unknown as AuditEventMetadata,
+      }),
+    ).rejects.toThrow('requiere un reasonCode permitido');
     expect(auditEventCreate).not.toHaveBeenCalled();
   });
 
@@ -220,6 +265,7 @@ describe('AuditEventsService', () => {
       service.append(transactionClient, {
         eventName: 'security.login_denied',
         actor: { actorType: AuditActorType.ANONYMOUS },
+        metadata: { reasonCode: 'USER_NOT_AUTHORIZED' },
       }),
     ).rejects.toBe(persistenceError);
   });

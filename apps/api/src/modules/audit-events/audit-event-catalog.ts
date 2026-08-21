@@ -10,12 +10,22 @@ export type AuditEventName =
 
 export type AuditTargetRule = 'forbidden' | 'user-required';
 
+export type LoginDeniedReasonCode =
+  'USER_NOT_AUTHORIZED' | 'USER_INACTIVE' | 'GOOGLE_IDENTITY_MISMATCH' | 'GOOGLE_IDENTITY_INVALID';
+
+export const LOGIN_DENIED_REASON_CODES: readonly LoginDeniedReasonCode[] = [
+  'USER_NOT_AUTHORIZED',
+  'USER_INACTIVE',
+  'GOOGLE_IDENTITY_MISMATCH',
+  'GOOGLE_IDENTITY_INVALID',
+];
+
 export interface AuditEventCatalogEntry {
   appKey: 'platform';
   actorType: AuditActorType;
   outcome: AuditOutcome;
   targetRule: AuditTargetRule;
-  metadataFields: readonly [];
+  metadataFields: readonly string[];
 }
 
 export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCatalogEntry>> = {
@@ -31,7 +41,7 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
     actorType: AuditActorType.ANONYMOUS,
     outcome: AuditOutcome.DENIED,
     targetRule: 'forbidden',
-    metadataFields: [],
+    metadataFields: ['reasonCode'],
   },
   'security.logout': {
     appKey: 'platform',

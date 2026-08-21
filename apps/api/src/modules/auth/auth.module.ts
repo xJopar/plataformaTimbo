@@ -1,10 +1,15 @@
 import { Module } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
 import { PrismaModule } from '../../database/prisma.module';
+import { AuditEventsModule } from '../audit-events/audit-events.module';
+import { AuditEventsService } from '../audit-events/audit-events.service';
 import { UsersModule } from '../users/users.module';
 import { UsersService } from '../users/users.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import {
+  AUTH_AUDIT_EVENTS_SERVICE,
+  AUTH_PRISMA_SERVICE,
   GOOGLE_OAUTH_SERVICE,
   OAUTH_LOGIN_ATTEMPTS_SERVICE,
   USERS_SERVICE,
@@ -17,7 +22,7 @@ import { SessionAuthenticationGuard } from './session-authentication.guard';
 import { UserSessionsService } from './user-sessions.service';
 
 @Module({
-  imports: [PrismaModule, UsersModule],
+  imports: [PrismaModule, UsersModule, AuditEventsModule],
   controllers: [AuthController],
   providers: [
     AuthService,
@@ -30,6 +35,8 @@ import { UserSessionsService } from './user-sessions.service';
     { provide: OAUTH_LOGIN_ATTEMPTS_SERVICE, useExisting: OAuthLoginAttemptsService },
     { provide: USER_SESSIONS_SERVICE, useExisting: UserSessionsService },
     { provide: USERS_SERVICE, useExisting: UsersService },
+    { provide: AUTH_PRISMA_SERVICE, useExisting: PrismaService },
+    { provide: AUTH_AUDIT_EVENTS_SERVICE, useExisting: AuditEventsService },
   ],
   exports: [
     AuthService,

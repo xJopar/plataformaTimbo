@@ -8,6 +8,7 @@ import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/bootstrap';
 import { PrismaService } from '../src/database/prisma.service';
 import { SESSION_DURATION_MS } from '../src/runtime-config';
+import { AuditEventsService } from '../src/modules/audit-events/audit-events.service';
 import { GoogleOAuthService } from '../src/modules/auth/google-oauth.service';
 import { AuthPublicError } from '../src/modules/auth/auth-public.errors';
 import { OAuthLoginAttemptUnavailableError } from '../src/modules/auth/auth-persistence.errors';
@@ -52,6 +53,13 @@ describe('autenticación HTTP (e2e)', () => {
     linkGoogleSubject: jest.fn(),
     findActiveUserById: jest.fn(),
   };
+  const auditEventsService = {
+    append: jest.fn(),
+  };
+  const transactionClient = {};
+  const prismaService = {
+    $transaction: jest.fn((callback: (tx: unknown) => unknown) => callback(transactionClient)),
+  };
   const originalEnvironment = {
     GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID,
     GOOGLE_OAUTH_CLIENT_SECRET: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
@@ -67,7 +75,7 @@ describe('autenticación HTTP (e2e)', () => {
 
     const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService)
-      .useValue({})
+      .useValue(prismaService)
       .overrideProvider(GoogleOAuthService)
       .useValue(googleOAuthService)
       .overrideProvider(OAuthLoginAttemptsService)
@@ -76,6 +84,8 @@ describe('autenticación HTTP (e2e)', () => {
       .useValue(userSessionsService)
       .overrideProvider(UsersService)
       .useValue(usersService)
+      .overrideProvider(AuditEventsService)
+      .useValue(auditEventsService)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -85,6 +95,10 @@ describe('autenticación HTTP (e2e)', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    prismaService.$transaction.mockImplementation((callback: (tx: unknown) => unknown) =>
+      callback(transactionClient),
+    );
+    auditEventsService.append.mockResolvedValue(undefined);
     const user = createUser();
     jest.mocked(oauthLoginAttemptsService.createLoginAttempt).mockResolvedValue({
       id: randomUUID(),
@@ -112,7 +126,14 @@ describe('autenticación HTTP (e2e)', () => {
     });
     jest.mocked(userSessionsService.findActiveSession).mockResolvedValue({ userId: user.id });
     jest.mocked(usersService.findActiveUserById).mockResolvedValue(user);
-    jest.mocked(userSessionsService.revokeSession).mockResolvedValue(true);
+    jest.mocked(userSessionsService.revokeSession).mockResolvedValue({
+      id: randomUUID(),
+      userId: user.id,
+      tokenHash: 'hash',
+      createdAt: new Date(),
+      expiresAt: new Date(),
+      revokedAt: new Date(),
+    });
   });
 
   afterAll(async () => {
@@ -149,6 +170,13 @@ describe('autenticación HTTP (e2e)', () => {
       displayName: 'Persona',
     });
     expect(JSON.stringify(sessionBody)).not.toContain('token');
+    expect(auditEventsService.append).toHaveBeenCalledWith(
+      transactionClient,
+      expect.objectContaining({ eventName: 'security.login_succeeded' }),
+    );
+
+    await agent.get('/api/auth/session').expect(200);
+    expect(auditEventsService.append).toHaveBeenCalledTimes(1);
   });
 
   it('consume el callback una sola vez y nunca crea cookie ante un intento inválido', async () => {
@@ -165,6 +193,7 @@ describe('autenticación HTTP (e2e)', () => {
     expect(response.headers.location).not.toContain('code=');
     expect(response.headers['set-cookie']).toBeUndefined();
     expect(userSessionsService.createSession).not.toHaveBeenCalled();
+    expect(auditEventsService.append).not.toHaveBeenCalled();
   });
 
   it('consume un state válido aunque Google cancele o falte code, y rechaza su segundo uso', async () => {
@@ -193,6 +222,7 @@ describe('autenticación HTTP (e2e)', () => {
       `${TEST_ORIGIN}/?auth_error=LOGIN_ATTEMPT_INVALID`,
     );
     expect(userSessionsService.createSession).not.toHaveBeenCalled();
+    expect(auditEventsService.append).not.toHaveBeenCalled();
   });
 
   it('consume state antes de rechazar un callback sin code, y no consume uno ausente', async () => {
@@ -248,6 +278,12 @@ describe('autenticación HTTP (e2e)', () => {
       expect(response.headers.location).not.toContain('code=');
       expect(response.headers['set-cookie']).toBeUndefined();
       expect(userSessionsService.createSession).not.toHaveBeenCalled();
+      expect(auditEventsService.append).toHaveBeenCalledWith(transactionClient, {
+        eventName: 'security.login_denied',
+        actor: { actorType: 'ANONYMOUS' },
+        metadata: { reasonCode: errorCode },
+      });
+      auditEventsService.append.mockClear();
       jest.mocked(googleOAuthService.exchangeAuthorizationCode).mockResolvedValue({
         subject: randomUUID(),
         email: 'persona@example.test',
@@ -289,11 +325,28 @@ describe('autenticación HTTP (e2e)', () => {
       .expect(500);
     expect(failedLogout.body).toEqual({ code: 'INTERNAL_ERROR' });
 
-    jest.mocked(userSessionsService.revokeSession).mockResolvedValue(false);
+    jest.mocked(userSessionsService.revokeSession).mockResolvedValue(undefined);
     await request(app.getHttpServer() as Server)
       .post('/api/auth/logout')
       .set('Origin', TEST_ORIGIN)
       .set('x-timbo-csrf', '1')
       .expect(204);
+    expect(auditEventsService.append).not.toHaveBeenCalled();
+  });
+
+  it('logout con sesión vencida no genera security.logout aunque la cookie exista', async () => {
+    // UserSessionsService.revokeSession condiciona la revocación a expiresAt > now; una sesión
+    // vencida ya no matchea esa consulta y devuelve undefined, igual que una sesión ausente.
+    jest.mocked(userSessionsService.revokeSession).mockResolvedValue(undefined);
+
+    await request(app.getHttpServer() as Server)
+      .post('/api/auth/logout')
+      .set('Origin', TEST_ORIGIN)
+      .set('x-timbo-csrf', '1')
+      .set('Cookie', `timbo_session=${randomUUID()}`)
+      .expect(204);
+
+    expect(userSessionsService.revokeSession).toHaveBeenCalledTimes(1);
+    expect(auditEventsService.append).not.toHaveBeenCalled();
   });
 });

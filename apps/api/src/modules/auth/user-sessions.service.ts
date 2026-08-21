@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import type { UserSession } from '../../generated/prisma/client';
+import type { Prisma, UserSession } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { SESSION_DURATION_MS } from '../../runtime-config';
 import { UserSessionUnavailableError } from './auth-persistence.errors';
@@ -22,11 +22,14 @@ const OPERATION_FIND_ACTIVE = 'findActiveUserSession';
 export class UserSessionsService {
   public constructor(private readonly prisma: PrismaService) {}
 
-  public async createSession(input: CreateUserSessionInput): Promise<CreatedUserSession> {
+  public async createSession(
+    transactionClient: Prisma.TransactionClient,
+    input: CreateUserSessionInput,
+  ): Promise<CreatedUserSession> {
     const now = input.now ?? new Date();
     const token = randomBytes(32).toString('base64url');
     const expiresAt = new Date(now.getTime() + SESSION_DURATION_MS);
-    const session = await this.prisma.userSession.create({
+    const session = await transactionClient.userSession.create({
       data: {
         userId: input.userId,
         tokenHash: this.hashValue(token),
@@ -54,13 +57,17 @@ export class UserSessionsService {
     return session;
   }
 
-  public async revokeSession(token: string, now: Date = new Date()): Promise<boolean> {
-    const result = await this.prisma.userSession.updateMany({
-      where: { tokenHash: this.hashValue(token), revokedAt: null },
+  public async revokeSession(
+    transactionClient: Prisma.TransactionClient,
+    token: string,
+    now: Date = new Date(),
+  ): Promise<UserSession | undefined> {
+    const sessions = await transactionClient.userSession.updateManyAndReturn({
+      where: { tokenHash: this.hashValue(token), revokedAt: null, expiresAt: { gt: now } },
       data: { revokedAt: now },
     });
 
-    return result.count === 1;
+    return sessions[0];
   }
 
   private hashValue(value: string): string {

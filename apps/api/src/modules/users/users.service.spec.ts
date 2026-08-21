@@ -1,5 +1,6 @@
-import { UserStatus, type User } from '../../generated/prisma/client';
+import { AuditActorType, type Prisma, UserStatus, type User } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import type { AuditEventsService } from '../audit-events/audit-events.service';
 import {
   CorporateEmailAlreadyInUseError,
   GoogleSubjectAlreadyLinkedError,
@@ -9,6 +10,8 @@ import {
   ZohoCrmUserIdAlreadyInUseError,
 } from './users.errors';
 import { UsersService } from './users.service';
+
+const ACTOR_USER_ID = '9c6a5e2b-2e0e-4c34-9d5a-4a7f3c9d2b41';
 
 const createUser = (overrides: Partial<User> = {}): User => ({
   id: '64e90b9e-9701-4bdf-8949-2f0a9d1cd17c',
@@ -39,7 +42,15 @@ describe('UsersService', () => {
     update: jest.fn(),
     updateManyAndReturn: jest.fn(),
   };
-  const prisma = { user: userDelegate } as unknown as PrismaService;
+  const transactionClient = { user: userDelegate } as unknown as Prisma.TransactionClient;
+  const prismaTransaction = jest.fn((callback: (tx: typeof transactionClient) => unknown) =>
+    callback(transactionClient),
+  );
+  const prisma = {
+    user: userDelegate,
+    $transaction: prismaTransaction,
+  } as unknown as PrismaService;
+  const auditEventsService = { append: jest.fn() };
   let service: UsersService;
 
   beforeEach(() => {
@@ -47,7 +58,10 @@ describe('UsersService', () => {
     userDelegate.findUnique.mockReset();
     userDelegate.update.mockReset();
     userDelegate.updateManyAndReturn.mockReset();
-    service = new UsersService(prisma);
+    prismaTransaction.mockClear();
+    auditEventsService.append.mockReset();
+    auditEventsService.append.mockResolvedValue(undefined);
+    service = new UsersService(prisma, auditEventsService as unknown as AuditEventsService);
   });
 
   describe('preauthorizeUser', () => {
@@ -70,6 +84,11 @@ describe('UsersService', () => {
           corporateEmail: 'persona@example.test',
           displayName: 'Nombre visible',
         },
+      });
+      expect(auditEventsService.append).toHaveBeenCalledWith(transactionClient, {
+        eventName: 'access.user_preauthorized',
+        actor: { actorType: AuditActorType.SYSTEM, systemActorKey: 'preauthorize-user-cli' },
+        target: { targetType: 'user', targetId: user.id },
       });
     });
 
@@ -115,6 +134,16 @@ describe('UsersService', () => {
         ).rejects.toBeInstanceOf(ErrorType);
       },
     );
+
+    it('propaga un fallo de auditoría sin confirmar la creación del usuario', async () => {
+      const auditFailure = new Error('fallo de auditoría');
+      userDelegate.create.mockResolvedValue(createUser());
+      auditEventsService.append.mockRejectedValue(auditFailure);
+
+      await expect(
+        service.preauthorizeUser({ corporateEmail: 'persona@example.test' }),
+      ).rejects.toBe(auditFailure);
+    });
   });
 
   describe('findByCorporateEmail', () => {
@@ -149,7 +178,7 @@ describe('UsersService', () => {
       userDelegate.updateManyAndReturn.mockResolvedValue([linkedUser]);
 
       await expect(
-        service.linkGoogleSubject({
+        service.linkGoogleSubject(transactionClient, {
           corporateEmail: 'PERSONA@example.test',
           googleSubject: 'google-subject-1',
         }),
@@ -171,7 +200,7 @@ describe('UsersService', () => {
       userDelegate.updateManyAndReturn.mockResolvedValue([]);
       userDelegate.findUnique.mockResolvedValue(user);
 
-      const result = await service.linkGoogleSubject({
+      const result = await service.linkGoogleSubject(transactionClient, {
         corporateEmail: user.corporateEmail,
         googleSubject: user.googleSubject ?? '',
       });
@@ -194,7 +223,7 @@ describe('UsersService', () => {
       userDelegate.findUnique.mockResolvedValue(createUser({ googleSubject: 'google-subject-1' }));
 
       await expect(
-        service.linkGoogleSubject({
+        service.linkGoogleSubject(transactionClient, {
           corporateEmail: 'persona@example.test',
           googleSubject: 'google-subject-2',
         }),
@@ -209,7 +238,7 @@ describe('UsersService', () => {
       userDelegate.updateManyAndReturn.mockRejectedValue(prismaError);
 
       await expect(
-        service.linkGoogleSubject({
+        service.linkGoogleSubject(transactionClient, {
           corporateEmail: 'persona@example.test',
           googleSubject: 'google-subject-1',
         }),
@@ -223,7 +252,7 @@ describe('UsersService', () => {
       userDelegate.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.linkGoogleSubject({
+        service.linkGoogleSubject(transactionClient, {
           corporateEmail: 'persona@example.test',
           googleSubject: 'google-subject-1',
         }),
@@ -268,7 +297,7 @@ describe('UsersService', () => {
   });
 
   describe('cambios de estado', () => {
-    it('desactiva un usuario activo con fecha de desactivación', async () => {
+    it('desactiva un usuario activo con fecha de desactivación y audita al actor administrador', async () => {
       const deactivatedUser = createUser({
         status: UserStatus.INACTIVE,
         deactivatedAt: new Date('2026-08-18T13:00:00.000Z'),
@@ -276,7 +305,10 @@ describe('UsersService', () => {
       userDelegate.updateManyAndReturn.mockResolvedValue([deactivatedUser]);
 
       await expect(
-        service.deactivateUser({ corporateEmail: 'persona@example.test' }),
+        service.deactivateUser({
+          corporateEmail: 'persona@example.test',
+          actorUserId: ACTOR_USER_ID,
+        }),
       ).resolves.toBe(deactivatedUser);
 
       expect(userDelegate.updateManyAndReturn).toHaveBeenCalledWith({
@@ -285,21 +317,57 @@ describe('UsersService', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: { status: UserStatus.INACTIVE, deactivatedAt: expect.any(Date) },
       });
+      expect(auditEventsService.append).toHaveBeenCalledWith(transactionClient, {
+        eventName: 'access.user_deactivated',
+        actor: { actorType: AuditActorType.USER, actorUserId: ACTOR_USER_ID },
+        target: { targetType: 'user', targetId: deactivatedUser.id },
+      });
     });
 
-    it('reactiva un usuario inactivo y limpia su fecha', async () => {
+    it('reactiva un usuario inactivo, limpia su fecha y audita al actor administrador', async () => {
       const reactivatedUser = createUser();
       userDelegate.updateManyAndReturn.mockResolvedValue([reactivatedUser]);
 
       await expect(
-        service.reactivateUser({ corporateEmail: 'persona@example.test' }),
+        service.reactivateUser({
+          corporateEmail: 'persona@example.test',
+          actorUserId: ACTOR_USER_ID,
+        }),
       ).resolves.toBe(reactivatedUser);
 
       expect(userDelegate.updateManyAndReturn).toHaveBeenCalledWith({
         where: { corporateEmail: 'persona@example.test', status: UserStatus.INACTIVE },
         data: { status: UserStatus.ACTIVE, deactivatedAt: null },
       });
+      expect(auditEventsService.append).toHaveBeenCalledWith(transactionClient, {
+        eventName: 'access.user_reactivated',
+        actor: { actorType: AuditActorType.USER, actorUserId: ACTOR_USER_ID },
+        target: { targetType: 'user', targetId: reactivatedUser.id },
+      });
     });
+
+    it.each(['deactivateUser', 'reactivateUser'] as const)(
+      'propaga un fallo de auditoría sin confirmar el %s',
+      async (method) => {
+        const changedUser = createUser({ status: UserStatus.INACTIVE });
+        const auditFailure = new Error('fallo de auditoría');
+        userDelegate.updateManyAndReturn.mockResolvedValue([changedUser]);
+        auditEventsService.append.mockRejectedValue(auditFailure);
+
+        const result =
+          method === 'deactivateUser'
+            ? service.deactivateUser({
+                corporateEmail: 'persona@example.test',
+                actorUserId: ACTOR_USER_ID,
+              })
+            : service.reactivateUser({
+                corporateEmail: 'persona@example.test',
+                actorUserId: ACTOR_USER_ID,
+              });
+
+        await expect(result).rejects.toBe(auditFailure);
+      },
+    );
 
     it.each([
       [UserStatus.INACTIVE, 'deactivateUser', 'deactivateUser'],
@@ -314,13 +382,20 @@ describe('UsersService', () => {
 
         const result =
           method === 'deactivateUser'
-            ? service.deactivateUser({ corporateEmail: 'persona@example.test' })
-            : service.reactivateUser({ corporateEmail: 'persona@example.test' });
+            ? service.deactivateUser({
+                corporateEmail: 'persona@example.test',
+                actorUserId: ACTOR_USER_ID,
+              })
+            : service.reactivateUser({
+                corporateEmail: 'persona@example.test',
+                actorUserId: ACTOR_USER_ID,
+              });
 
         await expect(result).rejects.toEqual(
           expect.objectContaining({ operation, name: InvalidUserStatusTransitionError.name }),
         );
         expect(userDelegate.updateManyAndReturn).toHaveBeenCalledTimes(1);
+        expect(auditEventsService.append).not.toHaveBeenCalled();
       },
     );
 
@@ -335,8 +410,14 @@ describe('UsersService', () => {
 
         const result =
           method === 'deactivateUser'
-            ? service.deactivateUser({ corporateEmail: 'persona@example.test' })
-            : service.reactivateUser({ corporateEmail: 'persona@example.test' });
+            ? service.deactivateUser({
+                corporateEmail: 'persona@example.test',
+                actorUserId: ACTOR_USER_ID,
+              })
+            : service.reactivateUser({
+                corporateEmail: 'persona@example.test',
+                actorUserId: ACTOR_USER_ID,
+              });
 
         await expect(result).rejects.toEqual(expect.objectContaining({ operation }));
       },
@@ -371,9 +452,12 @@ describe('UsersService', () => {
     const unexpectedError = new Error('fallo condicional inesperado');
     userDelegate.updateManyAndReturn.mockRejectedValue(unexpectedError);
 
-    await expect(service.deactivateUser({ corporateEmail: 'persona@example.test' })).rejects.toBe(
-      unexpectedError,
-    );
+    await expect(
+      service.deactivateUser({
+        corporateEmail: 'persona@example.test',
+        actorUserId: ACTOR_USER_ID,
+      }),
+    ).rejects.toBe(unexpectedError);
   });
 
   it('propaga intacto un P2002 cuyo campo no puede identificarse con certeza', async () => {

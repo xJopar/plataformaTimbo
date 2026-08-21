@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { User } from '../../generated/prisma/client';
+import type { PrismaService } from '../../database/prisma.service';
+import type { Prisma, User } from '../../generated/prisma/client';
 import { resolveCorsOriginFromEnvironment, resolveGoogleOAuthConfig } from '../../runtime-config';
+import type { AuditEventsService } from '../audit-events/audit-events.service';
 import {
   GoogleSubjectAlreadyLinkedError,
   UserInactiveError,
@@ -8,8 +10,10 @@ import {
 } from '../users/users.errors';
 import type { UsersService } from '../users/users.service';
 import { OAuthLoginAttemptUnavailableError } from './auth-persistence.errors';
-import { AuthPublicError } from './auth-public.errors';
+import { AuthPublicError, type AuthPublicErrorCode } from './auth-public.errors';
 import {
+  AUTH_AUDIT_EVENTS_SERVICE,
+  AUTH_PRISMA_SERVICE,
   GOOGLE_OAUTH_SERVICE,
   OAUTH_LOGIN_ATTEMPTS_SERVICE,
   USERS_SERVICE,
@@ -18,6 +22,13 @@ import {
 import type { GoogleOAuthService } from './google-oauth.service';
 import type { OAuthLoginAttemptsService } from './oauth-login-attempts.service';
 import type { UserSessionsService } from './user-sessions.service';
+
+// PrismaService y AuditEventsService se inyectan por token (en vez de la clase concreta) para que
+// este archivo nunca importe por valor el cliente Prisma generado: export-openapi.ts construye
+// AuthService como token stubeado sin base de datos real, y ts-node (a diferencia de ts-jest) no
+// resuelve los imports internos ".js" del cliente generado por Prisma 7.
+const USER_ACTOR_TYPE = 'USER';
+const ANONYMOUS_ACTOR_TYPE = 'ANONYMOUS';
 
 export interface CompleteGoogleLoginInput {
   state?: string;
@@ -31,6 +42,19 @@ export interface AuthenticatedIdentity {
   displayName: string | null;
 }
 
+const LOGIN_DENIED_REASON_CODES = [
+  'USER_NOT_AUTHORIZED',
+  'USER_INACTIVE',
+  'GOOGLE_IDENTITY_MISMATCH',
+  'GOOGLE_IDENTITY_INVALID',
+] as const;
+
+type LoginDeniedReasonCode = (typeof LOGIN_DENIED_REASON_CODES)[number];
+
+function isLoginDeniedReasonCode(code: AuthPublicErrorCode): code is LoginDeniedReasonCode {
+  return (LOGIN_DENIED_REASON_CODES as readonly string[]).includes(code);
+}
+
 @Injectable()
 export class AuthService {
   public constructor(
@@ -39,6 +63,8 @@ export class AuthService {
     private readonly oauthLoginAttemptsService: OAuthLoginAttemptsService,
     @Inject(USER_SESSIONS_SERVICE) private readonly userSessionsService: UserSessionsService,
     @Inject(USERS_SERVICE) private readonly usersService: UsersService,
+    @Inject(AUTH_PRISMA_SERVICE) private readonly prisma: PrismaService,
+    @Inject(AUTH_AUDIT_EVENTS_SERVICE) private readonly auditEventsService: AuditEventsService,
   ) {}
 
   public async beginGoogleLogin(): Promise<string> {
@@ -65,14 +91,34 @@ export class AuthService {
       throw new AuthPublicError('LOGIN_RESPONSE_INVALID', 400);
     }
 
-    const googleIdentity = await this.googleOAuthService.exchangeAuthorizationCode({
-      code: input.code,
-      pkceVerifier: loginAttempt.pkceVerifier,
-    });
-    const user = await this.linkGoogleIdentity(googleIdentity.email, googleIdentity.subject);
-    const session = await this.userSessionsService.createSession({ userId: user.id });
+    try {
+      const googleIdentity = await this.googleOAuthService.exchangeAuthorizationCode({
+        code: input.code,
+        pkceVerifier: loginAttempt.pkceVerifier,
+      });
 
-    return { token: session.token };
+      return await this.prisma.$transaction(async (transactionClient) => {
+        const user = await this.linkGoogleIdentity(
+          transactionClient,
+          googleIdentity.email,
+          googleIdentity.subject,
+        );
+        const session = await this.userSessionsService.createSession(transactionClient, {
+          userId: user.id,
+        });
+        await this.auditEventsService.append(transactionClient, {
+          eventName: 'security.login_succeeded',
+          actor: { actorType: USER_ACTOR_TYPE, actorUserId: user.id },
+        });
+
+        return { token: session.token };
+      });
+    } catch (error) {
+      if (error instanceof AuthPublicError && isLoginDeniedReasonCode(error.code)) {
+        await this.recordLoginDenied(error.code);
+      }
+      throw error;
+    }
   }
 
   public getSessionCookieConfig() {
@@ -88,9 +134,25 @@ export class AuthService {
   }
 
   public async logout(sessionToken: string | undefined): Promise<void> {
-    if (sessionToken !== undefined) {
-      await this.userSessionsService.revokeSession(sessionToken);
+    if (sessionToken === undefined) {
+      return;
     }
+
+    await this.prisma.$transaction(async (transactionClient) => {
+      const revokedSession = await this.userSessionsService.revokeSession(
+        transactionClient,
+        sessionToken,
+      );
+
+      if (revokedSession === undefined) {
+        return;
+      }
+
+      await this.auditEventsService.append(transactionClient, {
+        eventName: 'security.logout',
+        actor: { actorType: USER_ACTOR_TYPE, actorUserId: revokedSession.userId },
+      });
+    });
   }
 
   public toAuthenticatedIdentity(user: User): AuthenticatedIdentity {
@@ -101,9 +163,16 @@ export class AuthService {
     };
   }
 
-  private async linkGoogleIdentity(corporateEmail: string, googleSubject: string): Promise<User> {
+  private async linkGoogleIdentity(
+    transactionClient: Prisma.TransactionClient,
+    corporateEmail: string,
+    googleSubject: string,
+  ): Promise<User> {
     try {
-      const user = await this.usersService.linkGoogleSubject({ corporateEmail, googleSubject });
+      const user = await this.usersService.linkGoogleSubject(transactionClient, {
+        corporateEmail,
+        googleSubject,
+      });
 
       if (user.status !== 'ACTIVE') {
         throw new AuthPublicError('USER_INACTIVE', 403);
@@ -122,5 +191,15 @@ export class AuthService {
       }
       throw error;
     }
+  }
+
+  private async recordLoginDenied(reasonCode: LoginDeniedReasonCode): Promise<void> {
+    await this.prisma.$transaction((transactionClient) =>
+      this.auditEventsService.append(transactionClient, {
+        eventName: 'security.login_denied',
+        actor: { actorType: ANONYMOUS_ACTOR_TYPE },
+        metadata: { reasonCode },
+      }),
+    );
   }
 }

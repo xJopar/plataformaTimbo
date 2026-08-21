@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { UserStatus, type User } from '../../generated/prisma/client';
+import { AuditActorType, Prisma, UserStatus, type User } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { AuditEventsService } from '../audit-events/audit-events.service';
 import {
   CorporateEmailAlreadyInUseError,
   GoogleSubjectAlreadyLinkedError,
@@ -10,6 +11,8 @@ import {
   UserNotFoundError,
   ZohoCrmUserIdAlreadyInUseError,
 } from './users.errors';
+
+const PREAUTHORIZE_USER_CLI_SYSTEM_ACTOR_KEY = 'preauthorize-user-cli';
 
 export interface PreauthorizeUserInput {
   corporateEmail: string;
@@ -32,6 +35,7 @@ export interface SaveZohoCrmUserIdInput {
 
 export interface ChangeUserStatusInput {
   corporateEmail: string;
+  actorUserId: string;
 }
 
 export interface FindActiveUserByIdInput {
@@ -52,20 +56,34 @@ const OPERATION_REACTIVATE = 'reactivateUser';
 
 @Injectable()
 export class UsersService {
-  public constructor(private readonly prisma: PrismaService) {}
+  public constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditEventsService: AuditEventsService,
+  ) {}
 
   public async preauthorizeUser(input: PreauthorizeUserInput): Promise<User> {
     const corporateEmail = this.normalizeCorporateEmail(
       input.corporateEmail,
       OPERATION_PREAUTHORIZE,
     );
+    const displayName = this.normalizeOptionalDisplayName(input.displayName);
 
     return this.translatePrismaErrors(OPERATION_PREAUTHORIZE, () =>
-      this.prisma.user.create({
-        data: {
-          corporateEmail,
-          displayName: this.normalizeOptionalDisplayName(input.displayName),
-        },
+      this.prisma.$transaction(async (transactionClient) => {
+        const user = await transactionClient.user.create({
+          data: { corporateEmail, displayName },
+        });
+
+        await this.auditEventsService.append(transactionClient, {
+          eventName: 'access.user_preauthorized',
+          actor: {
+            actorType: AuditActorType.SYSTEM,
+            systemActorKey: PREAUTHORIZE_USER_CLI_SYSTEM_ACTOR_KEY,
+          },
+          target: { targetType: 'user', targetId: user.id },
+        });
+
+        return user;
       }),
     );
   }
@@ -90,13 +108,16 @@ export class UsersService {
     });
   }
 
-  public async linkGoogleSubject(input: LinkGoogleSubjectInput): Promise<User> {
+  public async linkGoogleSubject(
+    transactionClient: Prisma.TransactionClient,
+    input: LinkGoogleSubjectInput,
+  ): Promise<User> {
     const corporateEmail = this.normalizeCorporateEmail(
       input.corporateEmail,
       OPERATION_LINK_GOOGLE,
     );
     const users = await this.translatePrismaErrors(OPERATION_LINK_GOOGLE, () =>
-      this.prisma.user.updateManyAndReturn({
+      transactionClient.user.updateManyAndReturn({
         where: {
           corporateEmail,
           googleSubject: null,
@@ -113,6 +134,7 @@ export class UsersService {
     }
 
     const currentUser = await this.findUserByNormalizedCorporateEmail(
+      transactionClient,
       corporateEmail,
       OPERATION_LINK_GOOGLE,
     );
@@ -141,45 +163,65 @@ export class UsersService {
 
   public async deactivateUser(input: ChangeUserStatusInput): Promise<User> {
     const corporateEmail = this.normalizeCorporateEmail(input.corporateEmail, OPERATION_DEACTIVATE);
-    const users = await this.translatePrismaErrors(OPERATION_DEACTIVATE, () =>
-      this.prisma.user.updateManyAndReturn({
-        where: { corporateEmail, status: UserStatus.ACTIVE },
-        data: { status: UserStatus.INACTIVE, deactivatedAt: new Date() },
+
+    return this.translatePrismaErrors(OPERATION_DEACTIVATE, () =>
+      this.prisma.$transaction(async (transactionClient) => {
+        const users = await transactionClient.user.updateManyAndReturn({
+          where: { corporateEmail, status: UserStatus.ACTIVE },
+          data: { status: UserStatus.INACTIVE, deactivatedAt: new Date() },
+        });
+
+        const user = users[0];
+
+        if (user === undefined) {
+          return this.throwInvalidStatusTransition(
+            transactionClient,
+            corporateEmail,
+            OPERATION_DEACTIVATE,
+            UserStatus.INACTIVE,
+          );
+        }
+
+        await this.auditEventsService.append(transactionClient, {
+          eventName: 'access.user_deactivated',
+          actor: { actorType: AuditActorType.USER, actorUserId: input.actorUserId },
+          target: { targetType: 'user', targetId: user.id },
+        });
+
+        return user;
       }),
-    );
-
-    const user = users[0];
-
-    if (user !== undefined) {
-      return user;
-    }
-
-    return this.throwInvalidStatusTransition(
-      corporateEmail,
-      OPERATION_DEACTIVATE,
-      UserStatus.INACTIVE,
     );
   }
 
   public async reactivateUser(input: ChangeUserStatusInput): Promise<User> {
     const corporateEmail = this.normalizeCorporateEmail(input.corporateEmail, OPERATION_REACTIVATE);
-    const users = await this.translatePrismaErrors(OPERATION_REACTIVATE, () =>
-      this.prisma.user.updateManyAndReturn({
-        where: { corporateEmail, status: UserStatus.INACTIVE },
-        data: { status: UserStatus.ACTIVE, deactivatedAt: null },
+
+    return this.translatePrismaErrors(OPERATION_REACTIVATE, () =>
+      this.prisma.$transaction(async (transactionClient) => {
+        const users = await transactionClient.user.updateManyAndReturn({
+          where: { corporateEmail, status: UserStatus.INACTIVE },
+          data: { status: UserStatus.ACTIVE, deactivatedAt: null },
+        });
+
+        const user = users[0];
+
+        if (user === undefined) {
+          return this.throwInvalidStatusTransition(
+            transactionClient,
+            corporateEmail,
+            OPERATION_REACTIVATE,
+            UserStatus.ACTIVE,
+          );
+        }
+
+        await this.auditEventsService.append(transactionClient, {
+          eventName: 'access.user_reactivated',
+          actor: { actorType: AuditActorType.USER, actorUserId: input.actorUserId },
+          target: { targetType: 'user', targetId: user.id },
+        });
+
+        return user;
       }),
-    );
-
-    const user = users[0];
-
-    if (user !== undefined) {
-      return user;
-    }
-
-    return this.throwInvalidStatusTransition(
-      corporateEmail,
-      OPERATION_REACTIVATE,
-      UserStatus.ACTIVE,
     );
   }
 
@@ -205,10 +247,11 @@ export class UsersService {
   }
 
   private async findUserByNormalizedCorporateEmail(
+    transactionClient: Prisma.TransactionClient,
     corporateEmail: string,
     operation: string,
   ): Promise<User> {
-    const user = await this.prisma.user.findUnique({ where: { corporateEmail } });
+    const user = await transactionClient.user.findUnique({ where: { corporateEmail } });
 
     if (user === null) {
       throw new UserNotFoundError(operation);
@@ -218,11 +261,16 @@ export class UsersService {
   }
 
   private async throwInvalidStatusTransition(
+    transactionClient: Prisma.TransactionClient,
     corporateEmail: string,
     operation: string,
     requestedStatus: UserStatus,
   ): Promise<never> {
-    const user = await this.findUserByNormalizedCorporateEmail(corporateEmail, operation);
+    const user = await this.findUserByNormalizedCorporateEmail(
+      transactionClient,
+      corporateEmail,
+      operation,
+    );
     throw new InvalidUserStatusTransitionError(operation, user.status, requestedStatus);
   }
 

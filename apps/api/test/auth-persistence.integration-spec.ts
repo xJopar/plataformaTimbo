@@ -118,17 +118,22 @@ describe('persistencia de auth contra PostgreSQL development', () => {
         ),
       ).rejects.toBeInstanceOf(OAuthLoginAttemptUnavailableError);
 
-      const session = await userSessionsService.createSession({ userId, now: referenceTime });
+      const session = await userSessionsService.createSession(prismaService, {
+        userId,
+        now: referenceTime,
+      });
       sessionIds.push(session.id);
       await expect(
         userSessionsService.findActiveSession(session.token, new Date(referenceTime.getTime() + 1)),
       ).resolves.toMatchObject({ id: session.id, userId });
-      await expect(userSessionsService.revokeSession(session.token)).resolves.toBe(true);
+      await expect(
+        userSessionsService.revokeSession(prismaService, session.token),
+      ).resolves.toMatchObject({ id: session.id, userId });
       await expect(userSessionsService.findActiveSession(session.token)).rejects.toMatchObject({
         operation: 'findActiveUserSession',
       });
 
-      const expiredSession = await userSessionsService.createSession({
+      const expiredSession = await userSessionsService.createSession(prismaService, {
         userId,
         now: referenceTime,
       });
@@ -144,6 +149,9 @@ describe('persistencia de auth contra PostgreSQL development', () => {
       await prismaService.userSession.deleteMany({ where: { id: { in: sessionIds } } });
 
       if (userId !== undefined) {
+        await prismaService.auditEvent.deleteMany({
+          where: { targetType: 'user', targetId: userId },
+        });
         await prismaService.user.delete({ where: { id: userId } });
       }
     }

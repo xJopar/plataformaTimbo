@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { UserSession } from '../../generated/prisma/client';
+import type { Prisma, UserSession } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { SESSION_DURATION_MS } from '../../runtime-config';
 import { UserSessionUnavailableError } from './auth-persistence.errors';
@@ -21,15 +21,18 @@ describe('UserSessionsService', () => {
   const userSessionDelegate = {
     create: jest.fn(),
     findUnique: jest.fn(),
-    updateMany: jest.fn(),
+    updateManyAndReturn: jest.fn(),
   };
   const prisma = { userSession: userSessionDelegate } as unknown as PrismaService;
+  const transactionClient = {
+    userSession: userSessionDelegate,
+  } as unknown as Prisma.TransactionClient;
   let service: UserSessionsService;
 
   beforeEach(() => {
     userSessionDelegate.create.mockReset();
     userSessionDelegate.findUnique.mockReset();
-    userSessionDelegate.updateMany.mockReset();
+    userSessionDelegate.updateManyAndReturn.mockReset();
     service = new UserSessionsService(prisma);
   });
 
@@ -40,7 +43,10 @@ describe('UserSessionsService', () => {
     });
     userSessionDelegate.create.mockResolvedValue(persistedSession);
 
-    const result = await service.createSession({ userId: persistedSession.userId, now });
+    const result = await service.createSession(transactionClient, {
+      userId: persistedSession.userId,
+      now,
+    });
 
     expect(result.id).toBe(persistedSession.id);
     expect(result.token).toMatch(/^[A-Za-z0-9_-]{43}$/);
@@ -84,18 +90,35 @@ describe('UserSessionsService', () => {
   });
 
   it('revoca una sesion activa y permite que el logout futuro sea repetible', async () => {
-    userSessionDelegate.updateMany.mockResolvedValue({ count: 1 });
+    const now = new Date('2026-08-19T12:05:00.000Z');
+    const revokedSession = createSession({ revokedAt: now });
+    userSessionDelegate.updateManyAndReturn.mockResolvedValue([revokedSession]);
 
-    await expect(
-      service.revokeSession('token-recibido', new Date('2026-08-19T12:05:00.000Z')),
-    ).resolves.toBe(true);
-    expect(userSessionDelegate.updateMany).toHaveBeenCalledWith({
-      where: { tokenHash: hashValue('token-recibido'), revokedAt: null },
-      data: { revokedAt: new Date('2026-08-19T12:05:00.000Z') },
+    await expect(service.revokeSession(transactionClient, 'token-recibido', now)).resolves.toBe(
+      revokedSession,
+    );
+    expect(userSessionDelegate.updateManyAndReturn).toHaveBeenCalledWith({
+      where: { tokenHash: hashValue('token-recibido'), revokedAt: null, expiresAt: { gt: now } },
+      data: { revokedAt: now },
     });
 
-    userSessionDelegate.updateMany.mockResolvedValue({ count: 0 });
-    await expect(service.revokeSession('token-recibido')).resolves.toBe(false);
+    userSessionDelegate.updateManyAndReturn.mockResolvedValue([]);
+    await expect(
+      service.revokeSession(transactionClient, 'token-recibido'),
+    ).resolves.toBeUndefined();
+  });
+
+  it('no revoca ni devuelve una sesion vencida: la condiciona igual que una lectura activa', async () => {
+    const now = new Date('2026-08-19T20:00:00.000Z');
+    userSessionDelegate.updateManyAndReturn.mockResolvedValue([]);
+
+    await expect(
+      service.revokeSession(transactionClient, 'token-recibido', now),
+    ).resolves.toBeUndefined();
+    expect(userSessionDelegate.updateManyAndReturn).toHaveBeenCalledWith({
+      where: { tokenHash: hashValue('token-recibido'), revokedAt: null, expiresAt: { gt: now } },
+      data: { revokedAt: now },
+    });
   });
 
   it('propaga intacto un fallo inesperado de Prisma', async () => {
