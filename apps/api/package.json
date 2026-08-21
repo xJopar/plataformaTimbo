@@ -15,13 +15,15 @@
     "pretest": "pnpm --filter @timbo/observability run build && pnpm run prisma:generate",
     "pretest:users:integration": "pnpm run prisma:generate",
     "pretest:auth:persistence:integration": "pnpm run prisma:generate",
+    "pretest:audit-events:integration": "pnpm run prisma:generate",
     "build": "tsc -p tsconfig.build.json",
     "export:openapi": "node -r ts-node/register src/export-openapi.ts",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
     "typecheck": "tsc -p tsconfig.json",
     "test": "jest",
     "test:users:integration": "node --env-file-if-exists=../../.env --experimental-vm-modules test/run-users-integration.cjs",
-    "test:auth:persistence:integration": "node --env-file=../../.env --experimental-vm-modules test/run-auth-persistence-integration.cjs"
+    "test:auth:persistence:integration": "node --env-file=../../.env --experimental-vm-modules test/run-auth-persistence-integration.cjs",
+    "test:audit-events:integration": "node --env-file-if-exists=../../.env --experimental-vm-modules test/run-audit-events-integration.cjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.1",
