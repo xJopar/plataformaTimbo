@@ -141,6 +141,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista actividad normalizada. */
+        get: operations["listAdministrativeActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/activity/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resume actividad normalizada. */
+        get: operations["getAdministrativeActivityStatistics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/activity/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista opciones de filtros de actividad. */
+        get: operations["getAdministrativeActivityFilterOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/activity/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exporta el filtro completo de actividad. */
+        get: operations["exportAdministrativeActivityCsv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -405,6 +473,204 @@ export interface operations {
         responses: {
             /** @description Usuario reactivado. */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listAdministrativeActivity: {
+        parameters: {
+            query?: {
+                /** @description Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay. */
+                datePreset?: "today" | "week" | "month";
+                /** @description Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo. */
+                dateFrom?: unknown;
+                /** @description Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días. */
+                dateTo?: unknown;
+                /** @description Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos. */
+                asOf?: unknown;
+                actor?: unknown;
+                source?: "AUDIT" | "USAGE";
+                appKey?: unknown;
+                eventName?: unknown;
+                target?: unknown;
+                limit?: unknown;
+                offset?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            id: string;
+                            /** @enum {string} */
+                            source: "AUDIT" | "USAGE";
+                            actor: string;
+                            appKey: string;
+                            eventName: string;
+                            outcome: string;
+                            target: string | null;
+                            metadata: {
+                                [key: string]: string;
+                            };
+                            /** Format: date-time */
+                            occurredAt: string;
+                        }[];
+                        total: number;
+                        limit: number;
+                        offset: number;
+                    };
+                };
+            };
+            /** @description Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAdministrativeActivityStatistics: {
+        parameters: {
+            query?: {
+                /** @description Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay. */
+                datePreset?: "today" | "week" | "month";
+                /** @description Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo. */
+                dateFrom?: unknown;
+                /** @description Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días. */
+                dateTo?: unknown;
+                /** @description Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos. */
+                asOf?: unknown;
+                actor?: unknown;
+                source?: "AUDIT" | "USAGE";
+                appKey?: unknown;
+                eventName?: unknown;
+                target?: unknown;
+                limit?: unknown;
+                offset?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        eventsToday: number;
+                        activePeopleToday: number;
+                        mostFrequentApp: string | null;
+                        mostFrequentEvent: string | null;
+                    };
+                };
+            };
+            /** @description Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAdministrativeActivityFilterOptions: {
+        parameters: {
+            query?: {
+                /** @description Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay. */
+                datePreset?: "today" | "week" | "month";
+                /** @description Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo. */
+                dateFrom?: unknown;
+                /** @description Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días. */
+                dateTo?: unknown;
+                /** @description Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos. */
+                asOf?: unknown;
+                actor?: unknown;
+                source?: "AUDIT" | "USAGE";
+                appKey?: unknown;
+                eventName?: unknown;
+                target?: unknown;
+                limit?: unknown;
+                offset?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        actors?: string[];
+                        sources?: string[];
+                        apps?: string[];
+                        events?: string[];
+                        targets?: string[];
+                    };
+                };
+            };
+            /** @description Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    exportAdministrativeActivityCsv: {
+        parameters: {
+            query?: {
+                /** @description Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay. */
+                datePreset?: "today" | "week" | "month";
+                /** @description Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo. */
+                dateFrom?: unknown;
+                /** @description Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días. */
+                dateTo?: unknown;
+                /** @description Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos. */
+                asOf?: unknown;
+                actor?: unknown;
+                source?: "AUDIT" | "USAGE";
+                appKey?: unknown;
+                eventName?: unknown;
+                target?: unknown;
+                limit?: unknown;
+                offset?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED. */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -36,6 +36,28 @@ function createApi(
       updateUser: vi.fn<AdministrationApi['updateUser']>(),
       deactivateUser: vi.fn<AdministrationApi['deactivateUser']>(),
       reactivateUser: vi.fn<AdministrationApi['reactivateUser']>(),
+      listActivity: vi.fn<AdministrationApi['listActivity']>().mockResolvedValue({
+        items: [],
+        total: 0,
+        limit: 25,
+        offset: 0,
+      }),
+      getActivityStatistics: vi.fn<AdministrationApi['getActivityStatistics']>().mockResolvedValue({
+        eventsToday: 0,
+        activePeopleToday: 0,
+        mostFrequentApp: null,
+        mostFrequentEvent: null,
+      }),
+      getActivityFilterOptions: vi
+        .fn<AdministrationApi['getActivityFilterOptions']>()
+        .mockResolvedValue({
+          actors: [],
+          sources: ['AUDIT', 'USAGE'],
+          apps: [],
+          events: [],
+          targets: [],
+        }),
+      downloadActivityCsv: vi.fn<AdministrationApi['downloadActivityCsv']>(),
       ...administrationOverrides,
     },
     system: { getHealth: vi.fn() },
@@ -147,6 +169,31 @@ describe('App', () => {
       await screen.findByRole('heading', { name: 'No encontramos usuarios' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Usuarios' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('navega entre Usuarios y Actividad sin volver a verificar la sesión', async () => {
+    window.history.replaceState({}, '', '/');
+    const api = createApi();
+    const user = userEvent.setup();
+    render(<App api={api} />);
+
+    await screen.findByRole('heading', { name: 'Tablero de despacho' });
+    await user.click(screen.getByRole('link', { name: 'Administración' }));
+    expect(await screen.findByRole('heading', { name: 'Usuarios' })).toBeInTheDocument();
+    await user.click(screen.getByRole('link', { name: 'Actividad' }));
+
+    expect(await screen.findByRole('heading', { name: 'Actividad' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Verificando sesión' })).not.toBeInTheDocument();
+    expect(api.auth.getSession).toHaveBeenCalledTimes(1);
+    expect(api.administration.listActivity).toHaveBeenCalledWith(
+      expect.objectContaining({
+        datePreset: 'month',
+        limit: 25,
+        offset: 0,
+        asOf: expect.any(String),
+      }),
+    );
+    expect(window.location.pathname).toBe('/admin/activity');
   });
 
   it('muestra un estado sin permiso cuando la API rechaza el panel', async () => {

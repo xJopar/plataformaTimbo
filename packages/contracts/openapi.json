@@ -220,6 +220,569 @@
         ]
       }
     },
+    "/api/admin/activity": {
+      "get": {
+        "operationId": "listAdministrativeActivity",
+        "parameters": [
+          {
+            "name": "datePreset",
+            "required": false,
+            "in": "query",
+            "description": "Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay.",
+            "schema": {
+              "enum": [
+                "today",
+                "week",
+                "month"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo.",
+            "schema": {}
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días.",
+            "schema": {}
+          },
+          {
+            "name": "asOf",
+            "required": false,
+            "in": "query",
+            "description": "Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos.",
+            "schema": {}
+          },
+          {
+            "name": "actor",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "AUDIT",
+                "USAGE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "eventName",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "target",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "total",
+                    "limit",
+                    "offset"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "source",
+                          "actor",
+                          "appKey",
+                          "eventName",
+                          "outcome",
+                          "target",
+                          "metadata",
+                          "occurredAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "AUDIT",
+                              "USAGE"
+                            ]
+                          },
+                          "actor": {
+                            "type": "string"
+                          },
+                          "appKey": {
+                            "type": "string"
+                          },
+                          "eventName": {
+                            "type": "string"
+                          },
+                          "outcome": {
+                            "type": "string"
+                          },
+                          "target": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          },
+                          "occurredAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "offset": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED."
+          }
+        },
+        "summary": "Lista actividad normalizada.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/activity/stats": {
+      "get": {
+        "operationId": "getAdministrativeActivityStatistics",
+        "parameters": [
+          {
+            "name": "datePreset",
+            "required": false,
+            "in": "query",
+            "description": "Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay.",
+            "schema": {
+              "enum": [
+                "today",
+                "week",
+                "month"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo.",
+            "schema": {}
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días.",
+            "schema": {}
+          },
+          {
+            "name": "asOf",
+            "required": false,
+            "in": "query",
+            "description": "Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos.",
+            "schema": {}
+          },
+          {
+            "name": "actor",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "AUDIT",
+                "USAGE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "eventName",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "target",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "eventsToday",
+                    "activePeopleToday",
+                    "mostFrequentApp",
+                    "mostFrequentEvent"
+                  ],
+                  "properties": {
+                    "eventsToday": {
+                      "type": "integer"
+                    },
+                    "activePeopleToday": {
+                      "type": "integer"
+                    },
+                    "mostFrequentApp": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "mostFrequentEvent": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED."
+          }
+        },
+        "summary": "Resume actividad normalizada.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/activity/options": {
+      "get": {
+        "operationId": "getAdministrativeActivityFilterOptions",
+        "parameters": [
+          {
+            "name": "datePreset",
+            "required": false,
+            "in": "query",
+            "description": "Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay.",
+            "schema": {
+              "enum": [
+                "today",
+                "week",
+                "month"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo.",
+            "schema": {}
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días.",
+            "schema": {}
+          },
+          {
+            "name": "asOf",
+            "required": false,
+            "in": "query",
+            "description": "Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos.",
+            "schema": {}
+          },
+          {
+            "name": "actor",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "AUDIT",
+                "USAGE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "eventName",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "target",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "actors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "apps": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "targets": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED."
+          }
+        },
+        "summary": "Lista opciones de filtros de actividad.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/activity/export": {
+      "get": {
+        "operationId": "exportAdministrativeActivityCsv",
+        "parameters": [
+          {
+            "name": "datePreset",
+            "required": false,
+            "in": "query",
+            "description": "Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay.",
+            "schema": {
+              "enum": [
+                "today",
+                "week",
+                "month"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo.",
+            "schema": {}
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días.",
+            "schema": {}
+          },
+          {
+            "name": "asOf",
+            "required": false,
+            "in": "query",
+            "description": "Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos.",
+            "schema": {}
+          },
+          {
+            "name": "actor",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "AUDIT",
+                "USAGE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "appKey",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "eventName",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "target",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED."
+          }
+        },
+        "summary": "Exporta el filtro completo de actividad.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "getHealth",

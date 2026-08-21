@@ -6,6 +6,31 @@ export type AdministrativeUser = NonNullable<
   paths['/api/admin/users']['get']['responses'][200]['content']['application/json']
 >[number];
 
+export interface ActivityFilters {
+  datePreset?: 'today' | 'week' | 'month';
+  dateFrom?: string;
+  dateTo?: string;
+  asOf?: string;
+  actor?: string;
+  source?: 'AUDIT' | 'USAGE';
+  appKey?: string;
+  eventName?: string;
+  target?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export type AdministrativeActivity = NonNullable<
+  paths['/api/admin/activity']['get']['responses'][200]['content']['application/json']
+>;
+export type AdministrativeActivityItem = AdministrativeActivity['items'][number];
+export type AdministrativeActivityStatistics = NonNullable<
+  paths['/api/admin/activity/stats']['get']['responses'][200]['content']['application/json']
+>;
+export type AdministrativeActivityFilterOptions = NonNullable<
+  paths['/api/admin/activity/options']['get']['responses'][200]['content']['application/json']
+>;
+
 export interface AdministrationApi {
   listUsers(search?: string): Promise<AdministrativeUser[]>;
   preauthorizeUser(input: {
@@ -15,6 +40,10 @@ export interface AdministrationApi {
   updateUser(userId: string, input: { displayName: string | null }): Promise<AdministrativeUser>;
   deactivateUser(userId: string): Promise<void>;
   reactivateUser(userId: string): Promise<void>;
+  listActivity(filters?: ActivityFilters): Promise<AdministrativeActivity>;
+  getActivityStatistics(filters?: ActivityFilters): Promise<AdministrativeActivityStatistics>;
+  getActivityFilterOptions(filters?: ActivityFilters): Promise<AdministrativeActivityFilterOptions>;
+  downloadActivityCsv(filters?: ActivityFilters): Promise<Blob>;
 }
 
 export function createAdministrationApi(
@@ -77,7 +106,67 @@ export function createAdministrationApi(
         throw new ApiHttpError(response.status);
       }
     },
+
+    async listActivity(filters = {}): Promise<AdministrativeActivity> {
+      const { data, response } = await client.GET('/api/admin/activity', {
+        params: { query: serializeActivityFilters(filters) },
+      });
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined) throw new Error('La API respondió sin la actividad esperada.');
+      return data;
+    },
+
+    async getActivityStatistics(filters = {}): Promise<AdministrativeActivityStatistics> {
+      const { data, response } = await client.GET('/api/admin/activity/stats', {
+        params: { query: serializeActivityFilters(filters) },
+      });
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined) throw new Error('La API respondió sin las estadísticas esperadas.');
+      return data;
+    },
+
+    async getActivityFilterOptions(filters = {}): Promise<AdministrativeActivityFilterOptions> {
+      const { data, response } = await client.GET('/api/admin/activity/options', {
+        params: { query: serializeActivityFilters(filters) },
+      });
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined)
+        throw new Error('La API respondió sin las opciones de actividad esperadas.');
+      return data;
+    },
+
+    async downloadActivityCsv(filters = {}): Promise<Blob> {
+      const url = new URL('/api/admin/activity/export', baseUrl);
+      for (const [key, value] of Object.entries(serializeActivityFilters(filters))) {
+        if (value !== undefined) url.searchParams.set(key, value);
+      }
+      const response = await fetchImplementation(url, { credentials: 'include' });
+      if (!response.ok) throw new ApiHttpError(response.status);
+      return response.blob();
+    },
   };
+}
+
+function serializeActivityFilters(filters: ActivityFilters): Record<string, string | undefined> {
+  const serialized: Record<string, string | undefined> = {};
+  const entries: readonly (readonly [string, string | number | undefined])[] = [
+    ['datePreset', filters.datePreset],
+    ['dateFrom', filters.dateFrom],
+    ['dateTo', filters.dateTo],
+    ['asOf', filters.asOf],
+    ['actor', filters.actor],
+    ['source', filters.source],
+    ['appKey', filters.appKey],
+    ['eventName', filters.eventName],
+    ['target', filters.target],
+    ['limit', filters.limit],
+    ['offset', filters.offset],
+  ];
+  for (const [key, value] of entries) {
+    if (value === undefined || value === '') continue;
+    serialized[key] = typeof value === 'number' ? value.toString() : value;
+  }
+  return serialized;
 }
 
 function requireAdministrativeUserResponse(

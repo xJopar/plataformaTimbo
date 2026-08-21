@@ -9,6 +9,7 @@ import { configureApp } from '../src/bootstrap';
 import { PrismaService } from '../src/database/prisma.service';
 import { ACCESS_PROFILES_SERVICE } from '../src/modules/access-profiles/access-profiles.tokens';
 import { AuditEventsService } from '../src/modules/audit-events/audit-events.service';
+import { ActivityService } from '../src/modules/administration/activity.service';
 import { UserSessionsService } from '../src/modules/auth/user-sessions.service';
 import { PlatformAdministratorCannotBeDeactivatedError } from '../src/modules/users/users.errors';
 import { UsersService } from '../src/modules/users/users.service';
@@ -39,6 +40,12 @@ describe('Administración HTTP (e2e)', () => {
   };
   const userSessionsService = { findActiveSession: jest.fn() };
   const accessProfilesService = { hasActivePlatformAdministratorAssignment: jest.fn() };
+  const activityService = {
+    list: jest.fn(),
+    getStatistics: jest.fn(),
+    getFilterOptions: jest.fn(),
+    exportCsv: jest.fn(),
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -54,6 +61,8 @@ describe('Administración HTTP (e2e)', () => {
       .useValue(accessProfilesService)
       .overrideProvider(AuditEventsService)
       .useValue({})
+      .overrideProvider(ActivityService)
+      .useValue(activityService)
       .compile();
     app = moduleFixture.createNestApplication();
     configureApp(app, TEST_ORIGIN);
@@ -66,6 +75,7 @@ describe('Administración HTTP (e2e)', () => {
     usersService.findActiveUserById.mockResolvedValue(actor);
     accessProfilesService.hasActivePlatformAdministratorAssignment.mockResolvedValue(true);
     usersService.findUserById.mockResolvedValue(target);
+    activityService.list.mockResolvedValue({ items: [], total: 0, limit: 25, offset: 0 });
   });
 
   afterAll(async () => {
@@ -89,5 +99,55 @@ describe('Administración HTTP (e2e)', () => {
       corporateEmail: target.corporateEmail,
       actorUserId: actor.id,
     });
+  });
+
+  it('protege Actividad con sesión y PLATFORM_ADMIN antes de consultar los eventos', async () => {
+    await request(app.getHttpServer() as Server)
+      .get('/api/admin/activity')
+      .expect(401);
+    expect(activityService.list).not.toHaveBeenCalled();
+
+    accessProfilesService.hasActivePlatformAdministratorAssignment.mockResolvedValue(false);
+    await request(app.getHttpServer() as Server)
+      .get('/api/admin/activity')
+      .set('Cookie', `timbo_session=${randomUUID()}`)
+      .expect(403);
+    expect(activityService.list).not.toHaveBeenCalled();
+  });
+
+  it('deriva filtros y paginación sólo desde el query protegido', async () => {
+    await request(app.getHttpServer() as Server)
+      .get('/api/admin/activity?source=AUDIT&limit=25&offset=50')
+      .set('Cookie', `timbo_session=${randomUUID()}`)
+      .expect(200);
+
+    expect(activityService.list).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'AUDIT',
+        limit: 25,
+        offset: 50,
+        datePreset: 'month',
+        dateFrom: undefined,
+        dateTo: undefined,
+        actor: undefined,
+        appKey: undefined,
+        eventName: undefined,
+        target: undefined,
+      }),
+    );
+  });
+
+  it('devuelve códigos estables para rangos de actividad inválidos o demasiado extensos', async () => {
+    const invalidRange = await request(app.getHttpServer() as Server)
+      .get('/api/admin/activity?dateFrom=2026-08-22&dateTo=2026-08-21')
+      .set('Cookie', `timbo_session=${randomUUID()}`)
+      .expect(400);
+    expect(invalidRange.body).toEqual({ code: 'ACTIVITY_DATE_RANGE_INVALID' });
+
+    const tooLongRange = await request(app.getHttpServer() as Server)
+      .get('/api/admin/activity?dateFrom=2025-01-01&dateTo=2026-01-02')
+      .set('Cookie', `timbo_session=${randomUUID()}`)
+      .expect(400);
+    expect(tooLongRange.body).toEqual({ code: 'ACTIVITY_DATE_RANGE_EXCEEDED' });
   });
 });

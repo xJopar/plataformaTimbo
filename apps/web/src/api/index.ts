@@ -17,5 +17,13 @@ export function createApi(baseUrl: string): Api {
 }
 
 export { type AuthApi, type AuthSession } from './auth';
-export { type AdministrationApi, type AdministrativeUser } from './administration';
+export {
+  type ActivityFilters,
+  type AdministrativeActivity,
+  type AdministrativeActivityFilterOptions,
+  type AdministrativeActivityItem,
+  type AdministrativeActivityStatistics,
+  type AdministrationApi,
+  type AdministrativeUser,
+} from './administration';
 export { ApiHttpError, type HealthResponse, type SystemApi } from './system';
