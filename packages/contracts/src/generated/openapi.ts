@@ -367,6 +367,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista las aplicaciones activas asignadas al usuario autenticado. */
+        get: operations["listAuthorizedApplications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/activity": {
         parameters: {
             query?: never;
@@ -592,6 +609,18 @@ export interface components {
         UpdateApplicationProfileDto: {
             name?: string;
             description?: string | null;
+        };
+        AuthorizedApplicationResponseDto: {
+            /** @example hello-world */
+            key: string;
+            /** @example Hello World */
+            name: string;
+            /** @example Primera aplicación de Plataforma Timbo. */
+            description: string | null;
+            /** @example /apps/hello-world */
+            launchPath: string;
+            /** @example 0 */
+            displayOrder: number;
         };
         HealthResponseDto: {
             /**
@@ -1172,6 +1201,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    listAuthorizedApplications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizedApplicationResponseDto"][];
+                };
             };
         };
     };

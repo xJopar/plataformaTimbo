@@ -13,6 +13,7 @@ import { AdministrativeUsersController } from './modules/administration/administ
 import { ActivityController } from './modules/administration/activity.controller';
 import { AdministrativeApplicationsController } from './modules/administration/administrative-applications.controller';
 import { AdministrativeApplicationAccessController } from './modules/administration/administrative-application-access.controller';
+import { AuthorizedApplicationsController } from './modules/administration/authorized-applications.controller';
 import { ACTIVITY_SERVICE } from './modules/administration/administration.tokens';
 import { ADMINISTRATIVE_APPLICATIONS_SERVICE } from './modules/administration/administration.tokens';
 import { ADMINISTRATIVE_USERS_SERVICE } from './modules/administration/administration.tokens';
@@ -30,6 +31,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     AdministrativeUsersController,
     AdministrativeApplicationsController,
     AdministrativeApplicationAccessController,
+    AuthorizedApplicationsController,
     ActivityController,
   ],
   providers: [

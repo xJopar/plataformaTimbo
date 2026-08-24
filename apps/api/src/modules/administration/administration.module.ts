@@ -19,6 +19,7 @@ import { ActivityService } from './activity.service';
 import { PlatformAdministratorGuard } from './platform-administrator.guard';
 import { ApplicationAccessService } from './application-access.service';
 import { AdministrativeApplicationAccessController } from './administrative-application-access.controller';
+import { AuthorizedApplicationsController } from './authorized-applications.controller';
 
 @Module({
   imports: [AuthModule, UsersModule, AccessProfilesModule, AuditEventsModule, PrismaModule],
@@ -27,6 +28,7 @@ import { AdministrativeApplicationAccessController } from './administrative-appl
     AdministrativeApplicationsController,
     ActivityController,
     AdministrativeApplicationAccessController,
+    AuthorizedApplicationsController,
   ],
   providers: [
     PlatformAdministratorGuard,

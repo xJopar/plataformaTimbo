@@ -780,6 +780,31 @@
         ]
       }
     },
+    "/api/applications": {
+      "get": {
+        "operationId": "listAuthorizedApplications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuthorizedApplicationResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista las aplicaciones activas asignadas al usuario autenticado.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
     "/api/admin/activity": {
       "get": {
         "operationId": "listAdministrativeActivity",
@@ -1729,6 +1754,40 @@
             "nullable": true
           }
         }
+      },
+      "AuthorizedApplicationResponseDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "hello-world"
+          },
+          "name": {
+            "type": "string",
+            "example": "Hello World"
+          },
+          "description": {
+            "type": "string",
+            "example": "Primera aplicación de Plataforma Timbo.",
+            "nullable": true
+          },
+          "launchPath": {
+            "type": "string",
+            "example": "/apps/hello-world"
+          },
+          "displayOrder": {
+            "type": "number",
+            "example": 0,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "description",
+          "launchPath",
+          "displayOrder"
+        ]
       },
       "HealthResponseDto": {
         "type": "object",

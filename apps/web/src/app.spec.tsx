@@ -7,8 +7,10 @@ import {
   ApiHttpError,
   type AdministrationApi,
   type Api,
+  type ApplicationsApi,
   type AuthApi,
   type AuthSession,
+  type AuthorizedApplication,
 } from './api';
 
 const session: AuthSession = {
@@ -17,9 +19,18 @@ const session: AuthSession = {
   displayName: 'Persona Timbo',
 };
 
+const authorizedApplication: AuthorizedApplication = {
+  key: 'hello-world',
+  name: 'Hello World',
+  description: 'Primera aplicación de Plataforma Timbo.',
+  launchPath: '/apps/hello-world',
+  displayOrder: 0,
+};
+
 function createApi(
   authOverrides: Partial<AuthApi> = {},
   administrationOverrides: Partial<AdministrationApi> = {},
+  applicationsOverrides: Partial<ApplicationsApi> = {},
 ): Api {
   return {
     auth: {
@@ -87,6 +98,12 @@ function createApi(
       downloadActivityCsv: vi.fn<AdministrationApi['downloadActivityCsv']>(),
       ...administrationOverrides,
     },
+    applications: {
+      listAuthorizedApplications: vi
+        .fn<ApplicationsApi['listAuthorizedApplications']>()
+        .mockResolvedValue([]),
+      ...applicationsOverrides,
+    },
     system: { getHealth: vi.fn() },
   };
 }
@@ -100,13 +117,59 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'Ingresar con Google' })).toBeInTheDocument();
   });
 
-  it('muestra el Home seguro y el estado vacío cuando existe sesión', async () => {
+  it('muestra el launcher seguro y el estado vacío cuando existe sesión', async () => {
     render(<App api={createApi()} />);
 
-    expect(await screen.findByRole('heading', { name: 'Tablero de despacho' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Tus aplicaciones' })).toBeInTheDocument();
     expect(screen.getByText('Persona Timbo')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Sin aplicaciones asignadas' })).toBeInTheDocument();
-    expect(document.querySelector('[data-layout="continuous-empty-surface"]')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Sin aplicaciones asignadas' }),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('[data-layout="continuous-application-list"]'),
+    ).toBeInTheDocument();
+  });
+
+  it('muestra las aplicaciones autorizadas y navega por su ruta interna', async () => {
+    const user = userEvent.setup();
+    render(
+      <App
+        api={createApi(
+          {},
+          {},
+          {
+            listAuthorizedApplications: vi
+              .fn<ApplicationsApi['listAuthorizedApplications']>()
+              .mockResolvedValue([authorizedApplication]),
+          },
+        )}
+      />,
+    );
+
+    const applicationLink = await screen.findByRole('link', { name: /Hello World/ });
+    expect(applicationLink).toHaveAttribute('href', '/apps/hello-world');
+    expect(screen.getByText('1 aplicación disponible')).toBeInTheDocument();
+
+    await user.click(applicationLink);
+    expect(await screen.findByRole('heading', { name: 'Hello World' })).toBeInTheDocument();
+  });
+
+  it('permite reintentar la carga del launcher', async () => {
+    window.history.replaceState({}, '', '/');
+    const listAuthorizedApplications = vi
+      .fn<ApplicationsApi['listAuthorizedApplications']>()
+      .mockRejectedValueOnce(new ApiHttpError(503))
+      .mockResolvedValueOnce([]);
+    const user = userEvent.setup();
+    render(<App api={createApi({}, {}, { listAuthorizedApplications })} />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'No pudimos cargar tus aplicaciones' }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Sin aplicaciones asignadas' }),
+    ).toBeInTheDocument();
   });
 
   it('consume una vez el resultado OAuth, limpia la URL y permite recuperar el acceso', async () => {
@@ -131,7 +194,7 @@ describe('App', () => {
       await screen.findByRole('heading', { name: 'No pudimos verificar tu acceso' }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
-    expect(await screen.findByRole('heading', { name: 'Tablero de despacho' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Tus aplicaciones' })).toBeInTheDocument();
   });
 
   it('no muestra éxito de logout si la revocación falla y permite reintentar', async () => {
@@ -142,10 +205,10 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App api={createApi({ logout })} />);
 
-    await screen.findByRole('heading', { name: 'Tablero de despacho' });
+    await screen.findByRole('heading', { name: 'Tus aplicaciones' });
     await user.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo cerrar la sesión');
-    expect(screen.getByRole('heading', { name: 'Tablero de despacho' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Tus aplicaciones' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Reintentar cierre de sesión' }));
     expect(await screen.findByRole('heading', { name: 'Acceso corporativo' })).toBeInTheDocument();
   });
@@ -168,7 +231,7 @@ describe('App', () => {
       </StrictMode>,
     );
 
-    expect(await screen.findByRole('heading', { name: 'Tablero de despacho' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Tus aplicaciones' })).toBeInTheDocument();
     resolveFirst?.({ ...session, displayName: 'Respuesta anterior' });
     await waitFor(() => expect(screen.getByText('Persona Timbo')).toBeInTheDocument());
   });
@@ -204,7 +267,7 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App api={api} />);
 
-    await screen.findByRole('heading', { name: 'Tablero de despacho' });
+    await screen.findByRole('heading', { name: 'Tus aplicaciones' });
     await user.click(screen.getByRole('link', { name: 'Administración' }));
     expect(await screen.findByRole('heading', { name: 'Usuarios' })).toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: 'Actividad' }));
@@ -637,11 +700,29 @@ describe('App', () => {
   it('ejecuta la interacción básica de Hello World dentro de la sesión compartida', async () => {
     window.history.replaceState({}, '', '/apps/hello-world');
     const user = userEvent.setup();
-    render(<App api={createApi()} />);
+    render(
+      <App
+        api={createApi(
+          {},
+          {},
+          { listAuthorizedApplications: vi.fn().mockResolvedValue([authorizedApplication]) },
+        )}
+      />,
+    );
 
     expect(await screen.findByRole('heading', { name: 'Hello World' })).toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Probar aplicación' }));
     expect(screen.getByRole('status')).toHaveTextContent('Primera app');
+  });
+
+  it('bloquea en la interfaz una ruta interna que no está asignada', async () => {
+    window.history.replaceState({}, '', '/apps/hello-world');
+    render(<App api={createApi()} />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Aplicación no disponible' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Probar aplicación' })).not.toBeInTheDocument();
   });
 });

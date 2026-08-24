@@ -10,8 +10,8 @@ administrativa de actividad y catálogo gobernado de aplicaciones internas.
 
 El catálogo incluye `Hello World` como integración técnica mínima en `/apps/hello-world`.
 Administración permite asignar aplicaciones a empleados y gestionar sus perfiles y permisos
-funcionales. El Home autenticado todavía no muestra esas asignaciones porque falta el launcher de
-aplicaciones autorizadas y la primera aplicación de negocio integrada. Consultar
+funcionales. El Home autenticado presenta solamente las aplicaciones activas asignadas al usuario
+y abre sus rutas internas. Todavía falta integrar la primera aplicación de negocio. Consultar
 [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md) para el alcance y los recorridos
 vigentes.
 
@@ -20,14 +20,14 @@ vigentes.
 - **Identidad:** OAuth con Google, preautorización corporativa, sesiones y logout.
 - **Administración:** usuarios, aplicaciones internas, asignaciones, perfiles y permisos
   funcionales, activación/desactivación y actividad consolidada.
-- **Acceso:** perfil de sistema `PLATFORM_ADMIN` y autorización funcional por aplicación; el
-  launcher autorizado todavía no está implementado.
+- **Acceso:** perfil de sistema `PLATFORM_ADMIN`, autorización funcional por aplicación y launcher
+  filtrado por asignaciones activas.
 - **Observabilidad:** logs JSON de API y gateway, redacción segura y correlación por
   `X-Request-Id`.
 - **Datos de actividad:** auditoría persistente y base idempotente para eventos de uso; el primer
   catálogo productivo de uso llegará con una aplicación real.
-- **Experiencia:** acceso corporativo, Home vacío, superficies de Administración y una aplicación
-  `Hello World` de comprobación.
+- **Experiencia:** acceso corporativo, launcher de aplicaciones autorizadas, superficies de
+  Administración y una aplicación `Hello World` de comprobación.
 
 ## Documentación
 
@@ -141,8 +141,8 @@ apps/
     test/                # Pruebas e2e e integración opt-in
   web/                  # Web React/Vite (paquete @timbo/web)
     src/
-      api/              # Transporte tipado y fachadas system, auth y administration
-      app.tsx           # Acceso, Home, navegación administrativa y Hello World
+      api/              # Transporte tipado para auth, applications, administration y system
+      app.tsx           # Acceso, launcher, navegación administrativa y Hello World
       applications-panel.tsx # Catálogo administrativo de aplicaciones
     server/              # Gateway HTTP productivo (Node, sin bundlear): sirve la SPA y
                          # reenvía /api/* a API_INTERNAL_ORIGIN para que el navegador use
@@ -169,10 +169,11 @@ AGENTS.md                 # Reglas durables para agentes que trabajen en este re
 4. Levantar la API en modo desarrollo: `pnpm dev` (por defecto, `http://localhost:3000`).
 5. En otra terminal, levantar la web: `pnpm dev:web` (por defecto, `http://localhost:5173`). La pantalla verifica la sesión y, si no existe, ofrece el acceso con Google.
 6. Preautorizar el usuario corporativo con `pnpm --filter @timbo/api preauthorize-user -- --corporate-email <correo>` y asignar una única vez el primer administrador con `pnpm --filter @timbo/api assign-platform-admin -- --corporate-email <correo>`. Estos comandos no deben apuntar a una base ajena al entorno autorizado.
-7. Ingresar con la misma cuenta de Google preautorizada. El Home continúa vacío hasta implementar
-   el launcher de aplicaciones autorizadas. `/admin`, `/admin/applications` y `/admin/activity`
-   quedan protegidos por el perfil de administrador; desde Usuarios se administran asignaciones y
-   perfiles funcionales. `/apps/hello-world` comprueba una aplicación dentro de la sesión compartida.
+7. Ingresar con la misma cuenta de Google preautorizada. El Home muestra las aplicaciones activas
+   asignadas a esa cuenta. `/admin`, `/admin/applications` y `/admin/activity` quedan protegidos por
+   el perfil de administrador; desde Usuarios se administran asignaciones y perfiles funcionales.
+   `/apps/hello-world` sólo se presenta cuando está asignada y comprueba una aplicación dentro de la
+   sesión compartida.
 8. Consultar el estado de disponibilidad: `GET http://localhost:3000/api/health`. Debe responder `200` con un cuerpo como:
 
    ```json

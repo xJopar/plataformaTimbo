@@ -1,5 +1,10 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
-import { ApplicationStatus, AuditActorType, type Application } from '../../generated/prisma/client';
+import {
+  ApplicationStatus,
+  AuditActorType,
+  UserStatus,
+  type Application,
+} from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditEventsService } from '../audit-events/audit-events.service';
 import { ApplicationsService } from './applications.service';
@@ -40,6 +45,41 @@ describe('ApplicationsService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('lista únicamente aplicaciones activas asignadas al usuario y en orden administrativo', async () => {
+    const authorizedApplication = {
+      key: application.key,
+      name: application.name,
+      description: application.description,
+      launchPath: application.launchPath,
+      displayOrder: application.displayOrder,
+    };
+    prisma.application.findMany.mockResolvedValue([authorizedApplication]);
+
+    await expect(service.listAuthorizedApplications('user-a')).resolves.toEqual([
+      authorizedApplication,
+    ]);
+
+    expect(prisma.application.findMany).toHaveBeenCalledWith({
+      where: {
+        status: ApplicationStatus.ACTIVE,
+        userAssignments: {
+          some: {
+            userId: 'user-a',
+            user: { status: UserStatus.ACTIVE },
+          },
+        },
+      },
+      select: {
+        key: true,
+        name: true,
+        description: true,
+        launchPath: true,
+        displayOrder: true,
+      },
+      orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
+    });
   });
 
   it('crea una aplicación normalizada y audita al administrador de la sesión', async () => {

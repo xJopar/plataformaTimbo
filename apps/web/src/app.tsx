@@ -8,6 +8,7 @@ import type {
   AdministrativeUser,
   Api,
   AuthSession,
+  AuthorizedApplication,
 } from './api';
 import { ApiHttpError } from './api';
 import { ApplicationsPanel } from './applications-panel';
@@ -225,8 +226,6 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
   const isLoggingOut = authenticationState.status === 'logging-out';
   const logoutFailure =
     authenticationState.status === 'logout-failed' ? authenticationState.error : undefined;
-  const employeeName = session.displayName ?? session.corporateEmail;
-
   if (
     pathname === '/admin' ||
     pathname === '/admin/activity' ||
@@ -254,9 +253,16 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
     );
   }
 
-  if (pathname === '/apps/hello-world') {
+  if (pathname.startsWith('/apps/')) {
+    if (api === undefined) {
+      return (
+        <AccessShell title="No pudimos cargar la aplicación" detail="La API no está disponible." />
+      );
+    }
     return (
-      <HelloWorldApplication
+      <AuthorizedApplicationRoute
+        api={api}
+        pathname={pathname}
         session={session}
         isLoggingOut={isLoggingOut}
         logoutFailure={logoutFailure}
@@ -266,8 +272,82 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
     );
   }
 
+  if (api === undefined) {
+    return <AccessShell title="No pudimos cargar Inicio" detail="La API no está disponible." />;
+  }
+
   return (
-    <main className="platform-shell" data-visual-contract="matriz-continua-tablero-despacho">
+    <HomeLauncher
+      api={api}
+      session={session}
+      isLoggingOut={isLoggingOut}
+      logoutFailure={logoutFailure}
+      onNavigate={navigate}
+      onLogout={() => void logout(session)}
+    />
+  );
+}
+
+type AuthorizedApplicationsState =
+  | { status: 'loading' }
+  | { status: 'error' }
+  | { status: 'ready'; applications: AuthorizedApplication[] };
+
+function useAuthorizedApplications(api: Api): {
+  state: AuthorizedApplicationsState;
+  reload: () => Promise<void>;
+} {
+  const currentRequestId = useRef(0);
+  const [state, setState] = useState<AuthorizedApplicationsState>({ status: 'loading' });
+
+  const reload = useCallback(async (): Promise<void> => {
+    const requestId = currentRequestId.current + 1;
+    currentRequestId.current = requestId;
+    setState({ status: 'loading' });
+    try {
+      const applications = await api.applications.listAuthorizedApplications();
+      if (requestId === currentRequestId.current) {
+        setState({ status: 'ready', applications });
+      }
+    } catch {
+      if (requestId === currentRequestId.current) {
+        setState({ status: 'error' });
+      }
+    }
+  }, [api]);
+
+  useEffect(() => {
+    void reload();
+    return () => {
+      currentRequestId.current += 1;
+    };
+  }, [reload]);
+
+  return { state, reload };
+}
+
+interface HomeLauncherProps {
+  api: Api;
+  session: AuthSession;
+  isLoggingOut: boolean;
+  logoutFailure: Error | undefined;
+  onNavigate: (pathname: string) => void;
+  onLogout: () => void;
+}
+
+function HomeLauncher({
+  api,
+  session,
+  isLoggingOut,
+  logoutFailure,
+  onNavigate,
+  onLogout,
+}: HomeLauncherProps): React.JSX.Element {
+  const { state, reload } = useAuthorizedApplications(api);
+  const employeeName = session.displayName ?? session.corporateEmail;
+
+  return (
+    <main className="platform-shell" data-visual-contract="launcher-aplicaciones-autorizadas">
       <header className="top-bar">
         <p className="product-name">Plataforma Timbo</p>
         <a
@@ -275,17 +355,12 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
           href="/admin"
           onClick={(event) => {
             event.preventDefault();
-            navigate('/admin');
+            onNavigate('/admin');
           }}
         >
           Administración
         </a>
-        <button
-          className="logout-button"
-          type="button"
-          disabled={isLoggingOut}
-          onClick={() => void logout(session)}
-        >
+        <button className="logout-button" type="button" disabled={isLoggingOut} onClick={onLogout}>
           {isLoggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
         </button>
       </header>
@@ -298,20 +373,211 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
       <section
         className="dispatch-board"
         aria-labelledby="home-title"
-        data-layout="continuous-empty-surface"
+        data-layout="continuous-application-list"
       >
-        <p className="eyebrow">Inicio</p>
-        <h1 id="home-title">Tablero de despacho</h1>
-        {logoutFailure === undefined ? null : <p role="alert">{logoutFailure.message}</p>}
-        <div className="empty-surface">
-          <h2>Sin aplicaciones asignadas</h2>
-          <p>Cuando tengas una aplicación asignada, aparecerá en este tablero.</p>
-          {logoutFailure === undefined ? null : (
-            <button className="text-button" type="button" onClick={() => void logout(session)}>
-              Reintentar cierre de sesión
-            </button>
-          )}
+        <div className="launcher-heading">
+          <div>
+            <h1 id="home-title">Tus aplicaciones</h1>
+            <p>Accedé a las herramientas asignadas a tu cuenta.</p>
+          </div>
+          {state.status === 'ready' && state.applications.length > 0 ? (
+            <p className="launcher-count" aria-live="polite">
+              {state.applications.length}{' '}
+              {state.applications.length === 1
+                ? 'aplicación disponible'
+                : 'aplicaciones disponibles'}
+            </p>
+          ) : null}
         </div>
+        {logoutFailure === undefined ? null : <p role="alert">{logoutFailure.message}</p>}
+        {state.status === 'loading' ? (
+          <div className="launcher-state" role="status">
+            <h2>Cargando tus aplicaciones</h2>
+            <p>Estamos consultando los accesos asignados a tu cuenta.</p>
+          </div>
+        ) : null}
+        {state.status === 'error' ? (
+          <div className="launcher-state">
+            <h2>No pudimos cargar tus aplicaciones</h2>
+            <p>La información no está disponible en este momento.</p>
+            <button className="action-button" type="button" onClick={() => void reload()}>
+              Reintentar
+            </button>
+          </div>
+        ) : null}
+        {state.status === 'ready' && state.applications.length === 0 ? (
+          <div className="launcher-state">
+            <h2>Sin aplicaciones asignadas</h2>
+            <p>Cuando Administración te asigne una aplicación, aparecerá en este espacio.</p>
+          </div>
+        ) : null}
+        {state.status === 'ready' && state.applications.length > 0 ? (
+          <nav className="application-launcher" aria-label="Aplicaciones autorizadas">
+            {state.applications.map((application) => (
+              <a
+                className="application-launcher-item"
+                href={application.launchPath}
+                key={application.key}
+                onClick={(event) => {
+                  event.preventDefault();
+                  onNavigate(application.launchPath);
+                }}
+              >
+                <span className="application-launcher-copy">
+                  <strong>{application.name}</strong>
+                  <span>
+                    {application.description ?? 'Aplicación interna de Plataforma Timbo.'}
+                  </span>
+                </span>
+                <span className="application-launcher-action">Abrir aplicación</span>
+              </a>
+            ))}
+          </nav>
+        ) : null}
+        {logoutFailure === undefined ? null : (
+          <button className="text-button" type="button" onClick={onLogout}>
+            Reintentar cierre de sesión
+          </button>
+        )}
+      </section>
+    </main>
+  );
+}
+
+interface AuthorizedApplicationRouteProps {
+  api: Api;
+  pathname: string;
+  session: AuthSession;
+  isLoggingOut: boolean;
+  logoutFailure: Error | undefined;
+  onNavigate: (pathname: string) => void;
+  onLogout: () => void;
+}
+
+function AuthorizedApplicationRoute({
+  api,
+  pathname,
+  session,
+  isLoggingOut,
+  logoutFailure,
+  onNavigate,
+  onLogout,
+}: AuthorizedApplicationRouteProps): React.JSX.Element {
+  const { state, reload } = useAuthorizedApplications(api);
+
+  if (state.status === 'loading') {
+    return (
+      <ApplicationRouteState
+        session={session}
+        title="Verificando acceso"
+        detail="Estamos comprobando si esta aplicación está asignada a tu cuenta."
+        isLoggingOut={isLoggingOut}
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+      />
+    );
+  }
+
+  if (state.status === 'error') {
+    return (
+      <ApplicationRouteState
+        session={session}
+        title="No pudimos verificar tu acceso"
+        detail="La información de esta aplicación no está disponible en este momento."
+        isLoggingOut={isLoggingOut}
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+      >
+        <button className="action-button" type="button" onClick={() => void reload()}>
+          Reintentar
+        </button>
+      </ApplicationRouteState>
+    );
+  }
+
+  const application = state.applications.find((item) => item.launchPath === pathname);
+  if (application === undefined) {
+    return (
+      <ApplicationRouteState
+        session={session}
+        title="Aplicación no disponible"
+        detail="Esta aplicación no está activa o no fue asignada a tu cuenta."
+        isLoggingOut={isLoggingOut}
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+      />
+    );
+  }
+
+  if (pathname === '/apps/hello-world') {
+    return (
+      <HelloWorldApplication
+        session={session}
+        isLoggingOut={isLoggingOut}
+        logoutFailure={logoutFailure}
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+      />
+    );
+  }
+
+  return (
+    <ApplicationRouteState
+      session={session}
+      title="Aplicación pendiente de integración"
+      detail="Tu acceso está vigente, pero esta ruta todavía no tiene una interfaz disponible."
+      isLoggingOut={isLoggingOut}
+      onNavigate={onNavigate}
+      onLogout={onLogout}
+    />
+  );
+}
+
+interface ApplicationRouteStateProps {
+  session: AuthSession;
+  title: string;
+  detail: string;
+  isLoggingOut: boolean;
+  onNavigate: (pathname: string) => void;
+  onLogout: () => void;
+  children?: ReactNode;
+}
+
+function ApplicationRouteState({
+  session,
+  title,
+  detail,
+  isLoggingOut,
+  onNavigate,
+  onLogout,
+  children,
+}: ApplicationRouteStateProps): React.JSX.Element {
+  return (
+    <main className="platform-shell">
+      <header className="top-bar">
+        <p className="product-name">Plataforma Timbo</p>
+        <a
+          className="top-navigation-link"
+          href="/"
+          onClick={(event) => {
+            event.preventDefault();
+            onNavigate('/');
+          }}
+        >
+          Inicio
+        </a>
+        <button className="logout-button" type="button" disabled={isLoggingOut} onClick={onLogout}>
+          {isLoggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
+        </button>
+      </header>
+      <section className="subheader" aria-label="Información de la aplicación">
+        <p>Aplicación</p>
+        <p>{session.displayName ?? session.corporateEmail}</p>
+      </section>
+      <section className="access-surface" aria-labelledby="application-route-state-title">
+        <h1 id="application-route-state-title">{title}</h1>
+        <p>{detail}</p>
+        {children}
       </section>
     </main>
   );

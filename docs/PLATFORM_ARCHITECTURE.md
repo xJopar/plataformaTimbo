@@ -19,13 +19,12 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
 - persistencia validada e idempotente de eventos de uso;
 - consulta administrativa unificada de auditoría y uso, con filtros, métricas y exportación CSV;
 - contratos OpenAPI generados y consumidos de forma tipada por la Web;
+- launcher que presenta las aplicaciones activas asignadas al usuario autenticado;
 - aplicación `Hello World` en `/apps/hello-world` como comprobación mínima del App Shell.
 
-Todavía no existen el launcher que presenta las aplicaciones autorizadas ni una aplicación de
-negocio migrada al App Shell. `Hello World` es una comprobación técnica, no una aplicación de
-negocio. El Home autenticado representa ese límite con un estado vacío; la infraestructura de
-eventos de uso existe, pero el catálogo productivo permanece vacío hasta que se incorpore el primer
-productor real.
+Todavía no existe una aplicación de negocio migrada al App Shell. `Hello World` es una
+comprobación técnica, no una aplicación de negocio. La infraestructura de eventos de uso existe,
+pero el catálogo productivo permanece vacío hasta que se incorpore el primer productor real.
 
 ## Componentes del workspace
 
@@ -48,9 +47,9 @@ sólo en esta aplicación. No se agregan capas genéricas entre esas responsabil
 
 ### `apps/web`
 
-SPA React/Vite que presenta acceso corporativo, Home, administración de usuarios, aplicaciones,
-asignaciones, perfiles y permisos, consulta de actividad y `Hello World`. `src/api/` encapsula
-rutas y tipos generados: los componentes no escriben endpoints HTTP manualmente.
+SPA React/Vite que presenta acceso corporativo, launcher autorizado, administración de usuarios,
+aplicaciones, asignaciones, perfiles y permisos, consulta de actividad y `Hello World`. `src/api/`
+encapsula rutas y tipos generados: los componentes no escriben endpoints HTTP manualmente.
 
 En producción, `server/` sirve la SPA y actúa como gateway de mismo origen para `/api/*`. El
 gateway reenvía cookies y preserva el `X-Request-Id` resuelto, pero no contiene lógica de negocio
@@ -108,7 +107,13 @@ misma aplicación y puede asociarse solamente a una persona que ya tenga la apli
 Quitar la asignación elimina también sus perfiles funcionales para esa aplicación.
 `ApplicationAuthorizationService` comprueba en la API la aplicación, asignación, perfil y permiso
 activos; `PLATFORM_ADMIN` no omite esa autorización. La Web administrativa permite gobernar estas
-relaciones, pero el Home todavía no las proyecta como launcher.
+relaciones. `GET /api/applications` proyecta para el usuario autenticado únicamente aplicaciones
+activas que tengan una asignación vigente, respetando el orden administrativo; no expone estado,
+fechas ni identificadores internos del catálogo. El Home consume esa proyección como launcher.
+
+La Web también evita presentar una ruta `/apps/*` que no figure en esa proyección. Esa comprobación
+es experiencia de usuario, no una frontera de seguridad: cada API funcional de una aplicación debe
+seguir verificando acceso y permisos mediante `ApplicationAuthorizationService`.
 
 ### Auditoría, uso y actividad
 

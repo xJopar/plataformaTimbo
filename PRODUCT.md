@@ -30,8 +30,8 @@ Es un App Shell empresarial interno: centraliza capacidades transversales y perm
 - La autenticación, la sesión, la seguridad y la experiencia pertenecen a la plataforma compartida.
 - Administración mantiene el catálogo de aplicaciones y su estado operativo.
 - Las rutas de lanzamiento de las aplicaciones son internas.
-- La asignación de aplicaciones a empleados y la administración de perfiles y permisos ya están
-  disponibles; el launcher autorizado es el incremento posterior.
+- La asignación de aplicaciones a empleados, la administración de perfiles y permisos y el
+  launcher de aplicaciones autorizadas están disponibles.
 - Los iconos de aplicaciones quedan fuera del incremento inicial.
 - Lista de Precios será la primera aplicación de negocio migrada; primero se incorpora una aplicación mínima de demostración.
 

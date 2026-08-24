@@ -91,6 +91,87 @@ h1 {
   margin-bottom: 28px;
   font-size: clamp(2rem, 5vw, 4rem);
 }
+.launcher-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 28px;
+  margin-bottom: 32px;
+}
+.launcher-heading h1 {
+  margin-bottom: 10px;
+}
+.launcher-heading p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+.launcher-count {
+  flex: 0 0 auto;
+  padding-bottom: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.launcher-state {
+  min-height: min(42vh, 400px);
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 12px;
+  padding: clamp(24px, 6vw, 64px);
+  border-top: 2px solid #00388a;
+  border-bottom: 1px solid #bcc9d7;
+  background: #f7f9fb;
+}
+.launcher-state h2,
+.launcher-state p {
+  margin: 0;
+}
+.launcher-state p {
+  max-width: 52ch;
+  color: #475569;
+  line-height: 1.6;
+}
+.application-launcher {
+  border-top: 2px solid #00388a;
+  background: #f7f9fb;
+}
+.application-launcher-item {
+  min-height: 112px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  border-bottom: 1px solid #bcc9d7;
+  color: #142033;
+  text-decoration: none;
+}
+.application-launcher-item:hover {
+  background: #e5edf5;
+}
+.application-launcher-item:focus-visible {
+  position: relative;
+  outline: 3px solid #00a6a6;
+  outline-offset: -3px;
+}
+.application-launcher-copy {
+  display: grid;
+  gap: 8px;
+}
+.application-launcher-copy strong {
+  font-size: 1.25rem;
+}
+.application-launcher-copy span {
+  max-width: 62ch;
+  color: #475569;
+  line-height: 1.5;
+}
+.application-launcher-action {
+  flex: 0 0 auto;
+  color: #00388a;
+  font-weight: 750;
+}
 .empty-surface {
   min-height: min(48vh, 470px);
   display: grid;
@@ -701,6 +782,26 @@ th {
   .empty-surface {
     min-height: 300px;
     padding: 28px 20px;
+  }
+  .launcher-heading,
+  .application-launcher-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .launcher-heading {
+    gap: 12px;
+  }
+  .launcher-count {
+    padding-bottom: 0;
+  }
+  .launcher-state {
+    min-height: 300px;
+    padding: 28px 20px;
+  }
+  .application-launcher-item {
+    min-height: 0;
+    padding: 24px 20px;
+    gap: 18px;
   }
   .top-navigation-link {
     margin-right: 8px;

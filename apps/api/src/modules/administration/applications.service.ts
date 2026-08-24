@@ -8,12 +8,17 @@ import {
   ApplicationStatus,
   AuditActorType,
   Prisma,
+  UserStatus,
   type Application,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditEventsService } from '../audit-events/audit-events.service';
 
 export type AdministrativeApplication = Application;
+export type AuthorizedApplication = Pick<
+  Application,
+  'key' | 'name' | 'description' | 'launchPath' | 'displayOrder'
+>;
 
 export interface CreateAdministrativeApplicationInput {
   key: string;
@@ -55,6 +60,28 @@ export class ApplicationsService {
 
   public async listAdministrativeApplications(): Promise<AdministrativeApplication[]> {
     return this.prisma.application.findMany({
+      orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
+    });
+  }
+
+  public async listAuthorizedApplications(userId: string): Promise<AuthorizedApplication[]> {
+    return this.prisma.application.findMany({
+      where: {
+        status: ApplicationStatus.ACTIVE,
+        userAssignments: {
+          some: {
+            userId,
+            user: { status: UserStatus.ACTIVE },
+          },
+        },
+      },
+      select: {
+        key: true,
+        name: true,
+        description: true,
+        launchPath: true,
+        displayOrder: true,
+      },
       orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
     });
   }

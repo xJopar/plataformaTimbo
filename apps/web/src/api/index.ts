@@ -1,10 +1,12 @@
 import { createAuthApi } from './auth';
 import { createAdministrationApi } from './administration';
+import { createApplicationsApi } from './applications';
 import { createSystemApi } from './system';
 
 export interface Api {
   auth: ReturnType<typeof createAuthApi>;
   administration: ReturnType<typeof createAdministrationApi>;
+  applications: ReturnType<typeof createApplicationsApi>;
   system: ReturnType<typeof createSystemApi>;
 }
 
@@ -12,6 +14,7 @@ export function createApi(baseUrl: string): Api {
   return {
     auth: createAuthApi(baseUrl),
     administration: createAdministrationApi(baseUrl),
+    applications: createApplicationsApi(baseUrl),
     system: createSystemApi(baseUrl),
   };
 }
@@ -31,3 +34,8 @@ export {
   type AdministrativeUserApplicationAccess,
 } from './administration';
 export { ApiHttpError, type HealthResponse, type SystemApi } from './system';
+export {
+  type ApplicationsApi,
+  type AuthorizedApplication,
+  createApplicationsApi,
+} from './applications';
