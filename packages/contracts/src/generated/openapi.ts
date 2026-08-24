@@ -210,6 +210,163 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/users/{userId}/applications/{applicationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asigna una aplicación activa a un usuario activo. */
+        post: operations["assignApplicationToUser"];
+        /** Retira una aplicación y sus perfiles funcionales del usuario. */
+        delete: operations["unassignApplicationFromUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista asignaciones de aplicaciones. */
+        get: operations["listUserApplicationAccesses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista permisos del catálogo de una aplicación. */
+        get: operations["listApplicationPermissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista perfiles funcionales de una aplicación. */
+        get: operations["listApplicationProfiles"];
+        put?: never;
+        /** Crea un perfil funcional. */
+        post: operations["createApplicationProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/application-profiles/{profileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edita un perfil funcional. */
+        patch: operations["updateApplicationProfile"];
+        trace?: never;
+    };
+    "/api/admin/application-profiles/{profileId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva un perfil funcional. */
+        post: operations["deactivateApplicationProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/application-profiles/{profileId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reactiva un perfil funcional. */
+        post: operations["reactivateApplicationProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/application-profiles/{profileId}/permissions/{permissionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Agrega un permiso del mismo catálogo al perfil. */
+        post: operations["addPermissionToApplicationProfile"];
+        /** Retira un permiso de un perfil funcional. */
+        delete: operations["removePermissionFromApplicationProfile"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/application-profiles/{profileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asigna un perfil funcional a un usuario con acceso a la aplicación. */
+        post: operations["assignApplicationProfileToUser"];
+        /** Retira un perfil funcional de un usuario. */
+        delete: operations["unassignApplicationProfileFromUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/activity": {
         parameters: {
             query?: never;
@@ -400,6 +557,41 @@ export interface components {
             launchPath?: string;
             /** @example 0 */
             displayOrder?: number;
+        };
+        AdministrativeUserApplicationAccessResponseDto: {
+            /** Format: uuid */
+            applicationId: string;
+            /** Format: date-time */
+            assignedAt: string;
+            profileIds: string[];
+        };
+        AdministrativeApplicationPermissionResponseDto: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            description: string | null;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+        };
+        AdministrativeApplicationProfileResponseDto: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            description: string | null;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            permissionIds: string[];
+        };
+        CreateApplicationProfileDto: {
+            key: string;
+            name: string;
+            description?: string | null;
+        };
+        UpdateApplicationProfileDto: {
+            name?: string;
+            description?: string | null;
         };
         HealthResponseDto: {
             /**
@@ -704,6 +896,277 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Aplicación reactivada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    assignApplicationToUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    unassignApplicationFromUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listUserApplicationAccesses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeUserApplicationAccessResponseDto"][];
+                };
+            };
+        };
+    };
+    listApplicationPermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationPermissionResponseDto"][];
+                };
+            };
+        };
+    };
+    listApplicationProfiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationProfileResponseDto"][];
+                };
+            };
+        };
+    };
+    createApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateApplicationProfileDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationProfileResponseDto"];
+                };
+            };
+        };
+    };
+    updateApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateApplicationProfileDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationProfileResponseDto"];
+                };
+            };
+        };
+    };
+    deactivateApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reactivateApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    addPermissionToApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+                permissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    removePermissionFromApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+                permissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    assignApplicationProfileToUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    unassignApplicationProfileFromUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
             204: {
                 headers: {
                     [name: string]: unknown;

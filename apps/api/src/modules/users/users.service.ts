@@ -1,11 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  AccessProfileKey,
-  AuditActorType,
-  Prisma,
-  UserStatus,
-  type User,
-} from '../../generated/prisma/client';
+import { AuditActorType, Prisma, UserStatus, type User } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditEventsService } from '../audit-events/audit-events.service';
 import {
@@ -75,7 +69,7 @@ const ADMINISTRATIVE_USER_SELECT = {
   createdAt: true,
   deactivatedAt: true,
   profileAssignments: {
-    where: { profile: { key: AccessProfileKey.PLATFORM_ADMIN } },
+    where: { profile: { key: 'PLATFORM_ADMIN' } },
     select: { id: true },
   },
 } as const satisfies Prisma.UserSelect;
@@ -295,7 +289,7 @@ export class UsersService {
           await transactionClient.userProfileAssignment.findFirst({
             where: {
               user: { corporateEmail },
-              profile: { key: AccessProfileKey.PLATFORM_ADMIN },
+              profile: { key: 'PLATFORM_ADMIN' },
             },
             select: { id: true },
           });

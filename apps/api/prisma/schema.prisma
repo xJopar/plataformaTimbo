@@ -22,10 +22,25 @@ enum ApplicationStatus {
   @@map("application_status")
 }
 
-enum AccessProfileKey {
-  PLATFORM_ADMIN
+enum AccessProfileScope {
+  SYSTEM
+  APPLICATION
 
-  @@map("access_profile_key")
+  @@map("access_profile_scope")
+}
+
+enum AccessProfileStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("access_profile_status")
+}
+
+enum ApplicationPermissionStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("application_permission_status")
 }
 
 enum AuditActorType {
@@ -56,6 +71,7 @@ model User {
   deactivatedAt  DateTime?     @map("deactivated_at") @db.Timestamptz(6)
   sessions       UserSession[]
   profileAssignments UserProfileAssignment[]
+  applicationAssignments UserApplicationAssignment[]
   auditEvents    AuditEvent[]  @relation("AuditEventActorUser")
   usageEvents    UsageEvent[]  @relation("UsageEventActorUser")
 
@@ -64,8 +80,21 @@ model User {
 
 model AccessProfile {
   id          String                  @id @default(uuid()) @db.Uuid
-  key         AccessProfileKey        @unique
+  key         String
+  name        String
+  description String?
+  scope       AccessProfileScope
+  applicationId String?               @map("application_id") @db.Uuid
+  status      AccessProfileStatus     @default(ACTIVE)
+  createdAt   DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deactivatedAt DateTime?             @map("deactivated_at") @db.Timestamptz(6)
+  application Application?            @relation(fields: [applicationId], references: [id], onDelete: Restrict)
   assignments UserProfileAssignment[]
+  permissions AccessProfilePermission[]
+
+  @@unique([applicationId, key])
+  @@index([applicationId, status, name])
 
   @@map("access_profiles")
 }
@@ -83,6 +112,19 @@ model UserProfileAssignment {
   @@map("user_profile_assignments")
 }
 
+model UserApplicationAssignment {
+  id            String      @id @default(uuid()) @db.Uuid
+  userId        String      @map("user_id") @db.Uuid
+  applicationId String      @map("application_id") @db.Uuid
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, applicationId])
+  @@index([applicationId])
+  @@map("user_application_assignments")
+}
+
 // La migración SQL agrega CHECK para la clave, la ruta interna, el orden y la coherencia
 // entre estado y fecha de desactivación. Prisma no expresa estas invariantes de PostgreSQL.
 model Application {
@@ -96,9 +138,43 @@ model Application {
   createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
   deactivatedAt DateTime?         @map("deactivated_at") @db.Timestamptz(6)
+  accessProfiles AccessProfile[]
+  userAssignments UserApplicationAssignment[]
+  permissions ApplicationPermission[]
 
   @@index([status, displayOrder, name])
   @@map("applications")
+}
+
+model ApplicationPermission {
+  id            String                      @id @default(uuid()) @db.Uuid
+  applicationId String                      @map("application_id") @db.Uuid
+  key           String
+  name          String
+  description   String?
+  status        ApplicationPermissionStatus @default(ACTIVE)
+  createdAt     DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deactivatedAt DateTime?                   @map("deactivated_at") @db.Timestamptz(6)
+  application   Application                 @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  profiles      AccessProfilePermission[]
+
+  @@unique([applicationId, key])
+  @@index([applicationId, status, name])
+  @@map("application_permissions")
+}
+
+model AccessProfilePermission {
+  id           String                @id @default(uuid()) @db.Uuid
+  profileId    String                @map("profile_id") @db.Uuid
+  permissionId String                @map("permission_id") @db.Uuid
+  createdAt    DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  profile      AccessProfile         @relation(fields: [profileId], references: [id], onDelete: Restrict)
+  permission   ApplicationPermission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+
+  @@unique([profileId, permissionId])
+  @@index([permissionId])
+  @@map("access_profile_permissions")
 }
 
 model OAuthLoginAttempt {

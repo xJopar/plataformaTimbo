@@ -33,7 +33,12 @@ export interface AuditTarget {
   targetId: string;
 }
 
-export type AuditEventMetadata = Readonly<{ reasonCode: LoginDeniedReasonCode }>;
+export type AuditEventMetadata = Readonly<{
+  reasonCode?: LoginDeniedReasonCode;
+  applicationId?: string;
+  profileId?: string;
+  permissionId?: string;
+}>;
 
 export interface AppendAuditEventInput {
   eventName: AuditEventName;
@@ -139,11 +144,18 @@ export class AuditEventsService {
       throw new Error('La metadata contiene un campo no permitido por el catálogo de auditoría.');
     }
 
+    const reasonCode = metadata?.reasonCode;
     if (
       allowedFields.includes('reasonCode') &&
-      (metadata === undefined || !LOGIN_DENIED_REASON_CODES.includes(metadata.reasonCode))
+      (reasonCode === undefined || !LOGIN_DENIED_REASON_CODES.includes(reasonCode))
     ) {
       throw new Error('El evento de auditoría requiere un reasonCode permitido por el catálogo.');
+    }
+    const missingField = allowedFields.find(
+      (field) => metadata?.[field as keyof AuditEventMetadata] === undefined,
+    );
+    if (missingField !== undefined) {
+      throw new Error('El evento de auditoría requiere toda la metadata definida por el catálogo.');
     }
   }
 }

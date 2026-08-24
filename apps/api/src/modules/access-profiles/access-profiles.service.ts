@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AccessProfileKey, AuditActorType, Prisma, type User } from '../../generated/prisma/client';
+import {
+  AccessProfileScope,
+  AccessProfileStatus,
+  AuditActorType,
+  Prisma,
+  type User,
+} from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditEventsService } from '../audit-events/audit-events.service';
 import { UserNotFoundError } from '../users/users.errors';
@@ -23,7 +29,11 @@ export class AccessProfilesService {
     const assignment = await this.prisma.userProfileAssignment.findFirst({
       where: {
         userId,
-        profile: { key: AccessProfileKey.PLATFORM_ADMIN },
+        profile: {
+          key: 'PLATFORM_ADMIN',
+          scope: AccessProfileScope.SYSTEM,
+          status: AccessProfileStatus.ACTIVE,
+        },
       },
       select: { id: true },
     });
@@ -52,10 +62,15 @@ export class AccessProfilesService {
     corporateEmail: string,
   ): Promise<User> {
     return this.prisma.$transaction(async (transactionClient) => {
-      const profile = await transactionClient.accessProfile.upsert({
-        where: { key: AccessProfileKey.PLATFORM_ADMIN },
-        create: { key: AccessProfileKey.PLATFORM_ADMIN },
-        update: {},
+      let profile = await transactionClient.accessProfile.findFirst({
+        where: { key: 'PLATFORM_ADMIN', scope: AccessProfileScope.SYSTEM },
+      });
+      profile ??= await transactionClient.accessProfile.create({
+        data: {
+          key: 'PLATFORM_ADMIN',
+          name: 'Administrador de plataforma',
+          scope: AccessProfileScope.SYSTEM,
+        },
       });
       await transactionClient.$queryRaw(
         Prisma.sql`
@@ -104,14 +119,14 @@ function isAccessProfileKeyUniqueViolation(error: unknown): boolean {
     if (
       (Array.isArray(target) && target.length === 1 && target[0] === 'key') ||
       target === 'key' ||
-      target === 'access_profiles_key_key'
+      target === 'access_profiles_system_key_key'
     ) {
       return true;
     }
   }
   return (
     error instanceof Error &&
-    (error.message.includes('access_profiles_key_key') || error.message.includes('(`key`)'))
+    (error.message.includes('access_profiles_system_key_key') || error.message.includes('(`key`)'))
   );
 }
 

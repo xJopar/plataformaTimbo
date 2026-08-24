@@ -1,10 +1,4 @@
-import {
-  AccessProfileKey,
-  AuditActorType,
-  type Prisma,
-  UserStatus,
-  type User,
-} from '../../generated/prisma/client';
+import { AuditActorType, type Prisma, UserStatus, type User } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import type { AuditEventsService } from '../audit-events/audit-events.service';
 import {
@@ -323,7 +317,7 @@ describe('UsersService', () => {
       expect(userProfileAssignmentDelegate.findFirst).toHaveBeenCalledWith({
         where: {
           user: { corporateEmail: 'persona@example.test' },
-          profile: { key: AccessProfileKey.PLATFORM_ADMIN },
+          profile: { key: 'PLATFORM_ADMIN' },
         },
         select: { id: true },
       });

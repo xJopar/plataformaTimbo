@@ -12,9 +12,11 @@ import { SessionAuthenticationGuard } from './modules/auth/session-authenticatio
 import { AdministrativeUsersController } from './modules/administration/administrative-users.controller';
 import { ActivityController } from './modules/administration/activity.controller';
 import { AdministrativeApplicationsController } from './modules/administration/administrative-applications.controller';
+import { AdministrativeApplicationAccessController } from './modules/administration/administrative-application-access.controller';
 import { ACTIVITY_SERVICE } from './modules/administration/administration.tokens';
 import { ADMINISTRATIVE_APPLICATIONS_SERVICE } from './modules/administration/administration.tokens';
 import { ADMINISTRATIVE_USERS_SERVICE } from './modules/administration/administration.tokens';
+import { ADMINISTRATIVE_APPLICATION_ACCESS_SERVICE } from './modules/administration/administration.tokens';
 import { PlatformAdministratorGuard } from './modules/administration/platform-administrator.guard';
 import { ACCESS_PROFILES_SERVICE } from './modules/access-profiles/access-profiles.tokens';
 import { USERS_SERVICE, USER_SESSIONS_SERVICE } from './modules/auth/auth.tokens';
@@ -27,6 +29,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     AuthController,
     AdministrativeUsersController,
     AdministrativeApplicationsController,
+    AdministrativeApplicationAccessController,
     ActivityController,
   ],
   providers: [
@@ -36,6 +39,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     { provide: CsrfProtectionGuard, useValue: { canActivate: () => true } },
     { provide: ADMINISTRATIVE_USERS_SERVICE, useValue: {} },
     { provide: ADMINISTRATIVE_APPLICATIONS_SERVICE, useValue: {} },
+    { provide: ADMINISTRATIVE_APPLICATION_ACCESS_SERVICE, useValue: {} },
     { provide: ACCESS_PROFILES_SERVICE, useValue: {} },
     { provide: USER_SESSIONS_SERVICE, useValue: {} },
     { provide: USERS_SERVICE, useValue: {} },

@@ -1,6 +1,5 @@
 import { randomUUID } from 'node:crypto';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { AccessProfileKey } from '../src/generated/prisma/client';
 import { PrismaModule } from '../src/database/prisma.module';
 import { PrismaService } from '../src/database/prisma.service';
 import { AuditEventsService } from '../src/modules/audit-events/audit-events.service';
@@ -98,8 +97,8 @@ describe('AccessProfilesService contra PostgreSQL development', () => {
     let profileCreatedByThisTest = false;
 
     try {
-      const existingProfile = await prismaService.accessProfile.findUnique({
-        where: { key: AccessProfileKey.PLATFORM_ADMIN },
+      const existingProfile = await prismaService.accessProfile.findFirst({
+        where: { key: 'PLATFORM_ADMIN', scope: 'SYSTEM' },
       });
       if (existingProfile !== null) {
         const existingAssignments = await prismaService.userProfileAssignment.count({
@@ -132,8 +131,8 @@ describe('AccessProfilesService contra PostgreSQL development', () => {
       expect(rejected).toHaveLength(1);
       expect(rejected[0]?.reason).toBeInstanceOf(FirstPlatformAdministratorAlreadyAssignedError);
 
-      const profile = await prismaService.accessProfile.findUnique({
-        where: { key: AccessProfileKey.PLATFORM_ADMIN },
+      const profile = await prismaService.accessProfile.findFirst({
+        where: { key: 'PLATFORM_ADMIN', scope: 'SYSTEM' },
       });
       if (profile === null) {
         throw new Error('La integración no creó el perfil PLATFORM_ADMIN.');
@@ -169,8 +168,8 @@ describe('AccessProfilesService contra PostgreSQL development', () => {
       await expect(
         rollbackService.assignFirstPlatformAdministrator({ corporateEmail: rollbackEmail }),
       ).rejects.toThrow('auditoría no disponible');
-      const rollbackProfile = await prismaService.accessProfile.findUnique({
-        where: { key: AccessProfileKey.PLATFORM_ADMIN },
+      const rollbackProfile = await prismaService.accessProfile.findFirst({
+        where: { key: 'PLATFORM_ADMIN', scope: 'SYSTEM' },
       });
       if (rollbackProfile !== null) {
         await expect(

@@ -364,6 +364,422 @@
         ]
       }
     },
+    "/api/admin/users/{userId}/applications/{applicationId}": {
+      "post": {
+        "operationId": "assignApplicationToUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "applicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Asigna una aplicación activa a un usuario activo.",
+        "tags": [
+          "administration"
+        ]
+      },
+      "delete": {
+        "operationId": "unassignApplicationFromUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "applicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Retira una aplicación y sus perfiles funcionales del usuario.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/{userId}/applications": {
+      "get": {
+        "operationId": "listUserApplicationAccesses",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdministrativeUserApplicationAccessResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista asignaciones de aplicaciones.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/applications/{applicationId}/permissions": {
+      "get": {
+        "operationId": "listApplicationPermissions",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdministrativeApplicationPermissionResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista permisos del catálogo de una aplicación.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/applications/{applicationId}/profiles": {
+      "get": {
+        "operationId": "listApplicationProfiles",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdministrativeApplicationProfileResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista perfiles funcionales de una aplicación.",
+        "tags": [
+          "administration"
+        ]
+      },
+      "post": {
+        "operationId": "createApplicationProfile",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApplicationProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdministrativeApplicationProfileResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crea un perfil funcional.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/application-profiles/{profileId}": {
+      "patch": {
+        "operationId": "updateApplicationProfile",
+        "parameters": [
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateApplicationProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdministrativeApplicationProfileResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Edita un perfil funcional.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/application-profiles/{profileId}/deactivate": {
+      "post": {
+        "operationId": "deactivateApplicationProfile",
+        "parameters": [
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Desactiva un perfil funcional.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/application-profiles/{profileId}/reactivate": {
+      "post": {
+        "operationId": "reactivateApplicationProfile",
+        "parameters": [
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Reactiva un perfil funcional.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/application-profiles/{profileId}/permissions/{permissionId}": {
+      "post": {
+        "operationId": "addPermissionToApplicationProfile",
+        "parameters": [
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "permissionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Agrega un permiso del mismo catálogo al perfil.",
+        "tags": [
+          "administration"
+        ]
+      },
+      "delete": {
+        "operationId": "removePermissionFromApplicationProfile",
+        "parameters": [
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "permissionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Retira un permiso de un perfil funcional.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/{userId}/application-profiles/{profileId}": {
+      "post": {
+        "operationId": "assignApplicationProfileToUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Asigna un perfil funcional a un usuario con acceso a la aplicación.",
+        "tags": [
+          "administration"
+        ]
+      },
+      "delete": {
+        "operationId": "unassignApplicationProfileFromUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Retira un perfil funcional de un usuario.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
     "/api/admin/activity": {
       "get": {
         "operationId": "listAdministrativeActivity",
@@ -1183,6 +1599,134 @@
             "type": "number",
             "example": 0,
             "minimum": 0
+          }
+        }
+      },
+      "AdministrativeUserApplicationAccessResponseDto": {
+        "type": "object",
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assignedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "profileIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "applicationId",
+          "assignedAt",
+          "profileIds"
+        ]
+      },
+      "AdministrativeApplicationPermissionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name",
+          "description",
+          "status"
+        ]
+      },
+      "AdministrativeApplicationProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          "permissionIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name",
+          "description",
+          "status",
+          "permissionIds"
+        ]
+      },
+      "CreateApplicationProfileDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "key",
+          "name"
+        ]
+      },
+      "UpdateApplicationProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

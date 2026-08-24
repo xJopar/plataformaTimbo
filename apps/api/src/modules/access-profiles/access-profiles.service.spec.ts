@@ -1,9 +1,4 @@
-import {
-  AccessProfileKey,
-  AuditActorType,
-  UserStatus,
-  type User,
-} from '../../generated/prisma/client';
+import { AuditActorType, UserStatus, type User } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditEventsService } from '../audit-events/audit-events.service';
 import { FirstPlatformAdministratorAlreadyAssignedError } from './access-profiles.errors';
@@ -26,7 +21,7 @@ describe('AccessProfilesService', () => {
   const runTransaction = jest.fn();
   const appendAuditEvent = jest.fn();
   const transactionClient = {
-    accessProfile: { upsert: jest.fn() },
+    accessProfile: { findFirst: jest.fn(), create: jest.fn() },
     $queryRaw: jest.fn(),
     userProfileAssignment: { findFirst: jest.fn(), create: jest.fn() },
     user: { findUnique: jest.fn() },
@@ -39,7 +34,8 @@ describe('AccessProfilesService', () => {
   const service = new AccessProfilesService(prisma, auditEventsService);
 
   beforeEach(() => {
-    transactionClient.accessProfile.upsert.mockReset();
+    transactionClient.accessProfile.findFirst.mockReset();
+    transactionClient.accessProfile.create.mockReset();
     transactionClient.$queryRaw.mockReset();
     transactionClient.$queryRaw.mockResolvedValue([{ id: 'profile-a' }]);
     transactionClient.userProfileAssignment.findFirst.mockReset();
@@ -58,13 +54,16 @@ describe('AccessProfilesService', () => {
 
     await expect(service.hasActivePlatformAdministratorAssignment(user.id)).resolves.toBe(true);
     expect(findPlatformAdminAssignment).toHaveBeenCalledWith({
-      where: { userId: user.id, profile: { key: AccessProfileKey.PLATFORM_ADMIN } },
+      where: {
+        userId: user.id,
+        profile: { key: 'PLATFORM_ADMIN', scope: 'SYSTEM', status: 'ACTIVE' },
+      },
       select: { id: true },
     });
   });
 
   it('asigna explícitamente sólo el primer administrador y lo audita como comando de sistema', async () => {
-    transactionClient.accessProfile.upsert.mockResolvedValue({ id: 'profile-a' });
+    transactionClient.accessProfile.findFirst.mockResolvedValue({ id: 'profile-a' });
     transactionClient.userProfileAssignment.findFirst.mockResolvedValue(null);
     transactionClient.user.findUnique.mockResolvedValue(user);
     transactionClient.userProfileAssignment.create.mockResolvedValue({ id: 'assignment-a' });
@@ -74,10 +73,8 @@ describe('AccessProfilesService', () => {
       service.assignFirstPlatformAdministrator({ corporateEmail: ' ADMIN@TIMBO.COM ' }),
     ).resolves.toBe(user);
 
-    expect(transactionClient.accessProfile.upsert).toHaveBeenCalledWith({
-      where: { key: AccessProfileKey.PLATFORM_ADMIN },
-      create: { key: AccessProfileKey.PLATFORM_ADMIN },
-      update: {},
+    expect(transactionClient.accessProfile.findFirst).toHaveBeenCalledWith({
+      where: { key: 'PLATFORM_ADMIN', scope: 'SYSTEM' },
     });
     expect(transactionClient.$queryRaw).toHaveBeenCalledTimes(1);
     expect(transactionClient.userProfileAssignment.create).toHaveBeenCalledWith({
@@ -91,7 +88,7 @@ describe('AccessProfilesService', () => {
   });
 
   it('no permite que el comando asigne un segundo administrador', async () => {
-    transactionClient.accessProfile.upsert.mockResolvedValue({ id: 'profile-a' });
+    transactionClient.accessProfile.findFirst.mockResolvedValue({ id: 'profile-a' });
     transactionClient.userProfileAssignment.findFirst.mockResolvedValue({ id: 'assignment-a' });
 
     await expect(
@@ -103,7 +100,7 @@ describe('AccessProfilesService', () => {
 
   it('reintenta una vez el P2002 específico del perfil antes de obtener su bloqueo', async () => {
     runTransaction.mockRejectedValueOnce({ code: 'P2002', meta: { target: ['key'] } });
-    transactionClient.accessProfile.upsert.mockResolvedValue({ id: 'profile-a' });
+    transactionClient.accessProfile.findFirst.mockResolvedValue({ id: 'profile-a' });
     transactionClient.userProfileAssignment.findFirst.mockResolvedValue(null);
     transactionClient.user.findUnique.mockResolvedValue(user);
     transactionClient.userProfileAssignment.create.mockResolvedValue({ id: 'assignment-a' });

@@ -293,6 +293,14 @@ cada evento debe existir en su catálogo.
 
 ## Checklist para el PR
 
+La administración de acceso registra `access.user_application_assigned`,
+`access.user_application_unassigned`, `access.application_profile_created`,
+`access.application_profile_updated`, `access.application_profile_deactivated`,
+`access.application_profile_reactivated`, `access.application_profile_permission_added`,
+`access.application_profile_permission_removed`, `access.user_application_profile_assigned` y
+`access.user_application_profile_unassigned`. La metadata sólo conserva identificadores opacos
+de aplicación, perfil o permiso definidos por el catálogo.
+
 Antes de considerar terminado un cambio de observabilidad, auditoría o uso:
 
 - la señal elegida coincide con la pregunta que se quiere responder;

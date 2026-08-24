@@ -66,6 +66,16 @@ describe('AuditEventsService', () => {
       'access.application_updated',
       'access.application_deactivated',
       'access.application_reactivated',
+      'access.user_application_assigned',
+      'access.user_application_unassigned',
+      'access.application_profile_created',
+      'access.application_profile_updated',
+      'access.application_profile_deactivated',
+      'access.application_profile_reactivated',
+      'access.application_profile_permission_added',
+      'access.application_profile_permission_removed',
+      'access.user_application_profile_assigned',
+      'access.user_application_profile_unassigned',
     ]);
     expect(AUDIT_EVENT_CATALOG['security.login_succeeded']).toMatchObject({
       actorType: AuditActorType.USER,

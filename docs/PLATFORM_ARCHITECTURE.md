@@ -136,6 +136,11 @@ La API es la fuente del contrato HTTP. El flujo correcto es:
 
 ## Dónde leer antes de cambiar
 
+Las asignaciones de aplicación determinan si una persona puede verla y entrar. Los perfiles y
+permisos funcionales determinan qué acciones puede realizar dentro de ella. `PLATFORM_ADMIN` es
+un perfil de sistema y no omite esa autorización funcional; la API valida siempre usuario,
+aplicación, asignación, perfil y permiso activos.
+
 | Cambio                     | Recorrido inicial                                                              |
 | -------------------------- | ------------------------------------------------------------------------------ |
 | Identidad o sesión         | `modules/auth` → `modules/users` → modelos `OAuthLoginAttempt` y `UserSession` |

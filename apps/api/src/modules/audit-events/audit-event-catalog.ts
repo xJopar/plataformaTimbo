@@ -13,7 +13,17 @@ export type AuditEventName =
   | 'access.application_created'
   | 'access.application_updated'
   | 'access.application_deactivated'
-  | 'access.application_reactivated';
+  | 'access.application_reactivated'
+  | 'access.user_application_assigned'
+  | 'access.user_application_unassigned'
+  | 'access.application_profile_created'
+  | 'access.application_profile_updated'
+  | 'access.application_profile_deactivated'
+  | 'access.application_profile_reactivated'
+  | 'access.application_profile_permission_added'
+  | 'access.application_profile_permission_removed'
+  | 'access.user_application_profile_assigned'
+  | 'access.user_application_profile_unassigned';
 
 export type AuditTargetRule = 'forbidden' | 'user-required' | 'application-required';
 
@@ -126,5 +136,75 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
     outcome: AuditOutcome.SUCCESS,
     targetRule: 'application-required',
     metadataFields: [],
+  },
+  'access.user_application_assigned': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'user-required',
+    metadataFields: ['applicationId'],
+  },
+  'access.user_application_unassigned': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'user-required',
+    metadataFields: ['applicationId'],
+  },
+  'access.application_profile_created': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'application-required',
+    metadataFields: ['profileId'],
+  },
+  'access.application_profile_updated': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'application-required',
+    metadataFields: ['profileId'],
+  },
+  'access.application_profile_deactivated': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'application-required',
+    metadataFields: ['profileId'],
+  },
+  'access.application_profile_reactivated': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'application-required',
+    metadataFields: ['profileId'],
+  },
+  'access.application_profile_permission_added': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'application-required',
+    metadataFields: ['profileId', 'permissionId'],
+  },
+  'access.application_profile_permission_removed': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'application-required',
+    metadataFields: ['profileId', 'permissionId'],
+  },
+  'access.user_application_profile_assigned': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'user-required',
+    metadataFields: ['profileId'],
+  },
+  'access.user_application_profile_unassigned': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'user-required',
+    metadataFields: ['profileId'],
   },
 };
