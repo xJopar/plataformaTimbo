@@ -6,6 +6,10 @@ export type AdministrativeUser = NonNullable<
   paths['/api/admin/users']['get']['responses'][200]['content']['application/json']
 >[number];
 
+export type AdministrativeApplication = NonNullable<
+  paths['/api/admin/applications']['get']['responses'][200]['content']['application/json']
+>[number];
+
 export interface ActivityFilters {
   datePreset?: 'today' | 'week' | 'month';
   dateFrom?: string;
@@ -32,6 +36,25 @@ export type AdministrativeActivityFilterOptions = NonNullable<
 >;
 
 export interface AdministrationApi {
+  listApplications(): Promise<AdministrativeApplication[]>;
+  createApplication(input: {
+    key: string;
+    name: string;
+    description?: string | null;
+    launchPath: string;
+    displayOrder: number;
+  }): Promise<AdministrativeApplication>;
+  updateApplication(
+    applicationId: string,
+    input: {
+      name?: string;
+      description?: string | null;
+      launchPath?: string;
+      displayOrder?: number;
+    },
+  ): Promise<AdministrativeApplication>;
+  deactivateApplication(applicationId: string): Promise<void>;
+  reactivateApplication(applicationId: string): Promise<void>;
   listUsers(search?: string): Promise<AdministrativeUser[]>;
   preauthorizeUser(input: {
     corporateEmail: string;
@@ -57,6 +80,48 @@ export function createAdministrationApi(
   });
 
   return {
+    async listApplications(): Promise<AdministrativeApplication[]> {
+      const { data, response } = await client.GET('/api/admin/applications');
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined) {
+        throw new Error('La API respondió sin la lista esperada de aplicaciones.');
+      }
+      return data;
+    },
+
+    async createApplication(input): Promise<AdministrativeApplication> {
+      const { data, response } = await client.POST('/api/admin/applications', {
+        headers: { 'x-timbo-csrf': '1' },
+        body: input,
+      });
+      return requireAdministrativeApplicationResponse(data, response.status, response.ok);
+    },
+
+    async updateApplication(applicationId, input): Promise<AdministrativeApplication> {
+      const { data, response } = await client.PATCH('/api/admin/applications/{applicationId}', {
+        params: { path: { applicationId } },
+        headers: { 'x-timbo-csrf': '1' },
+        body: input,
+      });
+      return requireAdministrativeApplicationResponse(data, response.status, response.ok);
+    },
+
+    async deactivateApplication(applicationId): Promise<void> {
+      const { response } = await client.POST('/api/admin/applications/{applicationId}/deactivate', {
+        params: { path: { applicationId } },
+        headers: { 'x-timbo-csrf': '1' },
+      });
+      if (!response.ok) throw new ApiHttpError(response.status);
+    },
+
+    async reactivateApplication(applicationId): Promise<void> {
+      const { response } = await client.POST('/api/admin/applications/{applicationId}/reactivate', {
+        params: { path: { applicationId } },
+        headers: { 'x-timbo-csrf': '1' },
+      });
+      if (!response.ok) throw new ApiHttpError(response.status);
+    },
+
     async listUsers(search?: string): Promise<AdministrativeUser[]> {
       const { data, response } = await client.GET('/api/admin/users', {
         params: { query: search === undefined ? undefined : { search } },
@@ -145,6 +210,16 @@ export function createAdministrationApi(
       return response.blob();
     },
   };
+}
+
+function requireAdministrativeApplicationResponse(
+  data: AdministrativeApplication | undefined,
+  status: number,
+  isSuccessful: boolean,
+): AdministrativeApplication {
+  if (!isSuccessful) throw new ApiHttpError(status);
+  if (data === undefined) throw new Error('La API respondió sin la aplicación esperada.');
+  return data;
 }
 
 function serializeActivityFilters(filters: ActivityFilters): Record<string, string | undefined> {

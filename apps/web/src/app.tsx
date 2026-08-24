@@ -10,6 +10,7 @@ import type {
   AuthSession,
 } from './api';
 import { ApiHttpError } from './api';
+import { ApplicationsPanel } from './applications-panel';
 import './app.css';
 
 interface AppProps {
@@ -225,7 +226,11 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
     authenticationState.status === 'logout-failed' ? authenticationState.error : undefined;
   const employeeName = session.displayName ?? session.corporateEmail;
 
-  if (pathname === '/admin' || pathname === '/admin/activity') {
+  if (
+    pathname === '/admin' ||
+    pathname === '/admin/activity' ||
+    pathname === '/admin/applications'
+  ) {
     if (api === undefined) {
       return (
         <AccessShell title="No pudimos cargar Administración" detail="La API no está disponible." />
@@ -235,7 +240,25 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
       <AdministrationPanel
         api={api}
         session={session}
-        activeSection={pathname === '/admin/activity' ? 'activity' : 'users'}
+        activeSection={
+          pathname === '/admin/activity'
+            ? 'activity'
+            : pathname === '/admin/applications'
+              ? 'applications'
+              : 'users'
+        }
+        onNavigate={navigate}
+        onLogout={() => void logout(session)}
+      />
+    );
+  }
+
+  if (pathname === '/apps/hello-world') {
+    return (
+      <HelloWorldApplication
+        session={session}
+        isLoggingOut={isLoggingOut}
+        logoutFailure={logoutFailure}
         onNavigate={navigate}
         onLogout={() => void logout(session)}
       />
@@ -302,7 +325,7 @@ type AdministrationState =
 interface AdministrationPanelProps {
   api: Api;
   session: AuthSession;
-  activeSection: 'users' | 'activity';
+  activeSection: 'users' | 'applications' | 'activity';
   onNavigate: (pathname: string) => void;
   onLogout: () => void;
 }
@@ -342,8 +365,8 @@ function AdministrationPanel({
   );
 
   useEffect(() => {
-    void loadUsers();
-  }, [loadUsers]);
+    if (activeSection === 'users') void loadUsers();
+  }, [activeSection, loadUsers]);
 
   const submitSearch = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -441,6 +464,16 @@ function AdministrationPanel({
             Usuarios
           </a>
           <a
+            aria-current={activeSection === 'applications' ? 'page' : undefined}
+            href="/admin/applications"
+            onClick={(event) => {
+              event.preventDefault();
+              onNavigate('/admin/applications');
+            }}
+          >
+            Aplicaciones
+          </a>
+          <a
             aria-current={activeSection === 'activity' ? 'page' : undefined}
             href="/admin/activity"
             onClick={(event) => {
@@ -451,6 +484,7 @@ function AdministrationPanel({
             Actividad
           </a>
         </nav>
+        {activeSection === 'applications' ? <ApplicationsPanel api={api} /> : null}
         {activeSection === 'activity' ? <ActivityPanel api={api} /> : null}
         {activeSection === 'users' ? (
           <section className="administration-content" aria-labelledby="administration-title">
@@ -588,6 +622,66 @@ function AdministrationPanel({
           </section>
         ) : null}
       </div>
+    </main>
+  );
+}
+
+interface HelloWorldApplicationProps {
+  session: AuthSession;
+  isLoggingOut: boolean;
+  logoutFailure: Error | undefined;
+  onNavigate: (pathname: string) => void;
+  onLogout: () => void;
+}
+
+function HelloWorldApplication({
+  session,
+  isLoggingOut,
+  logoutFailure,
+  onNavigate,
+  onLogout,
+}: HelloWorldApplicationProps): React.JSX.Element {
+  const [messageVisible, setMessageVisible] = useState(false);
+
+  return (
+    <main className="platform-shell hello-world-shell">
+      <header className="top-bar">
+        <p className="product-name">Plataforma Timbo</p>
+        <a
+          className="top-navigation-link"
+          href="/"
+          onClick={(event) => {
+            event.preventDefault();
+            onNavigate('/');
+          }}
+        >
+          Inicio
+        </a>
+        <button className="logout-button" type="button" disabled={isLoggingOut} onClick={onLogout}>
+          {isLoggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
+        </button>
+      </header>
+      <section className="subheader" aria-label="Información de la aplicación">
+        <p>
+          Aplicación <strong>Hello World</strong>
+        </p>
+        <p>{session.displayName ?? session.corporateEmail}</p>
+      </section>
+      <section className="application-stage" aria-labelledby="hello-world-title">
+        <h1 id="hello-world-title">Hello World</h1>
+        <p>Una primera aplicación interna para comprobar la integración con el App Shell.</p>
+        <button className="action-button" type="button" onClick={() => setMessageVisible(true)}>
+          Probar aplicación
+        </button>
+        {logoutFailure === undefined ? null : (
+          <p role="alert">No se pudo cerrar la sesión. Intentá nuevamente.</p>
+        )}
+        {messageVisible ? (
+          <p className="application-result" role="status">
+            Primera app
+          </p>
+        ) : null}
+      </section>
     </main>
   );
 }

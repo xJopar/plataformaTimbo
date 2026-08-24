@@ -31,6 +31,11 @@ function createApi(
       ...authOverrides,
     },
     administration: {
+      listApplications: vi.fn<AdministrationApi['listApplications']>().mockResolvedValue([]),
+      createApplication: vi.fn<AdministrationApi['createApplication']>(),
+      updateApplication: vi.fn<AdministrationApi['updateApplication']>(),
+      deactivateApplication: vi.fn<AdministrationApi['deactivateApplication']>(),
+      reactivateApplication: vi.fn<AdministrationApi['reactivateApplication']>(),
       listUsers: vi.fn<AdministrationApi['listUsers']>().mockResolvedValue([]),
       preauthorizeUser: vi.fn<AdministrationApi['preauthorizeUser']>(),
       updateUser: vi.fn<AdministrationApi['updateUser']>(),
@@ -241,5 +246,55 @@ describe('App', () => {
 
     expect(await screen.findByText('Administrador protegido')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Desactivar' })).not.toBeInTheDocument();
+  });
+
+  it('muestra el catálogo administrativo y abre la ruta interna registrada', async () => {
+    window.history.replaceState({}, '', '/admin/applications');
+    const application = {
+      id: 'application-a',
+      key: 'hello-world',
+      name: 'Hello World',
+      description: 'Primera aplicación de Plataforma Timbo.',
+      launchPath: '/apps/hello-world',
+      status: 'ACTIVE' as const,
+      displayOrder: 0,
+      createdAt: '2026-08-24T12:00:00.000Z',
+      updatedAt: '2026-08-24T12:00:00.000Z',
+      deactivatedAt: null,
+    };
+    render(
+      <App
+        api={createApi(
+          {},
+          {
+            listApplications: vi
+              .fn<AdministrationApi['listApplications']>()
+              .mockResolvedValue([application]),
+          },
+        )}
+      />,
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Aplicaciones' })).toBeInTheDocument();
+    expect(await screen.findByText('Hello World')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Aplicaciones' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.getByRole('link', { name: 'Abrir' })).toHaveAttribute(
+      'href',
+      '/apps/hello-world',
+    );
+  });
+
+  it('ejecuta la interacción básica de Hello World dentro de la sesión compartida', async () => {
+    window.history.replaceState({}, '', '/apps/hello-world');
+    const user = userEvent.setup();
+    render(<App api={createApi()} />);
+
+    expect(await screen.findByRole('heading', { name: 'Hello World' })).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Probar aplicación' }));
+    expect(screen.getByRole('status')).toHaveTextContent('Primera app');
   });
 });

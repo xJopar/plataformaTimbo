@@ -37,4 +37,53 @@ describe('createAdministrationApi', () => {
 
     await expect(administrationApi.listUsers()).rejects.toEqual(expect.any(ApiHttpError));
   });
+
+  it('usa rutas internas tipadas y CSRF al administrar aplicaciones', async () => {
+    const application = {
+      id: 'application-a',
+      key: 'hello-world',
+      name: 'Hello World',
+      description: null,
+      launchPath: '/apps/hello-world',
+      status: 'ACTIVE' as const,
+      displayOrder: 0,
+      createdAt: '2026-08-24T12:00:00.000Z',
+      updatedAt: '2026-08-24T12:00:00.000Z',
+      deactivatedAt: null,
+    };
+    const fetchImplementation = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify([application]), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(application), {
+          status: 201,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+    const administrationApi = createAdministrationApi('http://localhost:3000', fetchImplementation);
+
+    await expect(administrationApi.listApplications()).resolves.toEqual([application]);
+    await administrationApi.createApplication({
+      key: application.key,
+      name: application.name,
+      description: null,
+      launchPath: application.launchPath,
+      displayOrder: 0,
+    });
+
+    expect(fetchImplementation.mock.calls[0]?.[0]).toMatchObject({
+      method: 'GET',
+      url: 'http://localhost:3000/api/admin/applications',
+    });
+    expect(fetchImplementation.mock.calls[1]?.[0]).toMatchObject({
+      method: 'POST',
+      url: 'http://localhost:3000/api/admin/applications',
+    });
+    expect(fetchImplementation.mock.calls[1]?.[0]).toHaveProperty('headers');
+  });
 });

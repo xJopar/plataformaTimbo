@@ -19,6 +19,7 @@ export function createApi(baseUrl: string): Api {
 export { type AuthApi, type AuthSession } from './auth';
 export {
   type ActivityFilters,
+  type AdministrativeApplication,
   type AdministrativeActivity,
   type AdministrativeActivityFilterOptions,
   type AdministrativeActivityItem,
