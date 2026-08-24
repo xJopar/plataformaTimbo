@@ -86,4 +86,62 @@ describe('createAdministrationApi', () => {
     });
     expect(fetchImplementation.mock.calls[1]?.[0]).toHaveProperty('headers');
   });
+
+  it('gestiona asignaciones, perfiles y permisos mediante las rutas administrativas tipadas', async () => {
+    const profile = {
+      id: 'profile-a',
+      key: 'consulta',
+      name: 'Consulta',
+      description: null,
+      status: 'ACTIVE' as const,
+      permissionIds: [],
+    };
+    const fetchImplementation = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify([profile]), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(profile), {
+          status: 201,
+          headers: { 'content-type': 'application/json' },
+        }),
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    const administrationApi = createAdministrationApi('http://localhost:3000', fetchImplementation);
+
+    await administrationApi.assignApplicationToUser('user-a', 'application-a');
+    await expect(administrationApi.listApplicationProfiles('application-a')).resolves.toEqual([
+      profile,
+    ]);
+    await administrationApi.createApplicationProfile('application-a', {
+      key: 'consulta',
+      name: 'Consulta',
+      description: null,
+    });
+    await administrationApi.addPermissionToApplicationProfile('profile-a', 'permission-a');
+
+    expect(fetchImplementation.mock.calls[0]?.[0]).toMatchObject({
+      method: 'POST',
+      url: 'http://localhost:3000/api/admin/users/user-a/applications/application-a',
+    });
+    expect(fetchImplementation.mock.calls[1]?.[0]).toMatchObject({
+      method: 'GET',
+      url: 'http://localhost:3000/api/admin/applications/application-a/profiles',
+    });
+    expect(fetchImplementation.mock.calls[2]?.[0]).toMatchObject({
+      method: 'POST',
+      url: 'http://localhost:3000/api/admin/applications/application-a/profiles',
+    });
+    expect(fetchImplementation.mock.calls[3]?.[0]).toMatchObject({
+      method: 'POST',
+      url: 'http://localhost:3000/api/admin/application-profiles/profile-a/permissions/permission-a',
+    });
+    expect(fetchImplementation.mock.calls[0]?.[0]).toHaveProperty('headers');
+    expect(fetchImplementation.mock.calls[2]?.[0]).toHaveProperty('headers');
+  });
 });

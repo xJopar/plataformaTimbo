@@ -36,6 +36,28 @@ function createApi(
       updateApplication: vi.fn<AdministrationApi['updateApplication']>(),
       deactivateApplication: vi.fn<AdministrationApi['deactivateApplication']>(),
       reactivateApplication: vi.fn<AdministrationApi['reactivateApplication']>(),
+      listUserApplicationAccesses: vi
+        .fn<AdministrationApi['listUserApplicationAccesses']>()
+        .mockResolvedValue([]),
+      assignApplicationToUser: vi.fn<AdministrationApi['assignApplicationToUser']>(),
+      unassignApplicationFromUser: vi.fn<AdministrationApi['unassignApplicationFromUser']>(),
+      listApplicationPermissions: vi
+        .fn<AdministrationApi['listApplicationPermissions']>()
+        .mockResolvedValue([]),
+      listApplicationProfiles: vi
+        .fn<AdministrationApi['listApplicationProfiles']>()
+        .mockResolvedValue([]),
+      createApplicationProfile: vi.fn<AdministrationApi['createApplicationProfile']>(),
+      updateApplicationProfile: vi.fn<AdministrationApi['updateApplicationProfile']>(),
+      deactivateApplicationProfile: vi.fn<AdministrationApi['deactivateApplicationProfile']>(),
+      reactivateApplicationProfile: vi.fn<AdministrationApi['reactivateApplicationProfile']>(),
+      addPermissionToApplicationProfile:
+        vi.fn<AdministrationApi['addPermissionToApplicationProfile']>(),
+      removePermissionFromApplicationProfile:
+        vi.fn<AdministrationApi['removePermissionFromApplicationProfile']>(),
+      assignApplicationProfileToUser: vi.fn<AdministrationApi['assignApplicationProfileToUser']>(),
+      unassignApplicationProfileFromUser:
+        vi.fn<AdministrationApi['unassignApplicationProfileFromUser']>(),
       listUsers: vi.fn<AdministrationApi['listUsers']>().mockResolvedValue([]),
       preauthorizeUser: vi.fn<AdministrationApi['preauthorizeUser']>(),
       updateUser: vi.fn<AdministrationApi['updateUser']>(),
@@ -246,6 +268,331 @@ describe('App', () => {
 
     expect(await screen.findByText('Administrador protegido')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Desactivar' })).not.toBeInTheDocument();
+  });
+
+  it('edita el nombre visible mediante un formulario inline accesible', async () => {
+    window.history.replaceState({}, '', '/admin');
+    const user = userEvent.setup();
+    const originalUser = {
+      id: 'user-a',
+      corporateEmail: 'persona@timbo.com',
+      displayName: 'Persona Timbo',
+      status: 'ACTIVE' as const,
+      createdAt: '2026-08-24T12:00:00.000Z',
+      deactivatedAt: null,
+      isPlatformAdministrator: false,
+    };
+    const updateUser = vi
+      .fn<AdministrationApi['updateUser']>()
+      .mockResolvedValue({ ...originalUser, displayName: 'Nombre actualizado' });
+    render(
+      <App
+        api={createApi(
+          {},
+          {
+            listUsers: vi
+              .fn<AdministrationApi['listUsers']>()
+              .mockResolvedValueOnce([originalUser])
+              .mockResolvedValueOnce([{ ...originalUser, displayName: 'Nombre actualizado' }]),
+            updateUser,
+          },
+        )}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Editar nombre' }));
+    const displayNameInput = screen.getByLabelText('Nombre visible');
+    await user.clear(displayNameInput);
+    await user.type(displayNameInput, 'Nombre actualizado');
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+
+    await waitFor(() =>
+      expect(updateUser).toHaveBeenCalledWith('user-a', { displayName: 'Nombre actualizado' }),
+    );
+    expect(await screen.findByText('Nombre actualizado')).toBeInTheDocument();
+  });
+
+  it('cierra la gestión de accesos si una búsqueda ya no contiene al usuario seleccionado', async () => {
+    window.history.replaceState({}, '', '/admin');
+    const user = userEvent.setup();
+    const listUsers = vi
+      .fn<AdministrationApi['listUsers']>()
+      .mockResolvedValueOnce([
+        {
+          id: 'user-a',
+          corporateEmail: 'persona@timbo.com',
+          displayName: 'Persona Timbo',
+          status: 'ACTIVE' as const,
+          createdAt: '2026-08-24T12:00:00.000Z',
+          deactivatedAt: null,
+          isPlatformAdministrator: false,
+        },
+      ])
+      .mockResolvedValueOnce([]);
+    render(<App api={createApi({}, { listUsers })} />);
+
+    await user.click(await screen.findByRole('button', { name: 'Gestionar accesos' }));
+    expect(await screen.findByRole('heading', { name: 'Gestionar accesos' })).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Buscar por correo corporativo'), 'otra@timbo.com');
+    await user.click(screen.getByRole('button', { name: 'Buscar' }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('heading', { name: 'Gestionar accesos' })).not.toBeInTheDocument(),
+    );
+  });
+
+  it('asigna aplicaciones activas desde la gestión de accesos y bloquea la confirmación de retiro', async () => {
+    window.history.replaceState({}, '', '/admin');
+    const user = userEvent.setup();
+    const application = {
+      id: 'application-a',
+      key: 'lista-precios',
+      name: 'Lista de precios',
+      description: null,
+      launchPath: '/apps/lista-precios',
+      status: 'ACTIVE' as const,
+      displayOrder: 0,
+      createdAt: '2026-08-24T12:00:00.000Z',
+      updatedAt: '2026-08-24T12:00:00.000Z',
+      deactivatedAt: null,
+    };
+    const assignApplicationToUser = vi
+      .fn<AdministrationApi['assignApplicationToUser']>()
+      .mockResolvedValue(undefined);
+    render(
+      <App
+        api={createApi(
+          {},
+          {
+            listUsers: vi.fn<AdministrationApi['listUsers']>().mockResolvedValue([
+              {
+                id: 'user-a',
+                corporateEmail: 'persona@timbo.com',
+                displayName: 'Persona Timbo',
+                status: 'ACTIVE',
+                createdAt: '2026-08-24T12:00:00.000Z',
+                deactivatedAt: null,
+                isPlatformAdministrator: false,
+              },
+            ]),
+            listApplications: vi
+              .fn<AdministrationApi['listApplications']>()
+              .mockResolvedValue([application]),
+            assignApplicationToUser,
+          },
+        )}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Gestionar accesos' }));
+    expect(await screen.findByRole('heading', { name: 'Gestionar accesos' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Asignar aplicación' }));
+    await waitFor(() =>
+      expect(assignApplicationToUser).toHaveBeenCalledWith('user-a', 'application-a'),
+    );
+  });
+
+  it('muestra un error recuperable al no poder cargar las asignaciones del usuario', async () => {
+    window.history.replaceState({}, '', '/admin');
+    const user = userEvent.setup();
+    render(
+      <App
+        api={createApi(
+          {},
+          {
+            listUsers: vi.fn<AdministrationApi['listUsers']>().mockResolvedValue([
+              {
+                id: 'user-a',
+                corporateEmail: 'persona@timbo.com',
+                displayName: 'Persona Timbo',
+                status: 'ACTIVE',
+                createdAt: '2026-08-24T12:00:00.000Z',
+                deactivatedAt: null,
+                isPlatformAdministrator: false,
+              },
+            ]),
+            listApplications: vi
+              .fn<AdministrationApi['listApplications']>()
+              .mockRejectedValueOnce(new ApiHttpError(503))
+              .mockResolvedValueOnce([]),
+          },
+        )}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Gestionar accesos' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'No pudimos cargar las asignaciones',
+    );
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(
+      await screen.findByRole('heading', { name: 'No hay aplicaciones para asignar' }),
+    ).toBeInTheDocument();
+  });
+
+  it('requiere una nueva confirmación al elegir otra aplicación para desasignar', async () => {
+    window.history.replaceState({}, '', '/admin');
+    const user = userEvent.setup();
+    const createApplication = (id: string, name: string) => ({
+      id,
+      key: id,
+      name,
+      description: null,
+      launchPath: `/apps/${id}`,
+      status: 'ACTIVE' as const,
+      displayOrder: 0,
+      createdAt: '2026-08-24T12:00:00.000Z',
+      updatedAt: '2026-08-24T12:00:00.000Z',
+      deactivatedAt: null,
+    });
+    render(
+      <App
+        api={createApi(
+          {},
+          {
+            listUsers: vi.fn<AdministrationApi['listUsers']>().mockResolvedValue([
+              {
+                id: 'user-a',
+                corporateEmail: 'persona@timbo.com',
+                displayName: 'Persona Timbo',
+                status: 'ACTIVE',
+                createdAt: '2026-08-24T12:00:00.000Z',
+                deactivatedAt: null,
+                isPlatformAdministrator: false,
+              },
+            ]),
+            listApplications: vi
+              .fn<AdministrationApi['listApplications']>()
+              .mockResolvedValue([
+                createApplication('application-a', 'Aplicación A'),
+                createApplication('application-b', 'Aplicación B'),
+              ]),
+            listUserApplicationAccesses: vi
+              .fn<AdministrationApi['listUserApplicationAccesses']>()
+              .mockResolvedValue([
+                {
+                  applicationId: 'application-a',
+                  assignedAt: '2026-08-24T12:00:00.000Z',
+                  profileIds: [],
+                },
+                {
+                  applicationId: 'application-b',
+                  assignedAt: '2026-08-24T12:00:00.000Z',
+                  profileIds: [],
+                },
+              ]),
+          },
+        )}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Gestionar accesos' }));
+    await user.click((await screen.findAllByRole('button', { name: 'Desasignar aplicación' }))[0]!);
+    await user.click(screen.getByRole('checkbox'));
+    expect(screen.getByRole('button', { name: 'Confirmar desasignación' })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: 'Desasignar aplicación' }));
+    expect(screen.getByRole('button', { name: 'Confirmar desasignación' })).toBeDisabled();
+  });
+
+  it('recupera la carga de perfiles sin conservar un estado de carga tras el error', async () => {
+    window.history.replaceState({}, '', '/admin/applications');
+    const user = userEvent.setup();
+    const application = {
+      id: 'application-a',
+      key: 'lista-precios',
+      name: 'Lista de precios',
+      description: null,
+      launchPath: '/apps/lista-precios',
+      status: 'ACTIVE' as const,
+      displayOrder: 0,
+      createdAt: '2026-08-24T12:00:00.000Z',
+      updatedAt: '2026-08-24T12:00:00.000Z',
+      deactivatedAt: null,
+    };
+    render(
+      <App
+        api={createApi(
+          {},
+          {
+            listApplications: vi
+              .fn<AdministrationApi['listApplications']>()
+              .mockResolvedValue([application]),
+            listApplicationProfiles: vi
+              .fn<AdministrationApi['listApplicationProfiles']>()
+              .mockRejectedValueOnce(new ApiHttpError(503))
+              .mockResolvedValueOnce([]),
+            listApplicationPermissions: vi
+              .fn<AdministrationApi['listApplicationPermissions']>()
+              .mockResolvedValue([]),
+          },
+        )}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Gestionar perfiles' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar los perfiles');
+    expect(screen.queryByText('Cargando perfiles y permisos…')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(
+      await screen.findByRole('heading', { name: 'No hay perfiles funcionales' }),
+    ).toBeInTheDocument();
+  });
+
+  it('muestra permisos inactivos sin ofrecer su asociación a un perfil', async () => {
+    window.history.replaceState({}, '', '/admin/applications');
+    const user = userEvent.setup();
+    const application = {
+      id: 'application-a',
+      key: 'lista-precios',
+      name: 'Lista de precios',
+      description: null,
+      launchPath: '/apps/lista-precios',
+      status: 'ACTIVE' as const,
+      displayOrder: 0,
+      createdAt: '2026-08-24T12:00:00.000Z',
+      updatedAt: '2026-08-24T12:00:00.000Z',
+      deactivatedAt: null,
+    };
+    render(
+      <App
+        api={createApi(
+          {},
+          {
+            listApplications: vi
+              .fn<AdministrationApi['listApplications']>()
+              .mockResolvedValue([application]),
+            listApplicationProfiles: vi
+              .fn<AdministrationApi['listApplicationProfiles']>()
+              .mockResolvedValue([
+                {
+                  id: 'profile-a',
+                  key: 'consulta',
+                  name: 'Consulta',
+                  description: null,
+                  status: 'INACTIVE',
+                  permissionIds: ['permission-a'],
+                },
+              ]),
+            listApplicationPermissions: vi
+              .fn<AdministrationApi['listApplicationPermissions']>()
+              .mockResolvedValue([
+                {
+                  id: 'permission-a',
+                  key: 'prices.read',
+                  name: 'Consultar precios',
+                  description: null,
+                  status: 'INACTIVE',
+                },
+              ]),
+          },
+        )}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Gestionar perfiles' }));
+    expect(await screen.findByText('Permiso inactivo')).toBeInTheDocument();
+    expect(screen.getByText('Reactivá el perfil para desasociarlo')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Desasociar' })).not.toBeInTheDocument();
   });
 
   it('muestra el catálogo administrativo y abre la ruta interna registrada', async () => {

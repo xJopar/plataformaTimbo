@@ -10,6 +10,18 @@ export type AdministrativeApplication = NonNullable<
   paths['/api/admin/applications']['get']['responses'][200]['content']['application/json']
 >[number];
 
+export type AdministrativeUserApplicationAccess = NonNullable<
+  paths['/api/admin/users/{userId}/applications']['get']['responses'][200]['content']['application/json']
+>[number];
+
+export type AdministrativeApplicationPermission = NonNullable<
+  paths['/api/admin/applications/{applicationId}/permissions']['get']['responses'][200]['content']['application/json']
+>[number];
+
+export type AdministrativeApplicationProfile = NonNullable<
+  paths['/api/admin/applications/{applicationId}/profiles']['get']['responses'][200]['content']['application/json']
+>[number];
+
 export interface ActivityFilters {
   datePreset?: 'today' | 'week' | 'month';
   dateFrom?: string;
@@ -55,6 +67,25 @@ export interface AdministrationApi {
   ): Promise<AdministrativeApplication>;
   deactivateApplication(applicationId: string): Promise<void>;
   reactivateApplication(applicationId: string): Promise<void>;
+  listUserApplicationAccesses(userId: string): Promise<AdministrativeUserApplicationAccess[]>;
+  assignApplicationToUser(userId: string, applicationId: string): Promise<void>;
+  unassignApplicationFromUser(userId: string, applicationId: string): Promise<void>;
+  listApplicationPermissions(applicationId: string): Promise<AdministrativeApplicationPermission[]>;
+  listApplicationProfiles(applicationId: string): Promise<AdministrativeApplicationProfile[]>;
+  createApplicationProfile(
+    applicationId: string,
+    input: { key: string; name: string; description?: string | null },
+  ): Promise<AdministrativeApplicationProfile>;
+  updateApplicationProfile(
+    profileId: string,
+    input: { name?: string; description?: string | null },
+  ): Promise<AdministrativeApplicationProfile>;
+  deactivateApplicationProfile(profileId: string): Promise<void>;
+  reactivateApplicationProfile(profileId: string): Promise<void>;
+  addPermissionToApplicationProfile(profileId: string, permissionId: string): Promise<void>;
+  removePermissionFromApplicationProfile(profileId: string, permissionId: string): Promise<void>;
+  assignApplicationProfileToUser(userId: string, profileId: string): Promise<void>;
+  unassignApplicationProfileFromUser(userId: string, profileId: string): Promise<void>;
   listUsers(search?: string): Promise<AdministrativeUser[]>;
   preauthorizeUser(input: {
     corporateEmail: string;
@@ -119,6 +150,149 @@ export function createAdministrationApi(
         params: { path: { applicationId } },
         headers: { 'x-timbo-csrf': '1' },
       });
+      if (!response.ok) throw new ApiHttpError(response.status);
+    },
+
+    async listUserApplicationAccesses(userId): Promise<AdministrativeUserApplicationAccess[]> {
+      const { data, response } = await client.GET('/api/admin/users/{userId}/applications', {
+        params: { path: { userId } },
+      });
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined) {
+        throw new Error('La API respondió sin las asignaciones esperadas.');
+      }
+      return data;
+    },
+
+    async assignApplicationToUser(userId, applicationId): Promise<void> {
+      const { response } = await client.POST(
+        '/api/admin/users/{userId}/applications/{applicationId}',
+        {
+          params: { path: { userId, applicationId } },
+          headers: { 'x-timbo-csrf': '1' },
+        },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
+    },
+
+    async unassignApplicationFromUser(userId, applicationId): Promise<void> {
+      const { response } = await client.DELETE(
+        '/api/admin/users/{userId}/applications/{applicationId}',
+        {
+          params: { path: { userId, applicationId } },
+          headers: { 'x-timbo-csrf': '1' },
+        },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
+    },
+
+    async listApplicationPermissions(
+      applicationId,
+    ): Promise<AdministrativeApplicationPermission[]> {
+      const { data, response } = await client.GET(
+        '/api/admin/applications/{applicationId}/permissions',
+        {
+          params: { path: { applicationId } },
+        },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined) throw new Error('La API respondió sin los permisos esperados.');
+      return data;
+    },
+
+    async listApplicationProfiles(applicationId): Promise<AdministrativeApplicationProfile[]> {
+      const { data, response } = await client.GET(
+        '/api/admin/applications/{applicationId}/profiles',
+        {
+          params: { path: { applicationId } },
+        },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined) throw new Error('La API respondió sin los perfiles esperados.');
+      return data;
+    },
+
+    async createApplicationProfile(
+      applicationId,
+      input,
+    ): Promise<AdministrativeApplicationProfile> {
+      const { data, response } = await client.POST(
+        '/api/admin/applications/{applicationId}/profiles',
+        {
+          params: { path: { applicationId } },
+          headers: { 'x-timbo-csrf': '1' },
+          body: input,
+        },
+      );
+      return requireAdministrativeApplicationProfileResponse(data, response.status, response.ok);
+    },
+
+    async updateApplicationProfile(profileId, input): Promise<AdministrativeApplicationProfile> {
+      const { data, response } = await client.PATCH('/api/admin/application-profiles/{profileId}', {
+        params: { path: { profileId } },
+        headers: { 'x-timbo-csrf': '1' },
+        body: input,
+      });
+      return requireAdministrativeApplicationProfileResponse(data, response.status, response.ok);
+    },
+
+    async deactivateApplicationProfile(profileId): Promise<void> {
+      const { response } = await client.POST(
+        '/api/admin/application-profiles/{profileId}/deactivate',
+        {
+          params: { path: { profileId } },
+          headers: { 'x-timbo-csrf': '1' },
+        },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
+    },
+
+    async reactivateApplicationProfile(profileId): Promise<void> {
+      const { response } = await client.POST(
+        '/api/admin/application-profiles/{profileId}/reactivate',
+        {
+          params: { path: { profileId } },
+          headers: { 'x-timbo-csrf': '1' },
+        },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
+    },
+
+    async addPermissionToApplicationProfile(profileId, permissionId): Promise<void> {
+      const { response } = await client.POST(
+        '/api/admin/application-profiles/{profileId}/permissions/{permissionId}',
+        { params: { path: { profileId, permissionId } }, headers: { 'x-timbo-csrf': '1' } },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
+    },
+
+    async removePermissionFromApplicationProfile(profileId, permissionId): Promise<void> {
+      const { response } = await client.DELETE(
+        '/api/admin/application-profiles/{profileId}/permissions/{permissionId}',
+        { params: { path: { profileId, permissionId } }, headers: { 'x-timbo-csrf': '1' } },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
+    },
+
+    async assignApplicationProfileToUser(userId, profileId): Promise<void> {
+      const { response } = await client.POST(
+        '/api/admin/users/{userId}/application-profiles/{profileId}',
+        {
+          params: { path: { userId, profileId } },
+          headers: { 'x-timbo-csrf': '1' },
+        },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
+    },
+
+    async unassignApplicationProfileFromUser(userId, profileId): Promise<void> {
+      const { response } = await client.DELETE(
+        '/api/admin/users/{userId}/application-profiles/{profileId}',
+        {
+          params: { path: { userId, profileId } },
+          headers: { 'x-timbo-csrf': '1' },
+        },
+      );
       if (!response.ok) throw new ApiHttpError(response.status);
     },
 
@@ -219,6 +393,16 @@ function requireAdministrativeApplicationResponse(
 ): AdministrativeApplication {
   if (!isSuccessful) throw new ApiHttpError(status);
   if (data === undefined) throw new Error('La API respondió sin la aplicación esperada.');
+  return data;
+}
+
+function requireAdministrativeApplicationProfileResponse(
+  data: AdministrativeApplicationProfile | undefined,
+  status: number,
+  isSuccessful: boolean,
+): AdministrativeApplicationProfile {
+  if (!isSuccessful) throw new ApiHttpError(status);
+  if (data === undefined) throw new Error('La API respondió sin el perfil funcional esperado.');
   return data;
 }
 

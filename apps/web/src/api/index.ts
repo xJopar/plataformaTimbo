@@ -20,11 +20,14 @@ export { type AuthApi, type AuthSession } from './auth';
 export {
   type ActivityFilters,
   type AdministrativeApplication,
+  type AdministrativeApplicationPermission,
+  type AdministrativeApplicationProfile,
   type AdministrativeActivity,
   type AdministrativeActivityFilterOptions,
   type AdministrativeActivityItem,
   type AdministrativeActivityStatistics,
   type AdministrationApi,
   type AdministrativeUser,
+  type AdministrativeUserApplicationAccess,
 } from './administration';
 export { ApiHttpError, type HealthResponse, type SystemApi } from './system';

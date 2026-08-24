@@ -1,5 +1,6 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { ApiHttpError, type AdministrativeApplication, type Api } from './api';
+import { ApplicationProfilesPanel } from './application-profiles-panel';
 
 type ApplicationsState =
   | { status: 'loading' }
@@ -29,6 +30,7 @@ export function ApplicationsPanel({ api }: { api: Api }): React.JSX.Element {
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | undefined>(undefined);
+  const [managedApplicationId, setManagedApplicationId] = useState<string | undefined>(undefined);
 
   const loadApplications = useCallback(async (): Promise<void> => {
     setState({ status: 'loading' });
@@ -114,6 +116,11 @@ export function ApplicationsPanel({ api }: { api: Api }): React.JSX.Element {
       setIsSaving(false);
     }
   };
+
+  const managedApplication =
+    state.status === 'ready' && managedApplicationId !== undefined
+      ? state.applications.find((application) => application.id === managedApplicationId)
+      : undefined;
 
   return (
     <section
@@ -258,6 +265,14 @@ export function ApplicationsPanel({ api }: { api: Api }): React.JSX.Element {
                           className="text-button"
                           type="button"
                           disabled={isSaving}
+                          onClick={() => setManagedApplicationId(application.id)}
+                        >
+                          Gestionar perfiles
+                        </button>
+                        <button
+                          className="text-button"
+                          type="button"
+                          disabled={isSaving}
                           onClick={() => void changeStatus(application)}
                         >
                           {application.status === 'ACTIVE' ? 'Desactivar' : 'Reactivar'}
@@ -268,6 +283,13 @@ export function ApplicationsPanel({ api }: { api: Api }): React.JSX.Element {
                 </tbody>
               </table>
             </div>
+          )}
+          {managedApplication === undefined ? null : (
+            <ApplicationProfilesPanel
+              api={api}
+              application={managedApplication}
+              onClose={() => setManagedApplicationId(undefined)}
+            />
           )}
         </>
       ) : null}

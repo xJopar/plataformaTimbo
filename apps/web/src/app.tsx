@@ -11,6 +11,7 @@ import type {
 } from './api';
 import { ApiHttpError } from './api';
 import { ApplicationsPanel } from './applications-panel';
+import { AccessManagementPanel } from './access-management-panel';
 import './app.css';
 
 interface AppProps {
@@ -345,6 +346,9 @@ function AdministrationPanel({
   const [newDisplayName, setNewDisplayName] = useState('');
   const [actionError, setActionError] = useState<string | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
+  const [managedUserId, setManagedUserId] = useState<string | undefined>(undefined);
+  const [editingUserId, setEditingUserId] = useState<string | undefined>(undefined);
+  const [editedDisplayName, setEditedDisplayName] = useState('');
 
   const loadUsers = useCallback(
     async (nextSearch = ''): Promise<void> => {
@@ -417,15 +421,29 @@ function AdministrationPanel({
     }
   };
 
-  const updateDisplayName = async (user: AdministrativeUser): Promise<void> => {
-    const nextDisplayName = window.prompt('Nombre visible', user.displayName ?? '');
-    if (nextDisplayName === null) {
-      return;
-    }
+  const beginEditingDisplayName = (user: AdministrativeUser): void => {
+    setEditingUserId(user.id);
+    setEditedDisplayName(user.displayName ?? '');
+    setActionError(undefined);
+  };
+
+  const cancelEditingDisplayName = (): void => {
+    setEditingUserId(undefined);
+    setEditedDisplayName('');
+  };
+
+  const saveDisplayName = async (
+    event: FormEvent<HTMLFormElement>,
+    userId: string,
+  ): Promise<void> => {
+    event.preventDefault();
     setIsSaving(true);
     setActionError(undefined);
     try {
-      await api.administration.updateUser(user.id, { displayName: nextDisplayName || null });
+      await api.administration.updateUser(userId, {
+        displayName: editedDisplayName.trim() || null,
+      });
+      cancelEditingDisplayName();
       await loadUsers(search);
     } catch {
       setActionError('No pudimos guardar el nombre visible. Intentá nuevamente.');
@@ -433,6 +451,11 @@ function AdministrationPanel({
       setIsSaving(false);
     }
   };
+
+  const managedUser =
+    administrationState.status === 'ready' && managedUserId !== undefined
+      ? administrationState.users.find((user) => user.id === managedUserId)
+      : undefined;
 
   return (
     <main className="platform-shell administration-shell">
@@ -588,13 +611,47 @@ function AdministrationPanel({
                             <td>{user.corporateEmail}</td>
                             <td>{user.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</td>
                             <td className="user-actions">
+                              {editingUserId === user.id ? (
+                                <form
+                                  className="inline-user-name-form"
+                                  onSubmit={(event) => void saveDisplayName(event, user.id)}
+                                >
+                                  <label htmlFor={`display-name-${user.id}`}>Nombre visible</label>
+                                  <input
+                                    id={`display-name-${user.id}`}
+                                    disabled={isSaving}
+                                    value={editedDisplayName}
+                                    onChange={(event) => setEditedDisplayName(event.target.value)}
+                                  />
+                                  <button className="text-button" type="submit" disabled={isSaving}>
+                                    Guardar
+                                  </button>
+                                  <button
+                                    className="text-button"
+                                    type="button"
+                                    disabled={isSaving}
+                                    onClick={cancelEditingDisplayName}
+                                  >
+                                    Cancelar
+                                  </button>
+                                </form>
+                              ) : (
+                                <button
+                                  className="text-button"
+                                  type="button"
+                                  disabled={isSaving}
+                                  onClick={() => beginEditingDisplayName(user)}
+                                >
+                                  Editar nombre
+                                </button>
+                              )}
                               <button
                                 className="text-button"
                                 type="button"
                                 disabled={isSaving}
-                                onClick={() => void updateDisplayName(user)}
+                                onClick={() => setManagedUserId(user.id)}
                               >
-                                Editar nombre
+                                Gestionar accesos
                               </button>
                               {user.isPlatformAdministrator && user.status === 'ACTIVE' ? (
                                 <span className="protected-user-state">
@@ -616,6 +673,13 @@ function AdministrationPanel({
                       </tbody>
                     </table>
                   </div>
+                )}
+                {managedUser === undefined ? null : (
+                  <AccessManagementPanel
+                    api={api}
+                    user={managedUser}
+                    onClose={() => setManagedUserId(undefined)}
+                  />
                 )}
               </>
             ) : null}
