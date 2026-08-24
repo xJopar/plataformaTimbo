@@ -4,6 +4,12 @@ Funciones puras de logging operativo (`requestId`, ruta sin query, redacción de
 construcción de campos seguros de diagnóstico) usadas por `apps/api` y por el gateway de
 `apps/web/server`. No depende de NestJS, Express ni de un servidor propio.
 
+Antes de agregar una función o consumir este paquete, consultar
+[`docs/OBSERVABILITY_LOGGING.md`](../../docs/OBSERVABILITY_LOGGING.md). Esa guía define cuándo usar
+log operativo, auditoría o analítica de uso, además de los contratos de nombres, campos,
+redacción y pruebas. Este paquete sólo comparte mecanismos puros; no convierte las tres señales
+en una abstracción genérica.
+
 ## Empaquetado
 
 El paquete se compila una sola vez a CommonJS (sin campo `"type"`, igual que `apps/api`). El

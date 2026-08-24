@@ -1,9 +1,26 @@
-# Log operativo estructurado de API y gateway
+# Observabilidad, auditoría y analítica de uso
 
-Primera etapa ("fundación operativa") del plan de observabilidad, auditoría y analítica de uso.
-Cubre el contexto de petición y el log operativo JSON de `apps/api` (NestJS) y del gateway de
-`apps/web/server` (servidor HTTP productivo de Web) sobre stdout/stderr; no incluye auditoría ni
-analítica persistente en PostgreSQL, que llegan en tickets posteriores.
+Contrato vigente y guía de contribución para las tres señales de Plataforma Timbo: log operativo,
+auditoría y eventos de uso. No son nombres intercambiables ni copias del mismo dato; cada señal
+responde una pregunta distinta y tiene un destino y una semántica de fallo propios.
+
+## Elegir la señal correcta
+
+| Señal         | Pregunta                                                                                          | Destino                                | Regla de consistencia                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Log operativo | ¿Qué ocurrió técnicamente y cómo se diagnostica?                                                  | JSON en stdout/stderr de API o gateway | Un fallo del logger no convierte una operación empresarial en éxito ni habilita un default engañoso.                          |
+| Auditoría     | ¿Quién realizó o intentó una acción relevante de seguridad o administración y sobre qué objetivo? | `audit_events` en PostgreSQL           | Se escribe en la misma transacción que el cambio relevante. Si una parte falla, ambas hacen rollback.                         |
+| Evento de uso | ¿Cómo se utiliza una aplicación para orientar producto y operación?                               | `usage_events` en PostgreSQL           | Es idempotente por `eventId`; un fallo de persistencia devuelve `failed` y genera diagnóstico, sin fingir que fue registrado. |
+
+Una operación puede necesitar más de una señal. Por ejemplo, una mutación administrativa puede
+producir auditoría transaccional y también quedar incluida en la finalización HTTP operativa. Eso
+no autoriza a copiar cuerpos, metadata o errores completos entre señales. Cada dato debe tener un
+consumidor concreto y pasar por el contrato más restrictivo que corresponda.
+
+No se usa auditoría para métricas técnicas, log operativo para decisiones de autorización ni
+analítica de uso como evidencia de seguridad.
+
+## Arquitectura del log operativo
 
 Las funciones puras de `requestId`, normalización de ruta, redacción de secretos/PII y
 construcción de campos de diagnóstico viven en `packages/observability/src/` y las consumen
@@ -143,3 +160,144 @@ texto ni la redacción existente de `DATABASE_URL`, PostgreSQL, secretos o email
 
 Nunca se registran cuerpos de petición completos, query strings, headers `Authorization`,
 cookies, tokens, secretos, variables de entorno completas ni el origen interno de servicios.
+
+## Auditoría persistente
+
+`AuditEventsService` recibe un `Prisma.TransactionClient`; por diseño no puede abrir una escritura
+independiente de la operación que audita. `AUDIT_EVENT_CATALOG` define en código el `appKey`, tipo
+de actor, resultado, regla de objetivo y campos de metadata permitidos para cada `eventName`.
+
+Para agregar un evento de auditoría:
+
+1. Confirmar que representa identidad, seguridad, acceso o una mutación administrativa que deba
+   poder atribuirse posteriormente. Una lectura ordinaria o una interacción de interfaz no basta.
+2. Agregar el nombre técnico al tipo `AuditEventName` y su definición exhaustiva en
+   `audit-event-catalog.ts`. Los nombres siguen `<domain>.<event_in_past_tense>`, por ejemplo
+   `access.user_deactivated`.
+3. Extender los tipos y validadores de actor, objetivo o metadata sólo con el dato mínimo que el
+   caso necesita. No agregar bolsas genéricas de metadata.
+4. Invocar `auditEventsService.append(transactionClient, input)` dentro de la misma transacción
+   Prisma que modifica el estado.
+5. Probar catálogo, validación, persistencia, rollback conjunto, `requestId` y retención. Si la
+   actividad administrativa debe mostrar metadata, agregar una allowlist explícita en
+   `ActivityService`; persistir un campo no lo vuelve visible automáticamente.
+
+Un evento de auditoría no se captura con `try/catch` para permitir que la operación principal
+continúe. La ausencia de auditoría ante un cambio que exige trazabilidad es un fallo de la
+operación completa.
+
+## Analítica de uso persistente
+
+`UsageEventsService` valida cada evento contra el catálogo inyectado mediante
+`USAGE_EVENT_CATALOG`. El proveedor productivo actual es `EMPTY_USAGE_EVENT_CATALOG`: hasta que
+exista el primer productor real, cualquier nombre se rechaza deliberadamente.
+
+Para incorporar un productor de uso:
+
+1. Definir primero qué decisión de producto u operación permitirá tomar cada evento. No registrar
+   clics o vistas “por si acaso”.
+2. Crear un catálogo concreto con `appKey`, objetivo opcional y una allowlist tipada de metadata.
+   La aplicación productora debe suministrarlo a `UsageEventsModule`; no se convierte el catálogo
+   compartido en una taxonomía abierta.
+3. Usar nombres estables y específicos de la aplicación. Cambiar el significado de un nombre
+   existente requiere un evento nuevo.
+4. Generar `eventId` y `visitId` como UUID. Reintentar el mismo evento conserva `eventId`; un
+   conflicto de unicidad devuelve `duplicate` y no crea otra fila.
+5. Tratar `recorded`, `duplicate` y `failed` explícitamente. `failed` significa que no existe
+   evidencia persistida y ya genera un diagnóstico operativo seguro; nunca debe presentarse como
+   registro exitoso.
+6. Probar catálogo, objetivos, metadata, límite de bytes, idempotencia, retención y falla del
+   logger de respaldo.
+
+La primera aplicación decidirá mediante un ticket propio si los eventos nacen en backend, en un
+endpoint autenticado para interacciones de frontend o en ambos. Ese transporte todavía no existe
+y no debe inferirse ni agregarse desde esta documentación.
+
+## Cómo agregar un evento operativo
+
+### En la API
+
+- Usar `RequestContextService` para obtener el `requestId`; no pasar el objeto `Request` a los
+  services sólo para diagnosticar.
+- Agregar un método explícito y campos tipados a `OperationalLoggerService`. No exponer un
+  `log(eventName, payload)` genérico que permita saltarse el contrato.
+- Construir diagnósticos con `buildErrorDiagnosticFields` y entregar explícitamente valores
+  sensibles adicionales que el motor no pueda inferir.
+- Mantener la escritura JSON centralizada. `console.*` sólo se admite en arranque o en el fallback
+  terminal ya documentado cuando el logger también falla.
+- Probar el objeto serializado exacto, el destino stdout/stderr, la redacción y la correlación.
+
+### En el gateway
+
+- Mantener el emisor en `apps/web/server/operational-logger.ts`; el gateway no depende de NestJS
+  ni de su inyección de dependencias.
+- Reutilizar desde `@timbo/observability` únicamente las funciones puras de correlación, ruta y
+  diagnóstico.
+- Conservar una sola finalización por petición y agregar diagnósticos complementarios sólo cuando
+  permitan investigar una falla concreta.
+- Probar abortos de cliente, timeout, upstream caído, estáticos y redacción de
+  `API_INTERNAL_ORIGIN` cuando el nuevo evento pueda incluir errores de red.
+
+## Nombres y campos
+
+- Identificadores técnicos en inglés y separados por puntos.
+- Log operativo: `<service>.<operation>.<outcome>`, como `api.request.completed`.
+- Auditoría: `<domain>.<event_in_past_tense>`, como `security.login_denied`.
+- Uso: nombre estable dentro del catálogo de la aplicación productora; no reutilizar nombres entre
+  acciones con semánticas distintas.
+- Preferir identificadores opacos y acotados (`requestId`, `actorUserId`, `targetType`,
+  `targetId`) frente a nombres, correos o texto libre.
+- Toda metadata es una allowlist. No se aceptan objetos arbitrarios, aunque luego se intenten
+  redactar.
+
+Quedan prohibidos cuerpos completos, query strings, correos innecesarios, nombres de personas,
+cookies, tokens, credenciales, secretos, URLs internas, variables de entorno y objetos de error
+serializados ciegamente. También se evita registrar contenido de negocio —por ejemplo precios,
+facturas o términos de búsqueda— salvo que un requisito explícito demuestre su necesidad y defina
+una representación segura.
+
+## Ejemplos seguros
+
+Una finalización operativa contiene estructura estable y no el contenido de la petición:
+
+```json
+{
+  "timestamp": "2026-08-24T15:30:00.000Z",
+  "level": "info",
+  "service": "api",
+  "environment": "development",
+  "event": "api.request.completed",
+  "operation": "request",
+  "requestId": "f67c64dd-38d2-4871-bc65-f2a98346338b",
+  "method": "GET",
+  "route": "/api/admin/activity",
+  "status": 200,
+  "durationMs": 18
+}
+```
+
+Una llamada de auditoría describe actor y objetivo con identificadores, dentro de la transacción:
+
+```ts
+await auditEventsService.append(transactionClient, {
+  eventName: 'access.user_deactivated',
+  actor: { actorType: AuditActorType.USER, actorUserId },
+  target: { targetType: 'user', targetId: deactivatedUserId },
+});
+```
+
+No copiar estos valores como fixtures universales: cada prueba construye identificadores propios y
+cada evento debe existir en su catálogo.
+
+## Checklist para el PR
+
+Antes de considerar terminado un cambio de observabilidad, auditoría o uso:
+
+- la señal elegida coincide con la pregunta que se quiere responder;
+- el nombre y los campos están tipados y registrados en el catálogo o logger propietario;
+- `requestId` se conserva cuando existe contexto de petición;
+- no aparecen secretos, credenciales, PII innecesaria ni contenido de negocio no autorizado;
+- los fallos mantienen la semántica explícita de la operación;
+- las pruebas cubren el caso exitoso, validaciones, redacción y camino de fallo relevante;
+- las tablas o reglas de este documento se actualizaron si cambió el contrato durable;
+- pasan `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build` y `pnpm format:check`.

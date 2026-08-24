@@ -2,9 +2,37 @@
 
 Monorepo privado de la Plataforma Timbo, administrado con **pnpm workspaces** (sin Turbo ni Nx).
 
-Este incremento contiene la base ejecutable de la API y una web React mínima que verifica
-`GET /api/health` mediante contratos OpenAPI tipados. Todavía no incluye Home definitivo,
-autenticación ni módulos de negocio; PostgreSQL queda disponible sólo como infraestructura interna.
+Plataforma Timbo es un App Shell empresarial que centraliza identidad, seguridad, administración
+y experiencia para las aplicaciones internas de Timbo. El estado vigente incluye acceso con
+Google para usuarios preautorizados, sesiones persistentes, administración de usuarios, rol de
+administrador de plataforma, observabilidad operativa, auditoría, eventos de uso y consulta
+administrativa de actividad.
+
+El Home autenticado todavía no ofrece aplicaciones: faltan el catálogo administrativo de
+aplicaciones, los perfiles y permisos funcionales completos, las asignaciones a empleados y la
+primera aplicación de negocio integrada. Consultar
+[`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md) para el alcance y los recorridos
+vigentes.
+
+## Estado funcional
+
+- **Identidad:** OAuth con Google, preautorización corporativa, sesiones y logout.
+- **Administración:** usuarios, activación/desactivación, nombre visible y actividad consolidada.
+- **Acceso:** perfil de sistema `PLATFORM_ADMIN`; todavía no hay permisos funcionales por app.
+- **Observabilidad:** logs JSON de API y gateway, redacción segura y correlación por
+  `X-Request-Id`.
+- **Datos de actividad:** auditoría persistente y base idempotente para eventos de uso; el primer
+  catálogo productivo de uso llegará con una aplicación real.
+- **Experiencia:** acceso corporativo, Home vacío y superficies de Administración.
+
+## Documentación
+
+- [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md): alcance vigente, componentes y
+  recorridos principales.
+- [`docs/OBSERVABILITY_LOGGING.md`](docs/OBSERVABILITY_LOGGING.md): logs operativos, auditoría,
+  eventos de uso y guía para agregar nuevas señales.
+- [`docs/CODING_CONVENTIONS.md`](docs/CODING_CONVENTIONS.md): reglas de implementación.
+- [`docs/RAILWAY_DEPLOYMENT.md`](docs/RAILWAY_DEPLOYMENT.md): despliegue y promoción de entornos.
 
 ## Requisitos
 
@@ -21,36 +49,42 @@ pnpm install
 
 Copiar `.env.example` a `.env` (en la **raíz del workspace**) y ajustar si es necesario. `DATABASE_URL` es un secreto y no se debe copiar a documentación, logs ni control de versiones.
 
-| Variable              | Descripción                                                                                                              | Valor por defecto       |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------- |
-| `PORT`                | Puerto en el que escucha la API.                                                                                         | `3000`                  |
-| `CORS_ORIGIN`         | Origen permitido por CORS para el cliente web local.                                                                     | `http://localhost:5173` |
-| `VITE_API_BASE_URL`   | Origen que usa la web para llamar a la API.                                                                              | `http://localhost:3000` |
-| `API_INTERNAL_ORIGIN` | Origen interno de la API para el gateway de `apps/web/server` (`/api/*`). Server-only; no se carga desde el `.env` raíz. | Sin valor por defecto   |
-| `DATABASE_URL`        | URL de PostgreSQL para la API y las migraciones.                                                                         | Sin valor por defecto   |
+| Variable                     | Descripción                                                                                                              | Valor por defecto       |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------- |
+| `PORT`                       | Puerto de la API o del gateway, según el proceso.                                                                        | API `3000`, Web `4173`  |
+| `CORS_ORIGIN`                | Origen permitido por CORS para el cliente web local.                                                                     | `http://localhost:5173` |
+| `VITE_API_BASE_URL`          | Origen que usa la web local para llamar a la API.                                                                        | `http://localhost:3000` |
+| `API_INTERNAL_ORIGIN`        | Origen interno de la API para el gateway de `apps/web/server` (`/api/*`). Server-only; no se carga desde el `.env` raíz. | Sin valor por defecto   |
+| `DATABASE_URL`               | URL secreta de PostgreSQL para la API y las migraciones.                                                                 | Sin valor por defecto   |
+| `GOOGLE_OAUTH_CLIENT_ID`     | Identificador del cliente OAuth de Google.                                                                               | Sin valor por defecto   |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | Secreto del cliente OAuth de Google.                                                                                     | Sin valor por defecto   |
+| `GOOGLE_OAUTH_REDIRECT_URI`  | Callback exacto `/api/auth/google/callback`; HTTPS fuera de localhost.                                                   | Sin valor por defecto   |
+| `NODE_ENV`                   | Etiqueta del entorno incluida en logs; no decide controles de seguridad.                                                 | `development`           |
 
-El `.env` raíz se carga con el flag nativo de Node `--env-file-if-exists` para la API y Vite lo usa también como directorio de variables de la web. No se agrega `dotenv` ni `@nestjs/config`. Los scripts `dev` y `start` de `apps/api` lo invocan apuntando a `../../.env` (la ruta del `.env` raíz vista desde `apps/api`); si el archivo no existe, Node continúa sin él, pero la API aborta porque `DATABASE_URL` es obligatoria. Antes de crear la aplicación de Nest, `apps/api/src/runtime-config.ts` valida `PORT` (entero entre 1 y 65535), `CORS_ORIGIN` (origen HTTP o HTTPS, sin ruta, query ni fragmento) y `DATABASE_URL` (URL PostgreSQL sin mostrar su valor ante un error); un valor inválido aborta el arranque con un mensaje claro en español y código de salida distinto de cero, antes de levantar Nest. La web aplica la misma validación de origen a `VITE_API_BASE_URL` y representa el error como API no disponible.
+El `.env` raíz se carga con el flag nativo de Node `--env-file-if-exists` para la API y Vite lo usa también como directorio de variables de la web. No se agrega `dotenv` ni `@nestjs/config`. Los scripts `dev` y `start` de `apps/api` lo invocan apuntando a `../../.env` (la ruta del `.env` raíz vista desde `apps/api`); si el archivo no existe, Node continúa sin él, pero la API aborta porque la base y OAuth son obligatorios. Antes de crear Nest, `apps/api/src/runtime-config.ts` valida puerto, origen CORS, URL PostgreSQL y configuración de Google sin mostrar secretos ante un error. La web valida `VITE_API_BASE_URL`; el gateway productivo valida `API_INTERNAL_ORIGIN` y nunca lo expone al navegador.
 
 ## Comandos raíz
 
-| Comando                                           | Descripción                                                                                                             |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                                        | Levanta `apps/api` en modo desarrollo, con reinicio automático ante cambios.                                            |
-| `pnpm dev:web`                                    | Levanta `apps/web` con Vite.                                                                                            |
-| `pnpm start:api`                                  | Inicia la API compilada; Railway usa este recorrido con su `PORT`.                                                      |
-| `pnpm start:web`                                  | Sirve la SPA compilada y reenvía `/api/*` a `API_INTERNAL_ORIGIN` (gateway de mismo origen; puerto `4173` por defecto). |
-| `pnpm generate:contracts`                         | Exporta OpenAPI desde Nest y regenera el documento y los tipos versionados.                                             |
-| `pnpm check:contracts`                            | Comprueba en un directorio temporal que los contratos versionados están actualizados.                                   |
-| `pnpm prisma:validate`                            | Valida el schema Prisma de la API.                                                                                      |
-| `pnpm prisma:generate`                            | Regenera el cliente Prisma local e ignorado.                                                                            |
-| `pnpm prisma:migrate:deploy`                      | Aplica migraciones versionadas pendientes; es el pre-deploy de la API.                                                  |
-| `pnpm --filter @timbo/api test:users:integration` | Ejecuta la integración con escritura, opt-in y sólo para development.                                                   |
-| `pnpm build`                                      | Compila todos los paquetes del workspace.                                                                               |
-| `pnpm typecheck`                                  | Verifica los tipos de TypeScript sin emitir archivos.                                                                   |
-| `pnpm lint`                                       | Ejecuta ESLint sobre todo el repositorio.                                                                               |
-| `pnpm test`                                       | Ejecuta las pruebas de todos los paquetes del workspace.                                                                |
-| `pnpm format`                                     | Formatea el repositorio con Prettier.                                                                                   |
-| `pnpm format:check`                               | Verifica el formato sin modificar archivos.                                                                             |
+| Comando                                                                        | Descripción                                                                                                             |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                                                     | Levanta `apps/api` en modo desarrollo, con reinicio automático ante cambios.                                            |
+| `pnpm dev:web`                                                                 | Levanta `apps/web` con Vite.                                                                                            |
+| `pnpm start:api`                                                               | Inicia la API compilada; Railway usa este recorrido con su `PORT`.                                                      |
+| `pnpm start:web`                                                               | Sirve la SPA compilada y reenvía `/api/*` a `API_INTERNAL_ORIGIN` (gateway de mismo origen; puerto `4173` por defecto). |
+| `pnpm generate:contracts`                                                      | Exporta OpenAPI desde Nest y regenera el documento y los tipos versionados.                                             |
+| `pnpm check:contracts`                                                         | Comprueba en un directorio temporal que los contratos versionados están actualizados.                                   |
+| `pnpm prisma:validate`                                                         | Valida el schema Prisma de la API.                                                                                      |
+| `pnpm prisma:generate`                                                         | Regenera el cliente Prisma local e ignorado.                                                                            |
+| `pnpm prisma:migrate:deploy`                                                   | Aplica migraciones versionadas pendientes; es el pre-deploy de la API.                                                  |
+| `pnpm --filter @timbo/api preauthorize-user -- --corporate-email <correo>`     | Preautoriza un usuario corporativo mediante el comando auditado.                                                        |
+| `pnpm --filter @timbo/api assign-platform-admin -- --corporate-email <correo>` | Asigna una única vez el primer administrador de plataforma.                                                             |
+| `pnpm --filter @timbo/api test:users:integration`                              | Ejecuta la integración con escritura, opt-in y sólo para development.                                                   |
+| `pnpm build`                                                                   | Compila todos los paquetes del workspace.                                                                               |
+| `pnpm typecheck`                                                               | Verifica los tipos de TypeScript sin emitir archivos.                                                                   |
+| `pnpm lint`                                                                    | Ejecuta ESLint sobre todo el repositorio.                                                                               |
+| `pnpm test`                                                                    | Ejecuta las pruebas de todos los paquetes del workspace.                                                                |
+| `pnpm format`                                                                  | Formatea el repositorio con Prettier.                                                                                   |
+| `pnpm format:check`                                                            | Verifica el formato sin modificar archivos.                                                                             |
 
 ## Prisma y migraciones
 
@@ -86,30 +120,39 @@ El runner dedicado establece su propia señal adicional antes de cargar Jest. La
 ```text
 apps/
   api/                  # API NestJS (paquete @timbo/api)
+    prisma/              # Schema y migraciones versionadas de PostgreSQL
     src/
-      main.ts            # Arranque: valida configuración, crea Nest y aplica bootstrap.ts
-      runtime-config.ts   # Resuelve y valida PORT, CORS_ORIGIN y DATABASE_URL antes de crear Nest
-      bootstrap.ts         # Configuración de la app compartida con las pruebas e2e (prefijo, CORS, Swagger)
-      app.module.ts       # Módulo raíz, importa HealthModule
-      health/
-        health.controller.ts   # Recibe la petición HTTP
-        health.service.ts      # Resuelve el estado de disponibilidad
-        dto/health-response.dto.ts  # Forma documentada de la respuesta
-    test/                 # Pruebas end-to-end (recorrido HTTP y documento OpenAPI)
+      main.ts            # Valida configuración, crea Nest y aplica bootstrap.ts
+      runtime-config.ts  # Configuración validada de API, base, OAuth y sesión
+      bootstrap.ts       # Prefijo, CORS, Swagger y configuración compartida con e2e
+      health/            # Disponibilidad de la API
+      modules/
+        access-profiles/ # Perfil de administrador de plataforma
+        administration/ # Usuarios y consulta unificada de actividad
+        audit-events/    # Catálogo y persistencia transaccional de auditoría
+        auth/            # Google OAuth, sesiones, cookie, CSRF y guards
+        observability/   # Contexto de petición y log operativo de API
+        usage-events/    # Catálogo y persistencia idempotente de uso
+        users/           # Usuarios preautorizados y estado de acceso
+    test/                # Pruebas e2e e integración opt-in
   web/                  # Web React/Vite (paquete @timbo/web)
     src/
-      api/              # Configuración, transporte tipado y fachada api.system, api.auth
-      app.tsx           # Estados verificando, disponible y no disponible
+      api/              # Transporte tipado y fachadas system, auth y administration
+      app.tsx           # Acceso, Home, usuarios y actividad administrativa
     server/              # Gateway HTTP productivo (Node, sin bundlear): sirve la SPA y
                          # reenvía /api/* a API_INTERNAL_ORIGIN para que el navegador use
                          # siempre el origen de web (apps/web/server/start.ts es el arranque)
 packages/
   contracts/            # Documento OpenAPI y tipos generados, ambos versionados
     src/generated/      # Salida de openapi-typescript; no se edita manualmente
+  observability/        # Funciones puras compartidas de correlación y redacción
 scripts/
   check-contracts.mjs   # Regenera temporalmente y compara sin ensuciar el workspace
 docs/
-  CODING_CONVENTIONS.md   # Convenciones de código durables del repositorio
+  PLATFORM_ARCHITECTURE.md  # Alcance y recorridos vigentes
+  OBSERVABILITY_LOGGING.md  # Logs, auditoría y analítica de uso
+  CODING_CONVENTIONS.md     # Convenciones de código durables
+  RAILWAY_DEPLOYMENT.md     # Despliegue y promoción de entornos
 AGENTS.md                 # Reglas durables para agentes que trabajen en este repositorio
 ```
 
@@ -117,44 +160,47 @@ AGENTS.md                 # Reglas durables para agentes que trabajen en este re
 
 1. Instalar dependencias: `pnpm install`.
 2. Generar el contrato si cambió la API: `pnpm generate:contracts`. Para comprobar que lo versionado está actualizado sin escribir archivos: `pnpm check:contracts`.
-3. Con `DATABASE_URL` secreta configurada en el `.env` local para development, levantar la API en modo desarrollo: `pnpm dev` (escucha por defecto en `http://localhost:3000`).
-4. En otra terminal, levantar la web: `pnpm dev:web` (Vite escucha por defecto en `http://localhost:5173`). La pantalla muestra primero **Verificando conexión** y luego **API disponible**; ante un fallo de red, HTTP o configuración, muestra **API no disponible** con un botón nativo para reintentar.
-5. Consultar el estado de disponibilidad: `GET http://localhost:3000/api/health`. Debe responder `200` con un cuerpo como:
+3. Configurar en el `.env` local `DATABASE_URL` y las variables de Google OAuth. El callback local debe terminar en `/api/auth/google/callback`.
+4. Levantar la API en modo desarrollo: `pnpm dev` (por defecto, `http://localhost:3000`).
+5. En otra terminal, levantar la web: `pnpm dev:web` (por defecto, `http://localhost:5173`). La pantalla verifica la sesión y, si no existe, ofrece el acceso con Google.
+6. Preautorizar el usuario corporativo con `pnpm --filter @timbo/api preauthorize-user -- --corporate-email <correo>` y asignar una única vez el primer administrador con `pnpm --filter @timbo/api assign-platform-admin -- --corporate-email <correo>`. Estos comandos no deben apuntar a una base ajena al entorno autorizado.
+7. Ingresar con la misma cuenta de Google preautorizada. El Home muestra el estado vacío de aplicaciones; `/admin` y `/admin/activity` quedan protegidos por el perfil de administrador.
+8. Consultar el estado de disponibilidad: `GET http://localhost:3000/api/health`. Debe responder `200` con un cuerpo como:
 
    ```json
    { "status": "ok", "timestamp": "2026-08-17T20:36:55.847Z" }
    ```
 
-6. Explorar la documentación navegable (Swagger UI): `http://localhost:3000/api/docs`.
-7. Obtener el documento OpenAPI en JSON: `http://localhost:3000/api/docs-json`.
+9. Explorar la documentación navegable (Swagger UI): `http://localhost:3000/api/docs`.
+10. Obtener el documento OpenAPI en JSON: `http://localhost:3000/api/docs-json`.
 
 ## Recorrido de lectura del código
 
-El flujo de la única operación expuesta se lee de punta a punta sin capas intermedias:
+Para una visión de conjunto, empezar por
+[`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md). Los recorridos concretos son:
 
-1. `apps/api/src/main.ts`: resuelve y valida la configuración de runtime, crea Nest y aplica la configuración compartida de la app.
-2. `apps/api/src/runtime-config.ts`: valida `PORT`, `CORS_ORIGIN` y la `DATABASE_URL` PostgreSQL obligatoria sin exponer su valor; si alguno es inválido, lanza un error antes de que `main.ts` cree la aplicación de Nest.
-3. `apps/api/src/bootstrap.ts`: fija el prefijo global `/api`, habilita CORS y publica el documento OpenAPI (Swagger UI y JSON). La usan tanto `main.ts` como las pruebas e2e, para no duplicar esta configuración.
-4. `apps/api/src/app.module.ts`: módulo raíz que importa `HealthModule`.
-5. `apps/api/src/health/health.controller.ts`: recibe la petición HTTP `GET /health` y delega en el servicio.
-6. `apps/api/src/health/health.service.ts`: resuelve el estado de disponibilidad.
-7. `apps/api/src/health/dto/health-response.dto.ts`: forma documentada de la respuesta, usada tanto en tiempo de ejecución como en el esquema OpenAPI.
-8. `apps/api/src/export-openapi.ts`: crea Nest sin escuchar un puerto, aplica la misma configuración y escribe el documento determinista que alimenta el paquete de contratos.
-9. `packages/contracts/openapi.json` y `packages/contracts/src/generated/openapi.ts`: artefactos versionados generados desde la API; no se editan manualmente.
-10. `apps/web/src/api/system.ts`: único lugar que conoce `GET /api/health`; usa `openapi-fetch` y expone `api.system.getHealth()` mediante una fachada legible.
-11. `apps/web/src/app.tsx`: consume la fachada y representa los estados de conexión, sin conocer rutas ni tipos de OpenAPI.
+1. **Arranque y configuración:** `main.ts` → `runtime-config.ts` → `bootstrap.ts` → `app.module.ts`.
+2. **Identidad:** `modules/auth/auth.controller.ts` → `auth.service.ts` → usuarios, intentos OAuth y sesiones.
+3. **Administración:** controllers de `modules/administration` → `UsersService`, `AccessProfilesService` o `ActivityService`.
+4. **Auditoría:** operación propietaria → transacción Prisma → `AuditEventsService` → `AUDIT_EVENT_CATALOG`.
+5. **Uso:** productor futuro → `UsageEventsService` → catálogo inyectado → persistencia idempotente.
+6. **Observabilidad:** middleware o gateway → contexto `requestId` → logger propio → funciones puras de `@timbo/observability`.
+7. **Contrato Web/API:** controller y DTO → `export-openapi.ts` → `packages/contracts` → fachada de `apps/web/src/api`.
 
 ## Pruebas
 
-- `apps/api/src/runtime-config.spec.ts`: pruebas unitarias de `PORT`, `CORS_ORIGIN` y `DATABASE_URL` (valores por defecto, válidos, inválidos y ausencia segura de la URL obligatoria).
-- `apps/api/src/health/*.spec.ts`: pruebas unitarias del servicio y del controlador.
-- `apps/api/test/health.e2e-spec.ts`: recorrido HTTP real de `GET /api/health` sobre una instancia de Nest levantada con la misma configuración (`bootstrap.ts`) que usa `main.ts`.
-- `apps/api/test/openapi.e2e-spec.ts`: solicita realmente `/api/docs-json` (documento OpenAPI con la operación `getHealth`) y `/api/docs` (Swagger UI publicado).
-- `packages/contracts` ejecuta el chequeo de contrato actualizado, regenerando en un directorio temporal y comparando el documento y los tipos con lo versionado.
-- `apps/web/src/api/*.spec.ts`: comprueba URL pública, transporte tipado y errores HTTP/red.
-- `apps/web/src/app.spec.tsx`: comprueba carga, disponibilidad, fallo y reintento.
-- `apps/web/server/gateway-config.spec.ts`: valida `PORT` y `API_INTERNAL_ORIGIN` (por defecto, válidos, inválidos y ausencia obligatoria).
-- `apps/web/server/gateway.spec.ts`: recorrido HTTP real del gateway contra un upstream de prueba — reenvío de método/cuerpo/encabezados, `Set-Cookie` y cookie reenviada en la petición siguiente, rutas ajenas a `/api` servidas por la SPA sin tocar el upstream, y `502` explícito (nunca HTML) cuando el upstream está caído.
+- La API cubre configuración, health, identidad, sesiones, guards, administración, perfiles,
+  observabilidad, auditoría y eventos de uso con pruebas unitarias y e2e offline.
+- Las integraciones que escriben en PostgreSQL usan runners separados y guardas explícitas de
+  development. La suite ordinaria no abre conexiones a la base.
+- La Web cubre transporte tipado, autenticación, Home, gestión de usuarios y actividad, incluidos
+  estados de carga, acceso denegado, error y vacío.
+- El gateway se prueba contra upstreams locales para reenvío de método, cuerpo, headers, cookies,
+  correlación, estáticos, timeout y respuesta `502` explícita.
+- `packages/observability` prueba generación y validación de `requestId`, normalización de rutas,
+  diagnósticos y redacción de secretos y PII.
+- `packages/contracts` regenera en un directorio temporal y compara OpenAPI y tipos con los
+  artefactos versionados.
 
 Ejecutar todas las pruebas con `pnpm test`.
 

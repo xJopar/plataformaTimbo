@@ -4,7 +4,7 @@ Reglas durables para cualquier agente (humano o automático) que trabaje en este
 
 ## Alcance del repositorio
 
-Este es el monorepo de **App Shell Plataforma Timbo**, administrado con `pnpm workspaces` (sin Turbo ni Nx). Contiene `apps/api` (NestJS), `apps/web` (React/Vite) y `packages/contracts` (OpenAPI generado). La web sólo comprueba la conexión tipada con la API; todavía no hay autenticación ni módulos de negocio.
+Este es el monorepo de **App Shell Plataforma Timbo**, administrado con `pnpm workspaces` (sin Turbo ni Nx). Contiene `apps/api` (NestJS), `apps/web` (React/Vite), `packages/contracts` (OpenAPI generado) y `packages/observability` (funciones puras compartidas). El estado vigente incluye identidad Google, sesiones, administración de usuarios, rol de administrador de plataforma, observabilidad, auditoría y eventos de uso. Todavía no existen catálogo de aplicaciones, permisos funcionales completos, asignaciones a empleados ni aplicaciones de negocio integradas.
 
 No copiar código de otros proyectos ni introducir capacidades fuera del alcance acordado en el ticket o la actividad vigente. Ante una ambigüedad que exceda el alcance, se informa en vez de decidirse unilateralmente.
 
@@ -26,6 +26,15 @@ Ver `docs/CODING_CONVENTIONS.md` para el detalle completo. Resumen operativo:
 - Los errores inesperados fallan explícitamente: no se silencian, no se convierten en éxito ni activan defaults engañosos. Los diagnósticos preservan operación, clase, código y stack cuando existen, redactando secretos, credenciales y PII innecesaria.
 - Toda dependencia agregada debe resolver un problema concreto del incremento en curso; no se agregan dependencias especulativas.
 - `any` no se usa sin una justificación excepcional documentada en el propio código.
+
+## Documentación y señales operativas
+
+- Antes de cambiar límites entre aplicaciones, identidad, acceso, persistencia o contratos, leer `docs/PLATFORM_ARCHITECTURE.md`.
+- Antes de agregar o modificar logs, auditoría o eventos de uso, leer `docs/OBSERVABILITY_LOGGING.md` y elegir explícitamente la señal correcta.
+- El log operativo diagnostica ejecución; la auditoría conserva evidencia de seguridad o administración; los eventos de uso miden interacción de producto. No se sustituyen entre sí.
+- Los nuevos eventos usan nombres estables, campos tipados y allowlists. No se agregan payloads genéricos ni se registran cuerpos, query strings, cookies, credenciales, secretos, PII innecesaria o contenido de negocio no autorizado.
+- Un cambio administrativo que exige auditoría escribe el evento en la misma transacción Prisma. Un productor de uso define un catálogo concreto y respeta los resultados `recorded`, `duplicate` y `failed`.
+- Si cambia una capacidad vigente o un contrato durable, actualizar en el mismo incremento el README y la documentación propietaria. No documentar planes futuros como funcionalidad ya disponible.
 
 ## Checks obligatorios
 
