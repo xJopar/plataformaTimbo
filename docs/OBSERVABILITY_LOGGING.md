@@ -166,6 +166,8 @@ cookies, tokens, secretos, variables de entorno completas ni el origen interno d
 `AuditEventsService` recibe un `Prisma.TransactionClient`; por diseño no puede abrir una escritura
 independiente de la operación que audita. `AUDIT_EVENT_CATALOG` define en código el `appKey`, tipo
 de actor, resultado, regla de objetivo y campos de metadata permitidos para cada `eventName`.
+El catálogo de aplicaciones usa objetivos `application` y registra creación, edición,
+desactivación y reactivación con los nombres `access.application_*`.
 
 Para agregar un evento de auditoría:
 
