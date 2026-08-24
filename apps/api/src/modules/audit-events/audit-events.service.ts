@@ -119,6 +119,12 @@ export class AuditEventsService {
         throw new Error('El catálogo del evento de auditoría requiere un usuario objetivo.');
       }
     }
+
+    if (targetRule === 'application-required') {
+      if (target?.targetType !== 'application' || target.targetId.trim().length === 0) {
+        throw new Error('El catálogo del evento de auditoría requiere una aplicación objetivo.');
+      }
+    }
   }
 
   private validateMetadata(

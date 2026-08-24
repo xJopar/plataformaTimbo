@@ -141,6 +141,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista aplicaciones para Administración. */
+        get: operations["listAdministrativeApplications"];
+        put?: never;
+        /** Crea una aplicación interna. */
+        post: operations["createAdministrativeApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edita los datos mutables de una aplicación. */
+        patch: operations["updateAdministrativeApplication"];
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva una aplicación. */
+        post: operations["deactivateAdministrativeApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reactiva una aplicación. */
+        post: operations["reactivateAdministrativeApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/activity": {
         parameters: {
             query?: never;
@@ -275,6 +344,62 @@ export interface components {
         UpdateAdministrativeUserDto: {
             /** @example Persona Timbo */
             displayName: string | null;
+        };
+        AdministrativeApplicationResponseDto: {
+            /** @example d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6 */
+            id: string;
+            /** @example hello-world */
+            key: string;
+            /** @example Hello World */
+            name: string;
+            /** @example Primera aplicación de Plataforma Timbo. */
+            description: string | null;
+            /** @example /apps/hello-world */
+            launchPath: string;
+            /**
+             * @example ACTIVE
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE";
+            /** @example 0 */
+            displayOrder: number;
+            /**
+             * Format: date-time
+             * @example 2026-08-24T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-08-24T12:00:00.000Z
+             */
+            updatedAt: string;
+            /**
+             * Format: date-time
+             * @example null
+             */
+            deactivatedAt: string | null;
+        };
+        CreateAdministrativeApplicationDto: {
+            /** @example hello-world */
+            key: string;
+            /** @example Hello World */
+            name: string;
+            /** @example Primera aplicación de Plataforma Timbo. */
+            description?: string | null;
+            /** @example /apps/hello-world */
+            launchPath: string;
+            /** @example 0 */
+            displayOrder: number;
+        };
+        UpdateAdministrativeApplicationDto: {
+            /** @example Hello World */
+            name?: string;
+            /** @example Primera aplicación de Plataforma Timbo. */
+            description?: string | null;
+            /** @example /apps/hello-world */
+            launchPath?: string;
+            /** @example 0 */
+            displayOrder?: number;
         };
         HealthResponseDto: {
             /**
@@ -472,6 +597,113 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Usuario reactivado. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listAdministrativeApplications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationResponseDto"][];
+                };
+            };
+        };
+    };
+    createAdministrativeApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAdministrativeApplicationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationResponseDto"];
+                };
+            };
+        };
+    };
+    updateAdministrativeApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAdministrativeApplicationDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationResponseDto"];
+                };
+            };
+        };
+    };
+    deactivateAdministrativeApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Aplicación desactivada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reactivateAdministrativeApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Aplicación reactivada. */
             204: {
                 headers: {
                     [name: string]: unknown;

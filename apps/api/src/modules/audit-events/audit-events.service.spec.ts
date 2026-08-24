@@ -62,6 +62,10 @@ describe('AuditEventsService', () => {
       'access.user_deactivated',
       'access.user_reactivated',
       'access.platform_admin_assigned',
+      'access.application_created',
+      'access.application_updated',
+      'access.application_deactivated',
+      'access.application_reactivated',
     ]);
     expect(AUDIT_EVENT_CATALOG['security.login_succeeded']).toMatchObject({
       actorType: AuditActorType.USER,
@@ -106,6 +110,12 @@ describe('AuditEventsService', () => {
     expect(AUDIT_EVENT_CATALOG['access.platform_admin_assigned']).toMatchObject({
       actorType: AuditActorType.SYSTEM,
       outcome: AuditOutcome.SUCCESS,
+      metadataFields: [],
+    });
+    expect(AUDIT_EVENT_CATALOG['access.application_created']).toMatchObject({
+      actorType: AuditActorType.USER,
+      outcome: AuditOutcome.SUCCESS,
+      targetRule: 'application-required',
       metadataFields: [],
     });
   });

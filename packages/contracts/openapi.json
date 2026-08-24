@@ -220,6 +220,150 @@
         ]
       }
     },
+    "/api/admin/applications": {
+      "get": {
+        "operationId": "listAdministrativeApplications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdministrativeApplicationResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista aplicaciones para Administración.",
+        "tags": [
+          "administration"
+        ]
+      },
+      "post": {
+        "operationId": "createAdministrativeApplication",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdministrativeApplicationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdministrativeApplicationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crea una aplicación interna.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/applications/{applicationId}": {
+      "patch": {
+        "operationId": "updateAdministrativeApplication",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAdministrativeApplicationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdministrativeApplicationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Edita los datos mutables de una aplicación.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/applications/{applicationId}/deactivate": {
+      "post": {
+        "operationId": "deactivateAdministrativeApplication",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Aplicación desactivada."
+          }
+        },
+        "summary": "Desactiva una aplicación.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/applications/{applicationId}/reactivate": {
+      "post": {
+        "operationId": "reactivateAdministrativeApplication",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Aplicación reactivada."
+          }
+        },
+        "summary": "Reactiva una aplicación.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
     "/api/admin/activity": {
       "get": {
         "operationId": "listAdministrativeActivity",
@@ -918,6 +1062,129 @@
         "required": [
           "displayName"
         ]
+      },
+      "AdministrativeApplicationResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6"
+          },
+          "key": {
+            "type": "string",
+            "example": "hello-world"
+          },
+          "name": {
+            "type": "string",
+            "example": "Hello World"
+          },
+          "description": {
+            "type": "string",
+            "example": "Primera aplicación de Plataforma Timbo.",
+            "nullable": true
+          },
+          "launchPath": {
+            "type": "string",
+            "example": "/apps/hello-world"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ],
+            "example": "ACTIVE"
+          },
+          "displayOrder": {
+            "type": "number",
+            "example": 0,
+            "minimum": 0
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-08-24T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-08-24T12:00:00.000Z"
+          },
+          "deactivatedAt": {
+            "type": "string",
+            "example": null,
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name",
+          "description",
+          "launchPath",
+          "status",
+          "displayOrder",
+          "createdAt",
+          "updatedAt",
+          "deactivatedAt"
+        ]
+      },
+      "CreateAdministrativeApplicationDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "hello-world"
+          },
+          "name": {
+            "type": "string",
+            "example": "Hello World"
+          },
+          "description": {
+            "type": "string",
+            "example": "Primera aplicación de Plataforma Timbo.",
+            "nullable": true
+          },
+          "launchPath": {
+            "type": "string",
+            "example": "/apps/hello-world"
+          },
+          "displayOrder": {
+            "type": "number",
+            "example": 0,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "launchPath",
+          "displayOrder"
+        ]
+      },
+      "UpdateAdministrativeApplicationDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Hello World"
+          },
+          "description": {
+            "type": "string",
+            "example": "Primera aplicación de Plataforma Timbo.",
+            "nullable": true
+          },
+          "launchPath": {
+            "type": "string",
+            "example": "/apps/hello-world"
+          },
+          "displayOrder": {
+            "type": "number",
+            "example": 0,
+            "minimum": 0
+          }
+        }
       },
       "HealthResponseDto": {
         "type": "object",

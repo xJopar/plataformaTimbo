@@ -9,9 +9,13 @@ export type AuditEventName =
   | 'access.user_administrative_data_updated'
   | 'access.user_deactivated'
   | 'access.user_reactivated'
-  | 'access.platform_admin_assigned';
+  | 'access.platform_admin_assigned'
+  | 'access.application_created'
+  | 'access.application_updated'
+  | 'access.application_deactivated'
+  | 'access.application_reactivated';
 
-export type AuditTargetRule = 'forbidden' | 'user-required';
+export type AuditTargetRule = 'forbidden' | 'user-required' | 'application-required';
 
 export type LoginDeniedReasonCode =
   'USER_NOT_AUTHORIZED' | 'USER_INACTIVE' | 'GOOGLE_IDENTITY_MISMATCH' | 'GOOGLE_IDENTITY_INVALID';
@@ -93,6 +97,34 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
     actorType: AuditActorType.SYSTEM,
     outcome: AuditOutcome.SUCCESS,
     targetRule: 'user-required',
+    metadataFields: [],
+  },
+  'access.application_created': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'application-required',
+    metadataFields: [],
+  },
+  'access.application_updated': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'application-required',
+    metadataFields: [],
+  },
+  'access.application_deactivated': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'application-required',
+    metadataFields: [],
+  },
+  'access.application_reactivated': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'application-required',
     metadataFields: [],
   },
 };
