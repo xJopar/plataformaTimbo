@@ -302,6 +302,7 @@ describe('createGatewayServer', () => {
       const response = await fetch(`http://127.0.0.1:${String(gatewayPort)}/some-other-page`);
 
       expect(response.status).toBe(200);
+      expect(response.headers.get('cache-control')).toBe('no-cache');
       await expect(response.text()).resolves.toContain(SPA_INDEX_MARKER);
       expect(receivedRequests).toEqual([]);
 
@@ -318,7 +319,17 @@ describe('createGatewayServer', () => {
       const response = await fetch(`http://127.0.0.1:${String(gatewayPort)}/assets/app.js`);
 
       expect(response.status).toBe(200);
+      expect(response.headers.get('cache-control')).toBe('public, max-age=31536000, immutable');
       await expect(response.text()).resolves.toContain('asset-marker');
+    });
+
+    it('responde 404 para un asset obsoleto en vez de entregar index.html como JavaScript', async () => {
+      const response = await fetch(
+        `http://127.0.0.1:${String(gatewayPort)}/assets/bundle-anterior.js`,
+      );
+
+      expect(response.status).toBe(404);
+      await expect(response.text()).resolves.not.toContain(SPA_INDEX_MARKER);
     });
   });
 

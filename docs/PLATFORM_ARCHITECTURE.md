@@ -13,6 +13,7 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
 - sesiones persistentes mediante cookie segura;
 - administración de usuarios y asignación inicial del administrador de plataforma;
 - catálogo administrativo de aplicaciones internas, sin borrado físico;
+- asignaciones de aplicaciones a empleados y administración de perfiles y permisos funcionales;
 - log operativo estructurado y correlación por `X-Request-Id`;
 - auditoría persistente de operaciones de identidad y acceso;
 - persistencia validada e idempotente de eventos de uso;
@@ -20,11 +21,11 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
 - contratos OpenAPI generados y consumidos de forma tipada por la Web;
 - aplicación `Hello World` en `/apps/hello-world` como comprobación mínima del App Shell.
 
-Todavía no existen los perfiles y permisos funcionales completos, las asignaciones de aplicaciones
-a empleados ni una aplicación de negocio migrada al App Shell. `Hello World` es una comprobación
-técnica, no una aplicación de negocio. El Home autenticado representa ese límite con un estado vacío; la
-infraestructura de eventos de uso existe, pero el catálogo productivo permanece vacío hasta que
-se incorpore el primer productor real.
+Todavía no existen el launcher que presenta las aplicaciones autorizadas ni una aplicación de
+negocio migrada al App Shell. `Hello World` es una comprobación técnica, no una aplicación de
+negocio. El Home autenticado representa ese límite con un estado vacío; la infraestructura de
+eventos de uso existe, pero el catálogo productivo permanece vacío hasta que se incorpore el primer
+productor real.
 
 ## Componentes del workspace
 
@@ -35,8 +36,9 @@ API NestJS y única propietaria de PostgreSQL y Prisma. Sus módulos vigentes so
 - `health`: disponibilidad de la API;
 - `auth`: OAuth con Google, cookie de sesión, logout, CSRF y traducción de errores públicos;
 - `users`: preautorización, consulta y cambios administrativos de usuarios;
-- `access-profiles`: perfil de sistema `PLATFORM_ADMIN` y su asignación inicial;
-- `administration`: endpoints protegidos para usuarios, aplicaciones y actividad;
+- `access-profiles`: perfil de sistema `PLATFORM_ADMIN` y autorización funcional por aplicación;
+- `administration`: endpoints protegidos para usuarios, aplicaciones, asignaciones, perfiles,
+  permisos y actividad;
 - `observability`: contexto de petición y log operativo de la API;
 - `audit-events`: catálogo y persistencia transaccional de auditoría;
 - `usage-events`: catálogo y persistencia idempotente de analítica de uso.
@@ -46,9 +48,9 @@ sólo en esta aplicación. No se agregan capas genéricas entre esas responsabil
 
 ### `apps/web`
 
-SPA React/Vite que presenta acceso corporativo, Home, administración de usuarios y aplicaciones,
-consulta de actividad y `Hello World`. `src/api/` encapsula rutas y tipos generados: los
-componentes no escriben endpoints HTTP manualmente.
+SPA React/Vite que presenta acceso corporativo, Home, administración de usuarios, aplicaciones,
+asignaciones, perfiles y permisos, consulta de actividad y `Hello World`. `src/api/` encapsula
+rutas y tipos generados: los componentes no escriben endpoints HTTP manualmente.
 
 En producción, `server/` sirve la SPA y actúa como gateway de mismo origen para `/api/*`. El
 gateway reenvía cookies y preserva el `X-Request-Id` resuelto, pero no contiene lógica de negocio
@@ -99,10 +101,14 @@ autorización efectiva siempre pertenece a la API.
 El catálogo persiste `key`, nombre, descripción opcional, ruta interna, estado y orden. `key` es
 inmutable, toda ruta comienza con `/apps/`, y las aplicaciones se activan o desactivan sin borrado.
 Cada mutación se audita dentro de la misma transacción. El catálogo todavía no concede acceso: esa
-decisión corresponde al incremento de asignaciones.
+decisión corresponde a `UserApplicationAssignment`.
 
-El modelo actual no representa acceso por aplicación ni permisos funcionales. Agregar esas
-capacidades requiere un incremento explícito y no debe inferirse a partir de `PLATFORM_ADMIN`.
+Cada aplicación puede definir permisos y perfiles funcionales. Un perfil agrupa permisos de su
+misma aplicación y puede asociarse solamente a una persona que ya tenga la aplicación asignada.
+Quitar la asignación elimina también sus perfiles funcionales para esa aplicación.
+`ApplicationAuthorizationService` comprueba en la API la aplicación, asignación, perfil y permiso
+activos; `PLATFORM_ADMIN` no omite esa autorización. La Web administrativa permite gobernar estas
+relaciones, pero el Home todavía no las proyecta como launcher.
 
 ### Auditoría, uso y actividad
 
@@ -121,10 +127,10 @@ persistida.
 
 ## Persistencia y contratos
 
-PostgreSQL guarda usuarios, aplicaciones, intentos OAuth, sesiones, perfiles, asignaciones de
-perfil, auditoría y uso. Las migraciones versionadas son la única forma de cambiar producción. Algunas invariantes
-viven como `CHECK` SQL porque Prisma no puede expresarlas declarativamente; deben preservarse al
-revisar una migración.
+PostgreSQL guarda usuarios, aplicaciones, intentos OAuth, sesiones, perfiles de sistema y de
+aplicación, permisos, asignaciones de aplicaciones y perfiles, auditoría y uso. Las migraciones
+versionadas son la única forma de cambiar producción. Algunas invariantes viven como `CHECK` SQL
+porque Prisma no puede expresarlas declarativamente; deben preservarse al revisar una migración.
 
 La API es la fuente del contrato HTTP. El flujo correcto es:
 

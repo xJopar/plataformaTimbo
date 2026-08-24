@@ -8,18 +8,20 @@ Google para usuarios preautorizados, sesiones persistentes, administración de u
 administrador de plataforma, observabilidad operativa, auditoría, eventos de uso y consulta
 administrativa de actividad y catálogo gobernado de aplicaciones internas.
 
-El catálogo incluye `Hello World` como integración técnica mínima en `/apps/hello-world`. El Home
-autenticado todavía no ofrece aplicaciones porque faltan los perfiles y permisos funcionales
-completos, las asignaciones a empleados y la primera aplicación de negocio integrada. Consultar
+El catálogo incluye `Hello World` como integración técnica mínima en `/apps/hello-world`.
+Administración permite asignar aplicaciones a empleados y gestionar sus perfiles y permisos
+funcionales. El Home autenticado todavía no muestra esas asignaciones porque falta el launcher de
+aplicaciones autorizadas y la primera aplicación de negocio integrada. Consultar
 [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md) para el alcance y los recorridos
 vigentes.
 
 ## Estado funcional
 
 - **Identidad:** OAuth con Google, preautorización corporativa, sesiones y logout.
-- **Administración:** usuarios, aplicaciones internas, activación/desactivación y actividad
-  consolidada.
-- **Acceso:** perfil de sistema `PLATFORM_ADMIN`; todavía no hay permisos funcionales por app.
+- **Administración:** usuarios, aplicaciones internas, asignaciones, perfiles y permisos
+  funcionales, activación/desactivación y actividad consolidada.
+- **Acceso:** perfil de sistema `PLATFORM_ADMIN` y autorización funcional por aplicación; el
+  launcher autorizado todavía no está implementado.
 - **Observabilidad:** logs JSON de API y gateway, redacción segura y correlación por
   `X-Request-Id`.
 - **Datos de actividad:** auditoría persistente y base idempotente para eventos de uso; el primer
@@ -168,8 +170,9 @@ AGENTS.md                 # Reglas durables para agentes que trabajen en este re
 5. En otra terminal, levantar la web: `pnpm dev:web` (por defecto, `http://localhost:5173`). La pantalla verifica la sesión y, si no existe, ofrece el acceso con Google.
 6. Preautorizar el usuario corporativo con `pnpm --filter @timbo/api preauthorize-user -- --corporate-email <correo>` y asignar una única vez el primer administrador con `pnpm --filter @timbo/api assign-platform-admin -- --corporate-email <correo>`. Estos comandos no deben apuntar a una base ajena al entorno autorizado.
 7. Ingresar con la misma cuenta de Google preautorizada. El Home continúa vacío hasta implementar
-   asignaciones. `/admin`, `/admin/applications` y `/admin/activity` quedan protegidos por el perfil
-   de administrador; `/apps/hello-world` comprueba una aplicación dentro de la sesión compartida.
+   el launcher de aplicaciones autorizadas. `/admin`, `/admin/applications` y `/admin/activity`
+   quedan protegidos por el perfil de administrador; desde Usuarios se administran asignaciones y
+   perfiles funcionales. `/apps/hello-world` comprueba una aplicación dentro de la sesión compartida.
 8. Consultar el estado de disponibilidad: `GET http://localhost:3000/api/health`. Debe responder `200` con un cuerpo como:
 
    ```json
@@ -200,8 +203,8 @@ Para una visión de conjunto, empezar por
 - Las integraciones que escriben en PostgreSQL usan runners separados y guardas explícitas de
   development. La suite ordinaria no abre conexiones a la base.
 - La Web cubre transporte tipado, autenticación, Home, gestión de usuarios, catálogo de
-  aplicaciones, Hello World y actividad, incluidos estados de carga, acceso denegado, error y
-  vacío.
+  aplicaciones, asignaciones, perfiles, permisos, Hello World y actividad, incluidos estados de
+  carga, acceso denegado, error y vacío.
 - El gateway se prueba contra upstreams locales para reenvío de método, cuerpo, headers, cookies,
   correlación, estáticos, timeout y respuesta `502` explícita.
 - `packages/observability` prueba generación y validación de `requestId`, normalización de rutas,

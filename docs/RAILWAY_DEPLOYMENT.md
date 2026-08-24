@@ -132,6 +132,8 @@ Con el incremento ya enviado a `desarrollo` y autorización para verificar devel
 4. `https://<dominio-web>/` muestra primero “Verificando conexión” y luego “API disponible”.
 5. En la respuesta de health, `Access-Control-Allow-Origin` coincide exactamente con el origen
    público de `web`.
+6. Una ruta de navegación como `/admin` devuelve `index.html` con `Cache-Control: no-cache`; un
+   asset inexistente bajo `/assets/` devuelve `404` y nunca el HTML de la SPA.
 
 Si la web muestra “API no disponible”, revisar primero el valor efectivo de
 `VITE_API_BASE_URL`, volver a desplegar `web` sólo con autorización y después comprobar
