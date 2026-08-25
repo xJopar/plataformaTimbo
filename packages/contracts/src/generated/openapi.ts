@@ -452,6 +452,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications/hello-world/joke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene un chiste en inglés y su traducción al español. */
+        get: operations["getHelloWorldJoke"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -621,6 +638,14 @@ export interface components {
             launchPath: string;
             /** @example 0 */
             displayOrder: number;
+        };
+        HelloWorldJokeResponseDto: {
+            /** @example R7UfaahVfFd */
+            id: string;
+            /** @example Why did the scarecrow win an award? He was outstanding in his field. */
+            originalText: string;
+            /** @example ¿Por qué ganó un premio el espantapájaros? Destacaba en su campo. */
+            translatedText: string;
         };
         HealthResponseDto: {
             /**
@@ -1414,6 +1439,32 @@ export interface operations {
             };
             /** @description Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED. */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getHelloWorldJoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HelloWorldJokeResponseDto"];
+                };
+            };
+            /** @description Uno de los proveedores externos no está disponible. */
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };

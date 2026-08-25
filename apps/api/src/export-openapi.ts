@@ -14,12 +14,16 @@ import { ActivityController } from './modules/administration/activity.controller
 import { AdministrativeApplicationsController } from './modules/administration/administrative-applications.controller';
 import { AdministrativeApplicationAccessController } from './modules/administration/administrative-application-access.controller';
 import { AuthorizedApplicationsController } from './modules/administration/authorized-applications.controller';
+import { HelloWorldApplicationAccessGuard } from './modules/hello-world/hello-world-application-access.guard';
+import { HelloWorldController } from './modules/hello-world/hello-world.controller';
+import { HelloWorldService } from './modules/hello-world/hello-world.service';
 import { ACTIVITY_SERVICE } from './modules/administration/administration.tokens';
 import { ADMINISTRATIVE_APPLICATIONS_SERVICE } from './modules/administration/administration.tokens';
 import { ADMINISTRATIVE_USERS_SERVICE } from './modules/administration/administration.tokens';
 import { ADMINISTRATIVE_APPLICATION_ACCESS_SERVICE } from './modules/administration/administration.tokens';
 import { PlatformAdministratorGuard } from './modules/administration/platform-administrator.guard';
 import { ACCESS_PROFILES_SERVICE } from './modules/access-profiles/access-profiles.tokens';
+import { APPLICATION_AUTHORIZATION_SERVICE } from './modules/access-profiles/access-profiles.tokens';
 import { USERS_SERVICE, USER_SESSIONS_SERVICE } from './modules/auth/auth.tokens';
 import { DEFAULT_CORS_ORIGIN } from './runtime-config';
 import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
@@ -33,16 +37,20 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     AdministrativeApplicationAccessController,
     AuthorizedApplicationsController,
     ActivityController,
+    HelloWorldController,
   ],
   providers: [
     { provide: AuthService, useValue: {} },
     { provide: SessionAuthenticationGuard, useValue: { canActivate: () => true } },
     { provide: PlatformAdministratorGuard, useValue: { canActivate: () => true } },
     { provide: CsrfProtectionGuard, useValue: { canActivate: () => true } },
+    { provide: HelloWorldApplicationAccessGuard, useValue: { canActivate: () => true } },
+    { provide: HelloWorldService, useValue: {} },
     { provide: ADMINISTRATIVE_USERS_SERVICE, useValue: {} },
     { provide: ADMINISTRATIVE_APPLICATIONS_SERVICE, useValue: {} },
     { provide: ADMINISTRATIVE_APPLICATION_ACCESS_SERVICE, useValue: {} },
     { provide: ACCESS_PROFILES_SERVICE, useValue: {} },
+    { provide: APPLICATION_AUTHORIZATION_SERVICE, useValue: {} },
     { provide: USER_SESSIONS_SERVICE, useValue: {} },
     { provide: USERS_SERVICE, useValue: {} },
     { provide: ACTIVITY_SERVICE, useValue: {} },

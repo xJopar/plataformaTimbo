@@ -1368,6 +1368,31 @@
         ]
       }
     },
+    "/api/applications/hello-world/joke": {
+      "get": {
+        "operationId": "getHelloWorldJoke",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelloWorldJokeResponseDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Uno de los proveedores externos no está disponible."
+          }
+        },
+        "summary": "Obtiene un chiste en inglés y su traducción al español.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "getHealth",
@@ -1787,6 +1812,28 @@
           "description",
           "launchPath",
           "displayOrder"
+        ]
+      },
+      "HelloWorldJokeResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "R7UfaahVfFd"
+          },
+          "originalText": {
+            "type": "string",
+            "example": "Why did the scarecrow win an award? He was outstanding in his field."
+          },
+          "translatedText": {
+            "type": "string",
+            "example": "¿Por qué ganó un premio el espantapájaros? Destacaba en su campo."
+          }
+        },
+        "required": [
+          "id",
+          "originalText",
+          "translatedText"
         ]
       },
       "HealthResponseDto": {

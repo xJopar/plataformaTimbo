@@ -5,6 +5,7 @@ import { AuditEventsModule } from './modules/audit-events/audit-events.module';
 import { AdministrationModule } from './modules/administration/administration.module';
 import { AuthExceptionFilter } from './modules/auth/auth-exception.filter';
 import { AuthModule } from './modules/auth/auth.module';
+import { HelloWorldModule } from './modules/hello-world/hello-world.module';
 import { ObservabilityModule } from './modules/observability/observability.module';
 import { UsersModule } from './modules/users/users.module';
 import { UsageEventsModule } from './modules/usage-events/usage-events.module';
@@ -18,6 +19,7 @@ import { UsageEventsModule } from './modules/usage-events/usage-events.module';
     HealthModule,
     UsersModule,
     AuthModule,
+    HelloWorldModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: AuthExceptionFilter }],
 })
