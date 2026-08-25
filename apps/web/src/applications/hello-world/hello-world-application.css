@@ -1,0 +1,85 @@
+.application-stage {
+  min-height: calc(100vh - 108px);
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: clamp(48px, 9vw, 112px) 5vw;
+}
+
+.application-stage h1 {
+  margin-bottom: 16px;
+}
+
+.application-stage > p:not(.joke-status) {
+  max-width: 60ch;
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.joke-status {
+  margin: 28px 0 0;
+  color: #475569;
+  font-weight: 700;
+}
+
+.application-stage .action-button:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.joke-result {
+  width: min(760px, 100%);
+  margin-top: 32px;
+  border-top: 3px solid #00a6a6;
+  border-bottom: 1px solid #bcc9d7;
+  background: #f7f9fb;
+  animation: joke-result-reveal 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.joke-result div {
+  padding: 24px;
+}
+
+.joke-result div + div {
+  border-top: 1px solid #bcc9d7;
+}
+
+.joke-result h2 {
+  margin-bottom: 10px;
+  color: #00388a;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.joke-result p {
+  margin: 0;
+  color: #142033;
+  font-size: clamp(1.125rem, 2.4vw, 1.5rem);
+  line-height: 1.55;
+}
+
+.joke-error {
+  display: grid;
+  gap: 4px;
+  margin-top: 28px;
+  padding: 18px 20px;
+  border: 1px solid #fdba74;
+  background: #fff7ed;
+  color: #7c2d12;
+}
+
+@keyframes joke-result-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0.5;
+  }
+
+  to {
+    clip-path: inset(0);
+    opacity: 1;
+  }
+}

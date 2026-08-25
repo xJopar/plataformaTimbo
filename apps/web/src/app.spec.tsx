@@ -102,6 +102,11 @@ function createApi(
       listAuthorizedApplications: vi
         .fn<ApplicationsApi['listAuthorizedApplications']>()
         .mockResolvedValue([]),
+      getHelloWorldJoke: vi.fn<ApplicationsApi['getHelloWorldJoke']>().mockResolvedValue({
+        id: 'joke-a',
+        originalText: 'A short joke.',
+        translatedText: 'Un chiste corto.',
+      }),
       ...applicationsOverrides,
     },
     system: { getHealth: vi.fn() },
@@ -697,7 +702,7 @@ describe('App', () => {
     );
   });
 
-  it('ejecuta la interacción básica de Hello World dentro de la sesión compartida', async () => {
+  it('muestra el chiste en inglés y su traducción dentro de la sesión compartida', async () => {
     window.history.replaceState({}, '', '/apps/hello-world');
     const user = userEvent.setup();
     render(
@@ -711,9 +716,43 @@ describe('App', () => {
     );
 
     expect(await screen.findByRole('heading', { name: 'Hello World' })).toBeInTheDocument();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Probar aplicación' }));
-    expect(screen.getByRole('status')).toHaveTextContent('Primera app');
+    await user.click(screen.getByRole('button', { name: 'Contar un chiste' }));
+    expect(await screen.findByText('A short joke.')).toHaveAttribute('lang', 'en');
+    expect(screen.getByText('Un chiste corto.')).toHaveAttribute('lang', 'es');
+    expect(screen.getByRole('button', { name: 'Contar otro' })).toBeInTheDocument();
+  });
+
+  it('permite reintentar cuando un proveedor de Hello World no está disponible', async () => {
+    window.history.replaceState({}, '', '/apps/hello-world');
+    const getHelloWorldJoke = vi
+      .fn<ApplicationsApi['getHelloWorldJoke']>()
+      .mockRejectedValueOnce(new ApiHttpError(502))
+      .mockResolvedValueOnce({
+        id: 'joke-b',
+        originalText: 'Recovered joke.',
+        translatedText: 'Chiste recuperado.',
+      });
+    const user = userEvent.setup();
+    render(
+      <App
+        api={createApi(
+          {},
+          {},
+          {
+            listAuthorizedApplications: vi.fn().mockResolvedValue([authorizedApplication]),
+            getHelloWorldJoke,
+          },
+        )}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Contar un chiste' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'No pudimos obtener y traducir el chiste',
+    );
+    await user.click(screen.getByRole('button', { name: 'Contar un chiste' }));
+    expect(await screen.findByText('Chiste recuperado.')).toBeInTheDocument();
+    expect(getHelloWorldJoke).toHaveBeenCalledTimes(2);
   });
 
   it('bloquea en la interfaz una ruta interna que no está asignada', async () => {
@@ -723,6 +762,6 @@ describe('App', () => {
     expect(
       await screen.findByRole('heading', { name: 'Aplicación no disponible' }),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Probar aplicación' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Contar un chiste' })).not.toBeInTheDocument();
   });
 });

@@ -37,5 +37,6 @@ export { ApiHttpError, type HealthResponse, type SystemApi } from './system';
 export {
   type ApplicationsApi,
   type AuthorizedApplication,
+  type HelloWorldJoke,
   createApplicationsApi,
 } from './applications';

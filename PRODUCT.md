@@ -33,7 +33,8 @@ Es un App Shell empresarial interno: centraliza capacidades transversales y perm
 - La asignación de aplicaciones a empleados, la administración de perfiles y permisos y el
   launcher de aplicaciones autorizadas están disponibles.
 - Los iconos de aplicaciones quedan fuera del incremento inicial.
-- Lista de Precios será la primera aplicación de negocio migrada; primero se incorpora una aplicación mínima de demostración.
+- Lista de Precios será la primera aplicación de negocio migrada; la demostración vigente obtiene
+  un chiste en inglés y lo traduce al español sin claves de API.
 
 ## Evidence on Hand
 

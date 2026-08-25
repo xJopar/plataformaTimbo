@@ -20,7 +20,8 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
 - consulta administrativa unificada de auditoría y uso, con filtros, métricas y exportación CSV;
 - contratos OpenAPI generados y consumidos de forma tipada por la Web;
 - launcher que presenta las aplicaciones activas asignadas al usuario autenticado;
-- aplicación `Hello World` en `/apps/hello-world` como comprobación mínima del App Shell.
+- aplicación `Hello World` en `/apps/hello-world` como comprobación del App Shell y de una
+  integración externa sin clave de API.
 
 Todavía no existe una aplicación de negocio migrada al App Shell. `Hello World` es una
 comprobación técnica, no una aplicación de negocio. La infraestructura de eventos de uso existe,
@@ -34,6 +35,8 @@ API NestJS y única propietaria de PostgreSQL y Prisma. Sus módulos vigentes so
 
 - `health`: disponibilidad de la API;
 - `auth`: OAuth con Google, cookie de sesión, logout, CSRF y traducción de errores públicos;
+- `hello-world`: endpoint funcional protegido, obtención de chistes desde icanhazdadjoke y
+  traducción inglés-español mediante MyMemory;
 - `users`: preautorización, consulta y cambios administrativos de usuarios;
 - `access-profiles`: perfil de sistema `PLATFORM_ADMIN` y autorización funcional por aplicación;
 - `administration`: endpoints protegidos para usuarios, aplicaciones, asignaciones, perfiles,
@@ -48,8 +51,10 @@ sólo en esta aplicación. No se agregan capas genéricas entre esas responsabil
 ### `apps/web`
 
 SPA React/Vite que presenta acceso corporativo, launcher autorizado, administración de usuarios,
-aplicaciones, asignaciones, perfiles y permisos, consulta de actividad y `Hello World`. `src/api/`
-encapsula rutas y tipos generados: los componentes no escriben endpoints HTTP manualmente.
+aplicaciones, asignaciones, perfiles y permisos, consulta de actividad y `Hello World`. El launcher
+vive en `src/home/`; el registro, el control de rutas y cada interfaz integrada viven en
+`src/applications/`, incluida `src/applications/hello-world/`. `src/api/` encapsula rutas y tipos
+generados: los componentes no escriben endpoints HTTP manualmente.
 
 En producción, `server/` sirve la SPA y actúa como gateway de mismo origen para `/api/*`. El
 gateway reenvía cookies y preserva el `X-Request-Id` resuelto, pero no contiene lógica de negocio
@@ -114,6 +119,14 @@ fechas ni identificadores internos del catálogo. El Home consume esa proyecció
 La Web también evita presentar una ruta `/apps/*` que no figure en esa proyección. Esa comprobación
 es experiencia de usuario, no una frontera de seguridad: cada API funcional de una aplicación debe
 seguir verificando acceso y permisos mediante `ApplicationAuthorizationService`.
+
+`GET /api/applications/hello-world/joke` aplica `SessionAuthenticationGuard` y vuelve a comprobar
+la asignación activa de `hello-world` mediante `ApplicationAuthorizationService`. Después obtiene
+un chiste en inglés desde icanhazdadjoke y solicita su traducción a MyMemory. Es una demostración
+sin secretos ni configuración adicional: ambos proveedores se consumen sin clave. El servicio
+limita cada llamada externa a ocho segundos y respeta el máximo de 500 bytes de MyMemory; una falla
+externa devuelve `502` y la Web permite reintentar. El texto original y traducido no se incorpora a
+logs, auditoría ni eventos de uso.
 
 ### Auditoría, uso y actividad
 

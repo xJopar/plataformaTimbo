@@ -43,4 +43,44 @@ describe('createApplicationsApi', () => {
       ).listAuthorizedApplications(),
     ).rejects.toBeInstanceOf(ApiHttpError);
   });
+
+  it('consulta el chiste traducido incluyendo credenciales', async () => {
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: 'joke-a',
+          originalText: 'A short joke.',
+          translatedText: 'Un chiste corto.',
+        }),
+        {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        },
+      ),
+    );
+
+    await expect(
+      createApplicationsApi('http://localhost:3000', fetchImplementation).getHelloWorldJoke(),
+    ).resolves.toMatchObject({ id: 'joke-a' });
+    expect(fetchImplementation.mock.calls[0]?.[0]).toMatchObject({
+      credentials: 'include',
+      method: 'GET',
+    });
+    const request = fetchImplementation.mock.calls[0]?.[0];
+    expect(request).toBeInstanceOf(Request);
+    if (!(request instanceof Request)) {
+      throw new Error('El cliente OpenAPI no construyó la petición esperada.');
+    }
+    expect(request.url).toContain('/api/applications/hello-world/joke');
+  });
+
+  it('expone la indisponibilidad HTTP del ejemplo Hello World', async () => {
+    const fetchImplementation = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(null, { status: 502 }));
+
+    await expect(
+      createApplicationsApi('http://localhost:3000', fetchImplementation).getHelloWorldJoke(),
+    ).rejects.toMatchObject({ status: 502 });
+  });
 });

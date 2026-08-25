@@ -8,7 +8,8 @@ Google para usuarios preautorizados, sesiones persistentes, administración de u
 administrador de plataforma, observabilidad operativa, auditoría, eventos de uso y consulta
 administrativa de actividad y catálogo gobernado de aplicaciones internas.
 
-El catálogo incluye `Hello World` como integración técnica mínima en `/apps/hello-world`.
+El catálogo incluye `Hello World` como integración técnica en `/apps/hello-world`: obtiene un
+chiste en inglés desde icanhazdadjoke y lo traduce al español con MyMemory, sin claves de API.
 Administración permite asignar aplicaciones a empleados y gestionar sus perfiles y permisos
 funcionales. El Home autenticado presenta solamente las aplicaciones activas asignadas al usuario
 y abre sus rutas internas. Todavía falta integrar la primera aplicación de negocio. Consultar
@@ -27,7 +28,8 @@ vigentes.
 - **Datos de actividad:** auditoría persistente y base idempotente para eventos de uso; el primer
   catálogo productivo de uso llegará con una aplicación real.
 - **Experiencia:** acceso corporativo, launcher de aplicaciones autorizadas, superficies de
-  Administración y una aplicación `Hello World` de comprobación.
+  Administración y una aplicación `Hello World` que demuestra una integración externa
+  recuperable.
 
 ## Documentación
 
@@ -135,6 +137,7 @@ apps/
         administration/ # Usuarios, catálogo de aplicaciones y actividad unificada
         audit-events/    # Catálogo y persistencia transaccional de auditoría
         auth/            # Google OAuth, sesiones, cookie, CSRF y guards
+        hello-world/     # Endpoint protegido y proveedores externos del ejemplo
         observability/   # Contexto de petición y log operativo de API
         usage-events/    # Catálogo y persistencia idempotente de uso
         users/           # Usuarios preautorizados y estado de acceso
@@ -142,7 +145,10 @@ apps/
   web/                  # Web React/Vite (paquete @timbo/web)
     src/
       api/              # Transporte tipado para auth, applications, administration y system
-      app.tsx           # Acceso, launcher, navegación administrativa y Hello World
+      applications/     # Registro, autorización de rutas y aplicaciones internas
+        hello-world/    # Interfaz y estilos propios del ejemplo Hello World
+      home/             # Launcher de aplicaciones autorizadas
+      app.tsx           # Acceso, sesión y navegación principal
       applications-panel.tsx # Catálogo administrativo de aplicaciones
     server/              # Gateway HTTP productivo (Node, sin bundlear): sirve la SPA y
                          # reenvía /api/* a API_INTERNAL_ORIGIN para que el navegador use
@@ -172,8 +178,11 @@ AGENTS.md                 # Reglas durables para agentes que trabajen en este re
 7. Ingresar con la misma cuenta de Google preautorizada. El Home muestra las aplicaciones activas
    asignadas a esa cuenta. `/admin`, `/admin/applications` y `/admin/activity` quedan protegidos por
    el perfil de administrador; desde Usuarios se administran asignaciones y perfiles funcionales.
-   `/apps/hello-world` sólo se presenta cuando está asignada y comprueba una aplicación dentro de la
-   sesión compartida.
+   `/apps/hello-world` sólo se presenta cuando está asignada. Su botón llama al endpoint protegido
+   `GET /api/applications/hello-world/joke`, que vuelve a validar la asignación en la API antes de
+   consultar icanhazdadjoke y MyMemory. Ninguno de los dos proveedores requiere clave; sus límites
+   o indisponibilidad se presentan como un error recuperable y no se registra el contenido del
+   chiste.
 8. Consultar el estado de disponibilidad: `GET http://localhost:3000/api/health`. Debe responder `200` con un cuerpo como:
 
    ```json
@@ -200,7 +209,8 @@ Para una visión de conjunto, empezar por
 ## Pruebas
 
 - La API cubre configuración, health, identidad, sesiones, guards, administración, perfiles,
-  observabilidad, auditoría y eventos de uso con pruebas unitarias y e2e offline.
+  Hello World, observabilidad, auditoría y eventos de uso con pruebas unitarias y e2e offline; los
+  proveedores externos se sustituyen por respuestas controladas en la suite.
 - Las integraciones que escriben en PostgreSQL usan runners separados y guardas explícitas de
   development. La suite ordinaria no abre conexiones a la base.
 - La Web cubre transporte tipado, autenticación, Home, gestión de usuarios, catálogo de
