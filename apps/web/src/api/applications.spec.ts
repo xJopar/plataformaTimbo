@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createApplicationsApi } from './applications';
+import { ApplicationsApiUnavailableError, createApplicationsApi } from './applications';
 import { ApiHttpError } from './system';
 
 describe('createApplicationsApi', () => {
@@ -74,12 +74,29 @@ describe('createApplicationsApi', () => {
   });
 
   it('expone la indisponibilidad HTTP del ejemplo Hello World', async () => {
-    const fetchImplementation = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(new Response(null, { status: 502 }));
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(null, {
+        status: 502,
+        headers: { 'x-request-id': 'request-joke-502' },
+      }),
+    );
 
     await expect(
       createApplicationsApi('http://localhost:3000', fetchImplementation).getHelloWorldJoke(),
-    ).rejects.toMatchObject({ status: 502 });
+    ).rejects.toMatchObject({ status: 502, requestId: 'request-joke-502' });
+  });
+
+  it('tipa una falla de red sin ocultar su causa', async () => {
+    const networkError = new TypeError('Failed to fetch');
+    const fetchImplementation = vi.fn<typeof fetch>().mockRejectedValue(networkError);
+
+    await expect(
+      createApplicationsApi('http://localhost:3000', fetchImplementation).getHelloWorldJoke(),
+    ).rejects.toMatchObject({
+      name: 'ApplicationsApiUnavailableError',
+      code: 'APPLICATIONS_API_UNAVAILABLE',
+      operation: 'getHelloWorldJoke',
+      cause: networkError,
+    } satisfies Partial<ApplicationsApiUnavailableError>);
   });
 });

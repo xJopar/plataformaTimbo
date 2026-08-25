@@ -729,9 +729,10 @@ describe('App', () => {
 
   it('permite reintentar cuando un proveedor de Hello World no está disponible', async () => {
     window.history.replaceState({}, '', '/apps/hello-world');
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const getHelloWorldJoke = vi
       .fn<ApplicationsApi['getHelloWorldJoke']>()
-      .mockRejectedValueOnce(new ApiHttpError(502))
+      .mockRejectedValueOnce(new ApiHttpError(502, 'request-hello-world-502'))
       .mockResolvedValueOnce({
         id: 'joke-b',
         originalText: 'Recovered joke.',
@@ -757,6 +758,16 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Contar un chiste' }));
     expect(await screen.findByText('Chiste recuperado.')).toBeInTheDocument();
     expect(getHelloWorldJoke).toHaveBeenCalledTimes(2);
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'web.browser.operation_failed',
+        operation: 'hello-world.fetch-joke',
+        route: '/api/applications/hello-world/joke',
+        status: 502,
+        requestId: 'request-hello-world-502',
+      }),
+    );
+    consoleError.mockRestore();
   });
 
   it('bloquea en la interfaz una ruta interna que no está asignada', async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { translateEnglishToSpanish } from './mymemory-translation';
+import { MyMemoryTranslationError, translateEnglishToSpanish } from './mymemory-translation';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -52,6 +52,17 @@ describe('translateEnglishToSpanish', () => {
     await expect(translateEnglishToSpanish('A joke.', malformedFetch)).rejects.toThrow(
       'formato inesperado',
     );
+  });
+
+  it('tipa una falla de red y conserva la causa original', async () => {
+    const networkError = new TypeError('Failed to fetch');
+    const fetchImplementation = vi.fn<typeof fetch>().mockRejectedValue(networkError);
+
+    await expect(translateEnglishToSpanish('A joke.', fetchImplementation)).rejects.toMatchObject({
+      name: 'MyMemoryTranslationError',
+      code: 'MYMEMORY_REQUEST_FAILED',
+      cause: networkError,
+    } satisfies Partial<MyMemoryTranslationError>);
   });
 
   it('no envía textos vacíos ni superiores a 500 bytes', async () => {

@@ -1,8 +1,10 @@
 # Observabilidad compartida
 
 Funciones puras de logging operativo (`requestId`, ruta sin query, redacción de secretos/PII y
-construcción de campos seguros de diagnóstico) usadas por `apps/api` y por el gateway de
-`apps/web/server`. No depende de NestJS, Express ni de un servidor propio.
+construcción de campos seguros de diagnóstico) usadas por `apps/api`, el gateway de
+`apps/web/server` y el diagnóstico del navegador en `apps/web/src`. No depende de NestJS, Express,
+un servidor propio ni módulos exclusivos de Node; la generación de UUID usa Web Crypto, disponible
+en los runtimes soportados por el workspace.
 
 Antes de agregar una función o consumir este paquete, consultar
 [`docs/OBSERVABILITY_LOGGING.md`](../../docs/OBSERVABILITY_LOGGING.md). Esa guía define cuándo usar

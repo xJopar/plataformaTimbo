@@ -1,5 +1,6 @@
 import createClient from 'openapi-fetch';
 import type { paths } from '@timbo/contracts/openapi';
+import { isValidIncomingRequestId } from '@timbo/observability';
 
 export type HealthResponse = NonNullable<
   paths['/api/health']['get']['responses'][200]['content']['application/json']
@@ -10,10 +11,23 @@ export interface SystemApi {
 }
 
 export class ApiHttpError extends Error {
-  constructor(readonly status: number) {
+  constructor(
+    readonly status: number,
+    readonly requestId?: string,
+  ) {
     super(`La API respondió con el estado HTTP ${String(status)}.`);
     this.name = 'ApiHttpError';
   }
+}
+
+export function createApiHttpError(response: Response): ApiHttpError {
+  const responseRequestId = response.headers.get('x-request-id');
+  const requestId =
+    responseRequestId !== null && isValidIncomingRequestId(responseRequestId)
+      ? responseRequestId
+      : undefined;
+
+  return new ApiHttpError(response.status, requestId);
 }
 
 export function createSystemApi(
@@ -31,7 +45,7 @@ export function createSystemApi(
       const { data, response } = await client.GET('/api/health');
 
       if (!response.ok) {
-        throw new ApiHttpError(response.status);
+        throw createApiHttpError(response);
       }
 
       if (data === undefined) {

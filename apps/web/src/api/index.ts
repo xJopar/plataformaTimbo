@@ -33,7 +33,8 @@ export {
   type AdministrativeUser,
   type AdministrativeUserApplicationAccess,
 } from './administration';
-export { ApiHttpError, type HealthResponse, type SystemApi } from './system';
+export { ApiHttpError, createApiHttpError, type HealthResponse, type SystemApi } from './system';
+export { ApplicationsApiUnavailableError } from './applications';
 export {
   type ApplicationsApi,
   type AuthorizedApplication,

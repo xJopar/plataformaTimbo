@@ -45,6 +45,8 @@ Reglas durables que se aplican a todo el código de este repositorio, independie
 - Un error inesperado nunca se silencia, se transforma en éxito ni activa un valor por defecto engañoso. Los `catch` se reservan para aportar contexto, traducir una falla esperada o hacer cleanup; después de eso el fallo sigue siendo explícito.
 - Los diagnósticos conservan operación, clase, código y stack cuando están disponibles, junto con identificadores seguros que ayuden a investigar.
 - Antes de registrar o exponer un error se redactan `DATABASE_URL`, cabeceras `Authorization`, cookies, tokens, contraseñas, secretos y PII innecesaria. No se serializan ciegamente objetos de error ni `process.env`.
+- En React, cada `catch` de una operación asíncrona recibe `error: unknown`. Las fallas externas conocidas se traducen a errores propios, producen un estado visible y recuperable, y se reportan una sola vez con `reportBrowserOperationFailed`. Todo error ajeno a esas clases se reporta y se vuelve a lanzar para que no quede oculto como un error genérico de interfaz.
+- El diagnóstico del navegador usa rutas sin query string y campos en allowlist. Preserva el `X-Request-Id` válido de una respuesta API, pero nunca cuerpos, texto de negocio, headers completos, credenciales ni objetos `Error` serializados directamente.
 
 ## Persistencia y migraciones
 

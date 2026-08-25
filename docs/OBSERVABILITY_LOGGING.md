@@ -6,11 +6,11 @@ responde una pregunta distinta y tiene un destino y una semántica de fallo prop
 
 ## Elegir la señal correcta
 
-| Señal         | Pregunta                                                                                          | Destino                                | Regla de consistencia                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Log operativo | ¿Qué ocurrió técnicamente y cómo se diagnostica?                                                  | JSON en stdout/stderr de API o gateway | Un fallo del logger no convierte una operación empresarial en éxito ni habilita un default engañoso.                          |
-| Auditoría     | ¿Quién realizó o intentó una acción relevante de seguridad o administración y sobre qué objetivo? | `audit_events` en PostgreSQL           | Se escribe en la misma transacción que el cambio relevante. Si una parte falla, ambas hacen rollback.                         |
-| Evento de uso | ¿Cómo se utiliza una aplicación para orientar producto y operación?                               | `usage_events` en PostgreSQL           | Es idempotente por `eventId`; un fallo de persistencia devuelve `failed` y genera diagnóstico, sin fingir que fue registrado. |
+| Señal         | Pregunta                                                                                          | Destino                                                                                | Regla de consistencia                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Log operativo | ¿Qué ocurrió técnicamente y cómo se diagnostica?                                                  | JSON en stdout/stderr de API o gateway; diagnóstico seguro en la consola del navegador | Un fallo del logger no convierte una operación empresarial en éxito ni habilita un default engañoso.                          |
+| Auditoría     | ¿Quién realizó o intentó una acción relevante de seguridad o administración y sobre qué objetivo? | `audit_events` en PostgreSQL                                                           | Se escribe en la misma transacción que el cambio relevante. Si una parte falla, ambas hacen rollback.                         |
+| Evento de uso | ¿Cómo se utiliza una aplicación para orientar producto y operación?                               | `usage_events` en PostgreSQL                                                           | Es idempotente por `eventId`; un fallo de persistencia devuelve `failed` y genera diagnóstico, sin fingir que fue registrado. |
 
 Una operación puede necesitar más de una señal. Por ejemplo, una mutación administrativa puede
 producir auditoría transaccional y también quedar incluida en la finalización HTTP operativa. Eso
@@ -24,10 +24,10 @@ analítica de uso como evidencia de seguridad.
 
 Las funciones puras de `requestId`, normalización de ruta, redacción de secretos/PII y
 construcción de campos de diagnóstico viven en `packages/observability/src/` y las consumen
-ambos servicios: `apps/api` (CommonJS) las importa como paquete workspace, y el gateway ESM de
-`apps/web/server` las importa igual que ya importa `serve-handler` (interop nativo de Node entre
-ESM e imports nombrados de un paquete CommonJS). Ninguno de los dos servidores HTTP, middlewares
-ni loggers vive en el paquete: cada app conserva el suyo.
+API, gateway y navegador. `apps/api` (CommonJS) las importa como paquete workspace; el gateway
+ESM de `apps/web/server` las importa igual que ya importa `serve-handler`; y el bundle Vite usa
+las mismas funciones puras desde `apps/web/src/browser-diagnostics.ts`. Ningún servidor HTTP,
+middleware ni emisor vive en el paquete: cada runtime conserva el suyo.
 
 ## `X-Request-Id`: de la API al gateway y de vuelta al navegador
 
@@ -76,6 +76,29 @@ para decisiones de seguridad: se reemplaza por un UUID (`generateRequestId`, ver
   una finalización por petición mediante una guarda idempotente en `finish`/`close` del mismo
   patrón que `RequestContextMiddleware`.
 
+### En el navegador (`apps/web/src`)
+
+- `reportBrowserOperationFailed` (`browser-diagnostics.ts`) es la frontera única para fallas de
+  operaciones de interfaz que necesitan diagnóstico. Emite un objeto estructurado mediante
+  `console.error`; la consola es una ayuda inmediata y no reemplaza un log persistente del
+  servidor ni una futura herramienta de monitoreo de frontend.
+- El diagnóstico se mantiene seguro en todos los builds. Esto permite investigar también el
+  despliegue de desarrollo, aunque Vite lo haya construido en modo optimizado, sin habilitar un
+  modo que exponga datos crudos.
+- Una falla externa conocida se modela con una clase propia, se diagnostica una sola vez y puede
+  convertirse en un estado recuperable con reintento. Un error inesperado se diagnostica con la
+  misma estructura y después se vuelve a lanzar; queda prohibido ocultarlo con `catch {}` o una
+  respuesta visual genérica.
+- Si la respuesta de API incluye un `X-Request-Id` válido, el error HTTP lo preserva y el
+  diagnóstico lo muestra. Una llamada directa a un proveedor sin esa cabecera no inventa un
+  identificador de correlación.
+- La ruta se normaliza sin query string y el error pasa por `buildErrorDiagnosticFields`. No se
+  registran el cuerpo de `Request` o `Response`, headers completos, el texto enviado al proveedor,
+  contenido del chiste, cookies, credenciales, secretos ni PII.
+- Si un proveedor puede repetir contenido de negocio dentro de `message`, `cause` o `stack`, el
+  productor lo entrega como `sensitiveValues` sólo al motor de redacción; ese campo nunca forma
+  parte del objeto emitido.
+
 ## Eventos emitidos — API
 
 | `event`                 | Cuándo                                                                                                                                                                                                                                                                          | Emisor                                                                                                      | Destino                                             |
@@ -103,6 +126,16 @@ El gateway nunca duplica una respuesta ni un diagnóstico: `web.gateway.upstream
 `web.gateway.static_failed` complementan, sin reemplazar, la única finalización
 (`web.gateway.request.completed`) de esa misma petición.
 
+## Diagnóstico emitido — navegador
+
+| `event`                        | Cuándo                                                                                                              | Emisor                         | Destino                                |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------ | -------------------------------------- |
+| `web.browser.operation_failed` | Una operación asíncrona de la interfaz falla en una frontera que puede aportar operación, proveedor y ruta seguros. | `reportBrowserOperationFailed` | Objeto estructurado en `console.error` |
+
+El primer productor es Hello World. Distingue `hello-world.fetch-joke` de
+`hello-world.translate-joke`; así el diagnóstico identifica si falló la API propia o MyMemory sin
+registrar el chiste ni la query de traducción.
+
 ## Campos durables
 
 Comunes a todos los eventos de ambos servicios: `timestamp` (ISO 8601), `level` (`info` o
@@ -121,13 +154,18 @@ que `message`), `stack` (si está disponible). Los eventos correlacionados con u
 (`api.request.failed`, `web.gateway.upstream_unavailable`, `web.gateway.static_failed`) agregan
 además `requestId`, `method`, `route`.
 
+`web.browser.operation_failed` contiene `timestamp`, `level: 'error'`, `service: 'web'`,
+`runtime: 'browser'`, `event`, `operation`, `method`, `route`, `provider`, y agrega `status` y
+`requestId` sólo cuando están disponibles y son seguros. También incorpora `name`, `code`,
+`message`, `cause` y `stack` mediante `buildErrorDiagnosticFields`.
+
 ## Redacción
 
 Todo texto de diagnóstico (`message`, `stack`, `cause`, `code`, `name`) pasa por el mismo motor
 de redacción compartido: `redactDiagnosticText` y `buildErrorDiagnosticFields`
 (`packages/observability/src/secret-redaction.ts` y `error-diagnostic.ts`). API y gateway lo
-consumen desde el paquete `@timbo/observability` en vez de mantener dos contratos incompatibles
-de secretos. Redacta:
+consumen desde el paquete `@timbo/observability`, al igual que el diagnóstico del navegador, en
+vez de mantener contratos incompatibles de secretos. Redacta:
 
 - cualquier ocurrencia literal del valor de `DATABASE_URL` (si el llamador lo entrega) y de URLs
   `postgres(ql)://...`;
@@ -239,6 +277,20 @@ y no debe inferirse ni agregarse desde esta documentación.
   permitan investigar una falla concreta.
 - Probar abortos de cliente, timeout, upstream caído, estáticos y redacción de
   `API_INTERNAL_ORIGIN` cuando el nuevo evento pueda incluir errores de red.
+
+### En el navegador
+
+- Agregar cada operación al tipo `BrowserOperation`; no exponer un nombre de evento o payload
+  arbitrario desde los componentes.
+- Reportar en el `catch` que conoce operación, método, ruta estable y proveedor. La ruta nunca
+  incluye query string.
+- Traducir fallas externas previstas a clases propias con `name`, `code`, `status` y `cause`
+  cuando correspondan. Sólo esas clases habilitan una recuperación visual; cualquier otro error
+  se vuelve a lanzar después del diagnóstico.
+- Extraer `requestId` desde `X-Request-Id` al construir el error HTTP y conservarlo sólo si pasa
+  la validación compartida.
+- Probar el objeto enviado a `console.error`, la redacción, la normalización de ruta, la
+  correlación y la diferencia entre fallas recuperables e inesperadas.
 
 ## Nombres y campos
 

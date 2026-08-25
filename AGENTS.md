@@ -24,6 +24,7 @@ Ver `docs/CODING_CONVENTIONS.md` para el detalle completo. Resumen operativo:
 - El código generado (por ejemplo, clientes o tipos derivados de OpenAPI) se guarda separado del código escrito a mano y nunca se edita manualmente.
 - Ningún secreto (claves, tokens, contraseñas) entra al repositorio, al código, a los logs ni a los ejemplos. Las variables de entorno no secretas se documentan en `.env.example` con su valor por defecto.
 - Los errores inesperados fallan explícitamente: no se silencian, no se convierten en éxito ni activan defaults engañosos. Los diagnósticos preservan operación, clase, código y stack cuando existen, redactando secretos, credenciales y PII innecesaria.
+- En la Web no se usan `catch {}` silenciosos para operaciones asíncronas: una falla externa esperable conserva un estado recuperable y emite un diagnóstico seguro en `console.error`; un error inesperado se diagnostica con contexto y se vuelve a lanzar. Cuando una respuesta API trae `X-Request-Id`, el diagnóstico del navegador lo conserva para correlación.
 - Toda dependencia agregada debe resolver un problema concreto del incremento en curso; no se agregan dependencias especulativas.
 - `any` no se usa sin una justificación excepcional documentada en el propio código.
 

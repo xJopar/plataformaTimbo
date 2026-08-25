@@ -7,6 +7,24 @@ interface TranslationResponse {
   responseStatus: number;
 }
 
+export type MyMemoryTranslationErrorCode =
+  | 'MYMEMORY_INVALID_INPUT'
+  | 'MYMEMORY_REQUEST_FAILED'
+  | 'MYMEMORY_HTTP_ERROR'
+  | 'MYMEMORY_INVALID_RESPONSE';
+
+export class MyMemoryTranslationError extends Error {
+  constructor(
+    readonly code: MyMemoryTranslationErrorCode,
+    message: string,
+    readonly status?: number,
+    options?: ErrorOptions,
+  ) {
+    super(message, options);
+    this.name = 'MyMemoryTranslationError';
+  }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -19,7 +37,10 @@ function parseTranslationResponse(value: unknown): TranslationResponse {
     typeof value.responseData.translatedText !== 'string' ||
     value.responseData.translatedText.trim() === ''
   ) {
-    throw new Error('MyMemory respondió con un formato inesperado.');
+    throw new MyMemoryTranslationError(
+      'MYMEMORY_INVALID_RESPONSE',
+      'MyMemory respondió con un formato inesperado.',
+    );
   }
 
   return {
@@ -36,20 +57,49 @@ export async function translateEnglishToSpanish(
     originalText.trim() === '' ||
     new TextEncoder().encode(originalText).byteLength > MAXIMUM_TRANSLATION_QUERY_BYTES
   ) {
-    throw new Error('El texto no cumple el límite admitido por MyMemory.');
+    throw new MyMemoryTranslationError(
+      'MYMEMORY_INVALID_INPUT',
+      'El texto no cumple el límite admitido por MyMemory.',
+    );
   }
 
   const query = new URLSearchParams({ q: originalText, langpair: 'en|es' });
-  const response = await fetchImplementation(`${TRANSLATION_ENDPOINT}?${query.toString()}`, {
-    headers: { Accept: 'application/json' },
-    credentials: 'omit',
-    referrerPolicy: 'no-referrer',
-    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MILLISECONDS),
-  });
+  let response: Response;
+  try {
+    response = await fetchImplementation(`${TRANSLATION_ENDPOINT}?${query.toString()}`, {
+      headers: { Accept: 'application/json' },
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MILLISECONDS),
+    });
+  } catch (error: unknown) {
+    throw new MyMemoryTranslationError(
+      'MYMEMORY_REQUEST_FAILED',
+      'No fue posible comunicarse con MyMemory.',
+      undefined,
+      { cause: error },
+    );
+  }
   if (!response.ok) {
-    throw new Error(`MyMemory respondió con estado HTTP ${String(response.status)}.`);
+    throw new MyMemoryTranslationError(
+      'MYMEMORY_HTTP_ERROR',
+      `MyMemory respondió con estado HTTP ${String(response.status)}.`,
+      response.status,
+    );
   }
 
-  const translation = parseTranslationResponse(await response.json());
+  let responseBody: unknown;
+  try {
+    responseBody = await response.json();
+  } catch (error: unknown) {
+    throw new MyMemoryTranslationError(
+      'MYMEMORY_INVALID_RESPONSE',
+      'MyMemory respondió con un cuerpo JSON inválido.',
+      response.status,
+      { cause: error },
+    );
+  }
+
+  const translation = parseTranslationResponse(responseBody);
   return translation.responseData.translatedText;
 }

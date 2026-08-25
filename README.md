@@ -23,8 +23,8 @@ vigentes.
   funcionales, activación/desactivación y actividad consolidada.
 - **Acceso:** perfil de sistema `PLATFORM_ADMIN`, autorización funcional por aplicación y launcher
   filtrado por asignaciones activas.
-- **Observabilidad:** logs JSON de API y gateway, redacción segura y correlación por
-  `X-Request-Id`.
+- **Observabilidad:** logs JSON de API y gateway, diagnósticos estructurados en el navegador,
+  redacción segura y correlación por `X-Request-Id`.
 - **Datos de actividad:** auditoría persistente y base idempotente para eventos de uso; el primer
   catálogo productivo de uso llegará con una aplicación real.
 - **Experiencia:** acceso corporativo, launcher de aplicaciones autorizadas, superficies de
@@ -145,6 +145,7 @@ apps/
   web/                  # Web React/Vite (paquete @timbo/web)
     src/
       api/              # Transporte tipado para auth, applications, administration y system
+      browser-diagnostics.ts # Diagnóstico seguro y estructurado de operaciones de interfaz
       applications/     # Registro, autorización de rutas y aplicaciones internas
         hello-world/    # Interfaz y estilos propios del ejemplo Hello World
       home/             # Launcher de aplicaciones autorizadas
@@ -205,7 +206,7 @@ Para una visión de conjunto, empezar por
    `ApplicationsService`, `AccessProfilesService` o `ActivityService`.
 4. **Auditoría:** operación propietaria → transacción Prisma → `AuditEventsService` → `AUDIT_EVENT_CATALOG`.
 5. **Uso:** productor futuro → `UsageEventsService` → catálogo inyectado → persistencia idempotente.
-6. **Observabilidad:** middleware o gateway → contexto `requestId` → logger propio → funciones puras de `@timbo/observability`.
+6. **Observabilidad:** middleware, gateway o frontera de interfaz → contexto seguro y `requestId` cuando existe → emisor propio → funciones puras de `@timbo/observability`.
 7. **Contrato Web/API:** controller y DTO → `export-openapi.ts` → `packages/contracts` → fachada de `apps/web/src/api`.
 
 ## Pruebas

@@ -1,5 +1,3 @@
-import { randomUUID } from 'node:crypto';
-
 export const INCOMING_REQUEST_ID_HEADER = 'x-request-id';
 export const RESPONSE_REQUEST_ID_HEADER = 'X-Request-Id';
 
@@ -18,7 +16,7 @@ export function isValidIncomingRequestId(value: string | undefined): value is st
 }
 
 export function generateRequestId(): string {
-  return randomUUID();
+  return globalThis.crypto.randomUUID();
 }
 
 /**

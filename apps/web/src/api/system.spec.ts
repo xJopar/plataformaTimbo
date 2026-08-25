@@ -22,10 +22,13 @@ describe('createSystemApi', () => {
     });
   });
 
-  it('representa un fallo HTTP como error', async () => {
-    const fetchImplementation = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(new Response(null, { status: 503 }));
+  it('representa un fallo HTTP como error y conserva un requestId válido', async () => {
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(null, {
+        status: 503,
+        headers: { 'x-request-id': 'request-health-503' },
+      }),
+    );
     const systemApi = createSystemApi('http://localhost:3000', fetchImplementation);
 
     let caughtError: unknown;
@@ -40,6 +43,7 @@ describe('createSystemApi', () => {
       throw new Error('Se esperaba un ApiHttpError.');
     }
     expect(caughtError.status).toBe(503);
+    expect(caughtError.requestId).toBe('request-health-503');
   });
 
   it('propaga un fallo de red', async () => {

@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { HelloWorldJoke } from '../../api';
+import { ApiHttpError, ApplicationsApiUnavailableError, type HelloWorldJoke } from '../../api';
+import {
+  reportBrowserOperationFailed,
+  type BrowserOperationFailureContext,
+} from '../../browser-diagnostics';
 import type { ApplicationComponentProps } from '../application-component';
 import './hello-world-application.css';
-import { translateEnglishToSpanish } from './mymemory-translation';
+import { MyMemoryTranslationError, translateEnglishToSpanish } from './mymemory-translation';
 
 type JokeState =
   | { status: 'idle' }
@@ -18,29 +22,62 @@ export function HelloWorldApplication({
   onNavigate,
   onLogout,
 }: ApplicationComponentProps): React.JSX.Element {
-  const currentRequestId = useRef(0);
+  const currentRequestSequence = useRef(0);
   const [jokeState, setJokeState] = useState<JokeState>({ status: 'idle' });
 
   useEffect(
     () => () => {
-      currentRequestId.current += 1;
+      currentRequestSequence.current += 1;
     },
     [],
   );
 
   const loadJoke = useCallback(async (): Promise<void> => {
-    const requestId = currentRequestId.current + 1;
-    currentRequestId.current = requestId;
+    const requestSequence = currentRequestSequence.current + 1;
+    currentRequestSequence.current = requestSequence;
     setJokeState({ status: 'loading' });
+    let failureContext: BrowserOperationFailureContext = {
+      operation: 'hello-world.fetch-joke',
+      method: 'GET',
+      route: '/api/applications/hello-world/joke',
+      provider: 'api',
+    };
 
     try {
       const joke = await api.applications.getHelloWorldJoke();
+      failureContext = {
+        operation: 'hello-world.translate-joke',
+        method: 'GET',
+        route: 'https://api.mymemory.translated.net/get',
+        provider: 'mymemory',
+        sensitiveValues: [joke.originalText],
+      };
       const translatedText = await translateEnglishToSpanish(joke.originalText);
-      if (requestId === currentRequestId.current) {
+      if (requestSequence === currentRequestSequence.current) {
         setJokeState({ status: 'ready', joke, translatedText });
       }
-    } catch {
-      if (requestId === currentRequestId.current) {
+    } catch (error: unknown) {
+      reportBrowserOperationFailed(error, {
+        ...failureContext,
+        ...(error instanceof ApiHttpError
+          ? {
+              status: error.status,
+              ...(error.requestId === undefined ? {} : { requestId: error.requestId }),
+            }
+          : error instanceof MyMemoryTranslationError && error.status !== undefined
+            ? { status: error.status }
+            : {}),
+      });
+
+      const isRecoverableProviderFailure =
+        error instanceof ApiHttpError ||
+        error instanceof ApplicationsApiUnavailableError ||
+        error instanceof MyMemoryTranslationError;
+      if (!isRecoverableProviderFailure) {
+        throw error;
+      }
+
+      if (requestSequence === currentRequestSequence.current) {
         setJokeState({ status: 'error' });
       }
     }
