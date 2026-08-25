@@ -4,25 +4,24 @@ import { HelloWorldProviderUnavailableError } from './hello-world.errors';
 import { HelloWorldService } from './hello-world.service';
 
 describe('HelloWorldController', () => {
-  const helloWorldService = { getTranslatedJoke: jest.fn() };
+  const helloWorldService = { getJoke: jest.fn() };
   const controller = new HelloWorldController(helloWorldService as unknown as HelloWorldService);
 
-  beforeEach(() => helloWorldService.getTranslatedJoke.mockReset());
+  beforeEach(() => helloWorldService.getJoke.mockReset());
 
-  it('delega la obtención y traducción del chiste', async () => {
+  it('delega la obtención del chiste', async () => {
     const joke = {
       id: 'joke-a',
       originalText: 'A short joke.',
-      translatedText: 'Un chiste corto.',
     };
-    helloWorldService.getTranslatedJoke.mockResolvedValue(joke);
+    helloWorldService.getJoke.mockResolvedValue(joke);
 
     await expect(controller.getJoke()).resolves.toEqual(joke);
-    expect(helloWorldService.getTranslatedJoke).toHaveBeenCalledTimes(1);
+    expect(helloWorldService.getJoke).toHaveBeenCalledTimes(1);
   });
 
   it('traduce una indisponibilidad externa a un error público recuperable', async () => {
-    helloWorldService.getTranslatedJoke.mockRejectedValue(
+    helloWorldService.getJoke.mockRejectedValue(
       new HelloWorldProviderUnavailableError('Proveedor no disponible.'),
     );
 
@@ -43,7 +42,7 @@ describe('HelloWorldController', () => {
 
   it('no oculta errores inesperados', async () => {
     const unexpectedError = new Error('unexpected');
-    helloWorldService.getTranslatedJoke.mockRejectedValue(unexpectedError);
+    helloWorldService.getJoke.mockRejectedValue(unexpectedError);
 
     await expect(controller.getJoke()).rejects.toBe(unexpectedError);
   });

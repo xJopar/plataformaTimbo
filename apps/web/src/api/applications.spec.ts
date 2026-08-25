@@ -50,7 +50,6 @@ describe('createApplicationsApi', () => {
         JSON.stringify({
           id: 'joke-a',
           originalText: 'A short joke.',
-          translatedText: 'Un chiste corto.',
         }),
         {
           status: 200,

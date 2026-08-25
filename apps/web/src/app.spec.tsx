@@ -13,6 +13,12 @@ import {
   type AuthorizedApplication,
 } from './api';
 
+vi.mock('./applications/hello-world/mymemory-translation', () => ({
+  translateEnglishToSpanish: vi.fn((originalText: string) =>
+    Promise.resolve(originalText === 'Recovered joke.' ? 'Chiste recuperado.' : 'Un chiste corto.'),
+  ),
+}));
+
 const session: AuthSession = {
   id: '3f8a7c4e-6597-42d6-891b-7c7cb1fab2bc',
   corporateEmail: 'persona@timbo.com',
@@ -105,7 +111,6 @@ function createApi(
       getHelloWorldJoke: vi.fn<ApplicationsApi['getHelloWorldJoke']>().mockResolvedValue({
         id: 'joke-a',
         originalText: 'A short joke.',
-        translatedText: 'Un chiste corto.',
       }),
       ...applicationsOverrides,
     },
@@ -730,7 +735,6 @@ describe('App', () => {
       .mockResolvedValueOnce({
         id: 'joke-b',
         originalText: 'Recovered joke.',
-        translatedText: 'Chiste recuperado.',
       });
     const user = userEvent.setup();
     render(

@@ -14,22 +14,14 @@ describe('HelloWorldService', () => {
 
   beforeEach(() => fetchImplementation.mockReset());
 
-  it('obtiene un chiste en inglés y lo traduce al español sin clave de API', async () => {
-    fetchImplementation
-      .mockResolvedValueOnce(
-        jsonResponse({ id: 'joke-a', joke: 'What is brown and sticky? A stick.' }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse({
-          responseData: { translatedText: '¿Qué es marrón y pegajoso? Un palo.' },
-          responseStatus: 200,
-        }),
-      );
+  it('obtiene un chiste en inglés desde icanhazdadjoke', async () => {
+    fetchImplementation.mockResolvedValueOnce(
+      jsonResponse({ id: 'joke-a', joke: 'What is brown and sticky? A stick.' }),
+    );
 
-    await expect(service.getTranslatedJoke()).resolves.toEqual({
+    await expect(service.getJoke()).resolves.toEqual({
       id: 'joke-a',
       originalText: 'What is brown and sticky? A stick.',
-      translatedText: '¿Qué es marrón y pegajoso? Un palo.',
     });
 
     const dadJokeCall = fetchImplementation.mock.calls[0];
@@ -38,53 +30,13 @@ describe('HelloWorldService', () => {
       expect.objectContaining({ Accept: 'application/json' }),
     );
     expect(dadJokeCall?.[1]?.signal).toBeInstanceOf(AbortSignal);
-
-    const translationInput = fetchImplementation.mock.calls[1]?.[0];
-    let translationUrl: URL;
-    if (typeof translationInput === 'string') {
-      translationUrl = new URL(translationInput);
-    } else if (translationInput instanceof URL) {
-      translationUrl = translationInput;
-    } else if (translationInput instanceof Request) {
-      translationUrl = new URL(translationInput.url);
-    } else {
-      throw new Error('No se construyó la petición de traducción esperada.');
-    }
-    expect(translationUrl.origin + translationUrl.pathname).toBe(
-      'https://api.mymemory.translated.net/get',
-    );
-    expect(translationUrl.searchParams.get('q')).toBe('What is brown and sticky? A stick.');
-    expect(translationUrl.searchParams.get('langpair')).toBe('en|es');
-    expect(translationUrl.searchParams.has('key')).toBe(false);
+    expect(fetchImplementation).toHaveBeenCalledTimes(1);
   });
 
   it('falla explícitamente cuando el proveedor de chistes responde con un formato inesperado', async () => {
     fetchImplementation.mockResolvedValueOnce(jsonResponse({ id: 'joke-a' }));
 
-    await expect(service.getTranslatedJoke()).rejects.toBeInstanceOf(
-      HelloWorldProviderUnavailableError,
-    );
-    expect(fetchImplementation).toHaveBeenCalledTimes(1);
-  });
-
-  it('falla explícitamente cuando la traducción no está disponible', async () => {
-    fetchImplementation
-      .mockResolvedValueOnce(jsonResponse({ id: 'joke-a', joke: 'A short joke.' }))
-      .mockResolvedValueOnce(
-        jsonResponse({ responseData: { translatedText: '' }, responseStatus: 429 }),
-      );
-
-    await expect(service.getTranslatedJoke()).rejects.toBeInstanceOf(
-      HelloWorldProviderUnavailableError,
-    );
-  });
-
-  it('no envía a traducción un texto que supera el límite de 500 bytes', async () => {
-    fetchImplementation.mockResolvedValueOnce(
-      jsonResponse({ id: 'joke-a', joke: 'a'.repeat(501) }),
-    );
-
-    await expect(service.getTranslatedJoke()).rejects.toThrow('supera el límite');
+    await expect(service.getJoke()).rejects.toBeInstanceOf(HelloWorldProviderUnavailableError);
     expect(fetchImplementation).toHaveBeenCalledTimes(1);
   });
 
@@ -92,7 +44,7 @@ describe('HelloWorldService', () => {
     const networkError = new Error('network unavailable');
     fetchImplementation.mockRejectedValueOnce(networkError);
 
-    await expect(service.getTranslatedJoke()).rejects.toEqual(
+    await expect(service.getJoke()).rejects.toEqual(
       expect.objectContaining({
         name: 'HelloWorldProviderUnavailableError',
         cause: networkError,

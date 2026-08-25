@@ -18,19 +18,19 @@ export class HelloWorldController {
   @Get('joke')
   @ApiOperation({
     operationId: 'getHelloWorldJoke',
-    summary: 'Obtiene un chiste en inglés y su traducción al español.',
+    summary: 'Obtiene un chiste en inglés para la aplicación Hello World.',
   })
   @ApiOkResponse({ type: HelloWorldJokeResponseDto })
-  @ApiBadGatewayResponse({ description: 'Uno de los proveedores externos no está disponible.' })
+  @ApiBadGatewayResponse({ description: 'El proveedor de chistes no está disponible.' })
   public async getJoke(): Promise<HelloWorldJokeResponseDto> {
     try {
-      return toHelloWorldJokeResponse(await this.helloWorldService.getTranslatedJoke());
+      return toHelloWorldJokeResponse(await this.helloWorldService.getJoke());
     } catch (error) {
       if (error instanceof HelloWorldProviderUnavailableError) {
         throw new BadGatewayException(
           {
             code: 'HELLO_WORLD_UNAVAILABLE',
-            message: 'No pudimos obtener y traducir el chiste. Intentá nuevamente.',
+            message: 'No pudimos obtener el chiste. Intentá nuevamente.',
           },
           { cause: error },
         );

@@ -2,11 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HelloWorldJoke } from '../../api';
 import type { ApplicationComponentProps } from '../application-component';
 import './hello-world-application.css';
+import { translateEnglishToSpanish } from './mymemory-translation';
 
 type JokeState =
   | { status: 'idle' }
   | { status: 'loading' }
-  | { status: 'ready'; joke: HelloWorldJoke }
+  | { status: 'ready'; joke: HelloWorldJoke; translatedText: string }
   | { status: 'error' };
 
 export function HelloWorldApplication({
@@ -34,8 +35,9 @@ export function HelloWorldApplication({
 
     try {
       const joke = await api.applications.getHelloWorldJoke();
+      const translatedText = await translateEnglishToSpanish(joke.originalText);
       if (requestId === currentRequestId.current) {
-        setJokeState({ status: 'ready', joke });
+        setJokeState({ status: 'ready', joke, translatedText });
       }
     } catch {
       if (requestId === currentRequestId.current) {
@@ -108,7 +110,7 @@ export function HelloWorldApplication({
             </div>
             <div>
               <h2>Español</h2>
-              <p lang="es">{jokeState.joke.translatedText}</p>
+              <p lang="es">{jokeState.translatedText}</p>
             </div>
           </section>
         ) : null}

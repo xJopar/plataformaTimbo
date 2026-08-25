@@ -35,8 +35,7 @@ API NestJS y única propietaria de PostgreSQL y Prisma. Sus módulos vigentes so
 
 - `health`: disponibilidad de la API;
 - `auth`: OAuth con Google, cookie de sesión, logout, CSRF y traducción de errores públicos;
-- `hello-world`: endpoint funcional protegido, obtención de chistes desde icanhazdadjoke y
-  traducción inglés-español mediante MyMemory;
+- `hello-world`: endpoint funcional protegido y obtención de chistes desde icanhazdadjoke;
 - `users`: preautorización, consulta y cambios administrativos de usuarios;
 - `access-profiles`: perfil de sistema `PLATFORM_ADMIN` y autorización funcional por aplicación;
 - `administration`: endpoints protegidos para usuarios, aplicaciones, asignaciones, perfiles,
@@ -122,11 +121,16 @@ seguir verificando acceso y permisos mediante `ApplicationAuthorizationService`.
 
 `GET /api/applications/hello-world/joke` aplica `SessionAuthenticationGuard` y vuelve a comprobar
 la asignación activa de `hello-world` mediante `ApplicationAuthorizationService`. Después obtiene
-un chiste en inglés desde icanhazdadjoke y solicita su traducción a MyMemory. Es una demostración
-sin secretos ni configuración adicional: ambos proveedores se consumen sin clave. El servicio
-limita cada llamada externa a ocho segundos y respeta el máximo de 500 bytes de MyMemory; una falla
-externa devuelve `502` y la Web permite reintentar. El texto original y traducido no se incorpora a
-logs, auditoría ni eventos de uso.
+un chiste en inglés desde icanhazdadjoke. Con ese resultado autorizado, la Web solicita directamente
+la traducción inglés-español a MyMemory: no envía cookies, credenciales, referrer, identidad ni datos
+de sesión, solamente el texto público del chiste. Esta separación evita consumir la cuota anónima
+desde el IP de salida compartido de Railway, que puede estar limitado aunque el usuario todavía
+disponga de cuota desde su propia red.
+
+Es una demostración sin secretos ni configuración adicional: ambos proveedores se consumen sin
+clave, cada llamada tiene un timeout de ocho segundos y la Web respeta el máximo de 500 bytes de
+MyMemory. Una falla externa se presenta como recuperable. El texto original y traducido no se
+incorpora a logs, auditoría ni eventos de uso.
 
 ### Auditoría, uso y actividad
 

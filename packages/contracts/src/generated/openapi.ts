@@ -459,7 +459,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Obtiene un chiste en inglés y su traducción al español. */
+        /** Obtiene un chiste en inglés para la aplicación Hello World. */
         get: operations["getHelloWorldJoke"];
         put?: never;
         post?: never;
@@ -644,8 +644,6 @@ export interface components {
             id: string;
             /** @example Why did the scarecrow win an award? He was outstanding in his field. */
             originalText: string;
-            /** @example ¿Por qué ganó un premio el espantapájaros? Destacaba en su campo. */
-            translatedText: string;
         };
         HealthResponseDto: {
             /**
@@ -1463,7 +1461,7 @@ export interface operations {
                     "application/json": components["schemas"]["HelloWorldJokeResponseDto"];
                 };
             };
-            /** @description Uno de los proveedores externos no está disponible. */
+            /** @description El proveedor de chistes no está disponible. */
             502: {
                 headers: {
                     [name: string]: unknown;

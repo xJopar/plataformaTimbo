@@ -180,8 +180,10 @@ AGENTS.md                 # Reglas durables para agentes que trabajen en este re
    el perfil de administrador; desde Usuarios se administran asignaciones y perfiles funcionales.
    `/apps/hello-world` sólo se presenta cuando está asignada. Su botón llama al endpoint protegido
    `GET /api/applications/hello-world/joke`, que vuelve a validar la asignación en la API antes de
-   consultar icanhazdadjoke y MyMemory. Ninguno de los dos proveedores requiere clave; sus límites
-   o indisponibilidad se presentan como un error recuperable y no se registra el contenido del
+   consultar icanhazdadjoke. La Web envía únicamente el texto público obtenido a MyMemory desde el
+   navegador, con credenciales y referrer omitidos, para no depender de la cuota del IP de salida
+   compartido del servidor. Ninguno de los dos proveedores requiere clave; sus límites o
+   indisponibilidad se presentan como un error recuperable y no se registra el contenido del
    chiste.
 8. Consultar el estado de disponibilidad: `GET http://localhost:3000/api/health`. Debe responder `200` con un cuerpo como:
 

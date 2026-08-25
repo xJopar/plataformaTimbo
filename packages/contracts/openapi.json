@@ -1384,10 +1384,10 @@
             }
           },
           "502": {
-            "description": "Uno de los proveedores externos no está disponible."
+            "description": "El proveedor de chistes no está disponible."
           }
         },
-        "summary": "Obtiene un chiste en inglés y su traducción al español.",
+        "summary": "Obtiene un chiste en inglés para la aplicación Hello World.",
         "tags": [
           "applications"
         ]
@@ -1824,16 +1824,11 @@
           "originalText": {
             "type": "string",
             "example": "Why did the scarecrow win an award? He was outstanding in his field."
-          },
-          "translatedText": {
-            "type": "string",
-            "example": "¿Por qué ganó un premio el espantapájaros? Destacaba en su campo."
           }
         },
         "required": [
           "id",
-          "originalText",
-          "translatedText"
+          "originalText"
         ]
       },
       "HealthResponseDto": {
