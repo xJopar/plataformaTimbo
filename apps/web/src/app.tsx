@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import type {
   ActivityFilters,
   AdministrativeActivity,
@@ -14,6 +14,7 @@ import { ApplicationsPanel } from './applications-panel';
 import { AccessManagementPanel } from './access-management-panel';
 import { AuthorizedApplicationRoute } from './applications/authorized-application-route';
 import { HomeLauncher } from './home/home-launcher';
+import { AccessShell } from './auth/access-shell';
 import './app.css';
 
 interface AppProps {
@@ -181,7 +182,9 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
   );
 
   if (authenticationState.status === 'checking') {
-    return <AccessShell title="Verificando sesión" detail="Comprobando tu acceso corporativo." />;
+    return (
+      <AccessShell title="Verificando sesión" detail="Comprobando tu acceso corporativo." isBusy />
+    );
   }
 
   if (authenticationState.status === 'signed-out' || authenticationState.status === 'rejected') {
@@ -195,8 +198,11 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
         detail="Ingresá con tu cuenta corporativa autorizada."
       >
         {rejectionMessage === undefined ? null : <p role="alert">{rejectionMessage}</p>}
-        <button className="action-button" type="button" onClick={beginGoogleLogin}>
-          Ingresar con Google
+        <button className="access-primary-action" type="button" onClick={beginGoogleLogin}>
+          <span className="access-google-mark" aria-hidden="true">
+            G
+          </span>
+          <span>Ingresar con Google</span>
         </button>
       </AccessShell>
     );
@@ -209,7 +215,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
         detail="La sesión no pudo consultarse en este momento."
       >
         <p role="alert">{authenticationState.error.message}</p>
-        <button className="action-button" type="button" onClick={() => void loadSession()}>
+        <button className="access-primary-action" type="button" onClick={() => void loadSession()}>
           Reintentar
         </button>
       </AccessShell>
@@ -1089,30 +1095,5 @@ function ActivityRow({ item }: { item: AdministrativeActivityItem }): React.JSX.
         )}
       </td>
     </tr>
-  );
-}
-
-interface AccessShellProps {
-  title: string;
-  detail: string;
-  children?: ReactNode;
-}
-
-function AccessShell({ title, detail, children }: AccessShellProps): React.JSX.Element {
-  return (
-    <main className="platform-shell" data-visual-contract="matriz-continua-tablero-despacho">
-      <header className="top-bar">
-        <p className="product-name">Plataforma Timbo</p>
-      </header>
-      <section className="subheader" aria-label="Estado de acceso">
-        <p>Acceso corporativo</p>
-      </section>
-      <section className="access-surface" aria-labelledby="access-title">
-        <p className="eyebrow">Plataforma Timbo</p>
-        <h1 id="access-title">{title}</h1>
-        <p>{detail}</p>
-        {children}
-      </section>
-    </main>
   );
 }

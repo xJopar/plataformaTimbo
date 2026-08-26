@@ -110,6 +110,10 @@ describe('createGatewayServer', () => {
       `<!doctype html><html><body>${SPA_INDEX_MARKER}</body></html>`,
     );
     await writeFile(path.join(staticDir, 'assets', 'app.js'), 'console.log("asset-marker");');
+    await writeFile(
+      path.join(staticDir, 'manifest.webmanifest'),
+      JSON.stringify({ name: 'Plataforma Timbo' }),
+    );
   });
 
   afterAll(async () => {
@@ -330,6 +334,21 @@ describe('createGatewayServer', () => {
 
       expect(response.status).toBe(404);
       await expect(response.text()).resolves.not.toContain(SPA_INDEX_MARKER);
+    });
+
+    it('sirve el manifiesto como archivo estático y nunca lo reescribe a la SPA', async () => {
+      const response = await fetch(`http://127.0.0.1:${String(gatewayPort)}/manifest.webmanifest`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toContain('application/manifest+json');
+      expect(response.headers.get('cache-control')).toBe('no-cache');
+      await expect(response.json()).resolves.toEqual({ name: 'Plataforma Timbo' });
+
+      const missingResponse = await fetch(
+        `http://127.0.0.1:${String(gatewayPort)}/icons/icono-obsoleto.png`,
+      );
+      expect(missingResponse.status).toBe(404);
+      await expect(missingResponse.text()).resolves.not.toContain(SPA_INDEX_MARKER);
     });
   });
 

@@ -63,8 +63,7 @@ button:focus-visible {
   color: #334155;
   font-size: 0.875rem;
 }
-.dispatch-board,
-.access-surface {
+.dispatch-board {
   width: min(1120px, 100%);
   margin: 0 auto;
   padding: clamp(36px, 7vw, 88px) 5vw;
@@ -182,26 +181,11 @@ h1 {
   border-bottom: 1px solid #bcc9d7;
   background: #f7f9fb;
 }
-.empty-surface p,
-.access-surface > p {
+.empty-surface p {
   max-width: 52ch;
   margin: 0;
   color: #475569;
   line-height: 1.6;
-}
-.access-surface {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  min-height: calc(100vh - 108px);
-  display: grid;
-  align-content: center;
-  justify-items: start;
-  padding-left: max(5vw, calc((100vw - 1120px) / 2));
-  padding-right: max(5vw, calc((100vw - 1120px) / 2));
-  border-top: 1px solid #bcc9d7;
-  border-bottom: 1px solid #bcc9d7;
-  background: #f7f9fb;
 }
 .action-button,
 .logout-button,
@@ -736,8 +720,7 @@ th {
     padding: 10px 20px;
     display: grid;
   }
-  .dispatch-board,
-  .access-surface {
+  .dispatch-board {
     padding: 36px 20px;
   }
   .empty-surface {

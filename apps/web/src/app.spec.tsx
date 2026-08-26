@@ -125,6 +125,14 @@ describe('App', () => {
 
     expect(await screen.findByRole('heading', { name: 'Acceso corporativo' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ingresar con Google' })).toBeInTheDocument();
+    expect(document.querySelector('.access-brand-picture source')).toHaveAttribute(
+      'srcset',
+      expect.stringContaining('timbo-facility-640.webp'),
+    );
+    expect(document.querySelector('.access-wordmark')).toHaveAttribute(
+      'src',
+      '/brand/timbo-wordmark.webp',
+    );
   });
 
   it('muestra el launcher seguro y el estado vacío cuando existe sesión', async () => {
