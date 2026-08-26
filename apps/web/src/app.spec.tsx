@@ -791,6 +791,9 @@ describe('App', () => {
     expect(screen.queryByRole('link', { name: 'Inicio' })).not.toBeInTheDocument();
     expect(screen.queryByText('Herramienta de demostración')).not.toBeInTheDocument();
     expect(screen.getByText('Hola,')).toBeInTheDocument();
+    const applicationSwitcher = screen.getByRole('link', { name: 'Cambiar aplicación' });
+    expect(applicationSwitcher).toHaveAttribute('href', '/');
+    expect(applicationSwitcher.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument();
     const logoutButton = screen.getByRole('button', { name: 'Cerrar sesión' });
     expect(logoutButton).toHaveAttribute('data-tooltip', 'Cerrar sesión');
     expect(logoutButton.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument();

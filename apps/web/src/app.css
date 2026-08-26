@@ -51,7 +51,8 @@ button:focus-visible {
   min-height: 64px;
 }
 .top-bar--application {
-  grid-template-columns: minmax(0, 1fr) minmax(14rem, 26rem) auto;
+  min-height: 64px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
 }
 .top-bar-brand {
   min-width: 0;
@@ -69,25 +70,12 @@ button:focus-visible {
   display: block;
 }
 
-.application-context {
+.application-current {
   min-width: 0;
-  padding-inline: 16px;
-  display: grid;
-  gap: 2px;
-  border-inline: 1px solid rgba(255, 255, 255, 0.42);
+  margin: 0;
+  padding-inline: clamp(20px, 3vw, 48px);
   color: #fff;
-}
-.application-context-label {
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.application-context-name {
-  min-width: 0;
-  color: #fff;
-  font-size: 0.9375rem;
+  font-size: clamp(0.9375rem, 1.5vw, 1.125rem);
   font-weight: 750;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -112,6 +100,27 @@ button:focus-visible {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
+}
+.application-switcher {
+  position: relative;
+  min-height: 44px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  color: inherit;
+  font-size: 0.875rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+.application-switcher:hover {
+  border-color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.1);
+}
+.application-switcher:focus-visible {
+  outline: 3px solid #00a6a6;
+  outline-offset: 2px;
 }
 .header-icon-action {
   position: relative;
@@ -959,12 +968,20 @@ th {
     flex-wrap: nowrap;
     justify-content: flex-end;
   }
-  .application-context {
+  .application-current {
     grid-column: 1 / -1;
     grid-row: 2;
-    padding: 6px 0 2px;
-    border-inline: 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.42);
+    padding: 0 0 6px;
+    font-size: 0.9375rem;
+  }
+  .application-switcher {
+    inline-size: 44px;
+    padding: 0;
+    display: inline-grid;
+    place-items: center;
+  }
+  .application-switcher span {
+    display: none;
   }
   .subheader {
     min-height: 0;

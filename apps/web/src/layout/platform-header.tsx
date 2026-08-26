@@ -1,4 +1,4 @@
-import { AccountSetting01Icon, Logout01Icon } from '@hugeicons/core-free-icons';
+import { AccountSetting01Icon, GridViewIcon, Logout01Icon } from '@hugeicons/core-free-icons';
 import { AppIcon } from '../ui/app-icon';
 
 interface PlatformHeaderProps {
@@ -45,15 +45,25 @@ export function PlatformHeader({
         <p className="product-name">Plataforma Timbo</p>
       )}
       {isApplicationHeader ? (
-        <section
-          className="application-context"
-          aria-label={`Aplicación actual: ${applicationName}`}
-        >
-          <span className="application-context-label">Aplicación</span>
-          <strong className="application-context-name">{applicationName}</strong>
-        </section>
+        <p className="application-current" aria-label={`Aplicación actual: ${applicationName}`}>
+          {applicationName}
+        </p>
       ) : null}
       <nav className="top-bar-actions" aria-label="Acciones de sesión">
+        {isApplicationHeader ? (
+          <a
+            className="application-switcher"
+            href="/"
+            aria-label="Cambiar aplicación"
+            onClick={(event) => {
+              event.preventDefault();
+              onNavigate('/');
+            }}
+          >
+            <AppIcon icon={GridViewIcon} />
+            <span>Aplicaciones</span>
+          </a>
+        ) : null}
         {isPlatformAdministrator && showAdministrationLink ? (
           <a
             className={useCompactActions ? 'header-icon-action' : 'top-navigation-link'}
