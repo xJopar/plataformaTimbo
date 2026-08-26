@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { Api, AuthSession } from '../api';
 import { useAuthorizedApplications } from '../applications/use-authorized-applications';
 import { PlatformHeader } from '../layout/platform-header';
@@ -26,6 +26,60 @@ function formatCurrentDateTime(): string {
     dateStyle: 'full',
     timeStyle: 'short',
   }).format(new Date());
+}
+
+const WORD_REVEAL_DURATION_MS = 480;
+const WORD_REVEAL_STAGGER_MS = 38;
+
+function CompanyValueMessage({ value }: { value: string }): React.JSX.Element {
+  const containerRef = useRef<HTMLParagraphElement>(null);
+  const words = useMemo(() => value.split(' '), [value]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (
+      !container ||
+      typeof Element.prototype.animate !== 'function' ||
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
+
+    const animations = Array.from(container.querySelectorAll<HTMLElement>('[data-word]')).map(
+      (wordElement, index) =>
+        wordElement.animate(
+          [
+            { opacity: 0, transform: 'translateY(10px)' },
+            { opacity: 1, transform: 'translateY(0)' },
+          ],
+          {
+            duration: WORD_REVEAL_DURATION_MS,
+            delay: index * WORD_REVEAL_STAGGER_MS,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'backwards',
+          },
+        ),
+    );
+
+    return () => {
+      animations.forEach((animation) => animation.cancel());
+    };
+  }, [value]);
+
+  return (
+    <p className="company-value" ref={containerRef} aria-label={value}>
+      <span aria-hidden="true">
+        {words.map((word, index) => (
+          <Fragment key={index}>
+            <span className="company-value-word" data-word>
+              {word}
+            </span>
+            {index < words.length - 1 ? ' ' : ''}
+          </Fragment>
+        ))}
+      </span>
+    </p>
+  );
 }
 
 export function HomeLauncher({
@@ -114,9 +168,7 @@ export function HomeLauncher({
         <div className="launcher-heading">
           <div>
             <h1 id="home-title">Apps</h1>
-            <p className="company-value" key={COMPANY_VALUES[companyValueIndex]}>
-              {COMPANY_VALUES[companyValueIndex]}
-            </p>
+            <CompanyValueMessage value={COMPANY_VALUES[companyValueIndex] ?? COMPANY_VALUES[0]} />
           </div>
           {state.status === 'ready' && state.applications.length > 0 ? (
             <p className="launcher-count" aria-live="polite">
