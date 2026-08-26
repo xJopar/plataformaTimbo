@@ -38,6 +38,8 @@ button:focus-visible {
 .top-bar {
   min-height: 56px;
   padding: 6px clamp(20px, 5vw, 72px);
+  padding-inline: max(clamp(20px, 5vw, 72px), env(safe-area-inset-left))
+    max(clamp(20px, 5vw, 72px), env(safe-area-inset-right));
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -82,6 +84,64 @@ button:focus-visible {
   justify-content: flex-end;
   gap: 8px;
 }
+.header-icon-action {
+  position: relative;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.header-icon-action:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.1);
+}
+.header-icon-action:focus-visible {
+  outline: 3px solid #00a6a6;
+  outline-offset: 2px;
+}
+.header-icon-action:disabled {
+  cursor: progress;
+  opacity: 0.65;
+}
+.header-icon-action::after {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: calc(100% + 8px);
+  inset-inline-end: 0;
+  inline-size: max-content;
+  max-inline-size: min(18rem, calc(100vw - 40px));
+  padding: 6px 8px;
+  background: #142033;
+  color: #fff;
+  content: attr(data-tooltip);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity 150ms ease-out,
+    transform 150ms ease-out;
+  visibility: hidden;
+}
+.header-icon-action:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+@media (hover: hover) {
+  .header-icon-action:hover:not(:disabled)::after {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+  }
+}
 .product-name,
 .subheader p {
   margin: 0;
@@ -93,6 +153,8 @@ button:focus-visible {
 .subheader {
   min-height: 38px;
   padding: 6px clamp(20px, 5vw, 72px);
+  padding-inline: max(clamp(20px, 5vw, 72px), env(safe-area-inset-left))
+    max(clamp(20px, 5vw, 72px), env(safe-area-inset-right));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -843,12 +905,34 @@ th {
     grid-template-columns: 1fr;
     align-items: start;
     padding: 6px 20px;
+    padding-inline: max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-right));
   }
   .top-bar-actions {
     justify-content: flex-start;
   }
   .top-bar--home {
-    min-height: auto;
+    min-height: 64px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+  .top-bar--home .top-bar-actions {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+  }
+  .subheader {
+    min-height: 0;
+    padding: 6px 20px;
+    padding-inline: max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-right));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+    font-size: 0.8125rem;
+  }
+  .subheader p:last-child {
+    color: #526176;
+    font-size: 0.75rem;
+    text-align: right;
+    white-space: nowrap;
   }
   .top-bar-brand,
   .session-boot-header {
@@ -866,10 +950,6 @@ th {
 }
 
 @media (max-width: 640px) {
-  .subheader {
-    padding: 10px 20px;
-    display: grid;
-  }
   .dispatch-board {
     padding: 36px 20px;
   }
@@ -899,6 +979,9 @@ th {
   }
   .application-launcher {
     grid-template-columns: 1fr;
+  }
+  .dispatch-board {
+    min-height: 0;
   }
   .session-boot-content {
     min-height: calc(100dvh - 64px);
@@ -957,6 +1040,15 @@ th {
   }
   .administration-content {
     padding: 36px 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .subheader {
+    grid-template-columns: 1fr;
+  }
+  .subheader p:last-child {
+    text-align: left;
   }
 }
 

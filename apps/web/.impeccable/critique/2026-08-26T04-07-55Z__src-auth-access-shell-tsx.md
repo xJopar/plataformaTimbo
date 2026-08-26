@@ -2,27 +2,28 @@
 target: pantalla de acceso corporativo / login
 total_score: 23
 max_score: 40
-na_heuristics: 
+na_heuristics:
 p0_count: 0
 p1_count: 2
 timestamp: 2026-08-26T04-07-55Z
 slug: src-auth-access-shell-tsx
 ---
+
 ## Design Health Score
 
-| # | Heurística | Score | Hallazgo clave |
-|---|-----------|-------|-----------------|
-| 1 | Visibilidad del estado del sistema | 3 | Spinner + "Validando sesión segura" cubren bien lo transitorio; falta feedback si la validación se extiende (sin estado de timeout visible) |
-| 2 | Coincidencia con el mundo real | 2 | "Acceso corporativo" es lenguaje de formulario; no dice qué cuenta usar ni menciona "Google" en el copy |
-| 3 | Control y libertad del usuario | 2 | No hay forma de cancelar la validación en curso ni de "cambiar de cuenta" antes de redirigir a Google |
-| 4 | Consistencia y estándares | 2 | El "G" de texto no sigue el logomark oficial de Google (estándar externo reconocible) |
-| 5 | Prevención de errores | 3 | Poco que prevenir en un OAuth de un botón; delega correctamente a Google |
-| 6 | Reconocimiento antes que memoria | 2 | Monograma "T" y "G" de texto son íconos no estándar a aprender, en vez de reconocer al instante |
-| 7 | Flexibilidad y eficiencia de uso | 2 | Nada para usuarios de alta frecuencia (recordar última cuenta, SSO silencioso) |
-| 8 | Diseño estético y minimalista | 3 | Ejecuta bien el minimalismo pedido por el sistema, aunque ese mismo minimalismo abona a la genericidad |
-| 9 | Ayuda a reconocer y recuperarse de errores | 3 | `role="alert"` y estilo sobrio correctos; falta contenido de recuperación (a quién contactar) |
-| 10 | Ayuda y documentación | 1 | Ningún enlace de ayuda/soporte visible, ni siquiera en el estado de rechazo |
-| **Total** | | **23/40** | **Aceptable** |
+| #         | Heurística                                 | Score     | Hallazgo clave                                                                                                                              |
+| --------- | ------------------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1         | Visibilidad del estado del sistema         | 3         | Spinner + "Validando sesión segura" cubren bien lo transitorio; falta feedback si la validación se extiende (sin estado de timeout visible) |
+| 2         | Coincidencia con el mundo real             | 2         | "Acceso corporativo" es lenguaje de formulario; no dice qué cuenta usar ni menciona "Google" en el copy                                     |
+| 3         | Control y libertad del usuario             | 2         | No hay forma de cancelar la validación en curso ni de "cambiar de cuenta" antes de redirigir a Google                                       |
+| 4         | Consistencia y estándares                  | 2         | El "G" de texto no sigue el logomark oficial de Google (estándar externo reconocible)                                                       |
+| 5         | Prevención de errores                      | 3         | Poco que prevenir en un OAuth de un botón; delega correctamente a Google                                                                    |
+| 6         | Reconocimiento antes que memoria           | 2         | Monograma "T" y "G" de texto son íconos no estándar a aprender, en vez de reconocer al instante                                             |
+| 7         | Flexibilidad y eficiencia de uso           | 2         | Nada para usuarios de alta frecuencia (recordar última cuenta, SSO silencioso)                                                              |
+| 8         | Diseño estético y minimalista              | 3         | Ejecuta bien el minimalismo pedido por el sistema, aunque ese mismo minimalismo abona a la genericidad                                      |
+| 9         | Ayuda a reconocer y recuperarse de errores | 3         | `role="alert"` y estilo sobrio correctos; falta contenido de recuperación (a quién contactar)                                               |
+| 10        | Ayuda y documentación                      | 1         | Ningún enlace de ayuda/soporte visible, ni siquiera en el estado de rechazo                                                                 |
+| **Total** |                                            | **23/40** | **Aceptable**                                                                                                                               |
 
 ## Veredicto de Especificidad de Diseño
 
@@ -45,26 +46,31 @@ La base técnica es sólida (responsive, accesibilidad, carga cognitiva en cero 
 ## Priority Issues
 
 **[P1] Botón "Ingresar con Google" usa una "G" de texto, no el logomark oficial**
+
 - **Por qué importa**: en el momento de mayor sensibilidad de seguridad del flujo (un OAuth de terceros), el usuario busca reconocer visualmente el ícono real de Google para confiar que no es una imitación. Una letra "G" en Aptos dentro de un círculo no cumple ese reconocimiento inmediato y probablemente incumple los lineamientos de marca de Google.
 - **Fix**: reemplazar por el SVG oficial del ícono "G" de Google (asset estático gratuito de la guía de marca de Google Identity, embebido en `/public/icons` o inline). No requiere ninguna librería npm — `@thesvg/react` no existe como paquete real.
 - **Suggested command**: `/impeccable polish`
 
 **[P1] Cero especificidad de marca Timbo en el panel funcional**
+
 - **Por qué importa**: el login podría pertenecer a cualquier empresa. El wordmark real (itálico, musculoso) no aparece, y la fotografía de la sede —el único activo genuinamente "Timbo"— está apagada bajo un velo azul del 58%.
 - **Fix**: conectar el wordmark real (imagen con fondo azul marino sólido) sobre la fotografía del lado derecho, donde ese fondo se funde con el overlay `rgba(31,36,92,0.58)` y con `--access-brand` — exactamente lo que las reglas CSS ya existentes `.access-brand-statement`/`.access-wordmark` anticipaban sin estar conectadas al TSX. Poner el wordmark sobre el panel blanco izquierdo no es viable sin una versión vectorizada aislada (SVG monocromo sin el fondo sólido).
 - **Suggested command**: `/impeccable bolder`
 
 **[P2] Copy del título/subtítulo genérico y desconectado de la acción real**
+
 - **Por qué importa**: "Acceso corporativo" / "Ingresá con tu cuenta corporativa autorizada" repite "corporativo/corporativa" en dos líneas seguidas, suena a plantilla legal, y no menciona "Google" pese a que el botón sí lo hace.
 - **Fix**: usar un copy que nombre la acción real, p. ej. "Ingresá a Plataforma Timbo" / "Usá tu cuenta de Google del trabajo para continuar." — o una variante que además dé una salida en caso de rechazo ("si no tenés acceso, contactá a Sistemas").
 - **Suggested command**: `/impeccable clarify`
 
 **[P2] Sin ayuda/soporte visible, especialmente en el estado de rechazo**
+
 - **Por qué importa**: heurística 10 (Ayuda y documentación) en 1/4. El estado `rejected` es el valle emocional real de esta pantalla y no ofrece ninguna salida — el usuario queda con un mensaje de error y el mismo botón de antes, sin saber a quién recurrir.
 - **Fix**: agregar un enlace o texto discreto de contacto/soporte, visible al menos en los estados `rejected` y `technical-failure`.
 - **Suggested command**: `/impeccable harden`
 
 **[P3] Un mismo mensaje de error para causas distintas**
+
 - **Por qué importa**: "cuenta no autorizada" y "error de red/timeout" comparten el mismo slot visual (`rejectionMessage`) sin diferenciarse — para alguien que entra varias veces al día (Alex), un error de red mal explicado se lee como un rechazo de acceso.
 - **Fix**: diferenciar el copy según la causa del fallo cuando el backend lo permita.
 - **Suggested command**: `/impeccable harden`

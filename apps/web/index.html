@@ -1,26 +1,30 @@
 <!doctype html>
 <html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Acceso corporativo a las aplicaciones internas de Timbo." />
+    <meta name="theme-color" content="#1F245C" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" sizes="180x180" />
+    <title>Plataforma Timbo</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Acceso corporativo a las aplicaciones internas de Timbo." />
-  <meta name="theme-color" content="#1F245C" />
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/favicon.ico" sizes="any" />
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" sizes="180x180" />
-  <title>Plataforma Timbo</title>
-</head>
-
-<body>
-  <div id="root">
-    <main aria-busy="true" aria-label="Verificando sesión" style="
+  <body>
+    <div id="root">
+      <main
+        aria-busy="true"
+        aria-label="Verificando sesión"
+        style="
           min-height: 100vh;
           background: #edf2f7;
           color: #142033;
           font-family: Aptos, 'Segoe UI', sans-serif;
-        ">
-      <header style="
+        "
+      >
+        <header
+          style="
             min-height: 64px;
             display: flex;
             align-items: center;
@@ -28,28 +32,40 @@
             padding: 0 clamp(20px, 5vw, 72px);
             background: #00388a;
             color: #fff;
-          ">
-        <img src="/brand/timbo-logo-white.png" alt="Timbo" style="width: 138px; height: auto; display: block" />
-        <span style="
+          "
+        >
+          <img
+            src="/brand/timbo-logo-white.png"
+            alt="Timbo"
+            style="width: 138px; height: auto; display: block"
+          />
+          <span
+            style="
               font-size: 12px;
               font-weight: 800;
               letter-spacing: 0.12em;
               text-transform: uppercase;
-            ">Plataforma</span>
-      </header>
-      <section role="status" style="
+            "
+            >Plataforma</span
+          >
+        </header>
+        <section
+          role="status"
+          style="
             min-height: calc(100vh - 64px);
             display: grid;
             place-content: center;
             gap: 12px;
             padding: 32px;
-          ">
-        <strong style="font-size: clamp(24px, 4vw, 40px)">Preparando tu espacio de trabajo</strong>
-        <span style="color: #475569">Verificando tu sesión segura.</span>
-      </section>
-    </main>
-  </div>
-  <script type="module" src="/src/main.tsx"></script>
-</body>
-
+          "
+        >
+          <strong style="font-size: clamp(24px, 4vw, 40px)"
+            >Preparando tu espacio de trabajo</strong
+          >
+          <span style="color: #475569">Verificando tu sesión segura.</span>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

@@ -1,3 +1,6 @@
+import { AccountSetting01Icon, Logout01Icon } from '@hugeicons/core-free-icons';
+import { AppIcon } from '../ui/app-icon';
+
 interface PlatformHeaderProps {
   isLoggingOut: boolean;
   isPlatformAdministrator: boolean;
@@ -15,6 +18,8 @@ export function PlatformHeader({
   onNavigate,
   onLogout,
 }: PlatformHeaderProps): React.JSX.Element {
+  const useCompactActions = variant === 'home';
+
   return (
     <header className={`top-bar${variant === 'home' ? ' top-bar--home' : ''}`}>
       {variant === 'home' ? (
@@ -35,18 +40,35 @@ export function PlatformHeader({
       <nav className="top-bar-actions" aria-label="Acciones de sesión">
         {isPlatformAdministrator && showAdministrationLink ? (
           <a
-            className="top-navigation-link"
+            className={useCompactActions ? 'header-icon-action' : 'top-navigation-link'}
             href="/admin"
+            aria-label={useCompactActions ? 'Administración de plataforma' : undefined}
+            data-tooltip={useCompactActions ? 'Administración de plataforma' : undefined}
             onClick={(event) => {
               event.preventDefault();
               onNavigate('/admin');
             }}
           >
-            Administración
+            {useCompactActions ? <AppIcon icon={AccountSetting01Icon} /> : 'Administración'}
           </a>
         ) : null}
-        <button className="logout-button" type="button" disabled={isLoggingOut} onClick={onLogout}>
-          {isLoggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
+        <button
+          className={useCompactActions ? 'header-icon-action' : 'logout-button'}
+          type="button"
+          aria-label={isLoggingOut ? 'Cerrando sesión' : 'Cerrar sesión'}
+          data-tooltip={
+            useCompactActions ? (isLoggingOut ? 'Cerrando sesión' : 'Cerrar sesión') : undefined
+          }
+          disabled={isLoggingOut}
+          onClick={onLogout}
+        >
+          {useCompactActions ? (
+            <AppIcon icon={Logout01Icon} />
+          ) : isLoggingOut ? (
+            'Cerrando sesión…'
+          ) : (
+            'Cerrar sesión'
+          )}
         </button>
       </nav>
     </header>

@@ -149,7 +149,9 @@ describe('App', () => {
     expect(
       screen.getByText('La pasión por el cliente guía cada solución que ponemos en tus manos.'),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Administración' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Administración de plataforma' }),
+    ).not.toBeInTheDocument();
     expect(
       await screen.findByRole('heading', { name: 'Sin aplicaciones asignadas' }),
     ).toBeInTheDocument();
@@ -317,7 +319,14 @@ describe('App', () => {
     render(<App api={api} />);
 
     await screen.findByRole('heading', { name: 'Apps' });
-    await user.click(screen.getByRole('link', { name: 'Administración' }));
+    const administrationLink = screen.getByRole('link', { name: 'Administración de plataforma' });
+    expect(administrationLink).toHaveAttribute('data-tooltip', 'Administración de plataforma');
+    expect(administrationLink.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument();
+    const logoutButton = screen.getByRole('button', { name: 'Cerrar sesión' });
+    expect(logoutButton).toHaveAttribute('data-tooltip', 'Cerrar sesión');
+    expect(logoutButton.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument();
+
+    await user.click(administrationLink);
     expect(await screen.findByRole('heading', { name: 'Usuarios' })).toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: 'Actividad' }));
 
