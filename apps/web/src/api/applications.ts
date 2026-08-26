@@ -14,9 +14,14 @@ export type HelloWorldJokeRequest = NonNullable<
   paths['/api/applications/hello-world/joke']['post']['requestBody']['content']['application/json']
 >;
 
+export type VehicleResponse = NonNullable<
+  paths['/api/applications/lista-precios/vehicles']['get']['responses'][200]['content']['application/json']
+>[number];
+
 export interface ApplicationsApi {
   listAuthorizedApplications(): Promise<AuthorizedApplication[]>;
   requestHelloWorldJoke(input: HelloWorldJokeRequest): Promise<HelloWorldJoke>;
+  listListaPreciosVehicles(): Promise<VehicleResponse[]>;
 }
 
 export class ApplicationsApiUnavailableError extends Error {
@@ -73,6 +78,22 @@ export function createApplicationsApi(
       }
       if (data === undefined) {
         throw new Error('La API respondió sin el chiste traducido esperado.');
+      }
+
+      return data;
+    },
+    async listListaPreciosVehicles(): Promise<VehicleResponse[]> {
+      const { data, response } = await client
+        .GET('/api/applications/lista-precios/vehicles')
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('listListaPreciosVehicles', { cause: error });
+        });
+
+      if (!response.ok) {
+        throw createApiHttpError(response);
+      }
+      if (data === undefined) {
+        throw new Error('La API respondió sin el catálogo de vehículos esperado.');
       }
 
       return data;

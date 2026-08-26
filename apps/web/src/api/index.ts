@@ -42,5 +42,6 @@ export {
   type AuthorizedApplication,
   type HelloWorldJoke,
   type HelloWorldJokeRequest,
+  type VehicleResponse,
   createApplicationsApi,
 } from './applications';

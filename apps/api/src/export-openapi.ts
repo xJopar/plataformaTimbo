@@ -17,6 +17,9 @@ import { AuthorizedApplicationsController } from './modules/administration/autho
 import { HelloWorldApplicationAccessGuard } from './modules/hello-world/hello-world-application-access.guard';
 import { HelloWorldController } from './modules/hello-world/hello-world.controller';
 import { HelloWorldService } from './modules/hello-world/hello-world.service';
+import { ListaPreciosApplicationAccessGuard } from './modules/lista-precios/lista-precios-application-access.guard';
+import { ListaPreciosController } from './modules/lista-precios/lista-precios.controller';
+import { ListaPreciosService } from './modules/lista-precios/lista-precios.service';
 import { UsageEventsService } from './modules/usage-events/usage-events.service';
 import { ACTIVITY_SERVICE } from './modules/administration/administration.tokens';
 import { ADMINISTRATIVE_APPLICATIONS_SERVICE } from './modules/administration/administration.tokens';
@@ -39,6 +42,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     AuthorizedApplicationsController,
     ActivityController,
     HelloWorldController,
+    ListaPreciosController,
   ],
   providers: [
     { provide: AuthService, useValue: {} },
@@ -47,6 +51,8 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     { provide: CsrfProtectionGuard, useValue: { canActivate: () => true } },
     { provide: HelloWorldApplicationAccessGuard, useValue: { canActivate: () => true } },
     { provide: HelloWorldService, useValue: {} },
+    { provide: ListaPreciosApplicationAccessGuard, useValue: { canActivate: () => true } },
+    { provide: ListaPreciosService, useValue: {} },
     { provide: UsageEventsService, useValue: {} },
     { provide: ADMINISTRATIVE_USERS_SERVICE, useValue: {} },
     { provide: ADMINISTRATIVE_APPLICATIONS_SERVICE, useValue: {} },

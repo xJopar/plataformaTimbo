@@ -47,6 +47,14 @@ const secondAuthorizedApplication: AuthorizedApplication = {
   displayOrder: 1,
 };
 
+const listaPreciosApplication: AuthorizedApplication = {
+  key: 'lista-precios',
+  name: 'Lista de Precios',
+  description: 'Catálogo de stock y precios de vehículos.',
+  launchPath: '/apps/lista-precios',
+  displayOrder: 1,
+};
+
 function createApi(
   authOverrides: Partial<AuthApi> = {},
   administrationOverrides: Partial<AdministrationApi> = {},
@@ -135,6 +143,9 @@ function createApi(
         id: 'joke-a',
         originalText: 'A short joke.',
       }),
+      listListaPreciosVehicles: vi
+        .fn<ApplicationsApi['listListaPreciosVehicles']>()
+        .mockResolvedValue([]),
       ...applicationsOverrides,
     },
     system: { getHealth: vi.fn() },
@@ -865,6 +876,49 @@ describe('App', () => {
   it('bloquea en la interfaz una ruta interna que no está asignada', async () => {
     window.history.replaceState({}, '', '/apps/hello-world');
     render(<App api={createApi()} />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Aplicación no disponible' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Contar un chiste' })).not.toBeInTheDocument();
+  });
+
+  it('navega a una sub-ruta deep-linkable de una aplicación con rutas internas', async () => {
+    window.history.replaceState({}, '', '/apps/lista-precios/marca/Scania');
+    render(
+      <App
+        api={createApi(
+          {},
+          {},
+          {
+            listAuthorizedApplications: vi
+              .fn<ApplicationsApi['listAuthorizedApplications']>()
+              .mockResolvedValue([listaPreciosApplication]),
+          },
+        )}
+      />,
+    );
+
+    expect(await screen.findByRole('button', { name: 'Volver' })).toBeInTheDocument();
+    expect(screen.getByText('Scania')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Aplicación no disponible' })).not.toBeInTheDocument();
+  });
+
+  it('no confunde un pathname parecido con el launchPath de otra aplicación', async () => {
+    window.history.replaceState({}, '', '/apps/hello-worldish');
+    render(
+      <App
+        api={createApi(
+          {},
+          {},
+          {
+            listAuthorizedApplications: vi
+              .fn<ApplicationsApi['listAuthorizedApplications']>()
+              .mockResolvedValue([authorizedApplication]),
+          },
+        )}
+      />,
+    );
 
     expect(
       await screen.findByRole('heading', { name: 'Aplicación no disponible' }),

@@ -5,6 +5,7 @@ export interface ApplicationComponentProps {
   application: AuthorizedApplication;
   availableApplications: readonly AuthorizedApplication[];
   session: AuthSession;
+  pathname: string;
   isLoggingOut: boolean;
   logoutFailure: Error | undefined;
   onNavigate: (pathname: string) => void;

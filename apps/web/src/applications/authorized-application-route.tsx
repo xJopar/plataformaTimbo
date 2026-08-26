@@ -3,6 +3,14 @@ import { ApplicationRouteState } from './application-route-state';
 import { findApplicationComponent } from './application-registry';
 import { useAuthorizedApplications } from './use-authorized-applications';
 
+/**
+ * Una app "posee" su `launchPath` y todo lo que cuelgue de él (`launchPath/lo-que-sea`), no solo
+ * la coincidencia exacta — así una app puede tener sub-rutas internas deep-linkable.
+ */
+function pathnameBelongsToLaunchPath(pathname: string, launchPath: string): boolean {
+  return pathname === launchPath || pathname.startsWith(`${launchPath}/`);
+}
+
 interface AuthorizedApplicationRouteProps {
   api: Api;
   pathname: string;
@@ -54,7 +62,9 @@ export function AuthorizedApplicationRoute({
     );
   }
 
-  const application = state.applications.find((item) => item.launchPath === pathname);
+  const application = state.applications.find((item) =>
+    pathnameBelongsToLaunchPath(pathname, item.launchPath),
+  );
   if (application === undefined) {
     return (
       <ApplicationRouteState
@@ -88,6 +98,7 @@ export function AuthorizedApplicationRoute({
       application={application}
       availableApplications={state.applications}
       session={session}
+      pathname={pathname}
       isLoggingOut={isLoggingOut}
       logoutFailure={logoutFailure}
       onNavigate={onNavigate}

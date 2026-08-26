@@ -520,6 +520,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications/lista-precios/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene el catálogo de vehículos en stock desde Zoho Analytics. */
+        get: operations["listListaPreciosVehicles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -749,6 +766,46 @@ export interface components {
             id: string;
             /** @example Why did the scarecrow win an award? He was outstanding in his field. */
             originalText: string;
+        };
+        VehicleResponseDto: {
+            marca: string;
+            modelo: string;
+            anioFab: string;
+            config: string;
+            susp: string;
+            tipoMotor: string;
+            tipoCabina: string;
+            tipoCaja: string;
+            aire: string;
+            color: string;
+            km: string;
+            precioLista: string;
+            ubicacion: string;
+            fechaSena: string;
+            vendedorSena: string;
+            uComentario: string;
+            disponible: string;
+            tipoUnidad: string;
+            uso: string;
+            inyeccion: string;
+            altura: string;
+            piso: string;
+            tipo: string;
+            chasis: string;
+            url: string;
+            codGrupo: string;
+            comentario: string;
+            origen: string;
+            kmOrigen: string;
+            fechaEntradaTaller: string;
+            fechaSalidaTaller: string;
+            equipamiento: string;
+            laterales: string;
+            diasTranscurridos: string;
+            ubicacion1: string;
+            aproxLlegada: string;
+            disponible1: string;
+            stock: string;
         };
         HealthResponseDto: {
             /**
@@ -1644,6 +1701,32 @@ export interface operations {
                 };
             };
             /** @description El proveedor de chistes no está disponible. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listListaPreciosVehicles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleResponseDto"][];
+                };
+            };
+            /** @description Zoho Analytics no está disponible. */
             502: {
                 headers: {
                     [name: string]: unknown;

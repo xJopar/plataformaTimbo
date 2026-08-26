@@ -1526,6 +1526,34 @@
         ]
       }
     },
+    "/api/applications/lista-precios/vehicles": {
+      "get": {
+        "operationId": "listListaPreciosVehicles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Zoho Analytics no está disponible."
+          }
+        },
+        "summary": "Obtiene el catálogo de vehículos en stock desde Zoho Analytics.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "getHealth",
@@ -2073,6 +2101,165 @@
         "required": [
           "id",
           "originalText"
+        ]
+      },
+      "VehicleResponseDto": {
+        "type": "object",
+        "properties": {
+          "marca": {
+            "type": "string"
+          },
+          "modelo": {
+            "type": "string"
+          },
+          "anioFab": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "susp": {
+            "type": "string"
+          },
+          "tipoMotor": {
+            "type": "string"
+          },
+          "tipoCabina": {
+            "type": "string"
+          },
+          "tipoCaja": {
+            "type": "string"
+          },
+          "aire": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "km": {
+            "type": "string"
+          },
+          "precioLista": {
+            "type": "string"
+          },
+          "ubicacion": {
+            "type": "string"
+          },
+          "fechaSena": {
+            "type": "string"
+          },
+          "vendedorSena": {
+            "type": "string"
+          },
+          "uComentario": {
+            "type": "string"
+          },
+          "disponible": {
+            "type": "string"
+          },
+          "tipoUnidad": {
+            "type": "string"
+          },
+          "uso": {
+            "type": "string"
+          },
+          "inyeccion": {
+            "type": "string"
+          },
+          "altura": {
+            "type": "string"
+          },
+          "piso": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "chasis": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "codGrupo": {
+            "type": "string"
+          },
+          "comentario": {
+            "type": "string"
+          },
+          "origen": {
+            "type": "string"
+          },
+          "kmOrigen": {
+            "type": "string"
+          },
+          "fechaEntradaTaller": {
+            "type": "string"
+          },
+          "fechaSalidaTaller": {
+            "type": "string"
+          },
+          "equipamiento": {
+            "type": "string"
+          },
+          "laterales": {
+            "type": "string"
+          },
+          "diasTranscurridos": {
+            "type": "string"
+          },
+          "ubicacion1": {
+            "type": "string"
+          },
+          "aproxLlegada": {
+            "type": "string"
+          },
+          "disponible1": {
+            "type": "string"
+          },
+          "stock": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "marca",
+          "modelo",
+          "anioFab",
+          "config",
+          "susp",
+          "tipoMotor",
+          "tipoCabina",
+          "tipoCaja",
+          "aire",
+          "color",
+          "km",
+          "precioLista",
+          "ubicacion",
+          "fechaSena",
+          "vendedorSena",
+          "uComentario",
+          "disponible",
+          "tipoUnidad",
+          "uso",
+          "inyeccion",
+          "altura",
+          "piso",
+          "tipo",
+          "chasis",
+          "url",
+          "codGrupo",
+          "comentario",
+          "origen",
+          "kmOrigen",
+          "fechaEntradaTaller",
+          "fechaSalidaTaller",
+          "equipamiento",
+          "laterales",
+          "diasTranscurridos",
+          "ubicacion1",
+          "aproxLlegada",
+          "disponible1",
+          "stock"
         ]
       },
       "HealthResponseDto": {
