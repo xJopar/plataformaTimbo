@@ -7,14 +7,12 @@ import {
   type ModelSummary,
   type VehicleGroup,
 } from './data-processor';
-import { ListaPreciosSubheader } from './lista-precios-subheader';
 import { Loader } from './loader';
 import type { ListaPreciosVehiclesState } from './use-lista-precios-vehicles';
 
 interface BrandScreenProps {
   brand: string;
   vehiclesState: ListaPreciosVehiclesState;
-  onBack: () => void;
   onSelectModel: (modelo: string) => void;
   onSelectSubBrand: (subBrand: string) => void;
 }
@@ -165,7 +163,6 @@ function OtrosSubBrands({
 export function BrandScreen({
   brand,
   vehiclesState,
-  onBack,
   onSelectModel,
   onSelectSubBrand,
 }: BrandScreenProps): React.JSX.Element {
@@ -179,38 +176,35 @@ export function BrandScreen({
   );
 
   return (
-    <>
-      <ListaPreciosSubheader title={brand} onBack={onBack} />
-      <div className="lp-page">
-        {vehiclesState.status === 'loading' ? (
-          <div className="lp-loader-full" role="status" aria-live="polite">
-            <Loader />
-            <span className="lp-loader-full-label">Cargando lista de precios...</span>
-          </div>
-        ) : null}
+    <div className="lp-page">
+      {vehiclesState.status === 'loading' ? (
+        <div className="lp-loader-full" role="status" aria-live="polite">
+          <Loader />
+          <span className="lp-loader-full-label">Cargando lista de precios...</span>
+        </div>
+      ) : null}
 
-        {vehiclesState.status === 'error' ? (
-          <div className="lp-state-box">
-            <span className="lp-state-box-title">Error al cargar</span>
-            <p className="lp-state-box-desc">No pudimos obtener el catálogo de vehículos.</p>
-          </div>
-        ) : null}
+      {vehiclesState.status === 'error' ? (
+        <div className="lp-state-box">
+          <span className="lp-state-box-title">Error al cargar</span>
+          <p className="lp-state-box-desc">No pudimos obtener el catálogo de vehículos.</p>
+        </div>
+      ) : null}
 
-        {vehiclesState.status === 'ready' && brandGroups.size === 0 ? (
-          <div className="lp-state-box">
-            <span className="lp-state-box-title">Sin datos</span>
-            <p className="lp-state-box-desc">No se encontraron unidades para esta marca.</p>
-          </div>
-        ) : null}
+      {vehiclesState.status === 'ready' && brandGroups.size === 0 ? (
+        <div className="lp-state-box">
+          <span className="lp-state-box-title">Sin datos</span>
+          <p className="lp-state-box-desc">No se encontraron unidades para esta marca.</p>
+        </div>
+      ) : null}
 
-        {vehiclesState.status === 'ready' && brandGroups.size > 0 ? (
-          isOtros ? (
-            <OtrosSubBrands brandGroups={brandGroups} onSelectSubBrand={onSelectSubBrand} />
-          ) : (
-            <ModelCards brandGroups={brandGroups} onSelectModel={onSelectModel} />
-          )
-        ) : null}
-      </div>
-    </>
+      {vehiclesState.status === 'ready' && brandGroups.size > 0 ? (
+        isOtros ? (
+          <OtrosSubBrands brandGroups={brandGroups} onSelectSubBrand={onSelectSubBrand} />
+        ) : (
+          <ModelCards brandGroups={brandGroups} onSelectModel={onSelectModel} />
+        )
+      ) : null}
+    </div>
   );
 }

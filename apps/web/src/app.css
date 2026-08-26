@@ -54,6 +54,27 @@ button:focus-visible {
   min-height: 64px;
   grid-template-columns: auto minmax(0, 1fr) auto;
 }
+/* Posiciones explícitas (columna Y fila) para los 4 hijos de `.top-bar--application`: la fila 2
+   del breadcrumb sólo existe cuando la app la pasa (hoy, lista-precios) — dejar que el resto se
+   ubique por auto-placement es frágil apenas se agrega esa fila opcional, así que todos quedan
+   fijos siempre, se pase o no `breadcrumb`. En mobile, el bloque del media query más abajo pisa
+   estas mismas reglas (misma especificidad, viene después en el archivo). */
+.top-bar--application .top-bar-brand {
+  grid-column: 1;
+  grid-row: 1;
+}
+.top-bar--application .application-current {
+  grid-column: 2;
+  grid-row: 1;
+}
+.top-bar--application .top-bar-actions {
+  grid-column: 3;
+  grid-row: 1;
+}
+.top-bar--application .application-breadcrumb {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
 .top-bar-brand {
   min-width: 0;
   display: inline-flex;
@@ -80,6 +101,31 @@ button:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* Tercera fila opcional del header de aplicación: sólo aparece cuando la app pasa
+   `breadcrumb` (hoy, lista-precios) — si no, esta fila del grid ni siquiera existe.
+   Posición (columna/fila) fijada arriba, junto con la del resto de `.top-bar--application`. */
+.application-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-inline: calc(clamp(20px, 3vw, 48px) - 10px) clamp(20px, 3vw, 48px);
+  padding-block-end: 6px;
+}
+.application-breadcrumb p {
+  min-width: 0;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.application-breadcrumb-back {
+  flex-shrink: 0;
+  inline-size: 36px;
+  block-size: 36px;
 }
 .top-bar-brand span,
 .session-boot-header span {
@@ -1016,11 +1062,20 @@ th {
     flex-wrap: nowrap;
     justify-content: flex-end;
   }
-  .application-current {
+  .top-bar--application .application-current {
     grid-column: 1 / -1;
     grid-row: 2;
     padding: 0 0 6px;
     font-size: 0.9375rem;
+  }
+  .top-bar--application .application-breadcrumb {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    padding-inline: 10px 20px;
+    padding-block-end: 6px;
+  }
+  .application-breadcrumb p {
+    font-size: 0.75rem;
   }
   .application-switcher summary {
     inline-size: 44px;

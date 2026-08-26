@@ -10,7 +10,6 @@ import {
   type VehicleGroup,
 } from './data-processor';
 import { FilterDrawer, type ListaPreciosFilterOptions } from './filter-drawer';
-import { ListaPreciosSubheader } from './lista-precios-subheader';
 import { Loader } from './loader';
 import type { ListaPreciosVehiclesState } from './use-lista-precios-vehicles';
 
@@ -29,7 +28,6 @@ interface VariantsScreenProps {
   brand: string;
   modelo: string;
   vehiclesState: ListaPreciosVehiclesState;
-  onBack: () => void;
   onSelectVariant: (modelKey: string) => void;
 }
 
@@ -37,7 +35,6 @@ export function VariantsScreen({
   brand,
   modelo,
   vehiclesState,
-  onBack,
   onSelectVariant,
 }: VariantsScreenProps): React.JSX.Element {
   const [search, setSearch] = useState('');
@@ -96,8 +93,6 @@ export function VariantsScreen({
 
   return (
     <>
-      <ListaPreciosSubheader title={`${brand}  ${modelo}`} onBack={onBack} />
-
       <div className="lp-page">
         <div className="lp-toolbar">
           <div className="lp-search-bar">

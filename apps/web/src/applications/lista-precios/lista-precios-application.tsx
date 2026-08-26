@@ -12,12 +12,41 @@ import {
   buildVariantsPath,
   getParentPath,
   parseListaPreciosRoute,
+  type ListaPreciosRoute,
 } from './lista-precios-routes';
-import { useListaPreciosVehicles } from './use-lista-precios-vehicles';
+import { useListaPreciosVehicles, type ListaPreciosVehiclesState } from './use-lista-precios-vehicles';
 import { VariantsScreen } from './variants-screen';
 
 const DEFAULT_WHATSAPP_NUMBER = '595976511016';
 const DEFAULT_WHATSAPP_MESSAGE_TEMPLATE = 'Hola, ¿está disponible el modelo: {modelo}?';
+
+/**
+ * Texto de la 3ra fila del header ("dónde estoy" dentro de la app). Vive acá y no en cada
+ * pantalla porque ahora es el `PlatformHeader` compartido quien la renderiza, no un sub-header
+ * propio de lista-precios — así no hay dos lugares mostrando el mismo título.
+ */
+function computeBreadcrumb(
+  route: ListaPreciosRoute,
+  vehiclesState: ListaPreciosVehiclesState,
+): string | undefined {
+  switch (route.view) {
+    case 'home':
+      return undefined;
+    case 'brand':
+      return route.brand;
+    case 'variants':
+      return `${route.brand} · ${route.modelo}`;
+    case 'detail': {
+      if (vehiclesState.status !== 'ready') {
+        return vehiclesState.status === 'loading' ? 'Cargando...' : 'Error';
+      }
+      const group = vehiclesState.groups.get(route.modelKey);
+      return group === undefined ? 'Detalle' : `${group.marca} ${group.modelo}`;
+    }
+    case 'not-found':
+      return 'Página no encontrada';
+  }
+}
 
 export function ListaPreciosApplication({
   api,
@@ -55,6 +84,7 @@ export function ListaPreciosApplication({
   }, [route, application.launchPath, onNavigate]);
 
   const launchPath = application.launchPath;
+  const breadcrumb = computeBreadcrumb(route, vehiclesState);
 
   return (
     <main className="platform-shell lista-precios-shell">
@@ -66,6 +96,8 @@ export function ListaPreciosApplication({
         isPlatformAdministrator={session.isPlatformAdministrator}
         showAdministrationLink={false}
         variant="application"
+        breadcrumb={breadcrumb}
+        onBack={breadcrumb === undefined ? undefined : handleBack}
         onNavigate={onNavigate}
         onLogout={onLogout}
       />
@@ -89,7 +121,6 @@ export function ListaPreciosApplication({
         <BrandScreen
           brand={route.brand}
           vehiclesState={vehiclesState}
-          onBack={handleBack}
           onSelectModel={(modelo) =>
             navigateWithinApp(buildVariantsPath(launchPath, route.brand, modelo))
           }
@@ -102,7 +133,6 @@ export function ListaPreciosApplication({
           brand={route.brand}
           modelo={route.modelo}
           vehiclesState={vehiclesState}
-          onBack={handleBack}
           onSelectVariant={(modelKey) => navigateWithinApp(buildDetailPath(launchPath, modelKey))}
         />
       ) : null}
@@ -111,7 +141,6 @@ export function ListaPreciosApplication({
         <DetailScreen
           modelKey={route.modelKey}
           vehiclesState={vehiclesState}
-          onBack={handleBack}
           whatsAppNumber={import.meta.env.VITE_LISTA_PRECIOS_WA_NUMBER ?? DEFAULT_WHATSAPP_NUMBER}
           whatsAppMessageTemplate={
             import.meta.env.VITE_LISTA_PRECIOS_WA_MESSAGE_TEMPLATE ??
@@ -124,9 +153,6 @@ export function ListaPreciosApplication({
         <div className="lp-page">
           <div className="lp-state-box">
             <span className="lp-state-box-title">Página no encontrada</span>
-            <button className="lp-cta-btn" type="button" onClick={handleBack}>
-              Volver
-            </button>
           </div>
         </div>
       ) : null}
