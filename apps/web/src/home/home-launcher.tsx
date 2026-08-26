@@ -156,7 +156,7 @@ export function HomeLauncher({
       />
       <section className="subheader" aria-label="Información de sesión">
         <p>
-          Usuario <strong>{employeeName}</strong>
+          Hola, <strong>{employeeName}</strong>
         </p>
         <p>{formatCurrentDateTime()}</p>
       </section>
