@@ -44,7 +44,6 @@ export function AccessShell({
           {children === undefined ? null : <div className="access-actions">{children}</div>}
         </div>
 
-        <p className="access-security-note">Identidad corporativa centralizada</p>
       </section>
 
       <aside className="access-brand" aria-hidden="true">
@@ -63,16 +62,6 @@ export function AccessShell({
           />
         </picture>
         <div className="access-brand-overlay" />
-        <div className="access-brand-statement">
-          <img
-            className="access-wordmark"
-            src="/brand/timbo-wordmark.webp"
-            width="1400"
-            height="354"
-            alt=""
-          />
-          <p>Un solo acceso para tus herramientas de trabajo.</p>
-        </div>
         <div className="access-brand-cut" />
       </aside>
     </main>
