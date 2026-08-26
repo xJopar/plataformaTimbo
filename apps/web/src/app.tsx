@@ -15,6 +15,8 @@ import { AccessManagementPanel } from './access-management-panel';
 import { AuthorizedApplicationRoute } from './applications/authorized-application-route';
 import { HomeLauncher } from './home/home-launcher';
 import { AccessShell } from './auth/access-shell';
+import { AccessSupportLinks } from './auth/access-support-links';
+import { GoogleGlyph } from './auth/google-glyph';
 import './app.css';
 
 interface AppProps {
@@ -194,16 +196,17 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
         : undefined;
     return (
       <AccessShell
-        title="Acceso corporativo"
-        detail="Ingresá con tu cuenta corporativa autorizada."
+        title="Iniciá sesión"
+        detail="Usá tu cuenta de Google del trabajo para continuar."
       >
         {rejectionMessage === undefined ? null : <p role="alert">{rejectionMessage}</p>}
         <button className="access-primary-action" type="button" onClick={beginGoogleLogin}>
-          <span className="access-google-mark" aria-hidden="true">
-            G
+          <span className="access-google-mark">
+            <GoogleGlyph />
           </span>
           <span>Ingresar con Google</span>
         </button>
+        {rejectionMessage === undefined ? null : <AccessSupportLinks />}
       </AccessShell>
     );
   }
@@ -218,6 +221,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
         <button className="access-primary-action" type="button" onClick={() => void loadSession()}>
           Reintentar
         </button>
+        <AccessSupportLinks />
       </AccessShell>
     );
   }

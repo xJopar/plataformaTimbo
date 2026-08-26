@@ -12,6 +12,7 @@ El color dominante medido en el fondo del wordmark es `#1F245C` (RGB `31, 36, 92
 ## Archivos derivados
 
 - `../../public/brand/timbo-wordmark.webp`: wordmark completo, recortado al contenido y con padding visual.
+- `../../public/brand/timbo-wordmark-mark.webp`: mismo encuadre que el anterior, pero con canal alfa real (fondo azul sólido removido por luminancia) para superponerlo sobre la fotografía de la pantalla de acceso sin arrastrar un rectángulo de color.
 - `../../public/brand/timbo-facility-640.webp`, `timbo-facility-960.webp` y `timbo-facility-1600.webp`: variantes WebP para `srcset`, corregidas según la orientación EXIF y sin ampliar la imagen original.
 - `../../public/icons/timbo-app-192.png` y `timbo-app-512.png`: iconos de aplicación con el monograma `T` derivado de la primera letra del wordmark.
 - `../../public/icons/timbo-maskable-512.png`: variante con el monograma dentro de una zona segura más amplia para máscaras de plataforma.
@@ -20,7 +21,7 @@ El color dominante medido en el fondo del wordmark es `#1F245C` (RGB `31, 36, 92
 
 ## Regeneración
 
-El proceso usa únicamente Pillow instalado localmente y no agrega dependencias de runtime. Desde la raíz del repositorio, ejecutar:
+El proceso usa Pillow y NumPy instalados localmente y no agrega dependencias de runtime. Desde la raíz del repositorio, ejecutar:
 
 ```bash
 python apps/web/assets/brand/generate_brand_assets.py

@@ -68,6 +68,18 @@
   margin-top: 32px;
 }
 
+.access-support {
+  margin: 0;
+  color: var(--access-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.access-support a {
+  color: var(--access-brand);
+  font-weight: 650;
+}
+
 .access-actions > [role='alert'] {
   margin: 0;
   padding: 14px 16px;
@@ -119,9 +131,6 @@
   place-items: center;
   border-radius: 50%;
   background: #ffffff;
-  color: #3355a5;
-  font-size: 0.875rem;
-  font-weight: 850;
 }
 
 .access-progress {
@@ -180,6 +189,7 @@
 
 .access-brand-statement {
   position: absolute;
+  z-index: 3;
   right: 0;
   bottom: clamp(40px, 6vh, 72px);
   left: 0;
@@ -192,14 +202,6 @@
   width: min(100%, 520px);
   height: auto;
   display: block;
-}
-
-.access-brand-statement p {
-  max-width: 36ch;
-  margin: 22px 0 0;
-  color: rgba(255, 255, 255, 0.83);
-  font-size: clamp(1rem, 1.35vw, 1.25rem);
-  line-height: 1.5;
 }
 
 .access-brand-cut {
@@ -272,10 +274,6 @@
 
   .access-wordmark {
     width: min(68vw, 280px);
-  }
-
-  .access-brand-statement p {
-    display: none;
   }
 
   .access-brand-cut {

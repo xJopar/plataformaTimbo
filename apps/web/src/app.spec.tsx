@@ -123,7 +123,7 @@ describe('App', () => {
     const api = createApi({ getSession: vi.fn().mockRejectedValue(new ApiHttpError(401)) });
     render(<App api={api} />);
 
-    expect(await screen.findByRole('heading', { name: 'Acceso corporativo' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Iniciá sesión' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ingresar con Google' })).toBeInTheDocument();
     expect(document.querySelector('.access-brand-picture source')).toHaveAttribute(
       'srcset',
@@ -131,7 +131,7 @@ describe('App', () => {
     );
     expect(document.querySelector('.access-wordmark')).toHaveAttribute(
       'src',
-      '/brand/timbo-wordmark.webp',
+      '/brand/timbo-wordmark-mark.webp',
     );
   });
 
@@ -198,6 +198,14 @@ describe('App', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('no está autorizada');
     expect(window.location.search).toBe('');
     expect(api.auth.getSession).not.toHaveBeenCalled();
+    expect(screen.getByRole('link', { name: 'Escribinos por correo' })).toHaveAttribute(
+      'href',
+      'mailto:desarrollo4.ti@timbo.com.py',
+    );
+    expect(screen.getByRole('link', { name: 'WhatsApp' })).toHaveAttribute(
+      'href',
+      'https://wa.me/595994900313',
+    );
   });
 
   it('muestra un fallo técnico recuperable para errores que no son 401', async () => {
@@ -211,6 +219,7 @@ describe('App', () => {
     expect(
       await screen.findByRole('heading', { name: 'No pudimos verificar tu acceso' }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'WhatsApp' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(await screen.findByRole('heading', { name: 'Tus aplicaciones' })).toBeInTheDocument();
   });
@@ -228,7 +237,7 @@ describe('App', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo cerrar la sesión');
     expect(screen.getByRole('heading', { name: 'Tus aplicaciones' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Reintentar cierre de sesión' }));
-    expect(await screen.findByRole('heading', { name: 'Acceso corporativo' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Iniciá sesión' })).toBeInTheDocument();
   });
 
   it('conserva el resultado más reciente bajo StrictMode y respuestas fuera de orden', async () => {
@@ -262,7 +271,7 @@ describe('App', () => {
 
     render(<App api={api} />);
 
-    await screen.findByRole('heading', { name: 'Acceso corporativo' });
+    await screen.findByRole('heading', { name: 'Iniciá sesión' });
     expect(getItem).not.toHaveBeenCalled();
     expect(setItem).not.toHaveBeenCalled();
     expect(removeItem).not.toHaveBeenCalled();

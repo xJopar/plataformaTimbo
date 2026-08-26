@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy
 from PIL import Image, ImageChops, ImageOps
 
 
@@ -54,6 +55,45 @@ def wordmark_asset(source: Image.Image, destination: Path) -> None:
     target_width = min(1400, crop.width)
     target_height = round(crop.height * target_width / crop.width)
     save_webp(crop.resize((target_width, target_height), RESAMPLING), destination, quality=88)
+
+
+def wordmark_mark_asset(source: Image.Image, destination: Path) -> None:
+    """Recorta el wordmark a un WebP con canal alfa real, para superponerlo sobre la
+    fotografía de acceso sin arrastrar el fondo azul sólido del archivo fuente.
+
+    Reutiliza el mismo encuadre que `wordmark_asset` (bbox del `foreground_mask`,
+    probado contra artefactos de borde del JPEG fuente) y sustituye únicamente el
+    fondo sólido por un canal alfa suave derivado de la luminancia real."""
+    mask = foreground_mask(source)
+    left, top, right, bottom = non_empty_bbox(mask)
+    content_width = right - left
+    content_height = bottom - top
+    horizontal_padding = round(content_width * 0.07)
+    vertical_padding = round(content_height * 0.30)
+    crop = source.convert("RGB").crop(
+        (
+            max(0, left - horizontal_padding),
+            max(0, top - vertical_padding),
+            min(source.width, right + horizontal_padding),
+            min(source.height, bottom + vertical_padding),
+        )
+    )
+
+    rgb = numpy.asarray(crop, dtype=numpy.float64)
+    weights = numpy.array([0.2126, 0.7152, 0.0722])
+    brand_luminance = float(numpy.array(BRAND_BLUE, dtype=numpy.float64) @ weights)
+    luminance = rgb @ weights
+    alpha = (luminance - brand_luminance - 20) / (255 - brand_luminance - 20) * 255
+    alpha = numpy.clip(alpha, 0, 255)
+    alpha[alpha < 30] = 0
+
+    cutout = Image.new("RGBA", crop.size, (255, 255, 255, 0))
+    cutout.putalpha(Image.fromarray(alpha.astype(numpy.uint8), mode="L"))
+    target_width = min(1400, cutout.width)
+    target_height = round(cutout.height * target_width / cutout.width)
+    cutout.resize((target_width, target_height), RESAMPLING).save(
+        destination, "WEBP", quality=90, method=6, exact=True
+    )
 
 
 def facility_asset(source: Image.Image, target_width: int, destination: Path) -> None:
@@ -118,6 +158,7 @@ def main() -> None:
     with Image.open(SOURCE_DIRECTORY / "timbo-wordmark-source.jpg") as wordmark_source:
         wordmark = wordmark_source.convert("RGB")
         wordmark_asset(wordmark, brand_directory / "timbo-wordmark.webp")
+        wordmark_mark_asset(wordmark, brand_directory / "timbo-wordmark-mark.webp")
         write_icons(wordmark, icons_directory)
 
     with Image.open(SOURCE_DIRECTORY / "timbo-facility-source.jpg") as facility_source:

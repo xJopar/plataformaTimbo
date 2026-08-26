@@ -43,7 +43,6 @@ export function AccessShell({
 
           {children === undefined ? null : <div className="access-actions">{children}</div>}
         </div>
-
       </section>
 
       <aside className="access-brand" aria-hidden="true">
@@ -62,6 +61,15 @@ export function AccessShell({
           />
         </picture>
         <div className="access-brand-overlay" />
+        <div className="access-brand-statement">
+          <img
+            className="access-wordmark"
+            src="/brand/timbo-wordmark-mark.webp"
+            width="1400"
+            height="354"
+            alt=""
+          />
+        </div>
         <div className="access-brand-cut" />
       </aside>
     </main>
