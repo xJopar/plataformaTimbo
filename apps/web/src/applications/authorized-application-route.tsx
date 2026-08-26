@@ -86,6 +86,7 @@ export function AuthorizedApplicationRoute({
     <ApplicationComponent
       api={api}
       application={application}
+      availableApplications={state.applications}
       session={session}
       isLoggingOut={isLoggingOut}
       logoutFailure={logoutFailure}

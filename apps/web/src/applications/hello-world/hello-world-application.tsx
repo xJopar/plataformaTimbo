@@ -19,6 +19,7 @@ type JokeState =
 export function HelloWorldApplication({
   api,
   application,
+  availableApplications,
   session,
   isLoggingOut,
   logoutFailure,
@@ -93,7 +94,9 @@ export function HelloWorldApplication({
   return (
     <main className="platform-shell hello-world-shell">
       <PlatformHeader
+        applications={availableApplications}
         applicationName={application.name}
+        applicationLaunchPath={application.launchPath}
         isLoggingOut={isLoggingOut}
         isPlatformAdministrator={session.isPlatformAdministrator}
         showAdministrationLink={false}

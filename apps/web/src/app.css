@@ -103,6 +103,8 @@ button:focus-visible {
 }
 .application-switcher {
   position: relative;
+}
+.application-switcher summary {
   min-height: 44px;
   padding: 0 12px;
   display: inline-flex;
@@ -112,15 +114,61 @@ button:focus-visible {
   color: inherit;
   font-size: 0.875rem;
   font-weight: 750;
-  text-decoration: none;
+  list-style: none;
+  cursor: pointer;
 }
-.application-switcher:hover {
+.application-switcher summary::-webkit-details-marker {
+  display: none;
+}
+.application-switcher summary::marker {
+  content: '';
+}
+.application-switcher summary:hover,
+.application-switcher[open] summary {
   border-color: rgba(255, 255, 255, 0.72);
   background: rgba(255, 255, 255, 0.1);
 }
-.application-switcher:focus-visible {
+.application-switcher summary:focus-visible {
   outline: 3px solid #00a6a6;
   outline-offset: 2px;
+}
+.application-switcher-menu {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: calc(100% + 8px);
+  inset-inline-end: 0;
+  inline-size: min(18rem, calc(100vw - 40px));
+  display: grid;
+  border: 1px solid #bcc9d7;
+  background: #f7f9fb;
+  color: #142033;
+}
+.application-switcher-menu a,
+.application-switcher-current {
+  min-height: 44px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+.application-switcher-menu a + a,
+.application-switcher-menu a + .application-switcher-current,
+.application-switcher-current + a {
+  border-top: 1px solid #bcc9d7;
+}
+.application-switcher-menu a:hover {
+  background: #e5edf5;
+}
+.application-switcher-menu a:focus-visible {
+  position: relative;
+  outline: 3px solid #00a6a6;
+  outline-offset: -3px;
+}
+.application-switcher-current {
+  background: #e5edf5;
+  color: #00388a;
 }
 .header-icon-action {
   position: relative;
@@ -974,7 +1022,7 @@ th {
     padding: 0 0 6px;
     font-size: 0.9375rem;
   }
-  .application-switcher {
+  .application-switcher summary {
     inline-size: 44px;
     padding: 0;
     display: inline-grid;

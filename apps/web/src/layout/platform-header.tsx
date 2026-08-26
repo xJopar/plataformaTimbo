@@ -1,4 +1,5 @@
 import { AccountSetting01Icon, GridViewIcon, Logout01Icon } from '@hugeicons/core-free-icons';
+import type { AuthorizedApplication } from '../api';
 import { AppIcon } from '../ui/app-icon';
 
 interface PlatformHeaderProps {
@@ -7,6 +8,8 @@ interface PlatformHeaderProps {
   showAdministrationLink: boolean;
   variant?: 'home' | 'application';
   applicationName?: string;
+  applicationLaunchPath?: string;
+  applications?: readonly AuthorizedApplication[];
   onNavigate: (pathname: string) => void;
   onLogout: () => void;
 }
@@ -17,11 +20,14 @@ export function PlatformHeader({
   showAdministrationLink,
   variant,
   applicationName,
+  applicationLaunchPath,
+  applications = [],
   onNavigate,
   onLogout,
 }: PlatformHeaderProps): React.JSX.Element {
   const useCompactActions = variant === 'home' || variant === 'application';
   const isApplicationHeader = variant === 'application';
+  const canSwitchApplications = isApplicationHeader && applications.length > 1;
 
   return (
     <header
@@ -50,19 +56,33 @@ export function PlatformHeader({
         </p>
       ) : null}
       <nav className="top-bar-actions" aria-label="Acciones de sesión">
-        {isApplicationHeader ? (
-          <a
-            className="application-switcher"
-            href="/"
-            aria-label="Cambiar aplicación"
-            onClick={(event) => {
-              event.preventDefault();
-              onNavigate('/');
-            }}
-          >
-            <AppIcon icon={GridViewIcon} />
-            <span>Aplicaciones</span>
-          </a>
+        {canSwitchApplications ? (
+          <details className="application-switcher">
+            <summary aria-label="Cambiar aplicación">
+              <AppIcon icon={GridViewIcon} />
+              <span>Aplicaciones</span>
+            </summary>
+            <nav className="application-switcher-menu" aria-label="Aplicaciones autorizadas">
+              {applications.map((item) =>
+                item.launchPath === applicationLaunchPath ? (
+                  <span aria-current="page" className="application-switcher-current" key={item.key}>
+                    {item.name}
+                  </span>
+                ) : (
+                  <a
+                    href={item.launchPath}
+                    key={item.key}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      onNavigate(item.launchPath);
+                    }}
+                  >
+                    {item.name}
+                  </a>
+                ),
+              )}
+            </nav>
+          </details>
         ) : null}
         {isPlatformAdministrator && showAdministrationLink ? (
           <a

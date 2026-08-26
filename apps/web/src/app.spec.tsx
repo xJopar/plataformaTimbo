@@ -39,6 +39,14 @@ const authorizedApplication: AuthorizedApplication = {
   displayOrder: 0,
 };
 
+const secondAuthorizedApplication: AuthorizedApplication = {
+  key: 'price-list',
+  name: 'Lista de Precios',
+  description: 'Consulta interna de precios.',
+  launchPath: '/apps/price-list',
+  displayOrder: 1,
+};
+
 function createApi(
   authOverrides: Partial<AuthApi> = {},
   administrationOverrides: Partial<AdministrationApi> = {},
@@ -779,7 +787,11 @@ describe('App', () => {
         api={createApi(
           {},
           {},
-          { listAuthorizedApplications: vi.fn().mockResolvedValue([authorizedApplication]) },
+          {
+            listAuthorizedApplications: vi
+              .fn<ApplicationsApi['listAuthorizedApplications']>()
+              .mockResolvedValue([authorizedApplication, secondAuthorizedApplication]),
+          },
         )}
       />,
     );
@@ -791,9 +803,13 @@ describe('App', () => {
     expect(screen.queryByRole('link', { name: 'Inicio' })).not.toBeInTheDocument();
     expect(screen.queryByText('Herramienta de demostración')).not.toBeInTheDocument();
     expect(screen.getByText('Hola,')).toBeInTheDocument();
-    const applicationSwitcher = screen.getByRole('link', { name: 'Cambiar aplicación' });
-    expect(applicationSwitcher).toHaveAttribute('href', '/');
+    const applicationSwitcher = screen.getByLabelText('Cambiar aplicación');
     expect(applicationSwitcher.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument();
+    await user.click(applicationSwitcher);
+    expect(screen.getByRole('link', { name: 'Lista de Precios' })).toHaveAttribute(
+      'href',
+      '/apps/price-list',
+    );
     const logoutButton = screen.getByRole('button', { name: 'Cerrar sesión' });
     expect(logoutButton).toHaveAttribute('data-tooltip', 'Cerrar sesión');
     expect(logoutButton.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument();
