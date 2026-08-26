@@ -1,0 +1,1 @@
+export const LISTA_PRECIOS_FETCH = Symbol('LISTA_PRECIOS_FETCH');

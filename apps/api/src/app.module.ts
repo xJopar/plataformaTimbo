@@ -6,6 +6,7 @@ import { AdministrationModule } from './modules/administration/administration.mo
 import { AuthExceptionFilter } from './modules/auth/auth-exception.filter';
 import { AuthModule } from './modules/auth/auth.module';
 import { HelloWorldModule } from './modules/hello-world/hello-world.module';
+import { ListaPreciosModule } from './modules/lista-precios/lista-precios.module';
 import { ObservabilityModule } from './modules/observability/observability.module';
 import { UsersModule } from './modules/users/users.module';
 import { UsageEventsModule } from './modules/usage-events/usage-events.module';
@@ -20,6 +21,7 @@ import { UsageEventsModule } from './modules/usage-events/usage-events.module';
     UsersModule,
     AuthModule,
     HelloWorldModule,
+    ListaPreciosModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: AuthExceptionFilter }],
 })
