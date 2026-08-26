@@ -144,8 +144,11 @@ describe('App', () => {
   it('muestra el launcher seguro y el estado vacío cuando existe sesión', async () => {
     render(<App api={createApi()} />);
 
-    expect(await screen.findByRole('heading', { name: 'Tus aplicaciones' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Apps' })).toBeInTheDocument();
     expect(screen.getByText('Persona Timbo')).toBeInTheDocument();
+    expect(
+      screen.getByText('La pasión por el cliente guía cada solución que ponemos en tus manos.'),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Administración' })).not.toBeInTheDocument();
     expect(
       await screen.findByRole('heading', { name: 'Sin aplicaciones asignadas' }),
@@ -238,7 +241,7 @@ describe('App', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'WhatsApp' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
-    expect(await screen.findByRole('heading', { name: 'Tus aplicaciones' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Apps' })).toBeInTheDocument();
   });
 
   it('no muestra éxito de logout si la revocación falla y permite reintentar', async () => {
@@ -249,10 +252,10 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App api={createApi({ logout })} />);
 
-    await screen.findByRole('heading', { name: 'Tus aplicaciones' });
+    await screen.findByRole('heading', { name: 'Apps' });
     await user.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo cerrar la sesión');
-    expect(screen.getByRole('heading', { name: 'Tus aplicaciones' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Apps' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Reintentar cierre de sesión' }));
     expect(await screen.findByRole('heading', { name: 'Iniciá sesión' })).toBeInTheDocument();
   });
@@ -275,7 +278,7 @@ describe('App', () => {
       </StrictMode>,
     );
 
-    expect(await screen.findByRole('heading', { name: 'Tus aplicaciones' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Apps' })).toBeInTheDocument();
     resolveFirst?.({ ...session, displayName: 'Respuesta anterior' });
     await waitFor(() => expect(screen.getByText('Persona Timbo')).toBeInTheDocument());
   });
@@ -313,7 +316,7 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App api={api} />);
 
-    await screen.findByRole('heading', { name: 'Tus aplicaciones' });
+    await screen.findByRole('heading', { name: 'Apps' });
     await user.click(screen.getByRole('link', { name: 'Administración' }));
     expect(await screen.findByRole('heading', { name: 'Usuarios' })).toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: 'Actividad' }));

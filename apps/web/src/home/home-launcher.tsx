@@ -1,6 +1,16 @@
+import { useEffect, useState } from 'react';
 import type { Api, AuthSession } from '../api';
 import { useAuthorizedApplications } from '../applications/use-authorized-applications';
 import { PlatformHeader } from '../platform-header';
+
+const COMPANY_VALUES = [
+  'La pasión por el cliente guía cada solución que ponemos en tus manos.',
+  'Actuamos con proactividad y lideramos con el ejemplo, todos los días.',
+  'Elegimos la evolución continua para aprender, mejorar y avanzar juntos.',
+  'Cuidamos a las personas y al medio ambiente en cada decisión que tomamos.',
+] as const;
+
+const COMPANY_VALUE_ROTATION_INTERVAL_MS = 6_000;
 
 interface HomeLauncherProps {
   api: Api;
@@ -28,6 +38,57 @@ export function HomeLauncher({
 }: HomeLauncherProps): React.JSX.Element {
   const { state, reload } = useAuthorizedApplications(api);
   const employeeName = session.displayName ?? session.corporateEmail;
+  const [companyValueIndex, setCompanyValueIndex] = useState(0);
+
+  useEffect(() => {
+    const reducedMotionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    let intervalId: number | undefined;
+
+    const stopRotation = () => {
+      if (intervalId !== undefined) {
+        window.clearInterval(intervalId);
+        intervalId = undefined;
+      }
+    };
+
+    const startRotation = () => {
+      if (intervalId !== undefined || document.hidden || reducedMotionPreference?.matches) {
+        return;
+      }
+
+      intervalId = window.setInterval(() => {
+        setCompanyValueIndex((currentIndex) => (currentIndex + 1) % COMPANY_VALUES.length);
+      }, COMPANY_VALUE_ROTATION_INTERVAL_MS);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopRotation();
+        return;
+      }
+
+      startRotation();
+    };
+
+    const handleMotionPreferenceChange = () => {
+      if (reducedMotionPreference?.matches) {
+        stopRotation();
+        return;
+      }
+
+      startRotation();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    reducedMotionPreference?.addEventListener('change', handleMotionPreferenceChange);
+    startRotation();
+
+    return () => {
+      stopRotation();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      reducedMotionPreference?.removeEventListener('change', handleMotionPreferenceChange);
+    };
+  }, []);
 
   return (
     <main className="platform-shell" data-visual-contract="launcher-aplicaciones-autorizadas">
@@ -41,7 +102,7 @@ export function HomeLauncher({
       />
       <section className="subheader" aria-label="Información de sesión">
         <p>
-          Empleado <strong>{employeeName}</strong>
+          Usuario <strong>{employeeName}</strong>
         </p>
         <p>{formatCurrentDateTime()}</p>
       </section>
@@ -52,8 +113,10 @@ export function HomeLauncher({
       >
         <div className="launcher-heading">
           <div>
-            <h1 id="home-title">Tus aplicaciones</h1>
-            <p>Accedé a las herramientas asignadas a tu cuenta.</p>
+            <h1 id="home-title">Apps</h1>
+            <p className="company-value" key={COMPANY_VALUES[companyValueIndex]}>
+              {COMPANY_VALUES[companyValueIndex]}
+            </p>
           </div>
           {state.status === 'ready' && state.applications.length > 0 ? (
             <p className="launcher-count" aria-live="polite">
