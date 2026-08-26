@@ -52,6 +52,10 @@ const oauthErrorMessages: Record<OAuthErrorCode, string> = {
   USER_NOT_AUTHORIZED: 'Tu cuenta no está autorizada para ingresar a Plataforma Timbo.',
 };
 
+function withEnterTransition(content: React.ReactNode): React.JSX.Element {
+  return <div className="app-content-enter">{content}</div>;
+}
+
 function readOAuthErrorFromUrl(): OAuthErrorCode | undefined {
   const rawCode = new URLSearchParams(window.location.search).get('auth_error');
   if (rawCode === null) {
@@ -194,7 +198,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
       authenticationState.status === 'rejected'
         ? oauthErrorMessages[authenticationState.code]
         : undefined;
-    return (
+    return withEnterTransition(
       <AccessShell
         title="Iniciá sesión"
         detail="Usá tu cuenta de Google del trabajo para continuar."
@@ -207,12 +211,12 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
           <span>Ingresar con Google</span>
         </button>
         {rejectionMessage === undefined ? null : <AccessSupportLinks />}
-      </AccessShell>
+      </AccessShell>,
     );
   }
 
   if (authenticationState.status === 'technical-failure') {
-    return (
+    return withEnterTransition(
       <AccessShell
         title="No pudimos verificar tu acceso"
         detail="La sesión no pudo consultarse en este momento."
@@ -222,7 +226,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
           Reintentar
         </button>
         <AccessSupportLinks />
-      </AccessShell>
+      </AccessShell>,
     );
   }
 
@@ -236,11 +240,11 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
     pathname === '/admin/applications'
   ) {
     if (api === undefined) {
-      return (
-        <AccessShell title="No pudimos cargar Administración" detail="La API no está disponible." />
+      return withEnterTransition(
+        <AccessShell title="No pudimos cargar Administración" detail="La API no está disponible." />,
       );
     }
-    return (
+    return withEnterTransition(
       <AdministrationPanel
         api={api}
         session={session}
@@ -254,17 +258,17 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
         }
         onNavigate={navigate}
         onLogout={() => void logout(session)}
-      />
+      />,
     );
   }
 
   if (pathname.startsWith('/apps/')) {
     if (api === undefined) {
-      return (
-        <AccessShell title="No pudimos cargar la aplicación" detail="La API no está disponible." />
+      return withEnterTransition(
+        <AccessShell title="No pudimos cargar la aplicación" detail="La API no está disponible." />,
       );
     }
-    return (
+    return withEnterTransition(
       <AuthorizedApplicationRoute
         api={api}
         pathname={pathname}
@@ -273,15 +277,17 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
         logoutFailure={logoutFailure}
         onNavigate={navigate}
         onLogout={() => void logout(session)}
-      />
+      />,
     );
   }
 
   if (api === undefined) {
-    return <AccessShell title="No pudimos cargar Inicio" detail="La API no está disponible." />;
+    return withEnterTransition(
+      <AccessShell title="No pudimos cargar Inicio" detail="La API no está disponible." />,
+    );
   }
 
-  return (
+  return withEnterTransition(
     <HomeLauncher
       api={api}
       session={session}
@@ -289,7 +295,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
       logoutFailure={logoutFailure}
       onNavigate={navigate}
       onLogout={() => void logout(session)}
-    />
+    />,
   );
 }
 
