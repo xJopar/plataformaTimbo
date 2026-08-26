@@ -10,7 +10,7 @@ const COMPANY_VALUES = [
   'Cuidamos a las personas y al medio ambiente en cada decisión que tomamos.',
 ] as const;
 
-const COMPANY_VALUE_ROTATION_INTERVAL_MS = 6_000;
+const COMPANY_VALUE_ROTATION_INTERVAL_MS = 15_000;
 
 interface HomeLauncherProps {
   api: Api;
