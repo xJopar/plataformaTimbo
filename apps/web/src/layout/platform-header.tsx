@@ -28,7 +28,6 @@ export function PlatformHeader({
           }}
         >
           <img src="/brand/timbo-logo-white.png" alt="Timbo" />
-          <span>Plataforma</span>
         </a>
       ) : (
         <p className="product-name">Plataforma Timbo</p>

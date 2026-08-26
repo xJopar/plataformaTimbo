@@ -10,13 +10,13 @@ import type {
   AuthSession,
 } from './api';
 import { ApiHttpError } from './api';
-import { ApplicationsPanel } from './applications-panel';
-import { AccessManagementPanel } from './access-management-panel';
+import { ApplicationsPanel } from './administration/applications-panel';
+import { AccessManagementPanel } from './administration/access-management-panel';
 import { AuthorizedApplicationRoute } from './applications/authorized-application-route';
 import { HomeLauncher } from './home/home-launcher';
 import { AccessShell } from './auth/access-shell';
 import { SessionBootScreen } from './auth/session-boot-screen';
-import { PlatformHeader } from './platform-header';
+import { PlatformHeader } from './layout/platform-header';
 import { AccessSupportLinks } from './auth/access-support-links';
 import { GoogleGlyph } from './auth/google-glyph';
 import './app.css';
@@ -241,7 +241,10 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
   ) {
     if (api === undefined) {
       return withEnterTransition(
-        <AccessShell title="No pudimos cargar Administración" detail="La API no está disponible." />,
+        <AccessShell
+          title="No pudimos cargar Administración"
+          detail="La API no está disponible."
+        />,
       );
     }
     return withEnterTransition(

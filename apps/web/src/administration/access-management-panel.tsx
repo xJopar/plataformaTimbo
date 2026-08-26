@@ -6,7 +6,7 @@ import {
   type AdministrativeUser,
   type AdministrativeUserApplicationAccess,
   type Api,
-} from './api';
+} from '../api';
 
 interface AccessManagementPanelProps {
   api: Api;

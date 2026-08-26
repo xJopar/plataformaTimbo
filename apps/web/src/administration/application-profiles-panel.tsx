@@ -5,7 +5,7 @@ import {
   type AdministrativeApplicationPermission,
   type AdministrativeApplicationProfile,
   type Api,
-} from './api';
+} from '../api';
 
 interface ProfileFormValues {
   key: string;

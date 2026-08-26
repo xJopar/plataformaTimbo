@@ -1,5 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
-import { ApiHttpError, type AdministrativeApplication, type Api } from './api';
+import { ApiHttpError, type AdministrativeApplication, type Api } from '../api';
 import { ApplicationProfilesPanel } from './application-profiles-panel';
 
 type ApplicationsState =

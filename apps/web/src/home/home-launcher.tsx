@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Api, AuthSession } from '../api';
 import { useAuthorizedApplications } from '../applications/use-authorized-applications';
-import { PlatformHeader } from '../platform-header';
+import { PlatformHeader } from '../layout/platform-header';
 
 const COMPANY_VALUES = [
   'La pasión por el cliente guía cada solución que ponemos en tus manos.',
