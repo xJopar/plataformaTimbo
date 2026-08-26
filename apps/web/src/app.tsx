@@ -15,6 +15,7 @@ import { AccessManagementPanel } from './access-management-panel';
 import { AuthorizedApplicationRoute } from './applications/authorized-application-route';
 import { HomeLauncher } from './home/home-launcher';
 import { AccessShell } from './auth/access-shell';
+import { SessionBootScreen } from './auth/session-boot-screen';
 import { PlatformHeader } from './platform-header';
 import { AccessSupportLinks } from './auth/access-support-links';
 import { GoogleGlyph } from './auth/google-glyph';
@@ -185,9 +186,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
   );
 
   if (authenticationState.status === 'checking') {
-    return (
-      <AccessShell title="Verificando sesión" detail="Comprobando tu acceso corporativo." isBusy />
-    );
+    return <SessionBootScreen />;
   }
 
   if (authenticationState.status === 'signed-out' || authenticationState.status === 'rejected') {

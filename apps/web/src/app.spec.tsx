@@ -150,9 +150,19 @@ describe('App', () => {
     expect(
       await screen.findByRole('heading', { name: 'Sin aplicaciones asignadas' }),
     ).toBeInTheDocument();
-    expect(
-      document.querySelector('[data-layout="continuous-application-list"]'),
-    ).toBeInTheDocument();
+    expect(document.querySelector('[data-layout="application-launcher-grid"]')).toBeInTheDocument();
+  });
+
+  it('mantiene una superficie neutral mientras verifica una sesión existente', () => {
+    const getSession = vi
+      .fn<AuthApi['getSession']>()
+      .mockImplementation(() => new Promise<AuthSession>(() => undefined));
+
+    render(<App api={createApi({ getSession })} />);
+
+    expect(screen.getByRole('status', { name: 'Verificando sesión' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Iniciá sesión' })).not.toBeInTheDocument();
+    expect(screen.getByAltText('Timbo')).toHaveAttribute('src', '/brand/timbo-logo-white.png');
   });
 
   it('muestra las aplicaciones autorizadas y navega por su ruta interna', async () => {

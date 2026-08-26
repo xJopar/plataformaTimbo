@@ -35,6 +35,7 @@ export function HomeLauncher({
         isLoggingOut={isLoggingOut}
         isPlatformAdministrator={session.isPlatformAdministrator}
         showAdministrationLink
+        variant="home"
         onNavigate={onNavigate}
         onLogout={onLogout}
       />
@@ -47,7 +48,7 @@ export function HomeLauncher({
       <section
         className="dispatch-board"
         aria-labelledby="home-title"
-        data-layout="continuous-application-list"
+        data-layout="application-launcher-grid"
       >
         <div className="launcher-heading">
           <div>
@@ -103,7 +104,7 @@ export function HomeLauncher({
                     {application.description ?? 'Aplicación interna de Plataforma Timbo.'}
                   </span>
                 </span>
-                <span className="application-launcher-action">Abrir aplicación</span>
+                <span className="application-launcher-action">Abrir</span>
               </a>
             ))}
           </nav>
