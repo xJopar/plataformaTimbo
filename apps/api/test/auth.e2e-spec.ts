@@ -59,6 +59,7 @@ describe('autenticación HTTP (e2e)', () => {
   const transactionClient = {};
   const prismaService = {
     $transaction: jest.fn((callback: (tx: unknown) => unknown) => callback(transactionClient)),
+    userProfileAssignment: { findFirst: jest.fn() },
   };
   const originalEnvironment = {
     GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID,
@@ -98,6 +99,7 @@ describe('autenticación HTTP (e2e)', () => {
     prismaService.$transaction.mockImplementation((callback: (tx: unknown) => unknown) =>
       callback(transactionClient),
     );
+    prismaService.userProfileAssignment.findFirst.mockResolvedValue(null);
     auditEventsService.append.mockResolvedValue(undefined);
     const user = createUser();
     jest.mocked(oauthLoginAttemptsService.createLoginAttempt).mockResolvedValue({
@@ -168,6 +170,7 @@ describe('autenticación HTTP (e2e)', () => {
       id: expect.any(String),
       corporateEmail: 'persona@example.test',
       displayName: 'Persona',
+      isPlatformAdministrator: false,
     });
     expect(JSON.stringify(sessionBody)).not.toContain('token');
     expect(auditEventsService.append).toHaveBeenCalledWith(

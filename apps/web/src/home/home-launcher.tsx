@@ -1,5 +1,6 @@
 import type { Api, AuthSession } from '../api';
 import { useAuthorizedApplications } from '../applications/use-authorized-applications';
+import { PlatformHeader } from '../platform-header';
 
 interface HomeLauncherProps {
   api: Api;
@@ -30,22 +31,13 @@ export function HomeLauncher({
 
   return (
     <main className="platform-shell" data-visual-contract="launcher-aplicaciones-autorizadas">
-      <header className="top-bar">
-        <p className="product-name">Plataforma Timbo</p>
-        <a
-          className="top-navigation-link"
-          href="/admin"
-          onClick={(event) => {
-            event.preventDefault();
-            onNavigate('/admin');
-          }}
-        >
-          Administración
-        </a>
-        <button className="logout-button" type="button" disabled={isLoggingOut} onClick={onLogout}>
-          {isLoggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
-        </button>
-      </header>
+      <PlatformHeader
+        isLoggingOut={isLoggingOut}
+        isPlatformAdministrator={session.isPlatformAdministrator}
+        showAdministrationLink
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+      />
       <section className="subheader" aria-label="Información de sesión">
         <p>
           Empleado <strong>{employeeName}</strong>

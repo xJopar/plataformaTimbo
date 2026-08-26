@@ -1441,12 +1441,17 @@
             "type": "string",
             "example": "Persona Timbo",
             "nullable": true
+          },
+          "isPlatformAdministrator": {
+            "type": "boolean",
+            "example": false
           }
         },
         "required": [
           "id",
           "corporateEmail",
-          "displayName"
+          "displayName",
+          "isPlatformAdministrator"
         ]
       },
       "AdministrativeUserResponseDto": {

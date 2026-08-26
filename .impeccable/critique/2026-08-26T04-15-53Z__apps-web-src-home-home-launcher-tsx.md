@@ -2,29 +2,30 @@
 target: home / launcher de aplicaciones
 total_score: 31
 max_score: 40
-na_heuristics: 
+na_heuristics:
 p0_count: 0
 p1_count: 2
 timestamp: 2026-08-26T04-15-53Z
 slug: apps-web-src-home-home-launcher-tsx
 ---
+
 Method: dual-agent (A: /root/critique_design_a2 · B: /root/critique_evidence_b)
 
 ## Design Health Score
 
-| # | Heurística | Puntaje | Hallazgo clave |
-|---|---|---:|---|
-| 1 | Visibilidad del estado | 3/4 | Carga, error, vacío y cantidad están comunicados; al abrir una app no hay señal de transición. |
-| 2 | Correspondencia con el mundo real | 4/4 | Lenguaje interno claro y fecha localizada para empleados. |
-| 3 | Control y libertad | 3/4 | Inicio y reintentos son salidas seguras; falta retorno contextual tras un lanzamiento erróneo. |
-| 4 | Consistencia y estándares | 4/4 | Sistema visual, foco y patrones coherentes con el App Shell. |
-| 5 | Prevención de errores | 3/4 | Administración se muestra aun a quien no tendría acceso. |
-| 6 | Reconocimiento sobre recuerdo | 4/4 | Nombre, descripción y acción están visibles. |
-| 7 | Flexibilidad y eficiencia | 3/4 | Lanzamiento de un clic; sin búsqueda, favoritos ni atajos al crecer el catálogo. |
-| 8 | Diseño estético y minimalista | 3/4 | Limpio, pero el título y vacío visual eclipsan la única herramienta. |
-| 9 | Reconocer y recuperar errores | 3/4 | Reintento claro; sin vía de soporte si persiste la falla. |
-| 10 | Ayuda y documentación | 1/4 | No hay ayuda ni ruta de soporte visible. |
-| **Total** |  | **31/40** | **Bueno (78%)** |
+| #         | Heurística                        |   Puntaje | Hallazgo clave                                                                                 |
+| --------- | --------------------------------- | --------: | ---------------------------------------------------------------------------------------------- |
+| 1         | Visibilidad del estado            |       3/4 | Carga, error, vacío y cantidad están comunicados; al abrir una app no hay señal de transición. |
+| 2         | Correspondencia con el mundo real |       4/4 | Lenguaje interno claro y fecha localizada para empleados.                                      |
+| 3         | Control y libertad                |       3/4 | Inicio y reintentos son salidas seguras; falta retorno contextual tras un lanzamiento erróneo. |
+| 4         | Consistencia y estándares         |       4/4 | Sistema visual, foco y patrones coherentes con el App Shell.                                   |
+| 5         | Prevención de errores             |       3/4 | Administración se muestra aun a quien no tendría acceso.                                       |
+| 6         | Reconocimiento sobre recuerdo     |       4/4 | Nombre, descripción y acción están visibles.                                                   |
+| 7         | Flexibilidad y eficiencia         |       3/4 | Lanzamiento de un clic; sin búsqueda, favoritos ni atajos al crecer el catálogo.               |
+| 8         | Diseño estético y minimalista     |       3/4 | Limpio, pero el título y vacío visual eclipsan la única herramienta.                           |
+| 9         | Reconocer y recuperar errores     |       3/4 | Reintento claro; sin vía de soporte si persiste la falla.                                      |
+| 10        | Ayuda y documentación             |       1/4 | No hay ayuda ni ruta de soporte visible.                                                       |
+| **Total** |                                   | **31/40** | **Bueno (78%)**                                                                                |
 
 ## Veredicto de especificidad
 

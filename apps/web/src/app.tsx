@@ -15,6 +15,7 @@ import { AccessManagementPanel } from './access-management-panel';
 import { AuthorizedApplicationRoute } from './applications/authorized-application-route';
 import { HomeLauncher } from './home/home-launcher';
 import { AccessShell } from './auth/access-shell';
+import { PlatformHeader } from './platform-header';
 import { AccessSupportLinks } from './auth/access-support-links';
 import { GoogleGlyph } from './auth/google-glyph';
 import './app.css';
@@ -244,6 +245,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
       <AdministrationPanel
         api={api}
         session={session}
+        isLoggingOut={isLoggingOut}
         activeSection={
           pathname === '/admin/activity'
             ? 'activity'
@@ -301,6 +303,7 @@ type AdministrationState =
 interface AdministrationPanelProps {
   api: Api;
   session: AuthSession;
+  isLoggingOut: boolean;
   activeSection: 'users' | 'applications' | 'activity';
   onNavigate: (pathname: string) => void;
   onLogout: () => void;
@@ -309,6 +312,7 @@ interface AdministrationPanelProps {
 function AdministrationPanel({
   api,
   session,
+  isLoggingOut,
   activeSection,
   onNavigate,
   onLogout,
@@ -434,12 +438,13 @@ function AdministrationPanel({
 
   return (
     <main className="platform-shell administration-shell">
-      <header className="top-bar">
-        <p className="product-name">Plataforma Timbo</p>
-        <button className="logout-button" type="button" onClick={onLogout}>
-          Cerrar sesión
-        </button>
-      </header>
+      <PlatformHeader
+        isLoggingOut={isLoggingOut}
+        isPlatformAdministrator={session.isPlatformAdministrator}
+        showAdministrationLink={false}
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+      />
       <div className="administration-layout">
         <nav className="administration-navigation" aria-label="Navegación de Administración">
           <a

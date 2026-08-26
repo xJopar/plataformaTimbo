@@ -497,6 +497,8 @@ export interface components {
             corporateEmail: string;
             /** @example Persona Timbo */
             displayName: string | null;
+            /** @example false */
+            isPlatformAdministrator: boolean;
         };
         AdministrativeUserResponseDto: {
             /** @example d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6 */

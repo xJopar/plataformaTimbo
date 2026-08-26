@@ -9,4 +9,7 @@ export class AuthSessionResponseDto {
 
   @ApiProperty({ example: 'Persona Timbo', nullable: true, type: String })
   displayName!: string | null;
+
+  @ApiProperty({ example: false })
+  isPlatformAdministrator!: boolean;
 }

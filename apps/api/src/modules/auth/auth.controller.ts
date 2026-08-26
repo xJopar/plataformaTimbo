@@ -66,7 +66,7 @@ export class AuthController {
     summary: 'Obtiene la sesión autenticada vigente.',
   })
   @ApiOkResponse({ type: AuthSessionResponseDto })
-  public getSession(@Req() request: AuthenticatedRequest): AuthSessionResponseDto {
+  public async getSession(@Req() request: AuthenticatedRequest): Promise<AuthSessionResponseDto> {
     if (request.authenticatedUser === undefined) {
       throw new Error('El guard de sesión no adjuntó un usuario autenticado.');
     }

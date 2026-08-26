@@ -37,12 +37,19 @@ button:focus-visible {
 }
 .top-bar {
   min-height: 56px;
-  padding: 0 5vw;
-  display: flex;
+  padding: 6px 5vw;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px 16px;
   background: #00388a;
   color: #fff;
+}
+.top-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 .product-name,
 .subheader p {
@@ -200,8 +207,15 @@ h1 {
   font-weight: 700;
 }
 .top-navigation-link {
-  margin-left: auto;
-  margin-right: 16px;
+  min-height: 44px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.top-navigation-link:focus-visible {
+  outline: 3px solid #00a6a6;
+  outline-offset: 2px;
 }
 .action-button {
   margin-top: 28px;
@@ -712,10 +726,18 @@ th {
   font-weight: 700;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 42rem) {
   .top-bar {
-    padding: 0 20px;
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding: 6px 20px;
   }
+  .top-bar-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
   .subheader {
     padding: 10px 20px;
     display: grid;
@@ -746,9 +768,6 @@ th {
     min-height: 0;
     padding: 24px 20px;
     gap: 18px;
-  }
-  .top-navigation-link {
-    margin-right: 8px;
   }
   .administration-layout {
     display: block;

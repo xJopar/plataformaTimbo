@@ -3,6 +3,8 @@ import type { PrismaService } from '../../database/prisma.service';
 import type { Prisma, User } from '../../generated/prisma/client';
 import { resolveCorsOriginFromEnvironment, resolveGoogleOAuthConfig } from '../../runtime-config';
 import type { AuditEventsService } from '../audit-events/audit-events.service';
+import { ACCESS_PROFILES_SERVICE } from '../access-profiles/access-profiles.tokens';
+import type { AccessProfilesService } from '../access-profiles/access-profiles.service';
 import {
   GoogleSubjectAlreadyLinkedError,
   UserInactiveError,
@@ -40,6 +42,7 @@ export interface AuthenticatedIdentity {
   id: string;
   corporateEmail: string;
   displayName: string | null;
+  isPlatformAdministrator: boolean;
 }
 
 const LOGIN_DENIED_REASON_CODES = [
@@ -65,6 +68,8 @@ export class AuthService {
     @Inject(USERS_SERVICE) private readonly usersService: UsersService,
     @Inject(AUTH_PRISMA_SERVICE) private readonly prisma: PrismaService,
     @Inject(AUTH_AUDIT_EVENTS_SERVICE) private readonly auditEventsService: AuditEventsService,
+    @Inject(ACCESS_PROFILES_SERVICE)
+    private readonly accessProfilesService: AccessProfilesService,
   ) {}
 
   public async beginGoogleLogin(): Promise<string> {
@@ -155,11 +160,13 @@ export class AuthService {
     });
   }
 
-  public toAuthenticatedIdentity(user: User): AuthenticatedIdentity {
+  public async toAuthenticatedIdentity(user: User): Promise<AuthenticatedIdentity> {
     return {
       id: user.id,
       corporateEmail: user.corporateEmail,
       displayName: user.displayName,
+      isPlatformAdministrator:
+        await this.accessProfilesService.hasActivePlatformAdministratorAssignment(user.id),
     };
   }
 

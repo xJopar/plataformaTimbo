@@ -23,6 +23,12 @@ const session: AuthSession = {
   id: '3f8a7c4e-6597-42d6-891b-7c7cb1fab2bc',
   corporateEmail: 'persona@timbo.com',
   displayName: 'Persona Timbo',
+  isPlatformAdministrator: false,
+};
+
+const platformAdministratorSession: AuthSession = {
+  ...session,
+  isPlatformAdministrator: true,
 };
 
 const authorizedApplication: AuthorizedApplication = {
@@ -140,6 +146,7 @@ describe('App', () => {
 
     expect(await screen.findByRole('heading', { name: 'Tus aplicaciones' })).toBeInTheDocument();
     expect(screen.getByText('Persona Timbo')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Administración' })).not.toBeInTheDocument();
     expect(
       await screen.findByRole('heading', { name: 'Sin aplicaciones asignadas' }),
     ).toBeInTheDocument();
@@ -290,7 +297,9 @@ describe('App', () => {
 
   it('navega entre Usuarios y Actividad sin volver a verificar la sesión', async () => {
     window.history.replaceState({}, '', '/');
-    const api = createApi();
+    const api = createApi({
+      getSession: vi.fn<AuthApi['getSession']>().mockResolvedValue(platformAdministratorSession),
+    });
     const user = userEvent.setup();
     render(<App api={api} />);
 

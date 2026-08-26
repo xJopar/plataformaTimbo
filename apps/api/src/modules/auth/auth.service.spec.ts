@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { AuditActorType, UserStatus, type User } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import type { AccessProfilesService } from '../access-profiles/access-profiles.service';
 import type { AuditEventsService } from '../audit-events/audit-events.service';
 import {
   GoogleSubjectAlreadyLinkedError,
@@ -49,6 +50,7 @@ describe('AuthService', () => {
   );
   const prisma = { $transaction: prismaTransaction } as unknown as PrismaService;
   const auditEventsService = { append: jest.fn() };
+  const accessProfilesService = { hasActivePlatformAdministratorAssignment: jest.fn() };
   let service: AuthService;
 
   beforeEach(() => {
@@ -57,6 +59,7 @@ describe('AuthService', () => {
       callback(transactionClient),
     );
     auditEventsService.append.mockResolvedValue(undefined);
+    accessProfilesService.hasActivePlatformAdministratorAssignment.mockResolvedValue(false);
     service = new AuthService(
       googleOAuthService,
       oauthLoginAttemptsService as unknown as OAuthLoginAttemptsService,
@@ -64,6 +67,7 @@ describe('AuthService', () => {
       usersService as unknown as UsersService,
       prisma,
       auditEventsService as unknown as AuditEventsService,
+      accessProfilesService as unknown as AccessProfilesService,
     );
   });
 
@@ -80,6 +84,21 @@ describe('AuthService', () => {
 
     await expect(service.beginGoogleLogin()).resolves.toBe(authorizationUrl);
     expect(googleOAuthService.createAuthorizationUrl).toHaveBeenCalledWith(loginAttempt);
+  });
+
+  it('proyecta la capacidad administrativa vigente en la identidad de sesión', async () => {
+    const user = createUser();
+    accessProfilesService.hasActivePlatformAdministratorAssignment.mockResolvedValue(true);
+
+    await expect(service.toAuthenticatedIdentity(user)).resolves.toEqual({
+      id: user.id,
+      corporateEmail: user.corporateEmail,
+      displayName: user.displayName,
+      isPlatformAdministrator: true,
+    });
+    expect(accessProfilesService.hasActivePlatformAdministratorAssignment).toHaveBeenCalledWith(
+      user.id,
+    );
   });
 
   it('consume una vez, valida la identidad y crea una sesión sólo para un usuario activo', async () => {

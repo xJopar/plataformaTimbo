@@ -3,6 +3,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { PrismaModule } from '../../database/prisma.module';
 import { AuditEventsModule } from '../audit-events/audit-events.module';
 import { AuditEventsService } from '../audit-events/audit-events.service';
+import { AccessProfilesModule } from '../access-profiles/access-profiles.module';
 import { UsersModule } from '../users/users.module';
 import { UsersService } from '../users/users.service';
 import { AuthController } from './auth.controller';
@@ -22,7 +23,7 @@ import { SessionAuthenticationGuard } from './session-authentication.guard';
 import { UserSessionsService } from './user-sessions.service';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuditEventsModule],
+  imports: [PrismaModule, UsersModule, AuditEventsModule, AccessProfilesModule],
   controllers: [AuthController],
   providers: [
     AuthService,
