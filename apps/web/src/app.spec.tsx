@@ -83,6 +83,15 @@ function createApi(
         vi.fn<AdministrationApi['unassignApplicationProfileFromUser']>(),
       listUsers: vi.fn<AdministrationApi['listUsers']>().mockResolvedValue([]),
       preauthorizeUser: vi.fn<AdministrationApi['preauthorizeUser']>(),
+      preauthorizeUsersBulk: vi
+        .fn<AdministrationApi['preauthorizeUsersBulk']>()
+        .mockResolvedValue([]),
+      assignApplicationToUsers: vi
+        .fn<AdministrationApi['assignApplicationToUsers']>()
+        .mockResolvedValue([]),
+      unassignApplicationFromUsers: vi
+        .fn<AdministrationApi['unassignApplicationFromUsers']>()
+        .mockResolvedValue([]),
       updateUser: vi.fn<AdministrationApi['updateUser']>(),
       deactivateUser: vi.fn<AdministrationApi['deactivateUser']>(),
       reactivateUser: vi.fn<AdministrationApi['reactivateUser']>(),
@@ -609,7 +618,9 @@ describe('App', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Gestionar accesos' }));
     await user.click((await screen.findAllByRole('button', { name: 'Desasignar aplicación' }))[0]!);
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(
+      screen.getByRole('checkbox', { name: /Confirmo que deseo retirar la aplicación/ }),
+    );
     expect(screen.getByRole('button', { name: 'Confirmar desasignación' })).toBeEnabled();
     await user.click(screen.getByRole('button', { name: 'Desasignar aplicación' }));
     expect(screen.getByRole('button', { name: 'Confirmar desasignación' })).toBeDisabled();

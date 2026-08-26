@@ -634,6 +634,11 @@ select {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+.activity-event-key {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-family: monospace;
+}
 .activity-table-wrapper details summary {
   color: #00388a;
   cursor: pointer;

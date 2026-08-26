@@ -10,6 +10,7 @@ import {
   PlatformAdministratorCannotBeDeactivatedError,
   UserInactiveError,
   UserNotFoundError,
+  UsersDomainError,
   ZohoCrmUserIdAlreadyInUseError,
 } from './users.errors';
 
@@ -60,6 +61,15 @@ export interface UpdateAdministrativeUserInput {
 export interface PreauthorizeUserByAdministratorInput extends PreauthorizeUserInput {
   actorUserId: string;
 }
+
+export interface PreauthorizeUsersByAdministratorInput {
+  entries: PreauthorizeUserInput[];
+  actorUserId: string;
+}
+
+export type PreauthorizeUserBulkResult =
+  | { corporateEmail: string; status: 'CREATED'; user: User }
+  | { corporateEmail: string; status: 'FAILED'; message: string };
 
 const ADMINISTRATIVE_USER_SELECT = {
   id: true,
@@ -127,6 +137,32 @@ export class UsersService {
       eventName: 'access.user_preauthorized_by_administrator',
       actor: { actorType: AuditActorType.USER, actorUserId: input.actorUserId },
     });
+  }
+
+  public async preauthorizeUsersByAdministrator(
+    input: PreauthorizeUsersByAdministratorInput,
+  ): Promise<PreauthorizeUserBulkResult[]> {
+    const results: PreauthorizeUserBulkResult[] = [];
+    for (const entry of input.entries) {
+      try {
+        const user = await this.preauthorizeUserByAdministrator({
+          corporateEmail: entry.corporateEmail,
+          displayName: entry.displayName,
+          actorUserId: input.actorUserId,
+        });
+        results.push({ corporateEmail: user.corporateEmail, status: 'CREATED', user });
+      } catch (error) {
+        results.push({
+          corporateEmail: entry.corporateEmail,
+          status: 'FAILED',
+          message:
+            error instanceof UsersDomainError
+              ? error.message
+              : 'No pudimos preautorizar el usuario.',
+        });
+      }
+    }
+    return results;
   }
 
   public async listAdministrativeUsers(

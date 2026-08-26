@@ -5,13 +5,17 @@ import type {
   AdministrativeActivityFilterOptions,
   AdministrativeActivityItem,
   AdministrativeActivityStatistics,
+  AdministrativeApplication,
   AdministrativeUser,
   Api,
   AuthSession,
+  BulkApplicationAccessResult,
+  PreauthorizeAdministrativeUserBulkResult,
 } from './api';
 import { ApiHttpError } from './api';
 import { ApplicationsPanel } from './administration/applications-panel';
 import { AccessManagementPanel } from './administration/access-management-panel';
+import { humanizeEventName } from './administration/activity-event-labels';
 import { AuthorizedApplicationRoute } from './applications/authorized-application-route';
 import { HomeLauncher } from './home/home-launcher';
 import { AccessShell } from './auth/access-shell';
@@ -317,6 +321,21 @@ interface AdministrationPanelProps {
   onLogout: () => void;
 }
 
+function parseBulkEmailEntries(
+  text: string,
+): { corporateEmail: string; displayName?: string }[] {
+  return text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => {
+      const [emailPart, ...nameParts] = line.split(',');
+      const corporateEmail = (emailPart ?? '').trim();
+      const displayName = nameParts.join(',').trim();
+      return displayName.length > 0 ? { corporateEmail, displayName } : { corporateEmail };
+    });
+}
+
 function AdministrationPanel({
   api,
   session,
@@ -329,18 +348,29 @@ function AdministrationPanel({
     status: 'loading',
   });
   const [search, setSearch] = useState('');
-  const [newCorporateEmail, setNewCorporateEmail] = useState('');
-  const [newDisplayName, setNewDisplayName] = useState('');
+  const [bulkEmailsText, setBulkEmailsText] = useState('');
+  const [bulkPreauthorizeResults, setBulkPreauthorizeResults] = useState<
+    PreauthorizeAdministrativeUserBulkResult[] | undefined
+  >(undefined);
   const [actionError, setActionError] = useState<string | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
   const [managedUserId, setManagedUserId] = useState<string | undefined>(undefined);
   const [editingUserId, setEditingUserId] = useState<string | undefined>(undefined);
   const [editedDisplayName, setEditedDisplayName] = useState('');
+  const [applications, setApplications] = useState<AdministrativeApplication[]>([]);
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
+  const [bulkAccessApplicationId, setBulkAccessApplicationId] = useState('');
+  const [bulkAccessResults, setBulkAccessResults] = useState<
+    BulkApplicationAccessResult[] | undefined
+  >(undefined);
+  const [isBulkUnassignConfirmed, setIsBulkUnassignConfirmed] = useState(false);
 
   const loadUsers = useCallback(
     async (nextSearch = ''): Promise<void> => {
       setAdministrationState({ status: 'loading' });
       setActionError(undefined);
+      setSelectedUserIds(new Set());
+      setBulkAccessResults(undefined);
       try {
         const users = await api.administration.listUsers(nextSearch || undefined);
         setAdministrationState({ status: 'ready', users, search: nextSearch });
@@ -356,32 +386,78 @@ function AdministrationPanel({
   );
 
   useEffect(() => {
-    if (activeSection === 'users') void loadUsers();
-  }, [activeSection, loadUsers]);
+    if (activeSection === 'users') {
+      void loadUsers();
+      void api.administration.listApplications().then(setApplications, () => undefined);
+    }
+  }, [activeSection, loadUsers, api]);
 
   const submitSearch = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     void loadUsers(search);
   };
 
-  const preauthorizeUser = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+  const preauthorizeUsersBulk = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
+    const entries = parseBulkEmailEntries(bulkEmailsText);
+    if (entries.length === 0) {
+      setActionError('Ingresá al menos un correo corporativo.');
+      return;
+    }
     setIsSaving(true);
     setActionError(undefined);
+    setBulkPreauthorizeResults(undefined);
     try {
-      await api.administration.preauthorizeUser({
-        corporateEmail: newCorporateEmail,
-        displayName: newDisplayName.trim() || undefined,
-      });
-      setNewCorporateEmail('');
-      setNewDisplayName('');
+      const results = await api.administration.preauthorizeUsersBulk(entries);
+      setBulkPreauthorizeResults(results);
+      if (results.every((result) => result.status === 'CREATED')) {
+        setBulkEmailsText('');
+      }
       await loadUsers(search);
     } catch (error) {
       setActionError(
         error instanceof ApiHttpError && error.status === 403
           ? 'Tu sesión no tiene permiso para administrar usuarios.'
-          : 'No pudimos preautorizar el usuario. Revisá los datos e intentá nuevamente.',
+          : 'No pudimos preautorizar los usuarios. Revisá los datos e intentá nuevamente.',
       );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const toggleUserSelection = (userId: string): void => {
+    setSelectedUserIds((current) => {
+      const next = new Set(current);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
+    });
+  };
+
+  const toggleSelectAllUsers = (users: AdministrativeUser[]): void => {
+    setSelectedUserIds((current) =>
+      current.size === users.length ? new Set() : new Set(users.map((user) => user.id)),
+    );
+  };
+
+  const runBulkAccessAction = async (action: 'assign' | 'unassign'): Promise<void> => {
+    if (bulkAccessApplicationId === '' || selectedUserIds.size === 0) return;
+    setIsSaving(true);
+    setBulkAccessResults(undefined);
+    setActionError(undefined);
+    try {
+      const userIds = Array.from(selectedUserIds);
+      const results =
+        action === 'assign'
+          ? await api.administration.assignApplicationToUsers(bulkAccessApplicationId, userIds)
+          : await api.administration.unassignApplicationFromUsers(
+              bulkAccessApplicationId,
+              userIds,
+            );
+      setBulkAccessResults(results);
+      setIsBulkUnassignConfirmed(false);
+    } catch {
+      setActionError('No pudimos completar la operación en lote. Intentá nuevamente.');
     } finally {
       setIsSaving(false);
     }
@@ -548,26 +624,37 @@ function AdministrationPanel({
                   </form>
                   <form
                     className="preauthorize-form"
-                    onSubmit={(event) => void preauthorizeUser(event)}
+                    onSubmit={(event) => void preauthorizeUsersBulk(event)}
                   >
-                    <h2>Preautorizar usuario</h2>
-                    <label htmlFor="new-corporate-email">Correo corporativo</label>
-                    <input
-                      id="new-corporate-email"
-                      type="email"
+                    <h2>Preautorizar usuarios</h2>
+                    <label htmlFor="bulk-emails">Correos corporativos</label>
+                    <p className="field-hint">
+                      Uno por línea. Agregá un nombre visible opcional después de una coma:{' '}
+                      <code>persona@timbo.com, Nombre visible</code>.
+                    </p>
+                    <textarea
+                      id="bulk-emails"
+                      rows={5}
                       required
-                      value={newCorporateEmail}
-                      onChange={(event) => setNewCorporateEmail(event.target.value)}
-                    />
-                    <label htmlFor="new-display-name">Nombre visible (opcional)</label>
-                    <input
-                      id="new-display-name"
-                      value={newDisplayName}
-                      onChange={(event) => setNewDisplayName(event.target.value)}
+                      value={bulkEmailsText}
+                      onChange={(event) => setBulkEmailsText(event.target.value)}
                     />
                     <button className="action-button" type="submit" disabled={isSaving}>
                       Preautorizar
                     </button>
+                    {bulkPreauthorizeResults === undefined ? null : (
+                      <ul className="bulk-result-list" aria-label="Resultado de la preautorización">
+                        {bulkPreauthorizeResults.map((result) => (
+                          <li
+                            key={result.corporateEmail}
+                            className={`bulk-result-item bulk-result-item--${result.status.toLowerCase()}`}
+                          >
+                            {result.corporateEmail}:{' '}
+                            {result.status === 'CREATED' ? 'preautorizado' : result.message}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </form>
                 </div>
                 {actionError === undefined ? null : <p role="alert">{actionError}</p>}
@@ -581,11 +668,94 @@ function AdministrationPanel({
                     </p>
                   </section>
                 ) : (
-                  <div className="users-table-wrapper">
+                  <>
+                    {selectedUserIds.size === 0 ? null : (
+                      <section className="bulk-access-bar" aria-label="Accesos masivos">
+                        <p>
+                          {selectedUserIds.size} usuario{selectedUserIds.size === 1 ? '' : 's'}{' '}
+                          seleccionado{selectedUserIds.size === 1 ? '' : 's'}.
+                        </p>
+                        <label htmlFor="bulk-access-application">Aplicación</label>
+                        <select
+                          id="bulk-access-application"
+                          value={bulkAccessApplicationId}
+                          onChange={(event) => {
+                            setBulkAccessApplicationId(event.target.value);
+                            setBulkAccessResults(undefined);
+                            setIsBulkUnassignConfirmed(false);
+                          }}
+                        >
+                          <option value="">Elegí una aplicación</option>
+                          {applications.map((application) => (
+                            <option key={application.id} value={application.id}>
+                              {application.name}
+                              {application.status === 'ACTIVE' ? '' : ' (inactiva)'}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          className="action-button"
+                          type="button"
+                          disabled={isSaving || bulkAccessApplicationId === ''}
+                          onClick={() => void runBulkAccessAction('assign')}
+                        >
+                          Asignar a seleccionados
+                        </button>
+                        <label className="bulk-unassign-confirm">
+                          <input
+                            type="checkbox"
+                            checked={isBulkUnassignConfirmed}
+                            onChange={(event) => setIsBulkUnassignConfirmed(event.target.checked)}
+                          />
+                          Confirmo retirar la aplicación y sus perfiles de los seleccionados.
+                        </label>
+                        <button
+                          className="text-button"
+                          type="button"
+                          disabled={
+                            isSaving || bulkAccessApplicationId === '' || !isBulkUnassignConfirmed
+                          }
+                          onClick={() => void runBulkAccessAction('unassign')}
+                        >
+                          Desasignar de seleccionados
+                        </button>
+                        {bulkAccessResults === undefined ? null : (
+                          <ul className="bulk-result-list" aria-label="Resultado de la operación en lote">
+                            {bulkAccessResults.map((result) => {
+                              const user = administrationState.users.find(
+                                (candidate) => candidate.id === result.userId,
+                              );
+                              return (
+                                <li
+                                  key={result.userId}
+                                  className={`bulk-result-item bulk-result-item--${result.status.toLowerCase()}`}
+                                >
+                                  {user?.corporateEmail ?? result.userId}:{' '}
+                                  {result.status === 'ASSIGNED'
+                                    ? 'asignada'
+                                    : result.status === 'UNASSIGNED'
+                                      ? 'desasignada'
+                                      : result.message}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </section>
+                    )}
+                    <div className="users-table-wrapper">
                     <table>
                       <caption>Usuarios preautorizados</caption>
                       <thead>
                         <tr>
+                          <th scope="col">
+                            <input
+                              type="checkbox"
+                              aria-label="Seleccionar todos los usuarios"
+                              checked={selectedUserIds.size === administrationState.users.length}
+                              onChange={() => toggleSelectAllUsers(administrationState.users)}
+                            />
+                          </th>
                           <th scope="col">Usuario</th>
                           <th scope="col">Correo</th>
                           <th scope="col">Estado</th>
@@ -595,6 +765,14 @@ function AdministrationPanel({
                       <tbody>
                         {administrationState.users.map((user) => (
                           <tr key={user.id}>
+                            <td>
+                              <input
+                                type="checkbox"
+                                aria-label={`Seleccionar ${user.corporateEmail}`}
+                                checked={selectedUserIds.has(user.id)}
+                                onChange={() => toggleUserSelection(user.id)}
+                              />
+                            </td>
                             <td>{user.displayName ?? 'Sin nombre visible'}</td>
                             <td>{user.corporateEmail}</td>
                             <td>{user.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</td>
@@ -660,7 +838,8 @@ function AdministrationPanel({
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                    </div>
+                  </>
                 )}
                 {managedUser === undefined ? null : (
                   <AccessManagementPanel
@@ -1093,7 +1272,8 @@ function ActivityRow({ item }: { item: AdministrativeActivityItem }): React.JSX.
       <td>{item.actor}</td>
       <td>
         <span className="activity-badge">{item.source === 'AUDIT' ? 'Auditoría' : 'Uso'}</span>
-        <div>{item.eventName}</div>
+        <div>{humanizeEventName(item.eventName)}</div>
+        <div className="activity-event-key">{item.eventName}</div>
       </td>
       <td>{item.appKey}</td>
       <td>{item.target ?? '—'}</td>

@@ -32,6 +32,8 @@ export {
   type AdministrationApi,
   type AdministrativeUser,
   type AdministrativeUserApplicationAccess,
+  type BulkApplicationAccessResult,
+  type PreauthorizeAdministrativeUserBulkResult,
 } from './administration';
 export { ApiHttpError, createApiHttpError, type HealthResponse, type SystemApi } from './system';
 export { ApplicationsApiUnavailableError } from './applications';

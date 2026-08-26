@@ -33,9 +33,15 @@ import {
   AdministrativeUserResponseDto,
   toAdministrativeUserResponse,
 } from './dto/administrative-user-response.dto';
-import { PreauthorizeAdministrativeUserDto } from './dto/preauthorize-administrative-user.dto';
+import {
+  PreauthorizeAdministrativeUserDto,
+  PreauthorizeAdministrativeUsersBulkDto,
+} from './dto/preauthorize-administrative-user.dto';
+import { PreauthorizeAdministrativeUserBulkResultDto } from './dto/preauthorize-administrative-users-bulk-result.dto';
 import { UpdateAdministrativeUserDto } from './dto/update-administrative-user.dto';
 import { ADMINISTRATIVE_USERS_SERVICE } from './administration.tokens';
+
+const MAX_BULK_PREAUTHORIZE_ENTRIES = 200;
 
 @ApiTags('administration')
 @Controller('admin/users')
@@ -81,6 +87,43 @@ export class AdministrativeUsersController {
       actorUserId: this.getActorUserId(request),
     });
     return toAdministrativeUserResponse({ ...user, isPlatformAdministrator: false });
+  }
+
+  @Post('bulk')
+  @UseGuards(CsrfProtectionGuard)
+  @ApiOperation({
+    operationId: 'preauthorizeAdministrativeUsersBulk',
+    summary: 'Preautoriza varios usuarios en un lote, informando el resultado de cada correo.',
+  })
+  @ApiCreatedResponse({ type: PreauthorizeAdministrativeUserBulkResultDto, isArray: true })
+  public async preauthorizeUsersBulk(
+    @Body() body: PreauthorizeAdministrativeUsersBulkDto,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<PreauthorizeAdministrativeUserBulkResultDto[]> {
+    if (!Array.isArray(body.entries) || body.entries.length === 0) {
+      throw new BadRequestException('Se debe indicar al menos un correo corporativo.');
+    }
+    if (body.entries.length > MAX_BULK_PREAUTHORIZE_ENTRIES) {
+      throw new BadRequestException(
+        `No se pueden preautorizar más de ${MAX_BULK_PREAUTHORIZE_ENTRIES.toString()} usuarios a la vez.`,
+      );
+    }
+    const results = await this.usersService.preauthorizeUsersByAdministrator({
+      entries: body.entries,
+      actorUserId: this.getActorUserId(request),
+    });
+    return results.map((result) =>
+      result.status === 'CREATED'
+        ? {
+            corporateEmail: result.corporateEmail,
+            status: result.status,
+            user: toAdministrativeUserResponse({
+              ...result.user,
+              isPlatformAdministrator: false,
+            }),
+          }
+        : result,
+    );
   }
 
   @Patch(':userId')

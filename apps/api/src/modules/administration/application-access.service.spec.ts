@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import {
   AccessProfileScope,
   AccessProfileStatus,
@@ -147,6 +147,46 @@ describe('ApplicationAccessService', () => {
         applicationId: 'app-a',
         assignedAt: new Date('2026-08-25T00:00:00.000Z'),
         profileIds: ['profile-a'],
+      },
+    ]);
+  });
+
+  it('asigna en lote y reporta por usuario sin abortar ante un fallo individual', async () => {
+    const assignApplication = jest.spyOn(service, 'assignApplication');
+    assignApplication.mockResolvedValueOnce(undefined);
+    assignApplication.mockRejectedValueOnce(
+      new BadRequestException('El usuario y la aplicación deben estar activos.'),
+    );
+
+    await expect(
+      service.assignApplicationToUsers('actor-a', 'app-a', ['user-a', 'user-b']),
+    ).resolves.toEqual([
+      { userId: 'user-a', status: 'ASSIGNED' },
+      {
+        userId: 'user-b',
+        status: 'FAILED',
+        message: 'El usuario y la aplicación deben estar activos.',
+      },
+    ]);
+    expect(assignApplication).toHaveBeenNthCalledWith(1, 'actor-a', 'user-a', 'app-a');
+    expect(assignApplication).toHaveBeenNthCalledWith(2, 'actor-a', 'user-b', 'app-a');
+  });
+
+  it('desasigna en lote y reporta por usuario sin abortar ante un fallo individual', async () => {
+    const unassignApplication = jest.spyOn(service, 'unassignApplication');
+    unassignApplication.mockResolvedValueOnce(undefined);
+    unassignApplication.mockRejectedValueOnce(
+      new ConflictException('El usuario ya tiene asignada la aplicación.'),
+    );
+
+    await expect(
+      service.unassignApplicationFromUsers('actor-a', 'app-a', ['user-a', 'user-b']),
+    ).resolves.toEqual([
+      { userId: 'user-a', status: 'UNASSIGNED' },
+      {
+        userId: 'user-b',
+        status: 'FAILED',
+        message: 'El usuario ya tiene asignada la aplicación.',
       },
     ]);
   });

@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../auth/session-authentication.guard';
 import { ApplicationAccessService } from './application-access.service';
 import { AdministrativeApplicationAccessController } from './administrative-application-access.controller';
@@ -9,6 +10,8 @@ describe('AdministrativeApplicationAccessController', () => {
     listUserApplicationAccesses: jest.fn(),
     assignProfile: jest.fn(),
     addPermission: jest.fn(),
+    assignApplicationToUsers: jest.fn(),
+    unassignApplicationFromUsers: jest.fn(),
   };
   const controller = new AdministrativeApplicationAccessController(
     service as unknown as ApplicationAccessService,
@@ -33,5 +36,37 @@ describe('AdministrativeApplicationAccessController', () => {
       { applicationId: 'app-a', assignedAt: '2026-08-25T00:00:00.000Z', profileIds: ['profile-a'] },
     ]);
     expect(service.listUserApplicationAccesses).toHaveBeenCalledWith('user-a');
+  });
+  it('delega la asignación y desasignación en lote, derivando el actor de la sesión', async () => {
+    service.assignApplicationToUsers.mockResolvedValue([{ userId: 'user-a', status: 'ASSIGNED' }]);
+    service.unassignApplicationFromUsers.mockResolvedValue([
+      { userId: 'user-a', status: 'UNASSIGNED' },
+    ]);
+
+    await expect(
+      controller.assignApplicationBulk('app-a', { userIds: ['user-a'] }, request),
+    ).resolves.toEqual([{ userId: 'user-a', status: 'ASSIGNED' }]);
+    expect(service.assignApplicationToUsers).toHaveBeenCalledWith('actor-a', 'app-a', ['user-a']);
+
+    await expect(
+      controller.unassignApplicationBulk('app-a', { userIds: ['user-a'] }, request),
+    ).resolves.toEqual([{ userId: 'user-a', status: 'UNASSIGNED' }]);
+    expect(service.unassignApplicationFromUsers).toHaveBeenCalledWith('actor-a', 'app-a', [
+      'user-a',
+    ]);
+  });
+  it('rechaza una lista de usuarios vacía o excesiva en operaciones en lote', async () => {
+    await expect(
+      controller.assignApplicationBulk('app-a', { userIds: [] }, request),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(
+      controller.unassignApplicationBulk(
+        'app-a',
+        { userIds: Array.from({ length: 501 }, (_, index) => `user-${index.toString()}`) },
+        request,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(service.assignApplicationToUsers).not.toHaveBeenCalled();
+    expect(service.unassignApplicationFromUsers).not.toHaveBeenCalled();
   });
 });

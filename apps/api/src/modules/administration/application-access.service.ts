@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,6 +13,10 @@ import {
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditEventsService } from '../audit-events/audit-events.service';
+
+export type BulkApplicationAccessResult =
+  | { userId: string; status: 'ASSIGNED' | 'UNASSIGNED' }
+  | { userId: string; status: 'FAILED'; message: string };
 
 @Injectable()
 export class ApplicationAccessService {
@@ -69,6 +74,40 @@ export class ApplicationAccessService {
         metadata: { applicationId },
       });
     });
+  }
+
+  public async assignApplicationToUsers(
+    actorUserId: string,
+    applicationId: string,
+    userIds: string[],
+  ): Promise<BulkApplicationAccessResult[]> {
+    const results: BulkApplicationAccessResult[] = [];
+    for (const userId of userIds) {
+      try {
+        await this.assignApplication(actorUserId, userId, applicationId);
+        results.push({ userId, status: 'ASSIGNED' });
+      } catch (error) {
+        results.push({ userId, status: 'FAILED', message: bulkErrorMessage(error) });
+      }
+    }
+    return results;
+  }
+
+  public async unassignApplicationFromUsers(
+    actorUserId: string,
+    applicationId: string,
+    userIds: string[],
+  ): Promise<BulkApplicationAccessResult[]> {
+    const results: BulkApplicationAccessResult[] = [];
+    for (const userId of userIds) {
+      try {
+        await this.unassignApplication(actorUserId, userId, applicationId);
+        results.push({ userId, status: 'UNASSIGNED' });
+      } catch (error) {
+        results.push({ userId, status: 'FAILED', message: bulkErrorMessage(error) });
+      }
+    }
+    return results;
   }
 
   public async listPermissions(applicationId: string) {
@@ -342,4 +381,12 @@ function normalizeDescription(value: string | null | undefined): string | null {
 }
 function isUnique(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002';
+}
+function bulkErrorMessage(error: unknown): string {
+  if (error instanceof HttpException) {
+    const response = error.getResponse();
+    if (typeof response === 'string') return response;
+    if ('message' in response && typeof response.message === 'string') return response.message;
+  }
+  return 'No se pudo completar la operación.';
 }

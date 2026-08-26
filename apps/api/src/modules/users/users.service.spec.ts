@@ -153,6 +153,58 @@ describe('UsersService', () => {
     });
   });
 
+  describe('preauthorizeUsersByAdministrator', () => {
+    it('preautoriza cada correo de forma independiente y reporta éxito o fallo por entrada', async () => {
+      const createdUser = createUser({ corporateEmail: 'ok@example.test' });
+      const preauthorizeSpy = jest.spyOn(service, 'preauthorizeUserByAdministrator');
+      preauthorizeSpy.mockResolvedValueOnce(createdUser);
+      preauthorizeSpy.mockRejectedValueOnce(
+        new CorporateEmailAlreadyInUseError('preauthorizeUser', new Error('P2002')),
+      );
+
+      await expect(
+        service.preauthorizeUsersByAdministrator({
+          entries: [
+            { corporateEmail: 'ok@example.test' },
+            { corporateEmail: 'repetido@example.test' },
+          ],
+          actorUserId: ACTOR_USER_ID,
+        }),
+      ).resolves.toEqual([
+        { corporateEmail: 'ok@example.test', status: 'CREATED', user: createdUser },
+        {
+          corporateEmail: 'repetido@example.test',
+          status: 'FAILED',
+          message: 'Ya existe un usuario con el correo corporativo indicado.',
+        },
+      ]);
+      expect(preauthorizeSpy).toHaveBeenNthCalledWith(1, {
+        corporateEmail: 'ok@example.test',
+        displayName: undefined,
+        actorUserId: ACTOR_USER_ID,
+      });
+    });
+
+    it('reporta un mensaje genérico ante un error inesperado', async () => {
+      jest
+        .spyOn(service, 'preauthorizeUserByAdministrator')
+        .mockRejectedValueOnce(new Error('fallo de infraestructura'));
+
+      await expect(
+        service.preauthorizeUsersByAdministrator({
+          entries: [{ corporateEmail: 'persona@example.test' }],
+          actorUserId: ACTOR_USER_ID,
+        }),
+      ).resolves.toEqual([
+        {
+          corporateEmail: 'persona@example.test',
+          status: 'FAILED',
+          message: 'No pudimos preautorizar el usuario.',
+        },
+      ]);
+    });
+  });
+
   describe('findByCorporateEmail', () => {
     it('consulta por correo normalizado', async () => {
       const user = createUser();

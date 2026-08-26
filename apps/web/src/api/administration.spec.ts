@@ -144,4 +144,66 @@ describe('createAdministrationApi', () => {
     expect(fetchImplementation.mock.calls[0]?.[0]).toHaveProperty('headers');
     expect(fetchImplementation.mock.calls[2]?.[0]).toHaveProperty('headers');
   });
+
+  it('preautoriza usuarios en lote e informa el resultado por correo', async () => {
+    const bulkResult = [
+      { corporateEmail: 'ok@timbo.com', status: 'CREATED' as const },
+      { corporateEmail: 'repetido@timbo.com', status: 'FAILED' as const, message: 'Ya existe.' },
+    ];
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      new Response(JSON.stringify(bulkResult), {
+        status: 201,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    const administrationApi = createAdministrationApi('http://localhost:3000', fetchImplementation);
+
+    await expect(
+      administrationApi.preauthorizeUsersBulk([
+        { corporateEmail: 'ok@timbo.com' },
+        { corporateEmail: 'repetido@timbo.com' },
+      ]),
+    ).resolves.toEqual(bulkResult);
+    expect(fetchImplementation.mock.calls[0]?.[0]).toMatchObject({
+      method: 'POST',
+      url: 'http://localhost:3000/api/admin/users/bulk',
+    });
+    expect(fetchImplementation.mock.calls[0]?.[0]).toHaveProperty('headers');
+  });
+
+  it('asigna y desasigna una aplicación a varios usuarios en lote', async () => {
+    const assignResult = [{ userId: 'user-a', status: 'ASSIGNED' as const }];
+    const unassignResult = [{ userId: 'user-a', status: 'UNASSIGNED' as const }];
+    const fetchImplementation = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(assignResult), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(unassignResult), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+    const administrationApi = createAdministrationApi('http://localhost:3000', fetchImplementation);
+
+    await expect(
+      administrationApi.assignApplicationToUsers('application-a', ['user-a']),
+    ).resolves.toEqual(assignResult);
+    await expect(
+      administrationApi.unassignApplicationFromUsers('application-a', ['user-a']),
+    ).resolves.toEqual(unassignResult);
+
+    expect(fetchImplementation.mock.calls[0]?.[0]).toMatchObject({
+      method: 'POST',
+      url: 'http://localhost:3000/api/admin/applications/application-a/users/bulk-assign',
+    });
+    expect(fetchImplementation.mock.calls[1]?.[0]).toMatchObject({
+      method: 'POST',
+      url: 'http://localhost:3000/api/admin/applications/application-a/users/bulk-unassign',
+    });
+  });
 });

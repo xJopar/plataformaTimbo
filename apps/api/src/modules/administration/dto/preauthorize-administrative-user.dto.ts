@@ -7,3 +7,8 @@ export class PreauthorizeAdministrativeUserDto {
   @ApiPropertyOptional({ example: 'Persona Timbo' })
   displayName?: string;
 }
+
+export class PreauthorizeAdministrativeUsersBulkDto {
+  @ApiProperty({ type: [PreauthorizeAdministrativeUserDto] })
+  entries!: PreauthorizeAdministrativeUserDto[];
+}

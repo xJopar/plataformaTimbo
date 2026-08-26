@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -30,9 +31,15 @@ import {
   CreateApplicationProfileDto,
   UpdateApplicationProfileDto,
 } from './dto/application-access.dto';
+import {
+  BulkApplicationAccessDto,
+  BulkApplicationAccessResultDto,
+} from './dto/bulk-application-access.dto';
 import { AdministrativeApplicationPermissionResponseDto } from './dto/administrative-application-permission-response.dto';
 import { AdministrativeApplicationProfileResponseDto } from './dto/administrative-application-profile-response.dto';
 import { AdministrativeUserApplicationAccessResponseDto } from './dto/administrative-user-application-access-response.dto';
+
+const MAX_BULK_APPLICATION_ACCESS_USER_IDS = 500;
 
 @ApiTags('administration')
 @Controller('admin')
@@ -71,6 +78,36 @@ export class AdministrativeApplicationAccessController {
     @Req() request: AuthenticatedRequest,
   ): Promise<void> {
     await this.service.unassignApplication(this.actor(request), userId, applicationId);
+  }
+  @Post('applications/:applicationId/users/bulk-assign')
+  @UseGuards(CsrfProtectionGuard)
+  @ApiOperation({
+    operationId: 'assignApplicationToUsersBulk',
+    summary: 'Asigna una aplicación a varios usuarios, informando el resultado de cada uno.',
+  })
+  @ApiOkResponse({ type: BulkApplicationAccessResultDto, isArray: true })
+  public async assignApplicationBulk(
+    @Param('applicationId') applicationId: string,
+    @Body() body: BulkApplicationAccessDto,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<BulkApplicationAccessResultDto[]> {
+    const userIds = this.requireBulkUserIds(body);
+    return this.service.assignApplicationToUsers(this.actor(request), applicationId, userIds);
+  }
+  @Post('applications/:applicationId/users/bulk-unassign')
+  @UseGuards(CsrfProtectionGuard)
+  @ApiOperation({
+    operationId: 'unassignApplicationFromUsersBulk',
+    summary: 'Retira una aplicación de varios usuarios, informando el resultado de cada uno.',
+  })
+  @ApiOkResponse({ type: BulkApplicationAccessResultDto, isArray: true })
+  public async unassignApplicationBulk(
+    @Param('applicationId') applicationId: string,
+    @Body() body: BulkApplicationAccessDto,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<BulkApplicationAccessResultDto[]> {
+    const userIds = this.requireBulkUserIds(body);
+    return this.service.unassignApplicationFromUsers(this.actor(request), applicationId, userIds);
   }
   @Get('users/:userId/applications')
   @ApiOperation({
@@ -245,6 +282,17 @@ export class AdministrativeApplicationAccessController {
     if (request.authenticatedUser === undefined)
       throw new Error('El guard de sesión no adjuntó un usuario autenticado.');
     return request.authenticatedUser.id;
+  }
+  private requireBulkUserIds(body: BulkApplicationAccessDto): string[] {
+    if (!Array.isArray(body.userIds) || body.userIds.length === 0) {
+      throw new BadRequestException('Se debe indicar al menos un usuario.');
+    }
+    if (body.userIds.length > MAX_BULK_APPLICATION_ACCESS_USER_IDS) {
+      throw new BadRequestException(
+        `No se pueden operar más de ${MAX_BULK_APPLICATION_ACCESS_USER_IDS.toString()} usuarios a la vez.`,
+      );
+    }
+    return body.userIds;
   }
 }
 

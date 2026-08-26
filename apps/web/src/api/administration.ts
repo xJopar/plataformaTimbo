@@ -22,6 +22,14 @@ export type AdministrativeApplicationProfile = NonNullable<
   paths['/api/admin/applications/{applicationId}/profiles']['get']['responses'][200]['content']['application/json']
 >[number];
 
+export type PreauthorizeAdministrativeUserBulkResult = NonNullable<
+  paths['/api/admin/users/bulk']['post']['responses'][201]['content']['application/json']
+>[number];
+
+export type BulkApplicationAccessResult = NonNullable<
+  paths['/api/admin/applications/{applicationId}/users/bulk-assign']['post']['responses'][200]['content']['application/json']
+>[number];
+
 export interface ActivityFilters {
   datePreset?: 'today' | 'week' | 'month';
   dateFrom?: string;
@@ -91,6 +99,17 @@ export interface AdministrationApi {
     corporateEmail: string;
     displayName?: string;
   }): Promise<AdministrativeUser>;
+  preauthorizeUsersBulk(
+    entries: { corporateEmail: string; displayName?: string }[],
+  ): Promise<PreauthorizeAdministrativeUserBulkResult[]>;
+  assignApplicationToUsers(
+    applicationId: string,
+    userIds: string[],
+  ): Promise<BulkApplicationAccessResult[]>;
+  unassignApplicationFromUsers(
+    applicationId: string,
+    userIds: string[],
+  ): Promise<BulkApplicationAccessResult[]>;
   updateUser(userId: string, input: { displayName: string | null }): Promise<AdministrativeUser>;
   deactivateUser(userId: string): Promise<void>;
   reactivateUser(userId: string): Promise<void>;
@@ -315,6 +334,47 @@ export function createAdministrationApi(
         body: input,
       });
       return requireAdministrativeUserResponse(data, response.status, response.ok);
+    },
+
+    async preauthorizeUsersBulk(entries): Promise<PreauthorizeAdministrativeUserBulkResult[]> {
+      const { data, response } = await client.POST('/api/admin/users/bulk', {
+        headers: { 'x-timbo-csrf': '1' },
+        body: { entries },
+      });
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined) throw new Error('La API respondió sin el resultado esperado.');
+      return data;
+    },
+
+    async assignApplicationToUsers(applicationId, userIds): Promise<BulkApplicationAccessResult[]> {
+      const { data, response } = await client.POST(
+        '/api/admin/applications/{applicationId}/users/bulk-assign',
+        {
+          params: { path: { applicationId } },
+          headers: { 'x-timbo-csrf': '1' },
+          body: { userIds },
+        },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined) throw new Error('La API respondió sin el resultado esperado.');
+      return data;
+    },
+
+    async unassignApplicationFromUsers(
+      applicationId,
+      userIds,
+    ): Promise<BulkApplicationAccessResult[]> {
+      const { data, response } = await client.POST(
+        '/api/admin/applications/{applicationId}/users/bulk-unassign',
+        {
+          params: { path: { applicationId } },
+          headers: { 'x-timbo-csrf': '1' },
+          body: { userIds },
+        },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined) throw new Error('La API respondió sin el resultado esperado.');
+      return data;
     },
 
     async updateUser(userId, input): Promise<AdministrativeUser> {
