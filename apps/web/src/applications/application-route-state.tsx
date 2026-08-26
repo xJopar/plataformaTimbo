@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { AuthSession } from '../api';
 import { PlatformHeader } from '../layout/platform-header';
+import { PlatformSessionBar } from '../layout/platform-session-bar';
 
 interface ApplicationRouteStateProps {
   session: AuthSession;
@@ -32,10 +33,7 @@ export function ApplicationRouteState({
         onNavigate={onNavigate}
         onLogout={onLogout}
       />
-      <section className="subheader" aria-label="Información de la aplicación">
-        <p>Aplicación</p>
-        <p>{session.displayName ?? session.corporateEmail}</p>
-      </section>
+      <PlatformSessionBar session={session} />
       <section className="access-surface" aria-labelledby="application-route-state-title">
         <h1 id="application-route-state-title">{title}</h1>
         <p>{detail}</p>

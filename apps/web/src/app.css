@@ -50,6 +50,9 @@ button:focus-visible {
 .top-bar--home {
   min-height: 64px;
 }
+.top-bar--application {
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 26rem) auto;
+}
 .top-bar-brand {
   min-width: 0;
   display: inline-flex;
@@ -66,14 +69,23 @@ button:focus-visible {
   display: block;
 }
 
-.top-bar--application .top-bar-brand {
+.application-context {
   min-width: 0;
+  padding-inline: 16px;
+  display: grid;
+  gap: 2px;
+  border-inline: 1px solid rgba(255, 255, 255, 0.42);
+  color: #fff;
 }
-
-.application-header-name {
+.application-context-label {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.application-context-name {
   min-width: 0;
-  padding-left: 16px;
-  border-left: 1px solid rgba(255, 255, 255, 0.42);
   color: #fff;
   font-size: 0.9375rem;
   font-weight: 750;
@@ -91,14 +103,6 @@ button:focus-visible {
   text-transform: uppercase;
 }
 
-.top-bar--application .application-header-name {
-  padding-left: 16px;
-  border-left-color: rgba(255, 255, 255, 0.42);
-  font-size: 0.9375rem;
-  font-weight: 750;
-  letter-spacing: normal;
-  text-transform: none;
-}
 .top-bar-brand:focus-visible {
   outline: 3px solid #00a6a6;
   outline-offset: 4px;
@@ -168,7 +172,8 @@ button:focus-visible {
   }
 }
 .product-name,
-.subheader p {
+.subheader p,
+.subheader time {
   margin: 0;
 }
 .product-name {
@@ -188,6 +193,9 @@ button:focus-visible {
   background: #f7f9fb;
   color: #334155;
   font-size: 0.875rem;
+}
+.subheader time {
+  color: #526176;
 }
 .dispatch-board {
   width: min(1280px, 100%);
@@ -941,6 +949,23 @@ th {
     flex-wrap: nowrap;
     justify-content: flex-end;
   }
+  .top-bar--application {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+  .top-bar--application .top-bar-actions {
+    grid-column: 2;
+    grid-row: 1;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+  }
+  .application-context {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding: 6px 0 2px;
+    border-inline: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.42);
+  }
   .subheader {
     min-height: 0;
     padding: 6px 20px;
@@ -950,7 +975,7 @@ th {
     gap: 4px 12px;
     font-size: 0.8125rem;
   }
-  .subheader p:last-child {
+  .subheader time {
     color: #526176;
     font-size: 0.75rem;
     text-align: right;
@@ -1069,7 +1094,7 @@ th {
   .subheader {
     grid-template-columns: 1fr;
   }
-  .subheader p:last-child {
+  .subheader time {
     text-align: left;
   }
 }

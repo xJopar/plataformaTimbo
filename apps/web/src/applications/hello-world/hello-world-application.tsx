@@ -6,6 +6,7 @@ import {
 } from '../../browser-diagnostics';
 import type { ApplicationComponentProps } from '../application-component';
 import { PlatformHeader } from '../../layout/platform-header';
+import { PlatformSessionBar } from '../../layout/platform-session-bar';
 import './hello-world-application.css';
 import { MyMemoryTranslationError, translateEnglishToSpanish } from './mymemory-translation';
 
@@ -100,10 +101,7 @@ export function HelloWorldApplication({
         onNavigate={onNavigate}
         onLogout={onLogout}
       />
-      <section className="subheader" aria-label="Información de la aplicación">
-        <p>Herramienta de demostración</p>
-        <p>{session.displayName ?? session.corporateEmail}</p>
-      </section>
+      <PlatformSessionBar session={session} />
       <section className="application-stage" aria-labelledby="hello-world-title">
         <div className="hello-world-introduction">
           <h1 id="hello-world-title">Un chiste, en dos idiomas.</h1>

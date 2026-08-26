@@ -787,6 +787,13 @@ describe('App', () => {
     expect(
       await screen.findByRole('heading', { name: 'Un chiste, en dos idiomas.' }),
     ).toBeInTheDocument();
+    expect(screen.getByLabelText('Aplicación actual: Hello World')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Inicio' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Herramienta de demostración')).not.toBeInTheDocument();
+    expect(screen.getByText('Hola,')).toBeInTheDocument();
+    const logoutButton = screen.getByRole('button', { name: 'Cerrar sesión' });
+    expect(logoutButton).toHaveAttribute('data-tooltip', 'Cerrar sesión');
+    expect(logoutButton.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Contar un chiste' }));
     expect(await screen.findByText('A short joke.')).toHaveAttribute('lang', 'en');
     expect(screen.getByText('Un chiste corto.')).toHaveAttribute('lang', 'es');

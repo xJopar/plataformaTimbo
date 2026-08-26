@@ -2,6 +2,7 @@ import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 
 import type { Api, AuthSession } from '../api';
 import { useAuthorizedApplications } from '../applications/use-authorized-applications';
 import { PlatformHeader } from '../layout/platform-header';
+import { PlatformSessionBar } from '../layout/platform-session-bar';
 
 const COMPANY_VALUES = [
   'La pasión por el cliente guía cada solución que ponemos en tus manos.',
@@ -19,13 +20,6 @@ interface HomeLauncherProps {
   logoutFailure: Error | undefined;
   onNavigate: (pathname: string) => void;
   onLogout: () => void;
-}
-
-function formatCurrentDateTime(): string {
-  return new Intl.DateTimeFormat('es-PY', {
-    dateStyle: 'full',
-    timeStyle: 'short',
-  }).format(new Date());
 }
 
 const WORD_REVEAL_DURATION_MS = 480;
@@ -91,7 +85,6 @@ export function HomeLauncher({
   onLogout,
 }: HomeLauncherProps): React.JSX.Element {
   const { state, reload } = useAuthorizedApplications(api);
-  const employeeName = session.displayName ?? session.corporateEmail;
   const [companyValueIndex, setCompanyValueIndex] = useState(0);
 
   useEffect(() => {
@@ -154,12 +147,7 @@ export function HomeLauncher({
         onNavigate={onNavigate}
         onLogout={onLogout}
       />
-      <section className="subheader" aria-label="Información de sesión">
-        <p>
-          Hola, <strong>{employeeName}</strong>
-        </p>
-        <p>{formatCurrentDateTime()}</p>
-      </section>
+      <PlatformSessionBar session={session} />
       <section
         className="dispatch-board"
         aria-labelledby="home-title"
