@@ -24,8 +24,8 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
   integración externa sin clave de API.
 
 Todavía no existe una aplicación de negocio migrada al App Shell. `Hello World` es una
-comprobación técnica, no una aplicación de negocio. La infraestructura de eventos de uso existe,
-pero el catálogo productivo permanece vacío hasta que se incorpore el primer productor real.
+comprobación técnica, no una aplicación de negocio. También es el primer productor de uso: registra
+la solicitud de un chiste, sin registrar su contenido ni su traducción.
 
 ## Componentes del workspace
 
@@ -58,6 +58,20 @@ generados: los componentes no escriben endpoints HTTP manualmente.
 En producción, `server/` sirve la SPA y actúa como gateway de mismo origen para `/api/*`. El
 gateway reenvía cookies y preserva el `X-Request-Id` resuelto, pero no contiene lógica de negocio
 ni consulta PostgreSQL.
+
+### Regla de integración para aplicaciones internas
+
+Toda aplicación integrada se registra en `src/applications/application-registry.tsx` y recibe la
+proyección `AuthorizedApplication` ya autorizada por el App Shell. La interfaz debe usar
+`PlatformHeader` con la variante `application`: el nombre viene del catálogo, la marca vuelve al
+Inicio y la sesión permanece bajo control compartido. No se copian encabezados ni se reproduce la
+lógica de navegación o cierre de sesión dentro de cada aplicación.
+
+La aplicación conserva únicamente su área de trabajo y sus estados propios. En la API, cada ruta
+funcional vuelve a validar asignación y permisos; la proyección Web no es una frontera de seguridad.
+Si una interacción necesita analítica, su productor define un evento específico de la aplicación,
+con UUID de evento y visita, catálogo tipado y allowlist mínima. Nunca se registran cuerpos,
+contenido de negocio, texto de traducción, correos ni otros datos personales por conveniencia.
 
 ### `packages/contracts`
 
@@ -119,9 +133,11 @@ La Web también evita presentar una ruta `/apps/*` que no figure en esa proyecci
 es experiencia de usuario, no una frontera de seguridad: cada API funcional de una aplicación debe
 seguir verificando acceso y permisos mediante `ApplicationAuthorizationService`.
 
-`GET /api/applications/hello-world/joke` aplica `SessionAuthenticationGuard` y vuelve a comprobar
-la asignación activa de `hello-world` mediante `ApplicationAuthorizationService`. Después obtiene
-un chiste en inglés desde icanhazdadjoke. Con ese resultado autorizado, la Web solicita directamente
+`POST /api/applications/hello-world/joke` aplica `SessionAuthenticationGuard`, CSRF y vuelve a
+comprobar la asignación activa de `hello-world` mediante `ApplicationAuthorizationService`. La Web
+envía un `eventId` y un `visitId` UUID para registrar `hello-world.joke_requested`; tanto un evento
+duplicado como un fallo de persistencia no impiden la acción principal. Después obtiene un chiste en
+inglés desde icanhazdadjoke. Con ese resultado autorizado, la Web solicita directamente
 la traducción inglés-español a MyMemory: no envía cookies, credenciales, referrer, identidad ni datos
 de sesión, solamente el texto público del chiste. Esta separación evita consumir la cuota anónima
 desde el IP de salida compartido de Railway, que puede estar limitado aunque el usuario todavía
@@ -140,8 +156,8 @@ sin su evidencia de auditoría, ni auditoría de un cambio que finalmente hizo r
 
 Los eventos de uso se validan contra el catálogo inyectado en `UsageEventsModule`. `eventId`
 permite reintentos idempotentes y un fallo inesperado de persistencia se convierte en resultado
-`failed`, acompañado por un diagnóstico operativo seguro. El catálogo productivo está vacío hasta
-incorporar una aplicación que defina eventos concretos.
+`failed`, acompañado por un diagnóstico operativo seguro. El catálogo productivo actual define
+`hello-world.joke_requested`, sin objetivo ni metadata, porque sólo necesita medir la solicitud.
 
 Administración consulta ambas tablas mediante una proyección unificada. La respuesta redacta la
 metadata por allowlist y la exportación CSV protege contra fórmulas; no expone la metadata cruda

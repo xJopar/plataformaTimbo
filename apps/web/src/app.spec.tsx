@@ -123,7 +123,7 @@ function createApi(
       listAuthorizedApplications: vi
         .fn<ApplicationsApi['listAuthorizedApplications']>()
         .mockResolvedValue([]),
-      getHelloWorldJoke: vi.fn<ApplicationsApi['getHelloWorldJoke']>().mockResolvedValue({
+      requestHelloWorldJoke: vi.fn<ApplicationsApi['requestHelloWorldJoke']>().mockResolvedValue({
         id: 'joke-a',
         originalText: 'A short joke.',
       }),
@@ -156,7 +156,9 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Apps' })).toBeInTheDocument();
     expect(screen.getByText('Persona Timbo')).toBeInTheDocument();
     expect(
-      screen.getByText('La pasión por el cliente guía cada solución que ponemos en tus manos.'),
+      screen.getByLabelText(
+        'La pasión por el cliente guía cada solución que ponemos en tus manos.',
+      ),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: 'Administración de plataforma' }),
@@ -200,7 +202,9 @@ describe('App', () => {
     expect(screen.getByText('1 aplicación disponible')).toBeInTheDocument();
 
     await user.click(applicationLink);
-    expect(await screen.findByRole('heading', { name: 'Hello World' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Un chiste, en dos idiomas.' }),
+    ).toBeInTheDocument();
   });
 
   it('permite reintentar la carga del launcher', async () => {
@@ -544,6 +548,7 @@ describe('App', () => {
             listApplications: vi
               .fn<AdministrationApi['listApplications']>()
               .mockRejectedValueOnce(new ApiHttpError(503))
+              .mockRejectedValueOnce(new ApiHttpError(503))
               .mockResolvedValueOnce([]),
           },
         )}
@@ -779,7 +784,9 @@ describe('App', () => {
       />,
     );
 
-    expect(await screen.findByRole('heading', { name: 'Hello World' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Un chiste, en dos idiomas.' }),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Contar un chiste' }));
     expect(await screen.findByText('A short joke.')).toHaveAttribute('lang', 'en');
     expect(screen.getByText('Un chiste corto.')).toHaveAttribute('lang', 'es');
@@ -789,8 +796,8 @@ describe('App', () => {
   it('permite reintentar cuando un proveedor de Hello World no está disponible', async () => {
     window.history.replaceState({}, '', '/apps/hello-world');
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const getHelloWorldJoke = vi
-      .fn<ApplicationsApi['getHelloWorldJoke']>()
+    const requestHelloWorldJoke = vi
+      .fn<ApplicationsApi['requestHelloWorldJoke']>()
       .mockRejectedValueOnce(new ApiHttpError(502, 'request-hello-world-502'))
       .mockResolvedValueOnce({
         id: 'joke-b',
@@ -804,7 +811,7 @@ describe('App', () => {
           {},
           {
             listAuthorizedApplications: vi.fn().mockResolvedValue([authorizedApplication]),
-            getHelloWorldJoke,
+            requestHelloWorldJoke,
           },
         )}
       />,
@@ -816,11 +823,11 @@ describe('App', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Contar un chiste' }));
     expect(await screen.findByText('Chiste recuperado.')).toBeInTheDocument();
-    expect(getHelloWorldJoke).toHaveBeenCalledTimes(2);
+    expect(requestHelloWorldJoke).toHaveBeenCalledTimes(2);
     expect(consoleError).toHaveBeenCalledWith(
       expect.objectContaining({
         event: 'web.browser.operation_failed',
-        operation: 'hello-world.fetch-joke',
+        operation: 'hello-world.request-joke',
         route: '/api/applications/hello-world/joke',
         status: 502,
         requestId: 'request-hello-world-502',

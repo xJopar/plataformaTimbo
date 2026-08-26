@@ -131,6 +131,41 @@
         ]
       }
     },
+    "/api/admin/users/bulk": {
+      "post": {
+        "operationId": "preauthorizeAdministrativeUsersBulk",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreauthorizeAdministrativeUsersBulkDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PreauthorizeAdministrativeUserBulkResultDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Preautoriza varios usuarios en un lote, informando el resultado de cada correo.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
     "/api/admin/users/{userId}": {
       "patch": {
         "operationId": "updateAdministrativeUser",
@@ -421,6 +456,94 @@
           }
         },
         "summary": "Retira una aplicación y sus perfiles funcionales del usuario.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/applications/{applicationId}/users/bulk-assign": {
+      "post": {
+        "operationId": "assignApplicationToUsersBulk",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkApplicationAccessDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BulkApplicationAccessResultDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Asigna una aplicación a varios usuarios, informando el resultado de cada uno.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/applications/{applicationId}/users/bulk-unassign": {
+      "post": {
+        "operationId": "unassignApplicationFromUsersBulk",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkApplicationAccessDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BulkApplicationAccessResultDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Retira una aplicación de varios usuarios, informando el resultado de cada uno.",
         "tags": [
           "administration"
         ]
@@ -1369,9 +1492,19 @@
       }
     },
     "/api/applications/hello-world/joke": {
-      "get": {
-        "operationId": "getHelloWorldJoke",
+      "post": {
+        "operationId": "requestHelloWorldJoke",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HelloWorldJokeRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -1387,7 +1520,7 @@
             "description": "El proveedor de chistes no está disponible."
           }
         },
-        "summary": "Obtiene un chiste en inglés para la aplicación Hello World.",
+        "summary": "Registra la solicitud y obtiene un chiste en inglés para Hello World.",
         "tags": [
           "applications"
         ]
@@ -1519,6 +1652,49 @@
         },
         "required": [
           "corporateEmail"
+        ]
+      },
+      "PreauthorizeAdministrativeUsersBulkDto": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PreauthorizeAdministrativeUserDto"
+            }
+          }
+        },
+        "required": [
+          "entries"
+        ]
+      },
+      "PreauthorizeAdministrativeUserBulkResultDto": {
+        "type": "object",
+        "properties": {
+          "corporateEmail": {
+            "type": "string",
+            "example": "persona@timbo.com"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "FAILED"
+            ],
+            "example": "CREATED"
+          },
+          "message": {
+            "type": "string",
+            "example": "Ya existe un usuario con el correo corporativo indicado.",
+            "description": "Motivo del fallo; presente únicamente cuando status es FAILED."
+          },
+          "user": {
+            "$ref": "#/components/schemas/AdministrativeUserResponseDto"
+          }
+        },
+        "required": [
+          "corporateEmail",
+          "status"
         ]
       },
       "UpdateAdministrativeUserDto": {
@@ -1656,6 +1832,50 @@
             "minimum": 0
           }
         }
+      },
+      "BulkApplicationAccessDto": {
+        "type": "object",
+        "properties": {
+          "userIds": {
+            "example": [
+              "d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "userIds"
+        ]
+      },
+      "BulkApplicationAccessResultDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ASSIGNED",
+              "UNASSIGNED",
+              "FAILED"
+            ],
+            "example": "ASSIGNED"
+          },
+          "message": {
+            "type": "string",
+            "example": "El usuario ya tiene asignada la aplicación.",
+            "description": "Motivo del fallo; presente únicamente cuando status es FAILED."
+          }
+        },
+        "required": [
+          "userId",
+          "status"
+        ]
       },
       "AdministrativeUserApplicationAccessResponseDto": {
         "type": "object",
@@ -1817,6 +2037,25 @@
           "description",
           "launchPath",
           "displayOrder"
+        ]
+      },
+      "HelloWorldJokeRequestDto": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identificador idempotente del clic que solicita un chiste."
+          },
+          "visitId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identificador efímero de la visita a la aplicación."
+          }
+        },
+        "required": [
+          "eventId",
+          "visitId"
         ]
       },
       "HelloWorldJokeResponseDto": {

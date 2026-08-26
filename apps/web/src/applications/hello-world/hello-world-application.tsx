@@ -5,6 +5,7 @@ import {
   type BrowserOperationFailureContext,
 } from '../../browser-diagnostics';
 import type { ApplicationComponentProps } from '../application-component';
+import { PlatformHeader } from '../../layout/platform-header';
 import './hello-world-application.css';
 import { MyMemoryTranslationError, translateEnglishToSpanish } from './mymemory-translation';
 
@@ -16,6 +17,7 @@ type JokeState =
 
 export function HelloWorldApplication({
   api,
+  application,
   session,
   isLoggingOut,
   logoutFailure,
@@ -23,6 +25,7 @@ export function HelloWorldApplication({
   onLogout,
 }: ApplicationComponentProps): React.JSX.Element {
   const currentRequestSequence = useRef(0);
+  const visitId = useRef(crypto.randomUUID());
   const [jokeState, setJokeState] = useState<JokeState>({ status: 'idle' });
 
   useEffect(
@@ -37,14 +40,17 @@ export function HelloWorldApplication({
     currentRequestSequence.current = requestSequence;
     setJokeState({ status: 'loading' });
     let failureContext: BrowserOperationFailureContext = {
-      operation: 'hello-world.fetch-joke',
-      method: 'GET',
+      operation: 'hello-world.request-joke',
+      method: 'POST',
       route: '/api/applications/hello-world/joke',
       provider: 'api',
     };
 
     try {
-      const joke = await api.applications.getHelloWorldJoke();
+      const joke = await api.applications.requestHelloWorldJoke({
+        eventId: crypto.randomUUID(),
+        visitId: visitId.current,
+      });
       failureContext = {
         operation: 'hello-world.translate-joke',
         method: 'GET',
@@ -85,72 +91,73 @@ export function HelloWorldApplication({
 
   return (
     <main className="platform-shell hello-world-shell">
-      <header className="top-bar">
-        <p className="product-name">Plataforma Timbo</p>
-        <a
-          className="top-navigation-link"
-          href="/"
-          onClick={(event) => {
-            event.preventDefault();
-            onNavigate('/');
-          }}
-        >
-          Inicio
-        </a>
-        <button className="logout-button" type="button" disabled={isLoggingOut} onClick={onLogout}>
-          {isLoggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
-        </button>
-      </header>
+      <PlatformHeader
+        applicationName={application.name}
+        isLoggingOut={isLoggingOut}
+        isPlatformAdministrator={session.isPlatformAdministrator}
+        showAdministrationLink={false}
+        variant="application"
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+      />
       <section className="subheader" aria-label="Información de la aplicación">
-        <p>
-          Aplicación <strong>Hello World</strong>
-        </p>
+        <p>Herramienta de demostración</p>
         <p>{session.displayName ?? session.corporateEmail}</p>
       </section>
       <section className="application-stage" aria-labelledby="hello-world-title">
-        <h1 id="hello-world-title">Hello World</h1>
-        <p>
-          Un ejemplo de aplicación interna: consume un chiste en inglés y muestra su traducción al
-          español.
-        </p>
-        <button
-          className="action-button"
-          type="button"
-          disabled={jokeState.status === 'loading'}
-          onClick={() => void loadJoke()}
-        >
-          {jokeState.status === 'loading'
-            ? 'Buscando chiste…'
-            : jokeState.status === 'ready'
-              ? 'Contar otro'
-              : 'Contar un chiste'}
-        </button>
-        {logoutFailure === undefined ? null : (
-          <p role="alert">No se pudo cerrar la sesión. Intentá nuevamente.</p>
-        )}
-        {jokeState.status === 'loading' ? (
-          <p className="joke-status" role="status">
-            Consultando el chiste y preparando la traducción…
+        <div className="hello-world-introduction">
+          <h1 id="hello-world-title">Un chiste, en dos idiomas.</h1>
+          <p>
+            Pedí un chiste en inglés y recibí su traducción al español en el mismo espacio de
+            trabajo.
           </p>
-        ) : null}
-        {jokeState.status === 'error' ? (
-          <div className="joke-error" role="alert">
-            <strong>No pudimos obtener y traducir el chiste.</strong>
-            <span>Intentá nuevamente.</span>
+        </div>
+        <section className="joke-tool" aria-labelledby="joke-tool-title">
+          <div className="joke-tool-actions">
+            <h2 id="joke-tool-title">Contá un chiste</h2>
+            <p>La herramienta consulta una fuente pública y prepara la traducción para vos.</p>
+            <button
+              className="action-button"
+              type="button"
+              disabled={jokeState.status === 'loading'}
+              onClick={() => void loadJoke()}
+            >
+              {jokeState.status === 'loading'
+                ? 'Buscando chiste…'
+                : jokeState.status === 'ready'
+                  ? 'Contar otro'
+                  : 'Contar un chiste'}
+            </button>
           </div>
-        ) : null}
-        {jokeState.status === 'ready' ? (
-          <section className="joke-result" aria-live="polite" aria-label="Chiste traducido">
-            <div>
-              <h2>English</h2>
-              <p lang="en">{jokeState.joke.originalText}</p>
+          {logoutFailure === undefined ? null : (
+            <p className="joke-error" role="alert">
+              No se pudo cerrar la sesión. Intentá nuevamente.
+            </p>
+          )}
+          {jokeState.status === 'loading' ? (
+            <p className="joke-status" role="status">
+              Consultando el chiste y preparando la traducción…
+            </p>
+          ) : null}
+          {jokeState.status === 'error' ? (
+            <div className="joke-error" role="alert">
+              <strong>No pudimos obtener y traducir el chiste.</strong>
+              <span>Intentá nuevamente.</span>
             </div>
-            <div>
-              <h2>Español</h2>
-              <p lang="es">{jokeState.translatedText}</p>
-            </div>
-          </section>
-        ) : null}
+          ) : null}
+          {jokeState.status === 'ready' ? (
+            <section className="joke-result" aria-live="polite" aria-label="Chiste traducido">
+              <div>
+                <h2>English</h2>
+                <p lang="en">{jokeState.joke.originalText}</p>
+              </div>
+              <div>
+                <h2>Español</h2>
+                <p lang="es">{jokeState.translatedText}</p>
+              </div>
+            </section>
+          ) : null}
+        </section>
       </section>
     </main>
   );

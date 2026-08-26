@@ -4,11 +4,11 @@ import {
   normalizeRequestRoute,
 } from '@timbo/observability';
 
-export type BrowserOperation = 'hello-world.fetch-joke' | 'hello-world.translate-joke';
+export type BrowserOperation = 'hello-world.request-joke' | 'hello-world.translate-joke';
 
 export interface BrowserOperationFailureContext {
   operation: BrowserOperation;
-  method: 'GET';
+  method: 'GET' | 'POST';
   route: string;
   provider: 'api' | 'mymemory';
   status?: number;

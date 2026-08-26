@@ -90,6 +90,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/users/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preautoriza varios usuarios en un lote, informando el resultado de cada correo. */
+        post: operations["preauthorizeAdministrativeUsersBulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/users/{userId}": {
         parameters: {
             query?: never;
@@ -223,6 +240,40 @@ export interface paths {
         post: operations["assignApplicationToUser"];
         /** Retira una aplicación y sus perfiles funcionales del usuario. */
         delete: operations["unassignApplicationFromUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/users/bulk-assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asigna una aplicación a varios usuarios, informando el resultado de cada uno. */
+        post: operations["assignApplicationToUsersBulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/users/bulk-unassign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retira una aplicación de varios usuarios, informando el resultado de cada uno. */
+        post: operations["unassignApplicationFromUsersBulk"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -459,10 +510,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Obtiene un chiste en inglés para la aplicación Hello World. */
-        get: operations["getHelloWorldJoke"];
+        get?: never;
         put?: never;
-        post?: never;
+        /** Registra la solicitud y obtiene un chiste en inglés para Hello World. */
+        post: operations["requestHelloWorldJoke"];
         delete?: never;
         options?: never;
         head?: never;
@@ -534,6 +585,24 @@ export interface components {
             /** @example Persona Timbo */
             displayName?: string;
         };
+        PreauthorizeAdministrativeUsersBulkDto: {
+            entries: components["schemas"]["PreauthorizeAdministrativeUserDto"][];
+        };
+        PreauthorizeAdministrativeUserBulkResultDto: {
+            /** @example persona@timbo.com */
+            corporateEmail: string;
+            /**
+             * @example CREATED
+             * @enum {string}
+             */
+            status: "CREATED" | "FAILED";
+            /**
+             * @description Motivo del fallo; presente únicamente cuando status es FAILED.
+             * @example Ya existe un usuario con el correo corporativo indicado.
+             */
+            message?: string;
+            user?: components["schemas"]["AdministrativeUserResponseDto"];
+        };
         UpdateAdministrativeUserDto: {
             /** @example Persona Timbo */
             displayName: string | null;
@@ -594,6 +663,28 @@ export interface components {
             /** @example 0 */
             displayOrder?: number;
         };
+        BulkApplicationAccessDto: {
+            /**
+             * @example [
+             *       "d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6"
+             *     ]
+             */
+            userIds: string[];
+        };
+        BulkApplicationAccessResultDto: {
+            /** @example d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6 */
+            userId: string;
+            /**
+             * @example ASSIGNED
+             * @enum {string}
+             */
+            status: "ASSIGNED" | "UNASSIGNED" | "FAILED";
+            /**
+             * @description Motivo del fallo; presente únicamente cuando status es FAILED.
+             * @example El usuario ya tiene asignada la aplicación.
+             */
+            message?: string;
+        };
         AdministrativeUserApplicationAccessResponseDto: {
             /** Format: uuid */
             applicationId: string;
@@ -640,6 +731,18 @@ export interface components {
             launchPath: string;
             /** @example 0 */
             displayOrder: number;
+        };
+        HelloWorldJokeRequestDto: {
+            /**
+             * Format: uuid
+             * @description Identificador idempotente del clic que solicita un chiste.
+             */
+            eventId: string;
+            /**
+             * Format: uuid
+             * @description Identificador efímero de la visita a la aplicación.
+             */
+            visitId: string;
         };
         HelloWorldJokeResponseDto: {
             /** @example R7UfaahVfFd */
@@ -782,6 +885,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdministrativeUserResponseDto"];
+                };
+            };
+        };
+    };
+    preauthorizeAdministrativeUsersBulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreauthorizeAdministrativeUsersBulkDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreauthorizeAdministrativeUserBulkResultDto"][];
                 };
             };
         };
@@ -995,6 +1121,56 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    assignApplicationToUsersBulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkApplicationAccessDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkApplicationAccessResultDto"][];
+                };
+            };
+        };
+    };
+    unassignApplicationFromUsersBulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkApplicationAccessDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkApplicationAccessResultDto"][];
+                };
             };
         };
     };
@@ -1446,14 +1622,18 @@ export interface operations {
             };
         };
     };
-    getHelloWorldJoke: {
+    requestHelloWorldJoke: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HelloWorldJokeRequestDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {

@@ -21,7 +21,7 @@
     "pretest:auth:transactions:integration": "pnpm run prisma:generate",
     "pretest:access-profiles:integration": "pnpm run prisma:generate",
     "build": "tsc -p tsconfig.build.json",
-    "export:openapi": "node -r ts-node/register src/export-openapi.ts",
+    "export:openapi": "pnpm run build && node dist/export-openapi.js",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
     "typecheck": "tsc -p tsconfig.json",
     "test": "jest",

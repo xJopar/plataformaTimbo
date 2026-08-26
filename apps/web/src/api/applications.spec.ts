@@ -44,7 +44,7 @@ describe('createApplicationsApi', () => {
     ).rejects.toBeInstanceOf(ApiHttpError);
   });
 
-  it('consulta el chiste traducido incluyendo credenciales', async () => {
+  it('solicita el chiste y registra el clic incluyendo credenciales', async () => {
     const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -59,11 +59,14 @@ describe('createApplicationsApi', () => {
     );
 
     await expect(
-      createApplicationsApi('http://localhost:3000', fetchImplementation).getHelloWorldJoke(),
+      createApplicationsApi('http://localhost:3000', fetchImplementation).requestHelloWorldJoke({
+        eventId: '737c5ac8-9385-4ae3-9ac7-f16622a8d1fc',
+        visitId: 'a75a9b36-fcb4-4489-a3ea-f1e9a8d5d398',
+      }),
     ).resolves.toMatchObject({ id: 'joke-a' });
     expect(fetchImplementation.mock.calls[0]?.[0]).toMatchObject({
       credentials: 'include',
-      method: 'GET',
+      method: 'POST',
     });
     const request = fetchImplementation.mock.calls[0]?.[0];
     expect(request).toBeInstanceOf(Request);
@@ -82,7 +85,10 @@ describe('createApplicationsApi', () => {
     );
 
     await expect(
-      createApplicationsApi('http://localhost:3000', fetchImplementation).getHelloWorldJoke(),
+      createApplicationsApi('http://localhost:3000', fetchImplementation).requestHelloWorldJoke({
+        eventId: '737c5ac8-9385-4ae3-9ac7-f16622a8d1fc',
+        visitId: 'a75a9b36-fcb4-4489-a3ea-f1e9a8d5d398',
+      }),
     ).rejects.toMatchObject({ status: 502, requestId: 'request-joke-502' });
   });
 
@@ -91,11 +97,14 @@ describe('createApplicationsApi', () => {
     const fetchImplementation = vi.fn<typeof fetch>().mockRejectedValue(networkError);
 
     await expect(
-      createApplicationsApi('http://localhost:3000', fetchImplementation).getHelloWorldJoke(),
+      createApplicationsApi('http://localhost:3000', fetchImplementation).requestHelloWorldJoke({
+        eventId: '737c5ac8-9385-4ae3-9ac7-f16622a8d1fc',
+        visitId: 'a75a9b36-fcb4-4489-a3ea-f1e9a8d5d398',
+      }),
     ).rejects.toMatchObject({
       name: 'ApplicationsApiUnavailableError',
       code: 'APPLICATIONS_API_UNAVAILABLE',
-      operation: 'getHelloWorldJoke',
+      operation: 'requestHelloWorldJoke',
       cause: networkError,
     } satisfies Partial<ApplicationsApiUnavailableError>);
   });

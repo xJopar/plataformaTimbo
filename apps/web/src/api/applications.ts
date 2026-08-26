@@ -7,12 +7,16 @@ export type AuthorizedApplication = NonNullable<
 >[number];
 
 export type HelloWorldJoke = NonNullable<
-  paths['/api/applications/hello-world/joke']['get']['responses'][200]['content']['application/json']
+  paths['/api/applications/hello-world/joke']['post']['responses'][200]['content']['application/json']
+>;
+
+export type HelloWorldJokeRequest = NonNullable<
+  paths['/api/applications/hello-world/joke']['post']['requestBody']['content']['application/json']
 >;
 
 export interface ApplicationsApi {
   listAuthorizedApplications(): Promise<AuthorizedApplication[]>;
-  getHelloWorldJoke(): Promise<HelloWorldJoke>;
+  requestHelloWorldJoke(input: HelloWorldJokeRequest): Promise<HelloWorldJoke>;
 }
 
 export class ApplicationsApiUnavailableError extends Error {
@@ -54,11 +58,14 @@ export function createApplicationsApi(
 
       return data;
     },
-    async getHelloWorldJoke(): Promise<HelloWorldJoke> {
+    async requestHelloWorldJoke(input: HelloWorldJokeRequest): Promise<HelloWorldJoke> {
       const { data, response } = await client
-        .GET('/api/applications/hello-world/joke')
+        .POST('/api/applications/hello-world/joke', {
+          body: input,
+          headers: { 'x-timbo-csrf': '1' },
+        })
         .catch((error: unknown) => {
-          throw new ApplicationsApiUnavailableError('getHelloWorldJoke', { cause: error });
+          throw new ApplicationsApiUnavailableError('requestHelloWorldJoke', { cause: error });
         });
 
       if (!response.ok) {

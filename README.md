@@ -8,8 +8,9 @@ Google para usuarios preautorizados, sesiones persistentes, administración de u
 administrador de plataforma, observabilidad operativa, auditoría, eventos de uso y consulta
 administrativa de actividad y catálogo gobernado de aplicaciones internas.
 
-El catálogo incluye `Hello World` como integración técnica en `/apps/hello-world`: obtiene un
-chiste en inglés desde icanhazdadjoke y lo traduce al español con MyMemory, sin claves de API.
+El catálogo incluye `Hello World` como integración técnica en `/apps/hello-world`: su acción
+principal registra el uso idempotente `hello-world.joke_requested`, obtiene un chiste en inglés
+desde icanhazdadjoke y lo traduce al español con MyMemory, sin claves de API.
 Administración permite asignar aplicaciones a empleados y gestionar sus perfiles y permisos
 funcionales. El Home autenticado presenta solamente las aplicaciones activas asignadas al usuario
 y abre sus rutas internas. Todavía falta integrar la primera aplicación de negocio. Consultar
@@ -25,8 +26,8 @@ vigentes.
   filtrado por asignaciones activas.
 - **Observabilidad:** logs JSON de API y gateway, diagnósticos estructurados en el navegador,
   redacción segura y correlación por `X-Request-Id`.
-- **Datos de actividad:** auditoría persistente y base idempotente para eventos de uso; el primer
-  catálogo productivo de uso llegará con una aplicación real.
+- **Datos de actividad:** auditoría persistente y evento de uso idempotente para la solicitud de
+  chistes de Hello World.
 - **Experiencia:** acceso corporativo, launcher de aplicaciones autorizadas, superficies de
   Administración y una aplicación `Hello World` que demuestra una integración externa
   recuperable.
@@ -205,7 +206,7 @@ Para una visión de conjunto, empezar por
 3. **Administración:** controllers de `modules/administration` → `UsersService`,
    `ApplicationsService`, `AccessProfilesService` o `ActivityService`.
 4. **Auditoría:** operación propietaria → transacción Prisma → `AuditEventsService` → `AUDIT_EVENT_CATALOG`.
-5. **Uso:** productor futuro → `UsageEventsService` → catálogo inyectado → persistencia idempotente.
+5. **Uso:** productor de aplicación → `UsageEventsService` → catálogo tipado → persistencia idempotente.
 6. **Observabilidad:** middleware, gateway o frontera de interfaz → contexto seguro y `requestId` cuando existe → emisor propio → funciones puras de `@timbo/observability`.
 7. **Contrato Web/API:** controller y DTO → `export-openapi.ts` → `packages/contracts` → fachada de `apps/web/src/api`.
 

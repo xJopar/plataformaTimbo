@@ -7,7 +7,7 @@ import {
 import { RequestContextService } from '../observability/request-context.service';
 import { USAGE_EVENTS_TEST_CATALOG } from '../../../test/usage-events-test-catalog';
 import { PrismaService } from '../../database/prisma.service';
-import { EMPTY_USAGE_EVENT_CATALOG } from './usage-event-catalog';
+import { PRODUCT_USAGE_EVENT_CATALOG } from './usage-event-catalog';
 import {
   addCalendarMonthsUtc,
   type AppendUsageEventInput,
@@ -80,8 +80,8 @@ describe('UsageEventsService', () => {
     jest.useRealTimers();
   });
 
-  it('mantiene el catálogo productivo vacío y la definición fixture fuera de él', () => {
-    expect(EMPTY_USAGE_EVENT_CATALOG).toEqual({});
+  it('mantiene el catálogo de prueba aislado de los eventos productivos', () => {
+    expect(PRODUCT_USAGE_EVENT_CATALOG['hello-world.joke_requested']?.appKey).toBe('hello-world');
     expect(USAGE_EVENTS_TEST_CATALOG['test.screen_opened']?.appKey).toBe('test-app');
   });
 

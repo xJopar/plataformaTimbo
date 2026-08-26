@@ -38,6 +38,9 @@ export type UsageEventCatalog = Readonly<Record<string, UsageEventCatalogEntry>>
 
 export const USAGE_EVENT_CATALOG = Symbol('USAGE_EVENT_CATALOG');
 
-// El primer productor se incorpora en su propio ticket. Hasta entonces, cualquier nombre es
-// rechazado deliberadamente: el módulo no ofrece una taxonomía genérica en producción.
-export const EMPTY_USAGE_EVENT_CATALOG: UsageEventCatalog = {};
+export const PRODUCT_USAGE_EVENT_CATALOG: UsageEventCatalog = {
+  'hello-world.joke_requested': {
+    appKey: 'hello-world',
+    metadataFields: [],
+  },
+};

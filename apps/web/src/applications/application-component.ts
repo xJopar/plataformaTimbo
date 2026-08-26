@@ -1,7 +1,8 @@
-import type { Api, AuthSession } from '../api';
+import type { Api, AuthSession, AuthorizedApplication } from '../api';
 
 export interface ApplicationComponentProps {
   api: Api;
+  application: AuthorizedApplication;
   session: AuthSession;
   isLoggingOut: boolean;
   logoutFailure: Error | undefined;

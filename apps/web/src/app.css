@@ -65,6 +65,22 @@ button:focus-visible {
   height: auto;
   display: block;
 }
+
+.top-bar--application .top-bar-brand {
+  min-width: 0;
+}
+
+.application-header-name {
+  min-width: 0;
+  padding-left: 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.42);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .top-bar-brand span,
 .session-boot-header span {
   padding-left: 12px;
@@ -73,6 +89,15 @@ button:focus-visible {
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.top-bar--application .application-header-name {
+  padding-left: 16px;
+  border-left-color: rgba(255, 255, 255, 0.42);
+  font-size: 0.9375rem;
+  font-weight: 750;
+  letter-spacing: normal;
+  text-transform: none;
 }
 .top-bar-brand:focus-visible {
   outline: 3px solid #00a6a6;

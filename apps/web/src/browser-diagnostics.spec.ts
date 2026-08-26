@@ -17,7 +17,7 @@ describe('reportBrowserOperationFailed', () => {
     );
 
     reportBrowserOperationFailed(error, {
-      operation: 'hello-world.fetch-joke',
+      operation: 'hello-world.request-joke',
       method: 'GET',
       route: '/api/applications/hello-world/joke?token=super-secret',
       provider: 'api',
@@ -34,7 +34,7 @@ describe('reportBrowserOperationFailed', () => {
       service: 'web',
       runtime: 'browser',
       event: 'web.browser.operation_failed',
-      operation: 'hello-world.fetch-joke',
+      operation: 'hello-world.request-joke',
       method: 'GET',
       route: '/api/applications/hello-world/joke',
       provider: 'api',

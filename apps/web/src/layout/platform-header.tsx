@@ -5,7 +5,8 @@ interface PlatformHeaderProps {
   isLoggingOut: boolean;
   isPlatformAdministrator: boolean;
   showAdministrationLink: boolean;
-  variant?: 'home';
+  variant?: 'home' | 'application';
+  applicationName?: string;
   onNavigate: (pathname: string) => void;
   onLogout: () => void;
 }
@@ -15,14 +16,20 @@ export function PlatformHeader({
   isPlatformAdministrator,
   showAdministrationLink,
   variant,
+  applicationName,
   onNavigate,
   onLogout,
 }: PlatformHeaderProps): React.JSX.Element {
   const useCompactActions = variant === 'home';
+  const isApplicationHeader = variant === 'application';
 
   return (
-    <header className={`top-bar${variant === 'home' ? ' top-bar--home' : ''}`}>
-      {variant === 'home' ? (
+    <header
+      className={`top-bar${variant === 'home' ? ' top-bar--home' : ''}${
+        isApplicationHeader ? ' top-bar--application' : ''
+      }`}
+    >
+      {variant === 'home' || isApplicationHeader ? (
         <a
           className="top-bar-brand"
           href="/"
@@ -33,11 +40,26 @@ export function PlatformHeader({
           }}
         >
           <img src="/brand/timbo-logo-white.png" alt="Timbo" />
+          {isApplicationHeader ? (
+            <span className="application-header-name">{applicationName}</span>
+          ) : null}
         </a>
       ) : (
         <p className="product-name">Plataforma Timbo</p>
       )}
       <nav className="top-bar-actions" aria-label="Acciones de sesión">
+        {isApplicationHeader ? (
+          <a
+            className="top-navigation-link"
+            href="/"
+            onClick={(event) => {
+              event.preventDefault();
+              onNavigate('/');
+            }}
+          >
+            Inicio
+          </a>
+        ) : null}
         {isPlatformAdministrator && showAdministrationLink ? (
           <a
             className={useCompactActions ? 'header-icon-action' : 'top-navigation-link'}

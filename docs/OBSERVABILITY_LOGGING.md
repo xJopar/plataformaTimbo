@@ -132,7 +132,7 @@ El gateway nunca duplica una respuesta ni un diagnóstico: `web.gateway.upstream
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------ | -------------------------------------- |
 | `web.browser.operation_failed` | Una operación asíncrona de la interfaz falla en una frontera que puede aportar operación, proveedor y ruta seguros. | `reportBrowserOperationFailed` | Objeto estructurado en `console.error` |
 
-El primer productor es Hello World. Distingue `hello-world.fetch-joke` de
+El primer productor es Hello World. Distingue `hello-world.request-joke` de
 `hello-world.translate-joke`; así el diagnóstico identifica si falló la API propia o MyMemory sin
 registrar el chiste ni la query de traducción.
 
@@ -229,16 +229,18 @@ operación completa.
 ## Analítica de uso persistente
 
 `UsageEventsService` valida cada evento contra el catálogo inyectado mediante
-`USAGE_EVENT_CATALOG`. El proveedor productivo actual es `EMPTY_USAGE_EVENT_CATALOG`: hasta que
-exista el primer productor real, cualquier nombre se rechaza deliberadamente.
+`USAGE_EVENT_CATALOG`. El proveedor productivo actual es `PRODUCT_USAGE_EVENT_CATALOG` e incluye
+`hello-world.joke_requested`: corresponde al clic que solicita un chiste, usa `appKey`
+`hello-world` y no admite objetivo ni metadata. Así la actividad mide la acción sin persistir el
+chiste, su traducción ni otros datos de negocio.
 
 Para incorporar un productor de uso:
 
 1. Definir primero qué decisión de producto u operación permitirá tomar cada evento. No registrar
    clics o vistas “por si acaso”.
 2. Crear un catálogo concreto con `appKey`, objetivo opcional y una allowlist tipada de metadata.
-   La aplicación productora debe suministrarlo a `UsageEventsModule`; no se convierte el catálogo
-   compartido en una taxonomía abierta.
+   La aplicación productora lo incorpora a `PRODUCT_USAGE_EVENT_CATALOG`; no se convierte el
+   catálogo compartido en una taxonomía abierta.
 3. Usar nombres estables y específicos de la aplicación. Cambiar el significado de un nombre
    existente requiere un evento nuevo.
 4. Generar `eventId` y `visitId` como UUID. Reintentar el mismo evento conserva `eventId`; un
@@ -249,9 +251,10 @@ Para incorporar un productor de uso:
 6. Probar catálogo, objetivos, metadata, límite de bytes, idempotencia, retención y falla del
    logger de respaldo.
 
-La primera aplicación decidirá mediante un ticket propio si los eventos nacen en backend, en un
-endpoint autenticado para interacciones de frontend o en ambos. Ese transporte todavía no existe
-y no debe inferirse ni agregarse desde esta documentación.
+Hello World usa el endpoint autenticado que ejecuta la acción principal: la Web genera `eventId`
+por clic y conserva `visitId` durante la visita; la API registra el evento antes de consultar el
+proveedor. El resultado `failed` se diagnostica en el servicio y no se traduce en una falsa falla
+de la herramienta, mientras que `recorded` y `duplicate` permiten que la acción continúe.
 
 ## Cómo agregar un evento operativo
 

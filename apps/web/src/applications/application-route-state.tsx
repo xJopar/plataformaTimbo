@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { AuthSession } from '../api';
+import { PlatformHeader } from '../layout/platform-header';
 
 interface ApplicationRouteStateProps {
   session: AuthSession;
@@ -22,22 +23,15 @@ export function ApplicationRouteState({
 }: ApplicationRouteStateProps): React.JSX.Element {
   return (
     <main className="platform-shell">
-      <header className="top-bar">
-        <p className="product-name">Plataforma Timbo</p>
-        <a
-          className="top-navigation-link"
-          href="/"
-          onClick={(event) => {
-            event.preventDefault();
-            onNavigate('/');
-          }}
-        >
-          Inicio
-        </a>
-        <button className="logout-button" type="button" disabled={isLoggingOut} onClick={onLogout}>
-          {isLoggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
-        </button>
-      </header>
+      <PlatformHeader
+        applicationName="Aplicación"
+        isLoggingOut={isLoggingOut}
+        isPlatformAdministrator={session.isPlatformAdministrator}
+        showAdministrationLink={false}
+        variant="application"
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+      />
       <section className="subheader" aria-label="Información de la aplicación">
         <p>Aplicación</p>
         <p>{session.displayName ?? session.corporateEmail}</p>
