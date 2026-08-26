@@ -77,7 +77,7 @@ El acceso reserva el display de `clamp(2.5rem, 5vw, 4.75rem)` para el título de
 
 Globalmente, el App Shell usa contenedores amplios, espaciado de 8/16/24/32 px, fondos claros y grupos separados por reglas. En móvil, navegación, formularios, filtros y filas se apilan antes de reducir el área táctil; controles y campos mantienen al menos 44 px de alto.
 
-El acceso es una composición de dos columnas en escritorio: panel funcional blanco a la izquierda (47 %) y fotografía real de sede a la derecha (53 %). El wordmark blanco y la declaración de marca viven sobre el lado fotográfico; la marca corta es el monograma `T` junto a “Plataforma Timbo” en el panel funcional. La imagen se sirve en WebP con `srcset` de 640/960/1600 px y `sizes` acorde al viewport, sin ampliar la fuente.
+El acceso es una composición de dos columnas en escritorio: panel funcional blanco a la izquierda (47 %) y fotografía real de sede a la derecha (53 %). El wordmark blanco (recorte con canal alfa real, sin fondo sólido) vive sobre el lado fotográfico, dentro de un panel de marca casi opaco; la marca corta es el monograma `T` junto a “Plataforma Timbo” en el panel funcional. El wordmark se muestra unos segundos al cargar y luego se desvanece, dejando la fotografía de la sede visible bajo el velo azul translúcido — ver Motion. La imagen se sirve en WebP con `srcset` de 640/960/1600 px y `sizes` acorde al viewport, sin ampliar la fuente.
 
 A `860px` o menos, la foto pasa a una banda superior de 200–260 px y el panel queda debajo. La diagonal es exclusivamente decorativa: en escritorio separa los paneles y en móvil se reduce a esa banda superior; no cubre, recorta ni compite con controles, texto o sus anillos de foco.
 
@@ -103,7 +103,7 @@ Usar paneles planos y filas de lista/tablas para agrupar trabajo: fondo `#F7F9FB
 
 La jerarquía se mantiene estable en todos los estados: marca, título, detalle, señal de estado o error y acción recuperable. `checking` muestra el indicador y “Validando sesión segura”; `signed-out` ofrece Google; `rejected` conserva la misma acción y presenta alerta; `technical-failure` presenta alerta y “Reintentar”. La acción primaria mide 54 px, usa `#1F245C`, cambia discretamente a `#313B85` en hover y conserva foco turquesa.
 
-La única animación es el giro del indicador de comprobación (800 ms). Con `prefers-reduced-motion: reduce`, se elimina la transición y el giro se reemplaza por un indicador estático de marca; el resto del App Shell también desactiva transiciones y animaciones.
+Hay dos animaciones autorizadas, ambas en el acceso: el giro del indicador de comprobación (800 ms) y la revelación del wordmark sobre la foto (aparece, se sostiene y se desvanece en 4.5 s, una sola vez al cargar). Con `prefers-reduced-motion: reduce`, el giro se reemplaza por un indicador estático de marca y el wordmark queda fijo en pantalla en vez de desvanecerse; el resto del App Shell también desactiva transiciones y animaciones.
 
 ## Do's and Don'ts
 

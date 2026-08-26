@@ -196,6 +196,23 @@
   padding: clamp(30px, 5vw, 64px) clamp(36px, 6vw, 88px);
   background: rgba(31, 36, 92, 0.94);
   color: #ffffff;
+  opacity: 0;
+  animation: access-statement-reveal 4.5s ease forwards;
+}
+
+@keyframes access-statement-reveal {
+  0% {
+    opacity: 0;
+  }
+  9% {
+    opacity: 1;
+  }
+  69% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .access-wordmark {
@@ -311,5 +328,10 @@
   .access-progress-indicator {
     animation: none;
     border-color: var(--access-brand);
+  }
+
+  .access-brand-statement {
+    animation: none;
+    opacity: 1;
   }
 }
