@@ -54,10 +54,10 @@ sólo en esta aplicación. No se agregan capas genéricas entre esas responsabil
 ### `apps/web`
 
 SPA React/Vite que presenta acceso corporativo, launcher autorizado, administración de usuarios,
-aplicaciones, asignaciones, perfiles y permisos, consulta de actividad y `Hello World`. El launcher
-vive en `src/home/`; el registro, el control de rutas y cada interfaz integrada viven en
-`src/applications/`, incluida `src/applications/hello-world/`. `src/api/` encapsula rutas y tipos
-generados: los componentes no escriben endpoints HTTP manualmente.
+aplicaciones, asignaciones, perfiles y permisos, consulta de actividad, `Hello World` y `Lista de
+Precios`. El launcher vive en `src/home/`; el registro, el control de rutas y cada interfaz
+integrada viven en `src/applications/`, incluidas `hello-world/` y `lista-precios/`. `src/api/`
+encapsula rutas y tipos generados: los componentes no escriben endpoints HTTP manualmente.
 
 En producción, `server/` sirve la SPA y actúa como gateway de mismo origen para `/api/*`. El
 gateway reenvía cookies y preserva el `X-Request-Id` resuelto, pero no contiene lógica de negocio
@@ -76,6 +76,8 @@ funcional vuelve a validar asignación y permisos; la proyección Web no es una 
 Si una interacción necesita analítica, su productor define un evento específico de la aplicación,
 con UUID de evento y visita, catálogo tipado y allowlist mínima. Nunca se registran cuerpos,
 contenido de negocio, texto de traducción, correos ni otros datos personales por conveniencia.
+La receta operativa para incorporar otra aplicación está en
+[`MIGRATING_STANDALONE_APPS.md`](MIGRATING_STANDALONE_APPS.md).
 
 ### `packages/contracts`
 

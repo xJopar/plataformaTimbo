@@ -4,7 +4,7 @@ Reglas durables para cualquier agente (humano o automático) que trabaje en este
 
 ## Alcance del repositorio
 
-Este es el monorepo de **App Shell Plataforma Timbo**, administrado con `pnpm workspaces` (sin Turbo ni Nx). Contiene `apps/api` (NestJS), `apps/web` (React/Vite), `packages/contracts` (OpenAPI generado) y `packages/observability` (funciones puras compartidas). El estado vigente incluye identidad Google, sesiones, administración de usuarios, rol de administrador de plataforma, observabilidad, auditoría y eventos de uso. Todavía no existen catálogo de aplicaciones, permisos funcionales completos, asignaciones a empleados ni aplicaciones de negocio integradas.
+Este es el monorepo de **App Shell Plataforma Timbo**, administrado con `pnpm workspaces` (sin Turbo ni Nx). Contiene `apps/api` (NestJS), `apps/web` (React/Vite), `packages/contracts` (OpenAPI generado) y `packages/observability` (funciones puras compartidas). El estado vigente incluye identidad Google, sesiones, administración de usuarios, catálogo de aplicaciones, asignaciones a empleados, perfiles y permisos funcionales, observabilidad, auditoría, eventos de uso y actividad exportable. `Hello World` es la integración técnica y `Lista de Precios` la primera aplicación de negocio migrada.
 
 No copiar código de otros proyectos ni introducir capacidades fuera del alcance acordado en el ticket o la actividad vigente. Ante una ambigüedad que exceda el alcance, se informa en vez de decidirse unilateralmente.
 
@@ -30,6 +30,7 @@ Ver `docs/CODING_CONVENTIONS.md` para el detalle completo. Resumen operativo:
 
 ## Documentación y señales operativas
 
+- Antes de iniciar un cambio, consultar `docs/USING_REPOSITORY_DOCUMENTATION.md` para identificar el recorrido documental y el módulo propietario.
 - Antes de cambiar límites entre aplicaciones, identidad, acceso, persistencia o contratos, leer `docs/PLATFORM_ARCHITECTURE.md`.
 - Antes de agregar o modificar logs, auditoría o eventos de uso, leer `docs/OBSERVABILITY_LOGGING.md` y elegir explícitamente la señal correcta.
 - El log operativo diagnostica ejecución; la auditoría conserva evidencia de seguridad o administración; los eventos de uso miden interacción de producto. No se sustituyen entre sí.

@@ -132,9 +132,10 @@ El gateway nunca duplica una respuesta ni un diagnóstico: `web.gateway.upstream
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------ | -------------------------------------- |
 | `web.browser.operation_failed` | Una operación asíncrona de la interfaz falla en una frontera que puede aportar operación, proveedor y ruta seguros. | `reportBrowserOperationFailed` | Objeto estructurado en `console.error` |
 
-El primer productor es Hello World. Distingue `hello-world.request-joke` de
-`hello-world.translate-joke`; así el diagnóstico identifica si falló la API propia o MyMemory sin
-registrar el chiste ni la query de traducción.
+Hello World distingue `hello-world.request-joke` de `hello-world.translate-joke`; así el
+diagnóstico identifica si falló la API propia o MyMemory sin registrar el chiste ni la query de
+traducción. Lista de Precios agrega `lista-precios.record-usage-event` para que una falla de su
+analítica no bloquee el catálogo ni la consulta y conserve sólo la ruta y el contexto seguro.
 
 ## Campos durables
 

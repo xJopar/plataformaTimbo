@@ -33,8 +33,10 @@ Es un App Shell empresarial interno: centraliza capacidades transversales y perm
 - La asignación de aplicaciones a empleados, la administración de perfiles y permisos y el
   launcher de aplicaciones autorizadas están disponibles.
 - Los iconos de aplicaciones quedan fuera del incremento inicial.
-- Lista de Precios será la primera aplicación de negocio migrada; la demostración vigente obtiene
-  un chiste en inglés y lo traduce al español sin claves de API.
+- Lista de Precios es la primera aplicación de negocio migrada: consulta el catálogo autorizado y
+  mide un recorrido comercial acotado por marca y modelo.
+- Hello World permanece como demostración técnica: obtiene un chiste en inglés y lo traduce al
+  español sin claves de API.
 
 ## Evidence on Hand
 

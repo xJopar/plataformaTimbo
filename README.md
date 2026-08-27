@@ -38,8 +38,12 @@ para el alcance y los recorridos vigentes.
 
 - [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md): alcance vigente, componentes y
   recorridos principales.
+- [`docs/USING_REPOSITORY_DOCUMENTATION.md`](docs/USING_REPOSITORY_DOCUMENTATION.md): mapa de
+  lectura para elegir las fuentes y propietarios correctos antes de cambiar algo.
 - [`docs/OBSERVABILITY_LOGGING.md`](docs/OBSERVABILITY_LOGGING.md): logs operativos, auditoría,
   eventos de uso y guía para agregar nuevas señales.
+- [`docs/MIGRATING_STANDALONE_APPS.md`](docs/MIGRATING_STANDALONE_APPS.md): receta operativa para
+  agregar una aplicación nueva o migrar una standalone al App Shell.
 - [`docs/CODING_CONVENTIONS.md`](docs/CODING_CONVENTIONS.md): reglas de implementación.
 - [`docs/RAILWAY_DEPLOYMENT.md`](docs/RAILWAY_DEPLOYMENT.md): despliegue y promoción de entornos.
 
@@ -141,6 +145,7 @@ apps/
         audit-events/    # Catálogo y persistencia transaccional de auditoría
         auth/            # Google OAuth, sesiones, cookie, CSRF y guards
         hello-world/     # Endpoint protegido y proveedores externos del ejemplo
+        lista-precios/   # Catálogo Zoho protegido y analítica de recorrido comercial
         observability/   # Contexto de petición y log operativo de API
         usage-events/    # Catálogo y persistencia idempotente de uso
         users/           # Usuarios preautorizados y estado de acceso
@@ -151,6 +156,7 @@ apps/
       browser-diagnostics.ts # Diagnóstico seguro y estructurado de operaciones de interfaz
       applications/     # Registro, autorización de rutas y aplicaciones internas
         hello-world/    # Interfaz y estilos propios del ejemplo Hello World
+        lista-precios/  # Catálogo, rutas internas y recorrido comercial de vehículos
       home/             # Launcher de aplicaciones autorizadas
       app.tsx           # Acceso, sesión y navegación principal
       applications-panel.tsx # Catálogo administrativo de aplicaciones
@@ -167,6 +173,7 @@ docs/
   PLATFORM_ARCHITECTURE.md  # Alcance y recorridos vigentes
   OBSERVABILITY_LOGGING.md  # Logs, auditoría y analítica de uso
   CODING_CONVENTIONS.md     # Convenciones de código durables
+  MIGRATING_STANDALONE_APPS.md # Guía para integrar aplicaciones internas
   RAILWAY_DEPLOYMENT.md     # Despliegue y promoción de entornos
 AGENTS.md                 # Reglas durables para agentes que trabajen en este repositorio
 ```
@@ -188,7 +195,9 @@ AGENTS.md                 # Reglas durables para agentes que trabajen en este re
    navegador, con credenciales y referrer omitidos, para no depender de la cuota del IP de salida
    compartido del servidor. Ninguno de los dos proveedores requiere clave; sus límites o
    indisponibilidad se presentan como un error recuperable y no se registra el contenido del
-   chiste.
+   chiste. `/apps/lista-precios` también requiere asignación: carga el catálogo desde el endpoint
+   protegido de la aplicación y registra sólo apertura, vistas deduplicadas de modelo e inicio de
+   consulta. Administración muestra y exporta marca y modelo en columnas separadas.
 8. Consultar el estado de disponibilidad: `GET http://localhost:3000/api/health`. Debe responder `200` con un cuerpo como:
 
    ```json
@@ -215,13 +224,13 @@ Para una visión de conjunto, empezar por
 ## Pruebas
 
 - La API cubre configuración, health, identidad, sesiones, guards, administración, perfiles,
-  Hello World, observabilidad, auditoría y eventos de uso con pruebas unitarias y e2e offline; los
-  proveedores externos se sustituyen por respuestas controladas en la suite.
+  Hello World, Lista de Precios, observabilidad, auditoría y eventos de uso con pruebas unitarias
+  y e2e offline; los proveedores externos se sustituyen por respuestas controladas en la suite.
 - Las integraciones que escriben en PostgreSQL usan runners separados y guardas explícitas de
   development. La suite ordinaria no abre conexiones a la base.
 - La Web cubre transporte tipado, autenticación, Home, gestión de usuarios, catálogo de
-  aplicaciones, asignaciones, perfiles, permisos, Hello World y actividad, incluidos estados de
-  carga, acceso denegado, error y vacío.
+  aplicaciones, asignaciones, perfiles, permisos, Hello World, Lista de Precios y actividad,
+  incluidos estados de carga, acceso denegado, error y vacío.
 - El gateway se prueba contra upstreams locales para reenvío de método, cuerpo, headers, cookies,
   correlación, estáticos, timeout y respuesta `502` explícita.
 - `packages/observability` prueba generación y validación de `requestId`, normalización de rutas,

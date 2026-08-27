@@ -90,37 +90,28 @@ Railway resuelve la referencia dentro del entorno activo: aunque el servicio se 
 development. No sustituir la referencia por una URL pública. `CORS_ORIGIN` debe seguir apuntando
 al dominio `web` del mismo entorno.
 
-En el servicio `web` de cada entorno, se mantenía históricamente:
-
-```dotenv
-VITE_API_BASE_URL=https://${{api.RAILWAY_PUBLIC_DOMAIN}}
-```
-
-Esa referencia hace que el navegador llame directamente al sitio público de `api`, un origen
-distinto al de `web`: por eso la cookie de sesión llegaba como cookie de terceros y algunos
-navegadores la bloqueaban. El gateway de mismo origen (`apps/web/server`) resuelve esto sin tocar
-Google ni la API. La configuración objetivo posterior al push, pendiente de aplicar en el
-dashboard con autorización explícita, es:
+En el servicio `web` de cada entorno, el gateway de mismo origen (`apps/web/server`) requiere:
 
 ```dotenv
 VITE_API_BASE_URL=https://${{web.RAILWAY_PUBLIC_DOMAIN}}
 API_INTERNAL_ORIGIN=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}
 ```
 
-`VITE_API_BASE_URL` pasa a apuntar al propio origen público de `web`: el navegador llama a `/api`
+`VITE_API_BASE_URL` apunta al propio origen público de `web`: el navegador llama a `/api`
 en ese mismo origen y el gateway lo reenvía a `api`. `API_INTERNAL_ORIGIN` es una variable
 server-only nueva del servicio `web` (sin prefijo `VITE_`, nunca se incorpora al bundle) que usa
 el dominio privado de Railway (`RAILWAY_PRIVATE_DOMAIN`) y el puerto que Railway le asignó al
 servicio `api` (`api.PORT`) para reenviar `/api/*` dentro de la red privada del proyecto, sin
-pasar por el dominio público de `api`. `VITE_API_BASE_URL` se incorpora durante el build de Vite,
-por lo que un cambio autorizado de esa variable requiere un nuevo despliegue de `web`. Ninguna de
-las dos es secreta; la referencia `DATABASE_URL` sí lo es.
+pasar por el dominio público de `api`. Si aún apunta al dominio público de `api`, el navegador
+recibe una cookie de terceros que algunos navegadores bloquean. `VITE_API_BASE_URL` se incorpora
+durante el build de Vite, por lo que un cambio de esa variable requiere un nuevo despliegue de
+`web`. Ninguna de las dos es secreta; la referencia `DATABASE_URL` sí lo es.
 
-El callback API actual (`https://${{api.RAILWAY_PUBLIC_DOMAIN}}/api/auth/google/callback`) se
-conserva hasta que el gateway esté desplegado y verificado en development. Sólo entonces se agrega
-primero el callback Web en Google Cloud y después se actualiza `GOOGLE_OAUTH_REDIRECT_URI` en el
-servicio `api` a `https://${{web.RAILWAY_PUBLIC_DOMAIN}}/api/auth/google/callback`; ninguno de
-estos cambios está autorizado por esta tanda.
+El callback de Google debe coincidir con el origen publicado que recibe `/api/auth/google/callback`.
+Si se sirve por el gateway Web, registrar primero ese callback en Google Cloud y actualizar
+`GOOGLE_OAUTH_REDIRECT_URI` en el servicio `api` a
+`https://${{web.RAILWAY_PUBLIC_DOMAIN}}/api/auth/google/callback`. Confirmar este cambio en el
+dashboard y con un login real; el repositorio no puede confirmar las variables activas de Railway.
 
 ## Verificación autorizada de development
 

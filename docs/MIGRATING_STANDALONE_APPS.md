@@ -1,104 +1,153 @@
-# Migrar una app standalone al App Shell
+# Integrar una aplicación al App Shell
 
-Receta para incorporar una aplicación que hoy vive fuera del monorepo (login propio, backend
-propio) como una aplicación más del App Shell. No es un registro de lo que existe — es el
-contrato que debe seguir cada migración para que el patrón se mantenga uniforme. Ejemplo de
-referencia: `hello-world` (primera app integrada). Primer caso guiado por este documento:
-`lista-precios`.
+Guía operativa para agentes y personas que agregan una aplicación interna a Plataforma Timbo,
+sea nueva o la migración de una standalone. Es el patrón vigente, no un plan: `hello-world` y
+`lista-precios` son sus dos referencias implementadas.
 
-## Cuándo aplica
+## Resultado esperado
 
-Cuando la app standalone va a **vivir dentro** del App Shell como un módulo más del launcher
-(no como servicio embebido por iframe/proxy). Eso implica que cede al shell:
+Una aplicación integrada tiene una sola identidad, sesión y autorización funcional: las del App
+Shell. El usuario entra desde el launcher a `/apps/<app-key>`; la API vuelve a comprobar acceso en
+cada endpoint y la aplicación conserva sólo su interfaz y lógica de negocio.
 
-- login y sesión (deja de tener su propio OAuth);
-- autorización de acceso a la app (deja de tener whitelist/roles propios — pasa a
-  `access-profiles`/`administration`);
-- cualquier secreto de proveedores externos (nunca queda en el bundle del cliente).
+No se incorporan dentro del módulo login, OAuth, cookies de sesión, whitelists, encabezados,
+logout, paneles administrativos ni secretos propios. Administración gobierna catálogo,
+asignaciones, perfiles y permisos; Actividad reúne auditoría y eventos de uso cuando corresponden.
 
-## Las 3 partes de la migración
+## Antes de modificar código
 
-1. **Backend** — nuevo módulo en `apps/api/src/modules/<app-key>/`.
-2. **Frontend** — nuevo módulo en `apps/web/src/applications/<app-key>/`, registrado en
-   `application-registry.tsx`.
-3. **Logs** — eventos de negocio propios de la app original (los que no son solo "uso") migran a
-   `usage-events`/`audit-events` según corresponda. Pendiente de definir la regla exacta (ver
-   `lista-precios` cuando se aborde esta parte).
+1. Definir el `app-key` en kebab-case, el nombre visible, la descripción, el `launchPath`
+   `/apps/<app-key>` y la decisión concreta que resuelve la aplicación.
+2. Separar el alcance en interfaz, endpoints, datos o proveedor externo, permisos funcionales y
+   señales. No migrar comportamiento o datos de la app original que no tengan una necesidad actual.
+3. Leer [`PLATFORM_ARCHITECTURE.md`](PLATFORM_ARCHITECTURE.md),
+   [`OBSERVABILITY_LOGGING.md`](OBSERVABILITY_LOGGING.md) y
+   [`CODING_CONVENTIONS.md`](CODING_CONVENTIONS.md). Si hay persistencia, identidad, acceso o un
+   contrato durable, revisar primero el recorrido propietario indicado allí.
+4. Al reemplazar una standalone, inventariar OAuth, whitelist, proxy, rutas públicas y secretos
+   propios. Un secreto expuesto en una variable `VITE_*` se revoca y rota fuera del repositorio;
+   moverlo al backend no lo sanea.
 
-Este documento cubre por ahora sólo el patrón de **backend**; se completa a medida que avanzan
-las otras dos.
+## Patrón de implementación
 
-## Patrón de backend
+### 1. Catálogo y autorización
 
-Módulo NestJS nuevo, hermano de los existentes en `apps/api/src/modules/`. Estructura mínima
-(reflejar exactamente la de `hello-world`):
+La fila en `applications` es la fuente de verdad para nombre, ruta, estado y orden. Debe coincidir
+con el `app-key` usado por los módulos y el registro Web.
 
-| Archivo                             | Responsabilidad                                                                                                                                                                                                                                                                                             |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<app>.module.ts`                   | Importa `AuthModule` + `AccessProfilesModule` (y `UsageEventsModule` si ya se aborda la parte de logs). Registra controller, service, guard y el token de `fetch`.                                                                                                                                          |
-| `<app>.controller.ts`               | Rutas bajo `applications/<app-key>/*`. `@UseGuards(SessionAuthenticationGuard, <App>ApplicationAccessGuard)` a nivel de clase — ningún endpoint queda sin los dos guards. Mutaciones (POST/PATCH/DELETE) suman `CsrfProtectionGuard`; lecturas (GET) no lo necesitan.                                       |
-| `<app>-application-access.guard.ts` | Usa `ApplicationAuthorizationService.hasApplicationAccess(userId, '<app-key>')`. Reemplaza cualquier whitelist/rol propio de la app original.                                                                                                                                                               |
-| `<app>.service.ts`                  | Lógica de negocio y llamadas a proveedores externos (si los hay). El `fetch` se inyecta vía token DI (testeable sin red real).                                                                                                                                                                              |
-| `<app>.tokens.ts`                   | `Symbol` para inyectar `fetch` (y cualquier otra dependencia externa).                                                                                                                                                                                                                                      |
-| `<app>.errors.ts`                   | Error tipado para indisponibilidad de proveedor externo, traducido a `BadGatewayException` en el controller.                                                                                                                                                                                                |
-| `<app>.config.ts`                   | Sólo si la app tiene credenciales propias de un proveedor externo. `resolve<Proveedor>Config(env)` con validación fail-fast (mismo patrón que `resolveGoogleOAuthConfig` en `runtime-config.ts`), resuelto al construir el service — no en el arranque global, para no acoplar módulos que no lo necesitan. |
-| `dto/*.dto.ts`                      | DTOs con `@ApiProperty` para que el contrato OpenAPI (`packages/contracts`) los tipe.                                                                                                                                                                                                                       |
-| `*.spec.ts` junto a cada archivo    | Unit tests, mismo criterio que el resto del repo.                                                                                                                                                                                                                                                           |
+- Para una aplicación creada como parte de la operación normal, darla de alta desde
+  Administración. Esa operación es auditada y luego se asigna a las personas necesarias.
+- Para una aplicación que debe existir obligatoriamente en cada instalación nueva, crear una
+  migración de datos explícita, como `hello-world` y `lista-precios`. No crearla también por la
+  interfaz: se elige una sola vía de alta inicial.
+- Crear perfiles y permisos funcionales sólo si la aplicación tiene acciones que requieren esa
+  distinción. La asignación de aplicación por sí sola protege el acceso general.
 
-Registrar el módulo en `apps/api/src/app.module.ts` (import + agregar a `imports`).
+La Web usa `AuthorizedApplication` sólo para presentar rutas autorizadas. La frontera de seguridad
+es la API: cada controller de la aplicación usa, a nivel de clase,
+`SessionAuthenticationGuard` y `<App>ApplicationAccessGuard`. El guard llama a
+`ApplicationAuthorizationService.hasApplicationAccess(userId, '<app-key>')`. Las mutaciones suman
+`CsrfProtectionGuard`.
 
-### Credenciales de proveedores externos
+### 2. API: un módulo propietario
 
-- Nunca variables `VITE_*` (esas llegan al bundle del cliente). Sólo variables de servidor puro,
-  documentadas en `.env.example` (raíz) con el mismo formato que las demás: qué es, si es
-  secreto, y dónde se configura en Railway.
-- El fetch al proveedor externo se ejecuta **desde el backend**, nunca desde el navegador. Si la
-  app original llamaba directo al proveedor (con proxy propio en dev/producción), ese proxy
-  desaparece: el frontend pasa a llamar sólo a `/api/applications/<app-key>/*`.
+Crear `apps/api/src/modules/<app-key>/` y registrarlo en `apps/api/src/app.module.ts`.
 
-### Alta en el catálogo de aplicaciones
+| Archivo                                                 | Cuándo y responsabilidad                                                                                                                                        |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<app>.module.ts`                                       | Siempre. Importa `AuthModule` y `AccessProfilesModule`; registra controller, service y guard. Importa `UsageEventsModule` sólo si produce eventos de uso.       |
+| `<app>.controller.ts`                                   | Siempre. Expone rutas bajo `applications/<app-key>/*`, traduce HTTP y delega al service. Los guards viven aquí, no repartidos por rutas.                        |
+| `<app>-application-access.guard.ts`                     | Siempre que la app tiene endpoints. Revalida la asignación funcional.                                                                                           |
+| `<app>.service.ts`                                      | Coordina la lógica de negocio sin conocer HTTP.                                                                                                                 |
+| `dto/*.dto.ts`                                          | Para cada entrada o salida HTTP durable, con decoradores Swagger.                                                                                               |
+| `<app>.tokens.ts`, `<app>.config.ts`, `<app>.errors.ts` | Sólo si hay proveedor externo. El token permite sustituir `fetch` en pruebas; config valida variables server-only; errors tipados se traducen en el controller. |
 
-Cada app vive como una fila en la tabla `applications` (`apps/api/prisma/schema.prisma`). Alta
-vía migración Prisma con seed, como hizo `hello-world`
-(`prisma/migrations/20260824120000_add_application_catalog`): `key` (kebab-case), `name`,
-`launch_path` (`/apps/<app-key>`), `display_order`.
+Un proveedor externo se consulta desde la API. Sus variables no llevan prefijo `VITE_`, se
+documentan sin valores reales en `.env.example`, fallan de forma explícita si faltan y se redactan
+en diagnósticos. `lista-precios` es el ejemplo: intercambia el refresh token de Zoho en backend,
+consulta CSV y devuelve filas tipadas; no expone credenciales al navegador.
 
-## Por qué muchos endpoints no es un problema aquí
+No crear controllers compartidos entre aplicaciones, depósitos genéricos ni una capa intermedia
+sólo para parecer reutilizable. Cada módulo conserva sus pruebas junto al archivo que cubren.
 
-Cada app aporta 1 controller propio y acotado (2-4 rutas típicamente) bajo su propio
-`applications/<app-key>/*`; nunca comparte controller con otra app ni importa el service interno
-de otro módulo. El costo que sí crece linealmente con cada app nueva —y se acepta como normal—
-es: sus propios tests, y una entrada más en el contrato OpenAPI generado. Lo que rompería esta
-escalabilidad sería abandonar el molde de un-módulo-por-app.
+### 3. Contrato y cliente Web
 
-## Caso guiado: `lista-precios`
+Todo endpoint modifica primero controller/DTO y pruebas API. Luego:
 
-- **Origen**: `Claude/Proyectos/Lista de Precios/Lista de Precios Mobile` — SPA Vite standalone
-  con login Google OAuth propio, whitelist propia, y fetch directo a Zoho Analytics desde el
-  cliente (OAuth2 self-client con refresh token).
-- **Alcance de esta primera etapa de backend**: sólo el catálogo de vehículos (equivalente a
-  `zohoApi.js`: intercambio de refresh token + parseo de CSV). El panel de logs de actividad
-  (`AdminPanel.jsx`, en realidad un visor de eventos con filtros/stats/export CSV respaldado por
-  `api/db.js`+`api/server.js` propios) queda para la parte 3 (Logs), no es parte del backend de
-  vehículos.
-- **Endpoint**: `GET applications/lista-precios/vehicles` → array de `VehicleResponseDto`
-  (mismos campos que `COL_MAP` en `zohoApi.js` original).
-- **Credenciales nuevas**: `ZOHO_ORG_ID`, `ZOHO_WORKSPACE_ID`, `ZOHO_VIEW_ID`, `ZOHO_CLIENT_ID`,
-  `ZOHO_CLIENT_SECRET`, `ZOHO_REFRESH_TOKEN` — documentadas en `.env.example`.
-- **Se queda del lado del frontend, sin cambios de fondo**: `dataProcessor.js` (agrupación,
-  filtros, formateo de precio) — es lógica de presentación pura sobre el array ya recibido, no
-  necesita moverse al backend.
+1. ejecutar `pnpm generate:contracts`;
+2. consumir `packages/contracts` desde `apps/web/src/api/`;
+3. agregar un método explícito a la fachada `ApplicationsApi` y su prueba;
+4. ejecutar `pnpm check:contracts` antes de cerrar.
 
-### Inventario de variables de entorno (Railway del proyecto original)
+No editar `packages/contracts/openapi.json` ni `src/generated/openapi.ts` a mano. Los componentes
+Web nunca escriben rutas HTTP ni cuerpos directamente.
 
-| Variable original                                                                                           | Qué hacía                                                                 | Destino en App Shell                                                                                                                                   |
-| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `API_URL`                                                                                                   | URL del backend propio, proxeada por `vite.config.js` para `/logs` en dev | Elimina — el gateway de `apps/web/server` reemplaza ese proxy                                                                                          |
-| `VITE_ADMIN_EMAILS`                                                                                         | Whitelist de acceso al AdminPanel (logs)                                  | Fase 3 — perfiles de acceso, no env var                                                                                                                |
-| `VITE_ADMIN_TOKEN`                                                                                          | "Secreto" de AdminPanel expuesto al cliente                               | Fase 3 — desaparece, protección por sesión + guard                                                                                                     |
-| `VITE_ALLOWED_EMAILS`                                                                                       | Whitelist de login de toda la app                                         | Elimina — la reemplaza `access-profiles`/`administration`                                                                                              |
-| `VITE_GOOGLE_CLIENT_ID`                                                                                     | Client ID de Google OAuth propio                                          | Elimina — usa el `GOOGLE_OAUTH_CLIENT_ID` único del shell                                                                                              |
-| `VITE_SESSION_MINUTES`                                                                                      | Duración de sesión propia                                                 | Elimina — duración fija de sesión del shell                                                                                                            |
-| `VITE_WA_AUTH_MSG` / `VITE_WA_AUTH_NUMBER`                                                                  | WhatsApp del botón "solicitar acceso" (no autorizado)                     | Fase Frontend — a redefinir, el flujo de "sin acceso" del shell es distinto                                                                            |
-| `VITE_WA_CONSULT_MSG` / `VITE_WA_CONSULT_NUMBER`                                                            | WhatsApp del botón "consultar" en detalle de modelo                       | Fase Frontend — se mantiene como config del módulo, no hardcodeada                                                                                     |
-| `VITE_ZOHO_CLIENT_ID` / `CLIENT_SECRET` / `ORG_ID` / `REFRESH_TOKEN` / `TOKEN` / `VIEW_ID` / `WORKSPACE_ID` | Credenciales/IDs de Zoho, expuestas al cliente                            | Ya migradas a `ZOHO_*` server-only en `apps/api` (`.env.example`). `VITE_ZOHO_TOKEN` no hace falta: el backend siempre refresca desde el refresh token |
+### 4. Interfaz integrada
+
+Crear `apps/web/src/applications/<app-key>/` con un componente raíz que implemente
+`ApplicationComponentProps`. Registrar su `launchPath` en `application-registry.tsx`; el
+registro reconoce subrutas internas para que los deep links funcionen.
+
+El componente usa `PlatformHeader` con variante `application` y `PlatformSessionBar`. Recibe
+sesión, navegación, logout, aplicaciones disponibles y la fachada API desde el Shell. No duplica
+ninguno de esos mecanismos ni mantiene un contexto de auth propio.
+
+Las rutas internas, estados de carga/error/vacío, componentes y estilos pertenecen al directorio de
+la aplicación. `lista-precios` es la referencia de una app con home, marca, modelos, variantes y
+detalle; `hello-world`, la de una interacción pequeña con proveedor externo.
+
+Una variable `VITE_*` sólo puede configurar una preferencia pública de interfaz, como el número y
+la plantilla de WhatsApp de Lista de Precios; nunca autorización, identidad, secretos ni tokens.
+
+### 5. Señales y actividad
+
+Elegir la señal antes de programarla:
+
+- Log operativo: diagnostica una falla técnica y respeta la redacción y `X-Request-Id`.
+- Auditoría: evidencia una mutación administrativa o de seguridad y se escribe en la misma
+  transacción Prisma.
+- Evento de uso: mide una interacción que orientará una decisión de producto u operación. Usa
+  nombre estable, UUID de evento y visita, catálogo tipado y metadata mínima con allowlist.
+
+Antes de crear una de estas señales, revisar el recorrido completo de `lista-precios`: su hook Web,
+el catálogo de uso, `ActivityService` y sus pruebas. Demuestra cómo el log operativo diagnostica
+fallas técnicas, el evento de uso mide una interacción acotada y la actividad sólo exporta campos
+incluidos en una allowlist. Si la nueva aplicación aprueba, rechaza o cambia un estado relevante,
+la señal principal es auditoría transaccional; no se reemplaza por un evento de uso.
+
+No registrar clics por defecto. Si una señal debe aparecer en Actividad o el CSV, ampliar la
+proyección y la allowlist de `ActivityService` de forma explícita. `lista-precios` demuestra el
+patrón: registra apertura de catálogo, una vista por modelo y visita, e inicio de consulta; el CSV
+separa marca y modelo sin almacenar stock, precio, filtro, URL o mensaje de WhatsApp.
+
+## Pruebas y cierre técnico
+
+Antes de declarar terminada una aplicación, comprobar al menos:
+
+- service, guard, controller y errores externos en API; rutas y estados recuperables en Web;
+- acceso asignado y denegado; CSRF en mutaciones; rutas internas/deep links;
+- contrato regenerado, cliente Web tipado y fallas externas diagnosticadas sin datos sensibles;
+- catálogo, idempotencia, metadata y exportación de actividad si hay eventos;
+- documentos de alcance, arquitectura, observabilidad, variables de entorno y README actualizados.
+
+Desde la raíz deben pasar `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build` y
+`pnpm format:check`. Si cambió la API, incluir también `pnpm check:contracts`.
+
+## Corte de una standalone
+
+El corte no se completa al fusionar código. Tras desplegar la aplicación integrada, un responsable
+autorizado valida el flujo con usuarios asignados, autorización denegada, proveedor y datos de
+actividad. Sólo entonces se retiran el deploy, dominio, variables y credenciales de la standalone.
+Esa baja es una operación externa y debe confirmarse en la plataforma de despliegue; no se infiere
+del estado de este repositorio.
+
+## Referencias reales
+
+| Referencia                                           | Qué muestra                                                                                      |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `apps/api/src/modules/hello-world/`                  | Módulo protegido, proveedor público sin secreto y evento ligado a una acción.                    |
+| `apps/api/src/modules/lista-precios/`                | Guard de aplicación, configuración server-only, Zoho, DTOs, rutas y analítica comercial acotada. |
+| `apps/web/src/applications/hello-world/`             | Componente integrado mínimo y fallas recuperables.                                               |
+| `apps/web/src/applications/lista-precios/`           | Rutas internas, navegación dentro de la app, carga de catálogo y deduplicación de uso.           |
+| `apps/web/src/applications/application-registry.tsx` | Registro de launch paths y soporte de deep links.                                                |
+| `apps/api/src/modules/administration/`               | Catálogo, asignaciones, perfiles, permisos, auditoría y Actividad.                               |
