@@ -321,9 +321,7 @@ interface AdministrationPanelProps {
   onLogout: () => void;
 }
 
-function parseBulkEmailEntries(
-  text: string,
-): { corporateEmail: string; displayName?: string }[] {
+function parseBulkEmailEntries(text: string): { corporateEmail: string; displayName?: string }[] {
   return text
     .split('\n')
     .map((line) => line.trim())
@@ -450,10 +448,7 @@ function AdministrationPanel({
       const results =
         action === 'assign'
           ? await api.administration.assignApplicationToUsers(bulkAccessApplicationId, userIds)
-          : await api.administration.unassignApplicationFromUsers(
-              bulkAccessApplicationId,
-              userIds,
-            );
+          : await api.administration.unassignApplicationFromUsers(bulkAccessApplicationId, userIds);
       setBulkAccessResults(results);
       setIsBulkUnassignConfirmed(false);
     } catch {
@@ -720,7 +715,10 @@ function AdministrationPanel({
                           Desasignar de seleccionados
                         </button>
                         {bulkAccessResults === undefined ? null : (
-                          <ul className="bulk-result-list" aria-label="Resultado de la operación en lote">
+                          <ul
+                            className="bulk-result-list"
+                            aria-label="Resultado de la operación en lote"
+                          >
                             {bulkAccessResults.map((result) => {
                               const user = administrationState.users.find(
                                 (candidate) => candidate.id === result.userId,
@@ -744,100 +742,106 @@ function AdministrationPanel({
                       </section>
                     )}
                     <div className="users-table-wrapper">
-                    <table>
-                      <caption>Usuarios preautorizados</caption>
-                      <thead>
-                        <tr>
-                          <th scope="col">
-                            <input
-                              type="checkbox"
-                              aria-label="Seleccionar todos los usuarios"
-                              checked={selectedUserIds.size === administrationState.users.length}
-                              onChange={() => toggleSelectAllUsers(administrationState.users)}
-                            />
-                          </th>
-                          <th scope="col">Usuario</th>
-                          <th scope="col">Correo</th>
-                          <th scope="col">Estado</th>
-                          <th scope="col">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {administrationState.users.map((user) => (
-                          <tr key={user.id}>
-                            <td>
+                      <table>
+                        <caption>Usuarios preautorizados</caption>
+                        <thead>
+                          <tr>
+                            <th scope="col">
                               <input
                                 type="checkbox"
-                                aria-label={`Seleccionar ${user.corporateEmail}`}
-                                checked={selectedUserIds.has(user.id)}
-                                onChange={() => toggleUserSelection(user.id)}
+                                aria-label="Seleccionar todos los usuarios"
+                                checked={selectedUserIds.size === administrationState.users.length}
+                                onChange={() => toggleSelectAllUsers(administrationState.users)}
                               />
-                            </td>
-                            <td>{user.displayName ?? 'Sin nombre visible'}</td>
-                            <td>{user.corporateEmail}</td>
-                            <td>{user.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</td>
-                            <td className="user-actions">
-                              {editingUserId === user.id ? (
-                                <form
-                                  className="inline-user-name-form"
-                                  onSubmit={(event) => void saveDisplayName(event, user.id)}
-                                >
-                                  <label htmlFor={`display-name-${user.id}`}>Nombre visible</label>
-                                  <input
-                                    id={`display-name-${user.id}`}
-                                    disabled={isSaving}
-                                    value={editedDisplayName}
-                                    onChange={(event) => setEditedDisplayName(event.target.value)}
-                                  />
-                                  <button className="text-button" type="submit" disabled={isSaving}>
-                                    Guardar
-                                  </button>
+                            </th>
+                            <th scope="col">Usuario</th>
+                            <th scope="col">Correo</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {administrationState.users.map((user) => (
+                            <tr key={user.id}>
+                              <td>
+                                <input
+                                  type="checkbox"
+                                  aria-label={`Seleccionar ${user.corporateEmail}`}
+                                  checked={selectedUserIds.has(user.id)}
+                                  onChange={() => toggleUserSelection(user.id)}
+                                />
+                              </td>
+                              <td>{user.displayName ?? 'Sin nombre visible'}</td>
+                              <td>{user.corporateEmail}</td>
+                              <td>{user.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</td>
+                              <td className="user-actions">
+                                {editingUserId === user.id ? (
+                                  <form
+                                    className="inline-user-name-form"
+                                    onSubmit={(event) => void saveDisplayName(event, user.id)}
+                                  >
+                                    <label htmlFor={`display-name-${user.id}`}>
+                                      Nombre visible
+                                    </label>
+                                    <input
+                                      id={`display-name-${user.id}`}
+                                      disabled={isSaving}
+                                      value={editedDisplayName}
+                                      onChange={(event) => setEditedDisplayName(event.target.value)}
+                                    />
+                                    <button
+                                      className="text-button"
+                                      type="submit"
+                                      disabled={isSaving}
+                                    >
+                                      Guardar
+                                    </button>
+                                    <button
+                                      className="text-button"
+                                      type="button"
+                                      disabled={isSaving}
+                                      onClick={cancelEditingDisplayName}
+                                    >
+                                      Cancelar
+                                    </button>
+                                  </form>
+                                ) : (
                                   <button
                                     className="text-button"
                                     type="button"
                                     disabled={isSaving}
-                                    onClick={cancelEditingDisplayName}
+                                    onClick={() => beginEditingDisplayName(user)}
                                   >
-                                    Cancelar
+                                    Editar nombre
                                   </button>
-                                </form>
-                              ) : (
+                                )}
                                 <button
                                   className="text-button"
                                   type="button"
                                   disabled={isSaving}
-                                  onClick={() => beginEditingDisplayName(user)}
+                                  onClick={() => setManagedUserId(user.id)}
                                 >
-                                  Editar nombre
+                                  Gestionar accesos
                                 </button>
-                              )}
-                              <button
-                                className="text-button"
-                                type="button"
-                                disabled={isSaving}
-                                onClick={() => setManagedUserId(user.id)}
-                              >
-                                Gestionar accesos
-                              </button>
-                              {user.isPlatformAdministrator && user.status === 'ACTIVE' ? (
-                                <span className="protected-user-state">
-                                  Administrador protegido
-                                </span>
-                              ) : (
-                                <button
-                                  className="text-button"
-                                  type="button"
-                                  disabled={isSaving}
-                                  onClick={() => void changeUserStatus(user)}
-                                >
-                                  {user.status === 'ACTIVE' ? 'Desactivar' : 'Reactivar'}
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                                {user.isPlatformAdministrator && user.status === 'ACTIVE' ? (
+                                  <span className="protected-user-state">
+                                    Administrador protegido
+                                  </span>
+                                ) : (
+                                  <button
+                                    className="text-button"
+                                    type="button"
+                                    disabled={isSaving}
+                                    onClick={() => void changeUserStatus(user)}
+                                  >
+                                    {user.status === 'ACTIVE' ? 'Desactivar' : 'Reactivar'}
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </>
                 )}

@@ -151,14 +151,12 @@ describe('createApplicationsApi', () => {
   };
 
   it('consulta el catálogo de vehículos de Lista de Precios incluyendo credenciales', async () => {
-    const fetchImplementation = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(
-        new Response(JSON.stringify([sampleVehicle]), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        }),
-      );
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify([sampleVehicle]), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
 
     await expect(
       createApplicationsApi(

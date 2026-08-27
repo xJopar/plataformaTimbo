@@ -56,14 +56,18 @@ describe('AdministrativeUsersController', () => {
 
   it('preautoriza en lote, mapea cada resultado creado y deriva el actor de la sesión', async () => {
     usersService.preauthorizeUsersByAdministrator.mockResolvedValue([
-      { corporateEmail: administrativeUser.corporateEmail, status: 'CREATED', user: {
-        id: administrativeUser.id,
+      {
         corporateEmail: administrativeUser.corporateEmail,
-        displayName: administrativeUser.displayName,
-        status: administrativeUser.status,
-        createdAt: administrativeUser.createdAt,
-        deactivatedAt: administrativeUser.deactivatedAt,
-      } },
+        status: 'CREATED',
+        user: {
+          id: administrativeUser.id,
+          corporateEmail: administrativeUser.corporateEmail,
+          displayName: administrativeUser.displayName,
+          status: administrativeUser.status,
+          createdAt: administrativeUser.createdAt,
+          deactivatedAt: administrativeUser.deactivatedAt,
+        },
+      },
       { corporateEmail: 'repetido@timbo.com', status: 'FAILED', message: 'Ya existe.' },
     ]);
 

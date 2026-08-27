@@ -32,16 +32,16 @@ describe('parseListaPreciosRoute', () => {
 
   it('reconoce un modelKey codificado, incluyendo el separador "|"', () => {
     expect(
-      parseListaPreciosRoute(
-        `${LAUNCH_PATH}/modelo/SCANIA%7CR%7CTRACTO%7C4X2%7C450`,
-        LAUNCH_PATH,
-      ),
+      parseListaPreciosRoute(`${LAUNCH_PATH}/modelo/SCANIA%7CR%7CTRACTO%7C4X2%7C450`, LAUNCH_PATH),
     ).toEqual({ view: 'detail', modelKey: 'SCANIA|R|TRACTO|4X2|450' });
   });
 
   it('decodifica marcas/modelos con espacios y caracteres especiales', () => {
     expect(
-      parseListaPreciosRoute(`${LAUNCH_PATH}/marca/${encodeURIComponent('LIBRELATO')}`, LAUNCH_PATH),
+      parseListaPreciosRoute(
+        `${LAUNCH_PATH}/marca/${encodeURIComponent('LIBRELATO')}`,
+        LAUNCH_PATH,
+      ),
     ).toEqual({ view: 'brand', brand: 'LIBRELATO' });
   });
 

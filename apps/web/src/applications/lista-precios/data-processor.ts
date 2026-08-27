@@ -326,12 +326,8 @@ export function applyFilters(
       const matchesUnit = group.units.some((unit) => {
         if (filters.tipoCaja && unit.tipoCaja.toUpperCase() !== filters.tipoCaja.toUpperCase())
           return false;
-        if (filters.color && unit.color.toUpperCase() !== filters.color.toUpperCase())
-          return false;
-        if (
-          filters.ubicacion &&
-          unit.ubicacion.toUpperCase() !== filters.ubicacion.toUpperCase()
-        )
+        if (filters.color && unit.color.toUpperCase() !== filters.color.toUpperCase()) return false;
+        if (filters.ubicacion && unit.ubicacion.toUpperCase() !== filters.ubicacion.toUpperCase())
           return false;
         if (filters.aire && unit.aire.toUpperCase() !== filters.aire.toUpperCase()) return false;
         return true;

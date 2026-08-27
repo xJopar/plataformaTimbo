@@ -63,7 +63,16 @@ export function Loader(): React.JSX.Element {
             >
               TIMBO
             </text>
-            <rect strokeWidth="2" stroke="#282828" fill="#DFDFDF" rx="2" height="4" width="6" y="84" x="1" />
+            <rect
+              strokeWidth="2"
+              stroke="#282828"
+              fill="#DFDFDF"
+              rx="2"
+              height="4"
+              width="6"
+              y="84"
+              x="1"
+            />
           </svg>
         </div>
 

@@ -76,7 +76,9 @@ function StockUnit({
         <AvailBadge disponible={unit.disponible} />
       </span>
 
-      {metaParts.length > 0 ? <span className="lp-stock-unit-meta">{metaParts.join(' · ')}</span> : null}
+      {metaParts.length > 0 ? (
+        <span className="lp-stock-unit-meta">{metaParts.join(' · ')}</span>
+      ) : null}
       {unit.origen ? <span className="lp-stock-unit-origin">{unit.origen}</span> : null}
       {unit.comentario && unit.comentario !== unit.origen ? (
         <span className="lp-stock-unit-origin">{unit.comentario}</span>
@@ -132,7 +134,9 @@ export function DetailScreen({
   }
 
   const anioLabel =
-    group.anios.length === 1 ? group.anios[0] : `${group.anios[0]} - ${group.anios[group.anios.length - 1]}`;
+    group.anios.length === 1
+      ? group.anios[0]
+      : `${group.anios[0]} - ${group.anios[group.anios.length - 1]}`;
   const groupPriceLabel =
     group.precioMin === null
       ? null
@@ -156,7 +160,10 @@ export function DetailScreen({
     <div className="lp-detail-page lp-detail-page--has-cta">
       <div className="lp-detail-page-grid">
         <div className="lp-detail-page-left">
-          <div key={selectedUnit?.stock ?? 'group'} className="lp-detail-section lp-detail-panel-anim">
+          <div
+            key={selectedUnit?.stock ?? 'group'}
+            className="lp-detail-section lp-detail-panel-anim"
+          >
             {selectedUnit === null ? (
               <>
                 <InfoRow label="Nombre" value={group.name} />
@@ -165,7 +172,9 @@ export function DetailScreen({
                 <InfoRow label="Config." value={group.config} />
                 <InfoRow label="Motor" value={group.tipoMotor} />
                 <InfoRow label="Susp." value={group.susp} />
-                {groupPriceLabel !== null ? <InfoRow label="Precio" value={groupPriceLabel} mono /> : null}
+                {groupPriceLabel !== null ? (
+                  <InfoRow label="Precio" value={groupPriceLabel} mono />
+                ) : null}
                 <p className="lp-detail-hint">Tocá una unidad para ver su detalle</p>
               </>
             ) : (
@@ -228,13 +237,19 @@ export function DetailScreen({
                   <InfoRow
                     label="Aire"
                     value={
-                      selectedUnit.aire === 'SI' ? 'Si' : selectedUnit.aire === 'NO' ? 'No' : selectedUnit.aire
+                      selectedUnit.aire === 'SI'
+                        ? 'Si'
+                        : selectedUnit.aire === 'NO'
+                          ? 'No'
+                          : selectedUnit.aire
                     }
                   />
                   <InfoRow
                     label="KM"
                     value={
-                      selectedUnit.km ? `${Number(selectedUnit.km).toLocaleString('es-PY')} km` : undefined
+                      selectedUnit.km
+                        ? `${Number(selectedUnit.km).toLocaleString('es-PY')} km`
+                        : undefined
                     }
                   />
                   <InfoRow label="Ubicacion" value={selectedUnit.ubicacion} />
@@ -273,7 +288,9 @@ export function DetailScreen({
             type="button"
             onClick={() => window.open(buildWhatsAppUrl(), '_blank', 'noopener,noreferrer')}
           >
-            {selectedUnit !== null ? `Consultar stock ${selectedUnit.stock}` : 'Consultar disponibilidad'}
+            {selectedUnit !== null
+              ? `Consultar stock ${selectedUnit.stock}`
+              : 'Consultar disponibilidad'}
           </button>
         </div>
       </div>
