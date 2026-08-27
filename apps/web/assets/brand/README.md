@@ -1,22 +1,31 @@
-# Assets de marca de Timbo
+# Recursos de marca de Timbo
 
-Los archivos fuente de este directorio fueron proporcionados por el usuario para este proyecto. No se declara ni se infiere ninguna licencia o derecho adicional.
+Los originales de este directorio fueron proporcionados para este proyecto. No se declara ni se infiere ninguna licencia o derecho adicional.
 
-## Fuentes conservadas
+## Convención
 
-- `source/timbo-wordmark-source.jpg`: wordmark blanco sobre azul, movido desde `data/LOGO TIMBO.jpg`.
-- `source/timbo-facility-source.jpg`: fotografía aérea de la sede/fachada, movida desde `data/DJI_0300.JPG`.
+- Los recursos de marca usan nombres descriptivos en español, en minúsculas y con guiones medios.
+- Los originales viven en `originales/`; los archivos publicados se separan en `../../public/marca/` e `../../public/iconos/`.
+- `favicon.ico` conserva su nombre estándar porque los navegadores lo buscan por esa URL convencional.
+
+## Originales conservados
+
+- `originales/logotipo-timbo-azul-transparente.png`: wordmark azul con fondo transparente.
+- `originales/logotipo-timbo-blanco-transparente.png`: wordmark blanco con fondo transparente.
+- `originales/logotipo-timbo-blanco-sobre-azul.jpg`: wordmark blanco sobre azul, utilizado para producir el monograma y las variantes WebP.
+- `originales/fotografia-sede-timbo.jpg`: fotografía aérea de la sede o fachada.
 
 El color dominante medido en el fondo del wordmark es `#1F245C` (RGB `31, 36, 92`). Se utiliza como fondo de los iconos derivados.
 
-## Archivos derivados
+## Archivos publicados o derivados
 
-- `../../public/brand/timbo-wordmark.webp`: wordmark completo, recortado al contenido y con padding visual.
-- `../../public/brand/timbo-wordmark-mark.webp`: mismo encuadre que el anterior, pero con canal alfa real (fondo azul sólido removido por luminancia) para superponerlo sobre la fotografía de la pantalla de acceso sin arrastrar un rectángulo de color.
-- `../../public/brand/timbo-facility-640.webp`, `timbo-facility-960.webp` y `timbo-facility-1600.webp`: variantes WebP para `srcset`, corregidas según la orientación EXIF y sin ampliar la imagen original.
-- `../../public/icons/timbo-app-192.png` y `timbo-app-512.png`: iconos de aplicación con el monograma `T` derivado de la primera letra del wordmark.
-- `../../public/icons/timbo-maskable-512.png`: variante con el monograma dentro de una zona segura más amplia para máscaras de plataforma.
-- `../../public/icons/apple-touch-icon.png`: icono de 180 px para Apple.
+- `../../public/marca/logotipo-timbo-blanco-sobre-azul.webp`: wordmark completo, recortado al contenido y con padding visual.
+- `../../public/marca/logotipo-timbo-blanco-transparente.webp`: wordmark recortado con canal alfa para superponerlo sobre la fotografía del acceso.
+- `../../public/marca/logotipo-timbo-blanco-transparente.png`: copia del original blanco, usada durante la carga inicial del documento.
+- `../../public/marca/fotografia-sede-timbo-640.webp`, `fotografia-sede-timbo-960.webp` y `fotografia-sede-timbo-1600.webp`: variantes WebP para `srcset`, corregidas según la orientación EXIF y sin ampliar la imagen original.
+- `../../public/iconos/icono-plataforma-timbo-192.png` e `icono-plataforma-timbo-512.png`: iconos de aplicación con el monograma `T` derivado del wordmark.
+- `../../public/iconos/icono-plataforma-timbo-enmascarable-512.png`: variante con el monograma dentro de una zona segura más amplia para máscaras de plataforma.
+- `../../public/iconos/icono-timbo-apple-180.png`: icono de 180 px para Apple.
 - `../../public/favicon.ico`: contenedor ICO con tamaños 16, 32 y 48 px.
 
 ## Regeneración
@@ -27,4 +36,4 @@ El proceso usa Pillow y NumPy instalados localmente y no agrega dependencias de 
 python apps/web/assets/brand/generate_brand_assets.py
 ```
 
-El script conserva los originales de `source/`, detecta el blanco del wordmark, aplica la paleta medida y sobrescribe solamente los archivos derivados enumerados arriba.
+El script conserva los originales de `originales/`, detecta el blanco del wordmark, aplica la paleta medida y sobrescribe solamente los archivos publicados enumerados arriba.

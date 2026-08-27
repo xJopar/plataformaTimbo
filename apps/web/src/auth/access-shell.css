@@ -194,7 +194,6 @@
   bottom: clamp(40px, 6vh, 72px);
   left: 0;
   padding: clamp(30px, 5vw, 64px) clamp(36px, 6vw, 88px);
-  background: rgba(31, 36, 92, 0.94);
   color: #ffffff;
   opacity: 0;
   animation: access-statement-reveal 4.5s ease forwards;

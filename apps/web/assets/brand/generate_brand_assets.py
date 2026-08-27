@@ -7,6 +7,7 @@ aplicación ni modifica sus archivos de paquetes.
 from __future__ import annotations
 
 from pathlib import Path
+from shutil import copyfile
 
 import numpy
 from PIL import Image, ImageChops, ImageOps
@@ -15,7 +16,7 @@ from PIL import Image, ImageChops, ImageOps
 BRAND_BLUE = (31, 36, 92)
 RESAMPLING = Image.Resampling.LANCZOS
 WEB_DIRECTORY = Path(__file__).resolve().parents[2]
-SOURCE_DIRECTORY = Path(__file__).resolve().parent / "source"
+SOURCE_DIRECTORY = Path(__file__).resolve().parent / "originales"
 PUBLIC_DIRECTORY = WEB_DIRECTORY / "public"
 
 
@@ -136,10 +137,10 @@ def write_icons(source: Image.Image, icons_directory: Path) -> None:
     icon_512 = icon_asset(mask, 512, 0.66)
     maskable_512 = icon_asset(mask, 512, 0.58)
     apple_touch_icon = icon_asset(mask, 180, 0.66)
-    icon_192.save(icons_directory / "timbo-app-192.png", "PNG", optimize=True)
-    icon_512.save(icons_directory / "timbo-app-512.png", "PNG", optimize=True)
-    maskable_512.save(icons_directory / "timbo-maskable-512.png", "PNG", optimize=True)
-    apple_touch_icon.save(icons_directory / "apple-touch-icon.png", "PNG", optimize=True)
+    icon_192.save(icons_directory / "icono-plataforma-timbo-192.png", "PNG", optimize=True)
+    icon_512.save(icons_directory / "icono-plataforma-timbo-512.png", "PNG", optimize=True)
+    maskable_512.save(icons_directory / "icono-plataforma-timbo-enmascarable-512.png", "PNG", optimize=True)
+    apple_touch_icon.save(icons_directory / "icono-timbo-apple-180.png", "PNG", optimize=True)
     icon_512.save(
         PUBLIC_DIRECTORY / "favicon.ico",
         "ICO",
@@ -150,20 +151,25 @@ def write_icons(source: Image.Image, icons_directory: Path) -> None:
 
 
 def main() -> None:
-    brand_directory = PUBLIC_DIRECTORY / "brand"
-    icons_directory = PUBLIC_DIRECTORY / "icons"
+    brand_directory = PUBLIC_DIRECTORY / "marca"
+    icons_directory = PUBLIC_DIRECTORY / "iconos"
     brand_directory.mkdir(parents=True, exist_ok=True)
     icons_directory.mkdir(parents=True, exist_ok=True)
 
-    with Image.open(SOURCE_DIRECTORY / "LOGO TIMBO-01.png") as wordmark_source:
+    copyfile(
+        SOURCE_DIRECTORY / "logotipo-timbo-blanco-transparente.png",
+        brand_directory / "logotipo-timbo-blanco-transparente.png",
+    )
+
+    with Image.open(SOURCE_DIRECTORY / "logotipo-timbo-blanco-sobre-azul.jpg") as wordmark_source:
         wordmark = wordmark_source.convert("RGB")
-        wordmark_asset(wordmark, brand_directory / "timbo-wordmark.webp")
-        wordmark_mark_asset(wordmark, brand_directory / "timbo-wordmark-mark.webp")
+        wordmark_asset(wordmark, brand_directory / "logotipo-timbo-blanco-sobre-azul.webp")
+        wordmark_mark_asset(wordmark, brand_directory / "logotipo-timbo-blanco-transparente.webp")
         write_icons(wordmark, icons_directory)
 
-    with Image.open(SOURCE_DIRECTORY / "timbo-facility-source.jpg") as facility_source:
+    with Image.open(SOURCE_DIRECTORY / "fotografia-sede-timbo.jpg") as facility_source:
         for width in (640, 960, 1600):
-            facility_asset(facility_source, width, brand_directory / f"timbo-facility-{width}.webp")
+            facility_asset(facility_source, width, brand_directory / f"fotografia-sede-timbo-{width}.webp")
 
 
 if __name__ == "__main__":

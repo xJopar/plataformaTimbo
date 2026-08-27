@@ -9,19 +9,19 @@
   "theme_color": "#1F245C",
   "icons": [
     {
-      "src": "/icons/timbo-app-192.png",
+      "src": "/iconos/icono-plataforma-timbo-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/timbo-app-512.png",
+      "src": "/iconos/icono-plataforma-timbo-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/timbo-maskable-512.png",
+      "src": "/iconos/icono-plataforma-timbo-enmascarable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

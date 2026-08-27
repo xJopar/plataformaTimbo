@@ -57,7 +57,7 @@ components:
 
 Este documento registra lo implementado; no declara un rediseño total. Las reglas globales pertenecen al App Shell operativo. El acceso es una superficie específica con una composición y activos propios.
 
-Rutas propietarias: `apps/web/src/app.css` (sistema compartido), `apps/web/src/auth/access-shell.tsx` y `apps/web/src/auth/access-shell.css` (acceso), `apps/web/assets/brand/README.md` (procedencia y derivados de marca), y `apps/web/public/brand/` (wordmark y fotografía).
+Rutas propietarias: `apps/web/src/app.css` (sistema compartido), `apps/web/src/auth/access-shell.tsx` y `apps/web/src/auth/access-shell.css` (acceso), `apps/web/assets/brand/README.md` (procedencia y derivados de marca), y `apps/web/public/marca/` (wordmark y fotografía).
 
 ## Colors
 
@@ -77,7 +77,7 @@ El acceso reserva el display de `clamp(2.5rem, 5vw, 4.75rem)` para el título de
 
 Globalmente, el App Shell usa contenedores amplios, espaciado de 8/16/24/32 px, fondos claros y grupos separados por reglas. En móvil, navegación, formularios, filtros y filas se apilan antes de reducir el área táctil; controles y campos mantienen al menos 44 px de alto.
 
-El acceso es una composición de dos columnas en escritorio: panel funcional blanco a la izquierda (47 %) y fotografía real de sede a la derecha (53 %). El wordmark blanco (recorte con canal alfa real, sin fondo sólido) vive sobre el lado fotográfico, dentro de un panel de marca casi opaco; la marca corta es el monograma `T` junto a “Plataforma Timbo” en el panel funcional. El wordmark se muestra unos segundos al cargar y luego se desvanece, dejando la fotografía de la sede visible bajo el velo azul translúcido — ver Motion. La imagen se sirve en WebP con `srcset` de 640/960/1600 px y `sizes` acorde al viewport, sin ampliar la fuente.
+El acceso es una composición de dos columnas en escritorio: panel funcional blanco a la izquierda (47 %) y fotografía real de sede a la derecha (53 %). El wordmark blanco (recorte con canal alfa real, sin fondo sólido) vive directamente sobre el lado fotográfico; la marca corta es el monograma `T` junto a “Plataforma Timbo” en el panel funcional. El wordmark se muestra unos segundos al cargar y luego se desvanece, dejando la fotografía de la sede visible bajo el velo azul translúcido — ver Motion. La imagen se sirve en WebP con `srcset` de 640/960/1600 px y `sizes` acorde al viewport, sin ampliar la fuente.
 
 A `860px` o menos, la foto pasa a una banda superior de 200–260 px y el panel queda debajo. La diagonal es exclusivamente decorativa: en escritorio separa los paneles y en móvil se reduce a esa banda superior; no cubre, recorta ni compite con controles, texto o sus anillos de foco.
 
