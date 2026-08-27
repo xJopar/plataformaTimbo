@@ -5,6 +5,7 @@ import {
   extractBrands,
   filterByBrand,
   filterByBrandAndModelo,
+  filterBySuspension,
   formatPrice,
   getFilterOptions,
   getGroupKey,
@@ -185,6 +186,15 @@ describe('filterByBrand / filterByBrandAndModelo', () => {
 
   it('filtra por marca + modelo', () => {
     expect(filterByBrandAndModelo(groups, 'Scania', 'R').size).toBe(1);
+  });
+
+  it('filtra por suspensión sin distinguir mayúsculas', () => {
+    const suspensionGroups = groupByModel([
+      vehicle({ marca: 'Sinotruk', modelo: 'Howo NX', susp: 'Neumática', stock: 'ST-1' }),
+      vehicle({ marca: 'Sinotruk', modelo: 'Howo NX', susp: 'Mecánica', stock: 'ST-2' }),
+    ]);
+
+    expect(filterBySuspension(suspensionGroups, 'neumática').size).toBe(1);
   });
 });
 

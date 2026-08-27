@@ -20,6 +20,7 @@ interface HomeLauncherProps {
   logoutFailure: Error | undefined;
   onNavigate: (pathname: string) => void;
   onLogout: () => void;
+  onSessionExpired: () => void;
 }
 
 const WORD_REVEAL_DURATION_MS = 480;
@@ -83,8 +84,9 @@ export function HomeLauncher({
   logoutFailure,
   onNavigate,
   onLogout,
+  onSessionExpired,
 }: HomeLauncherProps): React.JSX.Element {
-  const { state, reload } = useAuthorizedApplications(api);
+  const { state, reload } = useAuthorizedApplications(api, onSessionExpired);
   const [companyValueIndex, setCompanyValueIndex] = useState(0);
 
   useEffect(() => {

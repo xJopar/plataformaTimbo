@@ -12,7 +12,8 @@ El catálogo incluye `Hello World` como integración técnica en `/apps/hello-wo
 principal registra el uso idempotente `hello-world.joke_requested`, obtiene un chiste en inglés
 desde icanhazdadjoke y lo traduce al español con MyMemory, sin claves de API.
 También incluye `Lista de Precios` en `/apps/lista-precios`: consulta el catálogo autorizado de
-vehículos y registra aperturas, vistas únicas de modelo por visita e inicios de consulta, sin
+vehículos; el modelo HOWO NX de SINOTRUK permite elegir la suspensión antes de consultar sus
+variantes. Registra aperturas, vistas únicas de modelo por visita e inicios de consulta, sin
 persistir unidades de stock, filtros, precios ni mensajes de WhatsApp.
 Administración permite asignar aplicaciones a empleados y gestionar sus perfiles y permisos
 funcionales. El Home autenticado presenta solamente las aplicaciones activas asignadas al usuario

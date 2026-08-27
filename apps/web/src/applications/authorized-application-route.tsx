@@ -19,6 +19,7 @@ interface AuthorizedApplicationRouteProps {
   logoutFailure: Error | undefined;
   onNavigate: (pathname: string) => void;
   onLogout: () => void;
+  onSessionExpired: () => void;
 }
 
 export function AuthorizedApplicationRoute({
@@ -29,8 +30,9 @@ export function AuthorizedApplicationRoute({
   logoutFailure,
   onNavigate,
   onLogout,
+  onSessionExpired,
 }: AuthorizedApplicationRouteProps): React.JSX.Element {
-  const { state, reload } = useAuthorizedApplications(api);
+  const { state, reload } = useAuthorizedApplications(api, onSessionExpired);
 
   if (state.status === 'loading') {
     return (

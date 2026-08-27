@@ -96,6 +96,11 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
     setPathname(nextPathname);
   }, []);
 
+  const handleSessionExpired = useCallback((): void => {
+    currentRequestId.current += 1;
+    setAuthenticationState({ status: 'signed-out' });
+  }, []);
+
   const loadSession = useCallback(async (): Promise<void> => {
     const requestId = currentRequestId.current + 1;
     currentRequestId.current = requestId;
@@ -284,6 +289,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
         logoutFailure={logoutFailure}
         onNavigate={navigate}
         onLogout={() => void logout(session)}
+        onSessionExpired={handleSessionExpired}
       />,
     );
   }
@@ -302,6 +308,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
       logoutFailure={logoutFailure}
       onNavigate={navigate}
       onLogout={() => void logout(session)}
+      onSessionExpired={handleSessionExpired}
     />,
   );
 }

@@ -1,12 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Api, AuthorizedApplication } from '../api';
+import {
+  ApiHttpError,
+  ApplicationsApiUnavailableError,
+  type Api,
+  type AuthorizedApplication,
+} from '../api';
+import { reportBrowserOperationFailed } from '../browser-diagnostics';
 
 type AuthorizedApplicationsState =
   | { status: 'loading' }
   | { status: 'error' }
   | { status: 'ready'; applications: AuthorizedApplication[] };
 
-export function useAuthorizedApplications(api: Api): {
+export function useAuthorizedApplications(
+  api: Api,
+  onSessionExpired: () => void,
+): {
   state: AuthorizedApplicationsState;
   reload: () => Promise<void>;
 } {
@@ -22,12 +31,36 @@ export function useAuthorizedApplications(api: Api): {
       if (requestId === currentRequestId.current) {
         setState({ status: 'ready', applications });
       }
-    } catch {
-      if (requestId === currentRequestId.current) {
-        setState({ status: 'error' });
+    } catch (error: unknown) {
+      reportBrowserOperationFailed(error, {
+        operation: 'applications.load-authorized',
+        method: 'GET',
+        route: '/api/applications',
+        provider: 'api',
+        ...(error instanceof ApiHttpError
+          ? {
+              status: error.status,
+              ...(error.requestId === undefined ? {} : { requestId: error.requestId }),
+            }
+          : {}),
+      });
+
+      if (!(error instanceof ApiHttpError || error instanceof ApplicationsApiUnavailableError)) {
+        throw error;
       }
+
+      if (requestId !== currentRequestId.current) {
+        return;
+      }
+
+      if (error instanceof ApiHttpError && error.status === 401) {
+        onSessionExpired();
+        return;
+      }
+
+      setState({ status: 'error' });
     }
-  }, [api]);
+  }, [api, onSessionExpired]);
 
   useEffect(() => {
     void reload();

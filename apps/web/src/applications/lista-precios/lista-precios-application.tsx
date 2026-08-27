@@ -9,6 +9,7 @@ import './lista-precios-application.css';
 import {
   buildBrandPath,
   buildDetailPath,
+  buildSuspensionVariantsPath,
   buildVariantsPath,
   getParentPath,
   parseListaPreciosRoute,
@@ -20,6 +21,7 @@ import {
 } from '../../vehicle-catalog/use-vehicle-catalog';
 import { useListaPreciosUsageEvents } from './use-lista-precios-usage-events';
 import { VariantsScreen } from './variants-screen';
+import { SuspensionsScreen } from './suspensions-screen';
 
 const DEFAULT_WHATSAPP_NUMBER = '595976511016';
 const DEFAULT_WHATSAPP_MESSAGE_TEMPLATE = 'Hola, ¿está disponible el modelo: {modelo}?';
@@ -34,8 +36,12 @@ function computeBreadcrumb(
       return undefined;
     case 'brand':
       return route.brand;
-    case 'variants':
+    case 'suspensions':
       return `${route.brand} ${route.modelo}`;
+    case 'variants':
+      return route.suspension === undefined
+        ? `${route.brand} ${route.modelo}`
+        : `${route.brand} ${route.modelo} · ${route.suspension}`;
     case 'detail': {
       if (vehiclesState.status !== 'ready') {
         return vehiclesState.status === 'loading' ? 'Cargando...' : 'Error';
@@ -57,8 +63,10 @@ function computeBackLabel(
       return undefined;
     case 'brand':
       return 'Marcas';
-    case 'variants':
+    case 'suspensions':
       return 'Modelos';
+    case 'variants':
+      return route.suspension === undefined ? 'Modelos' : 'Suspensiones';
     case 'detail': {
       if (vehiclesState.status !== 'ready') {
         return 'Modelo';
@@ -158,8 +166,22 @@ export function ListaPreciosApplication({
         <VariantsScreen
           brand={route.brand}
           modelo={route.modelo}
+          suspension={route.suspension}
           vehiclesState={vehiclesState}
           onSelectVariant={(modelKey) => navigateWithinApp(buildDetailPath(launchPath, modelKey))}
+        />
+      ) : null}
+
+      {route.view === 'suspensions' ? (
+        <SuspensionsScreen
+          brand={route.brand}
+          modelo={route.modelo}
+          vehiclesState={vehiclesState}
+          onSelectSuspension={(suspension) =>
+            navigateWithinApp(
+              buildSuspensionVariantsPath(launchPath, route.brand, route.modelo, suspension),
+            )
+          }
         />
       ) : null}
 

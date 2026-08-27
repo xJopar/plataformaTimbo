@@ -260,6 +260,21 @@ export function filterByBrandAndModelo(
   return result;
 }
 
+export function filterBySuspension(
+  groups: Map<string, VehicleGroup>,
+  suspension: string,
+): Map<string, VehicleGroup> {
+  const upperSuspension = suspension.trim().toUpperCase();
+  const result = new Map<string, VehicleGroup>();
+
+  for (const [key, group] of groups) {
+    if (group.susp.trim().toUpperCase() === upperSuspension) {
+      result.set(key, group);
+    }
+  }
+  return result;
+}
+
 export function filterByBrand(
   groups: Map<string, VehicleGroup>,
   brand: string,

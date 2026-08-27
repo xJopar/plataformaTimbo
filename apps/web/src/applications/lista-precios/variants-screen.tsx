@@ -4,6 +4,7 @@ import { AppIcon } from '../../ui/app-icon';
 import {
   applyFilters,
   filterByBrandAndModelo,
+  filterBySuspension,
   formatPrice,
   getFilterOptions,
   type VehicleFilters,
@@ -27,6 +28,7 @@ const EMPTY_FILTERS: VehicleFilters = {
 interface VariantsScreenProps {
   brand: string;
   modelo: string;
+  suspension?: string;
   vehiclesState: VehicleCatalogState;
   onSelectVariant: (modelKey: string) => void;
 }
@@ -34,6 +36,7 @@ interface VariantsScreenProps {
 export function VariantsScreen({
   brand,
   modelo,
+  suspension,
   vehiclesState,
   onSelectVariant,
 }: VariantsScreenProps): React.JSX.Element {
@@ -43,10 +46,15 @@ export function VariantsScreen({
 
   const variantGroups = useMemo(
     () =>
-      vehiclesState.status === 'ready'
-        ? filterByBrandAndModelo(vehiclesState.groups, brand, modelo)
-        : new Map<string, VehicleGroup>(),
-    [vehiclesState, brand, modelo],
+      vehiclesState.status !== 'ready'
+        ? new Map<string, VehicleGroup>()
+        : suspension === undefined
+          ? filterByBrandAndModelo(vehiclesState.groups, brand, modelo)
+          : filterBySuspension(
+              filterByBrandAndModelo(vehiclesState.groups, brand, modelo),
+              suspension,
+            ),
+    [vehiclesState, brand, modelo, suspension],
   );
 
   const filterOptions: ListaPreciosFilterOptions = useMemo(

@@ -1,15 +1,26 @@
 export type ListaPreciosRoute =
   | { view: 'home' }
   | { view: 'brand'; brand: string }
-  | { view: 'variants'; brand: string; modelo: string }
+  | { view: 'suspensions'; brand: string; modelo: string }
+  | { view: 'variants'; brand: string; modelo: string; suspension?: string }
   | { view: 'detail'; modelKey: string }
   | { view: 'not-found' };
+
+const HOWO_NX_BRAND = 'SINOTRUK';
+const HOWO_NX_MODEL = 'HOWO NX';
+
+export function isHowoNxModel(brand: string, modelo: string): boolean {
+  return (
+    brand.trim().toUpperCase() === HOWO_NX_BRAND && modelo.trim().toUpperCase() === HOWO_NX_MODEL
+  );
+}
 
 /**
  * `pathname` puede ser el `launchPath` exacto o cualquiera de sus sub-rutas deep-linkable:
  *   ""                        → home
  *   "/marca/:brand"            → brand
- *   "/marca/:brand/:modelo"    → variants
+ *   "/marca/:brand/:modelo"    → variants, o suspensions para HOWO NX
+ *   "/marca/SINOTRUK/HOWO NX/:suspension" → variants de HOWO NX
  *   "/modelo/:modelKey"        → detail
  */
 export function parseListaPreciosRoute(pathname: string, launchPath: string): ListaPreciosRoute {
@@ -35,7 +46,25 @@ export function parseListaPreciosRoute(pathname: string, launchPath: string): Li
     segments[1] !== undefined &&
     segments[2] !== undefined
   ) {
+    if (isHowoNxModel(segments[1], segments[2])) {
+      return { view: 'suspensions', brand: segments[1], modelo: segments[2] };
+    }
     return { view: 'variants', brand: segments[1], modelo: segments[2] };
+  }
+  if (
+    segments[0] === 'marca' &&
+    segments.length === 4 &&
+    segments[1] !== undefined &&
+    segments[2] !== undefined &&
+    segments[3] !== undefined &&
+    isHowoNxModel(segments[1], segments[2])
+  ) {
+    return {
+      view: 'variants',
+      brand: segments[1],
+      modelo: segments[2],
+      suspension: segments[3],
+    };
   }
   if (segments[0] === 'modelo' && segments.length === 2 && segments[1] !== undefined) {
     return { view: 'detail', modelKey: segments[1] };
@@ -56,6 +85,15 @@ export function buildVariantsPath(launchPath: string, brand: string, modelo: str
   return `${launchPath}/marca/${encodeURIComponent(brand)}/${encodeURIComponent(modelo)}`;
 }
 
+export function buildSuspensionVariantsPath(
+  launchPath: string,
+  brand: string,
+  modelo: string,
+  suspension: string,
+): string {
+  return `${buildVariantsPath(launchPath, brand, modelo)}/${encodeURIComponent(suspension)}`;
+}
+
 export function buildDetailPath(launchPath: string, modelKey: string): string {
   return `${launchPath}/modelo/${encodeURIComponent(modelKey)}`;
 }
@@ -71,12 +109,18 @@ export function getParentPath(route: ListaPreciosRoute, launchPath: string): str
   switch (route.view) {
     case 'brand':
       return buildHomePath(launchPath);
-    case 'variants':
+    case 'suspensions':
       return buildBrandPath(launchPath, route.brand);
+    case 'variants':
+      return route.suspension === undefined
+        ? buildBrandPath(launchPath, route.brand)
+        : buildVariantsPath(launchPath, route.brand, route.modelo);
     case 'detail': {
-      const [marca, modelo] = route.modelKey.split('|');
+      const [marca, modelo, , suspension] = route.modelKey.split('|');
       return marca !== undefined && marca !== '' && modelo !== undefined && modelo !== ''
-        ? buildVariantsPath(launchPath, marca, modelo)
+        ? isHowoNxModel(marca, modelo) && suspension !== undefined && suspension !== ''
+          ? buildSuspensionVariantsPath(launchPath, marca, modelo, suspension)
+          : buildVariantsPath(launchPath, marca, modelo)
         : buildHomePath(launchPath);
     }
     case 'home':

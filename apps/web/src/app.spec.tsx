@@ -250,6 +250,37 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
+  it('vuelve al acceso cuando la sesión vence al reintentar cargar las aplicaciones', async () => {
+    window.history.replaceState({}, '', '/');
+    const listAuthorizedApplications = vi
+      .fn<ApplicationsApi['listAuthorizedApplications']>()
+      .mockRejectedValueOnce(new ApiHttpError(503))
+      .mockRejectedValueOnce(new ApiHttpError(401, 'session-expired-request'));
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const user = userEvent.setup();
+
+    render(<App api={createApi({}, {}, { listAuthorizedApplications })} />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'No pudimos cargar tus aplicaciones' }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    expect(await screen.findByRole('heading', { name: 'Iniciá sesión' })).toBeInTheDocument();
+    expect(listAuthorizedApplications).toHaveBeenCalledTimes(2);
+    expect(consoleError).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        event: 'web.browser.operation_failed',
+        operation: 'applications.load-authorized',
+        route: '/api/applications',
+        status: 401,
+        requestId: 'session-expired-request',
+      }),
+    );
+
+    consoleError.mockRestore();
+  });
+
   it('consume una vez el resultado OAuth, limpia la URL y permite recuperar el acceso', async () => {
     window.history.replaceState({}, '', '/?auth_error=USER_NOT_AUTHORIZED');
     const api = createApi();
