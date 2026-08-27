@@ -10,7 +10,7 @@ from pathlib import Path
 from shutil import copyfile
 
 import numpy
-from PIL import Image, ImageChops, ImageOps
+from PIL import Image, ImageChops, ImageDraw, ImageOps
 
 
 BRAND_BLUE = (31, 36, 92)
@@ -18,6 +18,8 @@ RESAMPLING = Image.Resampling.LANCZOS
 WEB_DIRECTORY = Path(__file__).resolve().parents[2]
 SOURCE_DIRECTORY = Path(__file__).resolve().parent / "originales"
 PUBLIC_DIRECTORY = WEB_DIRECTORY / "public"
+# Punto interior al trazo superior de la T en el JPG fuente (logotipo-timbo-blanco-sobre-azul.jpg).
+TIMBO_T_SEED_PIXEL = (250, 950)
 
 
 def foreground_mask(image: Image.Image) -> Image.Image:
@@ -105,17 +107,17 @@ def facility_asset(source: Image.Image, target_width: int, destination: Path) ->
 
 
 def timbo_monogram_mask(source: Image.Image) -> Image.Image:
-    """Recorta la T inclinada del wordmark mediante su silueta original."""
-    mask = foreground_mask(source)
-    # La T ocupa el extremo izquierdo del wordmark; el polígono evita incorporar la I.
-    polygon = Image.new("L", source.size, 0)
-    from PIL import ImageDraw
+    """Aísla la silueta real de la T inclinada del wordmark.
 
-    ImageDraw.Draw(polygon).polygon(
-        [(90, 880), (490, 880), (465, 1015), (385, 1015), (350, 1248), (180, 1248), (220, 1015), (65, 1015)],
-        fill=255,
-    )
-    return ImageChops.multiply(mask, polygon).crop((65, 880, 490, 1248))
+    La T y la I siguiente están separadas por un hueco de fondo azul, así que un
+    flood fill desde un punto interior de la T reproduce el corte diagonal exacto
+    de la tipografía en vez de aproximarlo con un polígono dibujado a mano.
+    """
+    mask = foreground_mask(source)
+    filled = mask.copy()
+    ImageDraw.floodfill(filled, TIMBO_T_SEED_PIXEL, 128)
+    isolated = filled.point(lambda value: 255 if value == 128 else 0)
+    return isolated.crop(isolated.getbbox())
 
 
 def icon_asset(mask: Image.Image, size: int, content_ratio: float) -> Image.Image:
