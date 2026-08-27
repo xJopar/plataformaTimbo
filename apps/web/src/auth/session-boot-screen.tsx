@@ -2,7 +2,7 @@ export function SessionBootScreen(): React.JSX.Element {
   return (
     <main className="session-boot-screen" aria-busy="true">
       <header className="session-boot-header">
-        <img src="/brand/timbo-logo-white.png" alt="Timbo" />
+        <img src="/marca/logotipo-timbo-blanco-transparente.png" alt="Timbo" />
         <span>Plataforma</span>
       </header>
       <section className="session-boot-content" aria-label="Verificando sesión" role="status">

@@ -59,7 +59,7 @@ export function PlatformHeader({
             onNavigate('/');
           }}
         >
-          <img src="/brand/timbo-logo-white.png" alt="Timbo" />
+          <img src="/marca/logotipo-timbo-blanco-transparente.png" alt="Timbo" />
         </a>
       ) : (
         <p className="product-name">Plataforma Timbo</p>
