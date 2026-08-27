@@ -2,27 +2,28 @@
 target: header y subheader de Lista de Precios (móvil)
 total_score: 21
 max_score: 40
-na_heuristics: 
+na_heuristics:
 p0_count: 0
 p1_count: 2
 timestamp: 2026-08-26T20-23-20Z
 slug: ations-lista-precios-lista-precios-application-tsx
 ---
+
 ## Salud de diseño
 
-| # | Heurística | Puntaje | Hallazgo clave |
-|---|---|---:|---|
-| 1 | Visibilidad del estado | 2 | El contexto indica ubicación, pero no hay señal de carga, resultados o actualización. |
-| 2 | Relación sistema / mundo real | 3 | La terminología de marca, modelo y configuración pertenece al dominio. |
-| 3 | Control y libertad | 3 | Existe Volver; en móvil el destino no es visible y su área es de 36 px. |
-| 4 | Consistencia y estándares | 3 | Las dos vistas repiten estructura, reglas y azul operacional. |
-| 5 | Prevención de errores | 2 | La búsqueda y Filtrar no aclaran su alcance ni estado activo. |
-| 6 | Reconocimiento antes que recuerdo | 3 | El buscador y el contexto están expuestos; los iconos dependen de una etiqueta no visual. |
-| 7 | Flexibilidad y eficiencia | 1 | No se observan atajos ni persistencia de filtros para consultas repetitivas. |
-| 8 | Estética y minimalismo | 3 | La ejecución es plana y limpia, aunque el chrome ocupa demasiado primer viewport. |
-| 9 | Recuperación ante errores | 1 | No hay evidencia de estados de búsqueda, vacío o error. |
-| 10 | Ayuda y documentación | 0 | No se ofrece ayuda contextual para filtros ni términos. |
-| **Total** | | **21/40** | **Aceptable; requiere mejoras de claridad.** |
+| #         | Heurística                        |   Puntaje | Hallazgo clave                                                                            |
+| --------- | --------------------------------- | --------: | ----------------------------------------------------------------------------------------- |
+| 1         | Visibilidad del estado            |         2 | El contexto indica ubicación, pero no hay señal de carga, resultados o actualización.     |
+| 2         | Relación sistema / mundo real     |         3 | La terminología de marca, modelo y configuración pertenece al dominio.                    |
+| 3         | Control y libertad                |         3 | Existe Volver; en móvil el destino no es visible y su área es de 36 px.                   |
+| 4         | Consistencia y estándares         |         3 | Las dos vistas repiten estructura, reglas y azul operacional.                             |
+| 5         | Prevención de errores             |         2 | La búsqueda y Filtrar no aclaran su alcance ni estado activo.                             |
+| 6         | Reconocimiento antes que recuerdo |         3 | El buscador y el contexto están expuestos; los iconos dependen de una etiqueta no visual. |
+| 7         | Flexibilidad y eficiencia         |         1 | No se observan atajos ni persistencia de filtros para consultas repetitivas.              |
+| 8         | Estética y minimalismo            |         3 | La ejecución es plana y limpia, aunque el chrome ocupa demasiado primer viewport.         |
+| 9         | Recuperación ante errores         |         1 | No hay evidencia de estados de búsqueda, vacío o error.                                   |
+| 10        | Ayuda y documentación             |         0 | No se ofrece ayuda contextual para filtros ni términos.                                   |
+| **Total** |                                   | **21/40** | **Aceptable; requiere mejoras de claridad.**                                              |
 
 ## Veredicto de especificidad
 

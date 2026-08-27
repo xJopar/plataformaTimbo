@@ -63,17 +63,13 @@ button:focus-visible {
   grid-column: 1;
   grid-row: 1;
 }
-.top-bar--application .application-current {
+.top-bar--application .application-context {
   grid-column: 2;
   grid-row: 1;
 }
 .top-bar--application .top-bar-actions {
   grid-column: 3;
   grid-row: 1;
-}
-.top-bar--application .application-breadcrumb {
-  grid-column: 1 / -1;
-  grid-row: 2;
 }
 .top-bar-brand {
   min-width: 0;
@@ -91,10 +87,16 @@ button:focus-visible {
   display: block;
 }
 
-.application-current {
+.application-context {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.application-current,
+.application-breadcrumb {
   min-width: 0;
   margin: 0;
-  padding-inline: clamp(20px, 3vw, 48px);
   color: #fff;
   font-size: clamp(0.9375rem, 1.5vw, 1.125rem);
   font-weight: 750;
@@ -105,27 +107,24 @@ button:focus-visible {
 /* Tercera fila opcional del header de aplicación: sólo aparece cuando la app pasa
    `breadcrumb` (hoy, lista-precios) — si no, esta fila del grid ni siquiera existe.
    Posición (columna/fila) fijada arriba, junto con la del resto de `.top-bar--application`. */
-.application-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding-inline: calc(clamp(20px, 3vw, 48px) - 10px) clamp(20px, 3vw, 48px);
-  padding-block-end: 6px;
+.application-current {
+  flex: 0 1 auto;
 }
-.application-breadcrumb p {
-  min-width: 0;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.application-breadcrumb {
+  flex: 1 1 auto;
 }
 .application-breadcrumb-back {
   flex-shrink: 0;
-  inline-size: 36px;
-  block-size: 36px;
+  min-inline-size: 44px;
+  inline-size: auto;
+  block-size: 44px;
+  padding-inline: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.application-breadcrumb-back-label {
+  white-space: nowrap;
 }
 .top-bar-brand span,
 .session-boot-header span {
@@ -1062,20 +1061,15 @@ th {
     flex-wrap: nowrap;
     justify-content: flex-end;
   }
-  .top-bar--application .application-current {
+  .top-bar--application .application-context {
     grid-column: 1 / -1;
     grid-row: 2;
-    padding: 0 0 6px;
-    font-size: 0.9375rem;
-  }
-  .top-bar--application .application-breadcrumb {
-    grid-column: 1 / -1;
-    grid-row: 3;
-    padding-inline: 10px 20px;
     padding-block-end: 6px;
   }
-  .application-breadcrumb p {
-    font-size: 0.75rem;
+  .application-current,
+  .application-breadcrumb,
+  .application-breadcrumb-back-label {
+    font-size: 0.8125rem;
   }
   .application-switcher summary {
     inline-size: 44px;

@@ -885,6 +885,7 @@ describe('App', () => {
 
   it('navega a una sub-ruta deep-linkable de una aplicación con rutas internas', async () => {
     window.history.replaceState({}, '', '/apps/lista-precios/marca/Scania');
+    const user = userEvent.setup();
     render(
       <App
         api={createApi(
@@ -899,9 +900,15 @@ describe('App', () => {
       />,
     );
 
-    expect(await screen.findByRole('button', { name: 'Volver' })).toBeInTheDocument();
+    const backButton = await screen.findByRole('button', { name: 'Volver a Inicio' });
+    expect(backButton).toHaveAttribute('data-tooltip', 'Volver a Inicio');
     expect(screen.getByText('Scania')).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Aplicación no disponible' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Aplicación no disponible' }),
+    ).not.toBeInTheDocument();
+
+    await user.click(backButton);
+    expect(window.location.pathname).toBe('/apps/lista-precios');
   });
 
   it('no confunde un pathname parecido con el launchPath de otra aplicación', async () => {

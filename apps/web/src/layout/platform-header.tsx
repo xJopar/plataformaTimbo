@@ -1,6 +1,6 @@
 import {
   AccountSetting01Icon,
-  ArrowLeft01Icon,
+  ArrowLeft02Icon,
   GridViewIcon,
   Logout01Icon,
 } from '@hugeicons/core-free-icons';
@@ -16,11 +16,11 @@ interface PlatformHeaderProps {
   applicationLaunchPath?: string;
   applications?: readonly AuthorizedApplication[];
   /**
-   * Ubicación actual dentro de la app (ej. "Scania · R"), en una fila propia debajo del
-   * nombre de la app. Sólo la usan apps con navegación interna propia (hoy, lista-precios) —
-   * si no se pasa, el header se ve exactamente igual que para el resto de las apps.
+   * Ubicación actual dentro de la app (ej. "Scania  R"), junto al nombre de la aplicación.
+   * Sólo la usan apps con navegación interna propia (hoy, lista-precios).
    */
   breadcrumb?: string;
+  backLabel?: string;
   onBack?: () => void;
   onNavigate: (pathname: string) => void;
   onLogout: () => void;
@@ -35,6 +35,7 @@ export function PlatformHeader({
   applicationLaunchPath,
   applications = [],
   breadcrumb,
+  backLabel,
   onBack,
   onNavigate,
   onLogout,
@@ -65,24 +66,25 @@ export function PlatformHeader({
         <p className="product-name">Plataforma Timbo</p>
       )}
       {isApplicationHeader ? (
-        <p className="application-current" aria-label={`Aplicación actual: ${applicationName}`}>
-          {applicationName}
-        </p>
-      ) : null}
-      {isApplicationHeader && breadcrumb !== undefined ? (
-        <div className="application-breadcrumb">
-          {onBack === undefined ? null : (
+        <div className="application-context">
+          {breadcrumb === undefined || onBack === undefined ? null : (
             <button
               className="header-icon-action application-breadcrumb-back"
               type="button"
-              aria-label="Volver"
-              data-tooltip="Volver"
+              aria-label={backLabel === undefined ? 'Volver' : `Volver a ${backLabel}`}
+              data-tooltip={backLabel === undefined ? 'Volver' : `Volver a ${backLabel}`}
               onClick={onBack}
             >
-              <AppIcon icon={ArrowLeft01Icon} />
+              <AppIcon icon={ArrowLeft02Icon} />
+              {backLabel === undefined ? null : (
+                <span className="application-breadcrumb-back-label">{backLabel}</span>
+              )}
             </button>
           )}
-          <p>{breadcrumb}</p>
+          <p className="application-current" aria-label={`Aplicación actual: ${applicationName}`}>
+            {applicationName}
+          </p>
+          {breadcrumb === undefined ? null : <p className="application-breadcrumb">{breadcrumb}</p>}
         </div>
       ) : null}
       <nav className="top-bar-actions" aria-label="Acciones de sesión">

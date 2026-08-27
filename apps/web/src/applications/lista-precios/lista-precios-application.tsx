@@ -14,17 +14,16 @@ import {
   parseListaPreciosRoute,
   type ListaPreciosRoute,
 } from './lista-precios-routes';
-import { useListaPreciosVehicles, type ListaPreciosVehiclesState } from './use-lista-precios-vehicles';
+import {
+  useListaPreciosVehicles,
+  type ListaPreciosVehiclesState,
+} from './use-lista-precios-vehicles';
 import { VariantsScreen } from './variants-screen';
 
 const DEFAULT_WHATSAPP_NUMBER = '595976511016';
 const DEFAULT_WHATSAPP_MESSAGE_TEMPLATE = 'Hola, ¿está disponible el modelo: {modelo}?';
 
-/**
- * Texto de la 3ra fila del header ("dónde estoy" dentro de la app). Vive acá y no en cada
- * pantalla porque ahora es el `PlatformHeader` compartido quien la renderiza, no un sub-header
- * propio de lista-precios — así no hay dos lugares mostrando el mismo título.
- */
+/** Contexto del catálogo junto al nombre de la aplicación. */
 function computeBreadcrumb(
   route: ListaPreciosRoute,
   vehiclesState: ListaPreciosVehiclesState,
@@ -35,7 +34,7 @@ function computeBreadcrumb(
     case 'brand':
       return route.brand;
     case 'variants':
-      return `${route.brand} · ${route.modelo}`;
+      return `${route.brand} ${route.modelo}`;
     case 'detail': {
       if (vehiclesState.status !== 'ready') {
         return vehiclesState.status === 'loading' ? 'Cargando...' : 'Error';
@@ -45,6 +44,29 @@ function computeBreadcrumb(
     }
     case 'not-found':
       return 'Página no encontrada';
+  }
+}
+
+function computeBackLabel(
+  route: ListaPreciosRoute,
+  vehiclesState: ListaPreciosVehiclesState,
+): string | undefined {
+  switch (route.view) {
+    case 'home':
+      return undefined;
+    case 'brand':
+      return 'Inicio';
+    case 'variants':
+      return route.brand;
+    case 'detail': {
+      if (vehiclesState.status !== 'ready') {
+        return 'Modelo';
+      }
+      const group = vehiclesState.groups.get(route.modelKey);
+      return group === undefined ? 'Modelo' : `${group.marca} ${group.modelo}`;
+    }
+    case 'not-found':
+      return 'Lista de Precios';
   }
 }
 
@@ -85,6 +107,7 @@ export function ListaPreciosApplication({
 
   const launchPath = application.launchPath;
   const breadcrumb = computeBreadcrumb(route, vehiclesState);
+  const backLabel = computeBackLabel(route, vehiclesState);
 
   return (
     <main className="platform-shell lista-precios-shell">
@@ -97,6 +120,7 @@ export function ListaPreciosApplication({
         showAdministrationLink={false}
         variant="application"
         breadcrumb={breadcrumb}
+        backLabel={backLabel}
         onBack={breadcrumb === undefined ? undefined : handleBack}
         onNavigate={onNavigate}
         onLogout={onLogout}
