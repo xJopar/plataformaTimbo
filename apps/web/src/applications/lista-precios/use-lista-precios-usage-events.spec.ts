@@ -2,10 +2,10 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { Api } from '../../api';
 import type { ListaPreciosRoute } from './lista-precios-routes';
-import type { ListaPreciosVehiclesState } from './use-lista-precios-vehicles';
+import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
 import { useListaPreciosUsageEvents } from './use-lista-precios-usage-events';
 
-const vehicleState: ListaPreciosVehiclesState = {
+const vehicleState: VehicleCatalogState = {
   status: 'ready',
   groups: new Map([
     [

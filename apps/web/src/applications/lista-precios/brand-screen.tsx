@@ -6,13 +6,13 @@ import {
   groupByMarcaModelo,
   type ModelSummary,
   type VehicleGroup,
-} from './data-processor';
+} from '../../vehicle-catalog/vehicle-catalog';
 import { Loader } from './loader';
-import type { ListaPreciosVehiclesState } from './use-lista-precios-vehicles';
+import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
 
 interface BrandScreenProps {
   brand: string;
-  vehiclesState: ListaPreciosVehiclesState;
+  vehiclesState: VehicleCatalogState;
   onSelectModel: (modelo: string) => void;
   onSelectSubBrand: (subBrand: string) => void;
 }

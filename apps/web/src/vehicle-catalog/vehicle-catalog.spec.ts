@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { VehicleResponse } from '../../api';
+import type { VehicleResponse } from '../api';
 import {
   applyFilters,
   extractBrands,
@@ -11,7 +11,7 @@ import {
   groupByMarcaModelo,
   groupByModel,
   parsePrice,
-} from './data-processor';
+} from './vehicle-catalog';
 
 const BASE_VEHICLE: VehicleResponse = {
   marca: '',

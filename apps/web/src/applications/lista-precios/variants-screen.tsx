@@ -8,10 +8,10 @@ import {
   getFilterOptions,
   type VehicleFilters,
   type VehicleGroup,
-} from './data-processor';
+} from '../../vehicle-catalog/vehicle-catalog';
 import { FilterDrawer, type ListaPreciosFilterOptions } from './filter-drawer';
 import { Loader } from './loader';
-import type { ListaPreciosVehiclesState } from './use-lista-precios-vehicles';
+import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
 
 const EMPTY_FILTERS: VehicleFilters = {
   config: '',
@@ -27,7 +27,7 @@ const EMPTY_FILTERS: VehicleFilters = {
 interface VariantsScreenProps {
   brand: string;
   modelo: string;
-  vehiclesState: ListaPreciosVehiclesState;
+  vehiclesState: VehicleCatalogState;
   onSelectVariant: (modelKey: string) => void;
 }
 

@@ -7,7 +7,7 @@ import {
 } from '../../api';
 import { reportBrowserOperationFailed } from '../../browser-diagnostics';
 import type { ListaPreciosRoute } from './lista-precios-routes';
-import type { ListaPreciosVehiclesState } from './use-lista-precios-vehicles';
+import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
 
 interface ListaPreciosModelIdentity {
   brand: string;
@@ -16,7 +16,7 @@ interface ListaPreciosModelIdentity {
 
 function resolveModelIdentity(
   route: ListaPreciosRoute,
-  vehiclesState: ListaPreciosVehiclesState,
+  vehiclesState: VehicleCatalogState,
 ): ListaPreciosModelIdentity | undefined {
   if (vehiclesState.status !== 'ready') return undefined;
 
@@ -65,7 +65,7 @@ function reportUsageEventFailure(error: unknown): void {
 export function useListaPreciosUsageEvents(
   api: Api,
   route: ListaPreciosRoute,
-  vehiclesState: ListaPreciosVehiclesState,
+  vehiclesState: VehicleCatalogState,
 ): { recordConsultationStarted: () => void } {
   const visitId = useRef(crypto.randomUUID());
   const recordedEventKeys = useRef(new Set<string>());

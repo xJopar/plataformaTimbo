@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { VehicleFilters } from './data-processor';
+import type { VehicleFilters } from '../../vehicle-catalog/vehicle-catalog';
 
 export interface ListaPreciosFilterOptions {
   config: string[];

@@ -15,9 +15,9 @@ import {
   type ListaPreciosRoute,
 } from './lista-precios-routes';
 import {
-  useListaPreciosVehicles,
-  type ListaPreciosVehiclesState,
-} from './use-lista-precios-vehicles';
+  useVehicleCatalog,
+  type VehicleCatalogState,
+} from '../../vehicle-catalog/use-vehicle-catalog';
 import { useListaPreciosUsageEvents } from './use-lista-precios-usage-events';
 import { VariantsScreen } from './variants-screen';
 
@@ -27,7 +27,7 @@ const DEFAULT_WHATSAPP_MESSAGE_TEMPLATE = 'Hola, ¿está disponible el modelo: {
 /** Contexto del catálogo junto al nombre de la aplicación. */
 function computeBreadcrumb(
   route: ListaPreciosRoute,
-  vehiclesState: ListaPreciosVehiclesState,
+  vehiclesState: VehicleCatalogState,
 ): string | undefined {
   switch (route.view) {
     case 'home':
@@ -50,7 +50,7 @@ function computeBreadcrumb(
 
 function computeBackLabel(
   route: ListaPreciosRoute,
-  vehiclesState: ListaPreciosVehiclesState,
+  vehiclesState: VehicleCatalogState,
 ): string | undefined {
   switch (route.view) {
     case 'home':
@@ -82,7 +82,7 @@ export function ListaPreciosApplication({
   onNavigate,
   onLogout,
 }: ApplicationComponentProps): React.JSX.Element {
-  const { state: vehiclesState, reload } = useListaPreciosVehicles(api);
+  const { state: vehiclesState, reload } = useVehicleCatalog(api);
   const internalNavigationCount = useRef(0);
 
   const route = useMemo(

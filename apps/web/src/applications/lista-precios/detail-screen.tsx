@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import type { VehicleResponse } from '../../api';
-import { formatPrice, parsePrice } from './data-processor';
+import { formatPrice, parsePrice } from '../../vehicle-catalog/vehicle-catalog';
 import { Loader } from './loader';
-import type { ListaPreciosVehiclesState } from './use-lista-precios-vehicles';
+import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
 
 /** Piso/Altura son campos propios de semirremolques (Facchini, Librelato). */
 const SEMIRREMOLQUE_BRANDS = ['FACCHINI', 'LIBRELATO'];
 
 interface DetailScreenProps {
   modelKey: string;
-  vehiclesState: ListaPreciosVehiclesState;
+  vehiclesState: VehicleCatalogState;
   whatsAppNumber: string;
   whatsAppMessageTemplate: string;
   onConsultationStarted: () => void;

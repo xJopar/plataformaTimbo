@@ -1,23 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Api } from '../../api';
-import {
-  extractBrands,
-  groupByModel,
-  type BrandSummary,
-  type VehicleGroup,
-} from './data-processor';
+import type { Api } from '../api';
+import { extractBrands, groupByModel, type BrandSummary, type VehicleGroup } from './vehicle-catalog';
 
-export type ListaPreciosVehiclesState =
+export type VehicleCatalogState =
   | { status: 'loading' }
   | { status: 'error' }
   | { status: 'ready'; groups: Map<string, VehicleGroup>; brands: BrandSummary[] };
 
-export function useListaPreciosVehicles(api: Api): {
-  state: ListaPreciosVehiclesState;
+export function useVehicleCatalog(api: Api): {
+  state: VehicleCatalogState;
   reload: () => Promise<void>;
 } {
   const currentRequestId = useRef(0);
-  const [state, setState] = useState<ListaPreciosVehiclesState>({ status: 'loading' });
+  const [state, setState] = useState<VehicleCatalogState>({ status: 'loading' });
 
   const reload = useCallback(async (): Promise<void> => {
     const requestId = currentRequestId.current + 1;

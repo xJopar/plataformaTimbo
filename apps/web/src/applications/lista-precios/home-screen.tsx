@@ -1,8 +1,8 @@
-import type { ListaPreciosVehiclesState } from './use-lista-precios-vehicles';
+import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
 import { Loader } from './loader';
 
 interface HomeScreenProps {
-  vehiclesState: ListaPreciosVehiclesState;
+  vehiclesState: VehicleCatalogState;
   onRetry: () => void;
   onSelectBrand: (brand: string) => void;
 }

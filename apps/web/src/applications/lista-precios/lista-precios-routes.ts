@@ -64,7 +64,7 @@ export function buildDetailPath(launchPath: string, modelKey: string): string {
  * Ruta padre para cuando no hay historial interno propio (deep link directo, ej. un link de
  * WhatsApp): el botón "atrás" de la pantalla necesita ir a algún lado sensato sin depender del
  * historial del navegador. Para `detail` reconstruye marca/modelo a partir de `modelKey`
- * (`getGroupKey` en data-processor.ts los junta con "|") — si no alcanza para reconstruirlos,
+ * (`getGroupKey` en vehicle-catalog.ts los junta con "|") — si no alcanza para reconstruirlos,
  * vuelve a home.
  */
 export function getParentPath(route: ListaPreciosRoute, launchPath: string): string {

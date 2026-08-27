@@ -1,4 +1,4 @@
-import type { VehicleResponse } from '../../api';
+import type { VehicleResponse } from '../api';
 
 /**
  * Agrupa unidades individuales del catálogo en "modelos" únicos.
