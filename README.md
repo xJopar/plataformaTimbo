@@ -11,11 +11,13 @@ administrativa de actividad y catálogo gobernado de aplicaciones internas.
 El catálogo incluye `Hello World` como integración técnica en `/apps/hello-world`: su acción
 principal registra el uso idempotente `hello-world.joke_requested`, obtiene un chiste en inglés
 desde icanhazdadjoke y lo traduce al español con MyMemory, sin claves de API.
+También incluye `Lista de Precios` en `/apps/lista-precios`: consulta el catálogo autorizado de
+vehículos y registra aperturas, vistas únicas de modelo por visita e inicios de consulta, sin
+persistir unidades de stock, filtros, precios ni mensajes de WhatsApp.
 Administración permite asignar aplicaciones a empleados y gestionar sus perfiles y permisos
 funcionales. El Home autenticado presenta solamente las aplicaciones activas asignadas al usuario
-y abre sus rutas internas. Todavía falta integrar la primera aplicación de negocio. Consultar
-[`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md) para el alcance y los recorridos
-vigentes.
+y abre sus rutas internas. Consultar [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md)
+para el alcance y los recorridos vigentes.
 
 ## Estado funcional
 
@@ -26,11 +28,11 @@ vigentes.
   filtrado por asignaciones activas.
 - **Observabilidad:** logs JSON de API y gateway, diagnósticos estructurados en el navegador,
   redacción segura y correlación por `X-Request-Id`.
-- **Datos de actividad:** auditoría persistente y evento de uso idempotente para la solicitud de
-  chistes de Hello World.
+- **Datos de actividad:** auditoría persistente y eventos de uso idempotentes para Hello World y
+  Lista de Precios; la exportación CSV entrega visita, objetivo, marca y modelo en columnas
+  separadas cuando corresponden.
 - **Experiencia:** acceso corporativo, launcher de aplicaciones autorizadas, superficies de
-  Administración y una aplicación `Hello World` que demuestra una integración externa
-  recuperable.
+  Administración, `Hello World` y `Lista de Precios` como primera aplicación de negocio integrada.
 
 ## Documentación
 

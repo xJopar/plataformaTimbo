@@ -12,6 +12,7 @@ interface DetailScreenProps {
   vehiclesState: ListaPreciosVehiclesState;
   whatsAppNumber: string;
   whatsAppMessageTemplate: string;
+  onConsultationStarted: () => void;
 }
 
 function InfoRow({
@@ -92,6 +93,7 @@ export function DetailScreen({
   vehiclesState,
   whatsAppNumber,
   whatsAppMessageTemplate,
+  onConsultationStarted,
 }: DetailScreenProps): React.JSX.Element {
   const [selectedUnit, setSelectedUnit] = useState<VehicleResponse | null>(null);
   const group = vehiclesState.status === 'ready' ? vehiclesState.groups.get(modelKey) : undefined;
@@ -286,7 +288,10 @@ export function DetailScreen({
           <button
             className="lp-cta-btn lp-cta-btn--fixed"
             type="button"
-            onClick={() => window.open(buildWhatsAppUrl(), '_blank', 'noopener,noreferrer')}
+            onClick={() => {
+              onConsultationStarted();
+              window.open(buildWhatsAppUrl(), '_blank', 'noopener,noreferrer');
+            }}
           >
             {selectedUnit !== null
               ? `Consultar stock ${selectedUnit.stock}`

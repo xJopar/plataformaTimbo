@@ -146,6 +146,9 @@ function createApi(
       listListaPreciosVehicles: vi
         .fn<ApplicationsApi['listListaPreciosVehicles']>()
         .mockResolvedValue([]),
+      recordListaPreciosUsageEvent: vi
+        .fn<ApplicationsApi['recordListaPreciosUsageEvent']>()
+        .mockResolvedValue(undefined),
       ...applicationsOverrides,
     },
     system: { getHealth: vi.fn() },

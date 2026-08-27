@@ -1041,6 +1041,9 @@
                           "appKey",
                           "eventName",
                           "outcome",
+                          "visitId",
+                          "targetType",
+                          "targetId",
                           "target",
                           "metadata",
                           "occurredAt"
@@ -1067,6 +1070,19 @@
                           },
                           "outcome": {
                             "type": "string"
+                          },
+                          "visitId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "nullable": true
+                          },
+                          "targetType": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "targetId": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "target": {
                             "type": "string",
@@ -1549,6 +1565,34 @@
           }
         },
         "summary": "Obtiene el catálogo de vehículos en stock desde Zoho Analytics.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/lista-precios/usage-events": {
+      "post": {
+        "operationId": "recordListaPreciosUsageEvent",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListaPreciosUsageEventRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "El evento fue procesado sin interrumpir el recorrido."
+          },
+          "400": {
+            "description": "El evento de uso no cumple el contrato permitido."
+          }
+        },
+        "summary": "Registra un hito de uso permitido de Lista de Precios.",
         "tags": [
           "applications"
         ]
@@ -2260,6 +2304,43 @@
           "aproxLlegada",
           "disponible1",
           "stock"
+        ]
+      },
+      "ListaPreciosUsageEventRequestDto": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identificador idempotente del evento de uso."
+          },
+          "visitId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identificador efímero de la visita a Lista de Precios."
+          },
+          "eventName": {
+            "type": "string",
+            "enum": [
+              "lista-precios.catalog_opened",
+              "lista-precios.model_viewed",
+              "lista-precios.consultation_started"
+            ],
+            "description": "Hito de uso permitido por Lista de Precios."
+          },
+          "brand": {
+            "type": "string",
+            "description": "Marca del modelo visto o consultado."
+          },
+          "model": {
+            "type": "string",
+            "description": "Modelo visto o consultado."
+          }
+        },
+        "required": [
+          "eventId",
+          "visitId",
+          "eventName"
         ]
       },
       "HealthResponseDto": {

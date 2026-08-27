@@ -234,6 +234,16 @@ operación completa.
 `hello-world` y no admite objetivo ni metadata. Así la actividad mide la acción sin persistir el
 chiste, su traducción ni otros datos de negocio.
 
+`lista-precios` produce tres eventos: `lista-precios.catalog_opened` una vez por visita,
+`lista-precios.model_viewed` una vez por modelo durante esa visita y
+`lista-precios.consultation_started` al iniciar la consulta por WhatsApp. La Web reconoce el
+modelo desde una ruta canónica de modelo o su detalle y evita duplicar una vuelta atrás. Los dos
+eventos de modelo usan `targetType: vehicle_model`, una clave normalizada `marca|modelo` y sólo la
+metadata tipada `brand` y `model`. La clave de variante, stock, filtros, precios, URL de WhatsApp y
+su mensaje quedan fuera del evento. Actividad permite mostrar únicamente esa metadata por una
+allowlist específica y el CSV incorpora `visitId`, objetivo, marca y modelo en columnas separadas
+para análisis en Excel.
+
 Para incorporar un productor de uso:
 
 1. Definir primero qué decisión de producto u operación permitirá tomar cada evento. No registrar

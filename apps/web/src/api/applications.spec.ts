@@ -208,4 +208,32 @@ describe('createApplicationsApi', () => {
       cause: networkError,
     } satisfies Partial<ApplicationsApiUnavailableError>);
   });
+
+  it('registra un hito de Lista de Precios con CSRF y credenciales', async () => {
+    const fetchImplementation = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(null, { status: 204 }));
+
+    await expect(
+      createApplicationsApi(
+        'http://localhost:3000',
+        fetchImplementation,
+      ).recordListaPreciosUsageEvent({
+        eventId: '737c5ac8-9385-4ae3-9ac7-f16622a8d1fc',
+        visitId: 'a75a9b36-fcb4-4489-a3ea-f1e9a8d5d398',
+        eventName: 'lista-precios.model_viewed',
+        brand: 'FACCHINI',
+        model: 'GRANELERO',
+      }),
+    ).resolves.toBeUndefined();
+
+    const request = fetchImplementation.mock.calls[0]?.[0];
+    expect(request).toBeInstanceOf(Request);
+    if (!(request instanceof Request)) {
+      throw new Error('El cliente OpenAPI no construyó la petición esperada.');
+    }
+    expect(request).toMatchObject({ credentials: 'include', method: 'POST' });
+    expect(request.url).toContain('/api/applications/lista-precios/usage-events');
+    expect(request.headers.get('x-timbo-csrf')).toBe('1');
+  });
 });

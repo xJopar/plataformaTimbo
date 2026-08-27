@@ -18,10 +18,24 @@ export type VehicleResponse = NonNullable<
   paths['/api/applications/lista-precios/vehicles']['get']['responses'][200]['content']['application/json']
 >[number];
 
+export type ListaPreciosUsageEventName =
+  | 'lista-precios.catalog_opened'
+  | 'lista-precios.model_viewed'
+  | 'lista-precios.consultation_started';
+
+export interface ListaPreciosUsageEventRequest {
+  eventId: string;
+  visitId: string;
+  eventName: ListaPreciosUsageEventName;
+  brand?: string;
+  model?: string;
+}
+
 export interface ApplicationsApi {
   listAuthorizedApplications(): Promise<AuthorizedApplication[]>;
   requestHelloWorldJoke(input: HelloWorldJokeRequest): Promise<HelloWorldJoke>;
   listListaPreciosVehicles(): Promise<VehicleResponse[]>;
+  recordListaPreciosUsageEvent(input: ListaPreciosUsageEventRequest): Promise<void>;
 }
 
 export class ApplicationsApiUnavailableError extends Error {
@@ -97,6 +111,22 @@ export function createApplicationsApi(
       }
 
       return data;
+    },
+    async recordListaPreciosUsageEvent(input: ListaPreciosUsageEventRequest): Promise<void> {
+      const { response } = await client
+        .POST('/api/applications/lista-precios/usage-events', {
+          body: input,
+          headers: { 'x-timbo-csrf': '1' },
+        })
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('recordListaPreciosUsageEvent', {
+            cause: error,
+          });
+        });
+
+      if (!response.ok) {
+        throw createApiHttpError(response);
+      }
     },
   };
 }

@@ -15,4 +15,8 @@ describe('humanizeEventName', () => {
   it('devuelve la clave original si no puede derivar ningún texto', () => {
     expect(humanizeEventName('')).toBe('');
   });
+
+  it('traduce los hitos de Lista de Precios para Actividad', () => {
+    expect(humanizeEventName('lista-precios.model_viewed')).toBe('Vio un modelo');
+  });
 });

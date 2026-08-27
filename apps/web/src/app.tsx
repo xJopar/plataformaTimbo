@@ -1266,6 +1266,10 @@ function ActivityMetric({ label, value }: { label: string; value: string }): Rea
 
 function ActivityRow({ item }: { item: AdministrativeActivityItem }): React.JSX.Element {
   const metadata = Object.entries(item.metadata);
+  const displayTarget =
+    item.metadata.brand !== undefined && item.metadata.model !== undefined
+      ? `${item.metadata.brand} / ${item.metadata.model}`
+      : (item.target ?? '—');
   return (
     <tr>
       <td>
@@ -1280,7 +1284,7 @@ function ActivityRow({ item }: { item: AdministrativeActivityItem }): React.JSX.
         <div className="activity-event-key">{item.eventName}</div>
       </td>
       <td>{item.appKey}</td>
-      <td>{item.target ?? '—'}</td>
+      <td>{displayTarget}</td>
       <td>
         {metadata.length === 0 ? (
           '—'

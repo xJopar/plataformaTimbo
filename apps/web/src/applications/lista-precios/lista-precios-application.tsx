@@ -18,6 +18,7 @@ import {
   useListaPreciosVehicles,
   type ListaPreciosVehiclesState,
 } from './use-lista-precios-vehicles';
+import { useListaPreciosUsageEvents } from './use-lista-precios-usage-events';
 import { VariantsScreen } from './variants-screen';
 
 const DEFAULT_WHATSAPP_NUMBER = '595976511016';
@@ -88,6 +89,7 @@ export function ListaPreciosApplication({
     () => parseListaPreciosRoute(pathname, application.launchPath),
     [pathname, application.launchPath],
   );
+  const { recordConsultationStarted } = useListaPreciosUsageEvents(api, route, vehiclesState);
 
   const navigateWithinApp = useCallback(
     (nextPathname: string): void => {
@@ -170,6 +172,7 @@ export function ListaPreciosApplication({
             import.meta.env.VITE_LISTA_PRECIOS_WA_MESSAGE_TEMPLATE ??
             DEFAULT_WHATSAPP_MESSAGE_TEMPLATE
           }
+          onConsultationStarted={recordConsultationStarted}
         />
       ) : null}
 

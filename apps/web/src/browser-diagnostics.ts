@@ -4,7 +4,8 @@ import {
   normalizeRequestRoute,
 } from '@timbo/observability';
 
-export type BrowserOperation = 'hello-world.request-joke' | 'hello-world.translate-joke';
+export type BrowserOperation =
+  'hello-world.request-joke' | 'hello-world.translate-joke' | 'lista-precios.record-usage-event';
 
 export interface BrowserOperationFailureContext {
   operation: BrowserOperation;

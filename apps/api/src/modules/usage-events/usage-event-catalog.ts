@@ -43,4 +43,24 @@ export const PRODUCT_USAGE_EVENT_CATALOG: UsageEventCatalog = {
     appKey: 'hello-world',
     metadataFields: [],
   },
+  'lista-precios.catalog_opened': {
+    appKey: 'lista-precios',
+    metadataFields: [],
+  },
+  'lista-precios.model_viewed': {
+    appKey: 'lista-precios',
+    target: { targetType: 'vehicle_model', required: true, maxIdLength: 256 },
+    metadataFields: [
+      { name: 'brand', required: true, type: 'string', maxLength: 80 },
+      { name: 'model', required: true, type: 'string', maxLength: 120 },
+    ],
+  },
+  'lista-precios.consultation_started': {
+    appKey: 'lista-precios',
+    target: { targetType: 'vehicle_model', required: true, maxIdLength: 256 },
+    metadataFields: [
+      { name: 'brand', required: true, type: 'string', maxLength: 80 },
+      { name: 'model', required: true, type: 'string', maxLength: 120 },
+    ],
+  },
 };

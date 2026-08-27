@@ -59,6 +59,38 @@ describe('ActivityService', () => {
     expect(result.items[0]).toMatchObject({ target: 'item:item-a', metadata: {} });
   });
 
+  it('expone sólo marca y modelo aprobados de los eventos de Lista de Precios', async () => {
+    prismaService.$queryRaw
+      .mockResolvedValueOnce([
+        {
+          id: 'event-price-list',
+          source: 'USAGE',
+          actor: 'Persona Timbo',
+          appKey: 'lista-precios',
+          eventName: 'lista-precios.model_viewed',
+          outcome: 'SUCCESS',
+          visitId: 'a75a9b36-fcb4-4489-a3ea-f1e9a8d5d398',
+          targetType: 'vehicle_model',
+          targetId: 'facchini|granelero',
+          metadata: {
+            brand: 'FACCHINI',
+            model: 'GRANELERO',
+            whatsappMessage: 'No debe exponerse',
+          },
+          occurredAt: new Date('2026-08-21T12:00:00.000Z'),
+        },
+      ])
+      .mockResolvedValueOnce([{ total: 1 }]);
+
+    const result = await service.list(parseActivityQuery({}));
+    expect(result.items[0]).toMatchObject({
+      visitId: 'a75a9b36-fcb4-4489-a3ea-f1e9a8d5d398',
+      targetType: 'vehicle_model',
+      targetId: 'facchini|granelero',
+      metadata: { brand: 'FACCHINI', model: 'GRANELERO' },
+    });
+  });
+
   it('exporta el filtro completo como CSV UTF-8 y neutraliza fórmulas aun con espacios o controles', async () => {
     const unsafeActors = [
       '=directo',
@@ -103,6 +135,30 @@ describe('ActivityService', () => {
     expect(csv).toContain("'\u0001=control");
     expect(csv).toContain('"texto, ""con comillas"""');
     expect(prismaService.$queryRaw).toHaveBeenCalledTimes(2);
+  });
+
+  it('exporta visita, objetivo, marca y modelo en columnas separadas', async () => {
+    prismaService.$queryRaw.mockResolvedValueOnce([{ total: 1 }]).mockResolvedValueOnce([
+      {
+        id: 'event-price-list',
+        source: 'USAGE',
+        actor: 'Persona Timbo',
+        appKey: 'lista-precios',
+        eventName: 'lista-precios.model_viewed',
+        outcome: 'SUCCESS',
+        visitId: 'a75a9b36-fcb4-4489-a3ea-f1e9a8d5d398',
+        targetType: 'vehicle_model',
+        targetId: 'facchini|granelero',
+        metadata: { brand: 'FACCHINI', model: 'GRANELERO' },
+        occurredAt: new Date('2026-08-21T12:00:00.000Z'),
+      },
+    ]);
+
+    const csv = await service.exportCsv(parseActivityQuery({}));
+    expect(csv).toContain('"Visita","Tipo de objetivo","Id objetivo","Marca","Modelo"');
+    expect(csv).toContain(
+      '"a75a9b36-fcb4-4489-a3ea-f1e9a8d5d398","vehicle_model","facchini|granelero","FACCHINI","GRANELERO"',
+    );
   });
 
   it('rechaza explícitamente una exportación superior al límite', async () => {

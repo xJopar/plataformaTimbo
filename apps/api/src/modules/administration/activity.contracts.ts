@@ -31,6 +31,9 @@ export interface ActivityItem {
   appKey: string;
   eventName: string;
   outcome: string;
+  visitId: string | null;
+  targetType: string | null;
+  targetId: string | null;
   target: string | null;
   metadata: Record<string, string>;
   occurredAt: string;

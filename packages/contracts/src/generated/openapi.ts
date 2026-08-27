@@ -537,6 +537,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications/lista-precios/usage-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Registra un hito de uso permitido de Lista de Precios. */
+        post: operations["recordListaPreciosUsageEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -806,6 +823,27 @@ export interface components {
             aproxLlegada: string;
             disponible1: string;
             stock: string;
+        };
+        ListaPreciosUsageEventRequestDto: {
+            /**
+             * Format: uuid
+             * @description Identificador idempotente del evento de uso.
+             */
+            eventId: string;
+            /**
+             * Format: uuid
+             * @description Identificador efímero de la visita a Lista de Precios.
+             */
+            visitId: string;
+            /**
+             * @description Hito de uso permitido por Lista de Precios.
+             * @enum {string}
+             */
+            eventName: "lista-precios.catalog_opened" | "lista-precios.model_viewed" | "lista-precios.consultation_started";
+            /** @description Marca del modelo visto o consultado. */
+            brand?: string;
+            /** @description Modelo visto o consultado. */
+            model?: string;
         };
         HealthResponseDto: {
             /**
@@ -1520,6 +1558,10 @@ export interface operations {
                             appKey: string;
                             eventName: string;
                             outcome: string;
+                            /** Format: uuid */
+                            visitId: string | null;
+                            targetType: string | null;
+                            targetId: string | null;
                             target: string | null;
                             metadata: {
                                 [key: string]: string;
@@ -1728,6 +1770,35 @@ export interface operations {
             };
             /** @description Zoho Analytics no está disponible. */
             502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    recordListaPreciosUsageEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListaPreciosUsageEventRequestDto"];
+            };
+        };
+        responses: {
+            /** @description El evento fue procesado sin interrumpir el recorrido. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description El evento de uso no cumple el contrato permitido. */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

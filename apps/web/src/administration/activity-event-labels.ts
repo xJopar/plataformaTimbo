@@ -22,6 +22,9 @@ const EVENT_LABELS: Record<string, string> = {
   'access.application_profile_permission_removed': 'Permiso retirado de perfil',
   'access.user_application_profile_assigned': 'Perfil funcional asignado a usuario',
   'access.user_application_profile_unassigned': 'Perfil funcional desasignado de usuario',
+  'lista-precios.catalog_opened': 'Ingresó al catálogo',
+  'lista-precios.model_viewed': 'Vio un modelo',
+  'lista-precios.consultation_started': 'Inició una consulta',
 };
 
 /**

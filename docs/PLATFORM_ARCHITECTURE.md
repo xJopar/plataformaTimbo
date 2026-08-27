@@ -21,11 +21,13 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
 - contratos OpenAPI generados y consumidos de forma tipada por la Web;
 - launcher que presenta las aplicaciones activas asignadas al usuario autenticado;
 - aplicación `Hello World` en `/apps/hello-world` como comprobación del App Shell y de una
-  integración externa sin clave de API.
+  integración externa sin clave de API;
+- aplicación `Lista de Precios` en `/apps/lista-precios`, con rutas internas para marcas, modelos,
+  variantes y detalle de vehículos.
 
-Todavía no existe una aplicación de negocio migrada al App Shell. `Hello World` es una
-comprobación técnica, no una aplicación de negocio. También es el primer productor de uso: registra
-la solicitud de un chiste, sin registrar su contenido ni su traducción.
+`Hello World` continúa como comprobación técnica y productor de uso para una integración externa.
+`Lista de Precios` es la primera aplicación de negocio migrada y registra sólo hitos comerciales
+acotados, no clics ni contenido de catálogo completo.
 
 ## Componentes del workspace
 
@@ -36,6 +38,8 @@ API NestJS y única propietaria de PostgreSQL y Prisma. Sus módulos vigentes so
 - `health`: disponibilidad de la API;
 - `auth`: OAuth con Google, cookie de sesión, logout, CSRF y traducción de errores públicos;
 - `hello-world`: endpoint funcional protegido y obtención de chistes desde icanhazdadjoke;
+- `lista-precios`: catálogo protegido de vehículos desde Zoho Analytics y eventos de uso del
+  recorrido comercial;
 - `users`: preautorización, consulta y cambios administrativos de usuarios;
 - `access-profiles`: perfil de sistema `PLATFORM_ADMIN` y autorización funcional por aplicación;
 - `administration`: endpoints protegidos para usuarios, aplicaciones, asignaciones, perfiles,
@@ -158,10 +162,16 @@ Los eventos de uso se validan contra el catálogo inyectado en `UsageEventsModul
 permite reintentos idempotentes y un fallo inesperado de persistencia se convierte en resultado
 `failed`, acompañado por un diagnóstico operativo seguro. El catálogo productivo actual define
 `hello-world.joke_requested`, sin objetivo ni metadata, porque sólo necesita medir la solicitud.
+Lista de Precios agrega `lista-precios.catalog_opened` una vez por visita,
+`lista-precios.model_viewed` una vez por modelo y visita, y
+`lista-precios.consultation_started` al abrir la consulta. Los dos últimos usan el objetivo
+`vehicle_model` con una clave normalizada `marca|modelo` y metadata tipada `brand`/`model` para la
+exportación administrativa; no conservan stock, filtros, precios ni mensajes.
 
 Administración consulta ambas tablas mediante una proyección unificada. La respuesta redacta la
-metadata por allowlist y la exportación CSV protege contra fórmulas; no expone la metadata cruda
-persistida.
+metadata por allowlist y la exportación CSV protege contra fórmulas; para Lista de Precios expone
+explícitamente visita, tipo/id de objetivo, marca y modelo en columnas separadas, sin revelar la
+metadata cruda persistida.
 
 ## Persistencia y contratos
 

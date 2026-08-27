@@ -19,6 +19,7 @@ interface ActivityRow {
   appKey: string;
   eventName: string;
   outcome: string;
+  visitId: string | null;
   targetType: string | null;
   targetId: string | null;
   metadata: unknown;
@@ -53,6 +54,7 @@ export class ActivityService {
     const [rows, countRows] = await Promise.all([
       this.prismaService.$queryRaw<ActivityRow[]>(Prisma.sql`
         SELECT id, source, actor, app_key AS "appKey", event_name AS "eventName", outcome,
+          visit_id AS "visitId",
           target_type AS "targetType", target_id AS "targetId", metadata, occurred_at AS "occurredAt"
         FROM (${activityRowsQuery}) AS activity_rows
         ORDER BY occurred_at DESC, id DESC
@@ -136,7 +138,8 @@ export class ActivityService {
     }
 
     const rows = await this.prismaService.$queryRaw<ActivityRow[]>(Prisma.sql`
-      SELECT id, source, actor, app_key AS "appKey", event_name AS "eventName", outcome,
+        SELECT id, source, actor, app_key AS "appKey", event_name AS "eventName", outcome,
+          visit_id AS "visitId",
         target_type AS "targetType", target_id AS "targetId", metadata, occurred_at AS "occurredAt"
       FROM (${activityRowsQuery}) AS activity_rows
       ORDER BY occurred_at DESC, id DESC
@@ -165,7 +168,7 @@ export class ActivityService {
         SELECT
           audit_events.id, 'AUDIT'::text AS source, audit_events.actor_user_id,
           audit_events.app_key, audit_events.event_name, audit_events.outcome::text, audit_events.target_type,
-          audit_events.target_id, audit_events.metadata, audit_events.occurred_at,
+          audit_events.target_id, NULL::uuid AS visit_id, audit_events.metadata, audit_events.occurred_at,
           CASE
             WHEN audit_events.actor_user_id IS NOT NULL THEN COALESCE(NULLIF(users.display_name, ''), 'Usuario')
             WHEN audit_events.system_actor_key IS NOT NULL THEN audit_events.system_actor_key
@@ -178,7 +181,7 @@ export class ActivityService {
         SELECT
           usage_events.id, 'USAGE'::text AS source, usage_events.actor_user_id,
           usage_events.app_key, usage_events.event_name, 'SUCCESS'::text, usage_events.target_type,
-          usage_events.target_id, usage_events.metadata, usage_events.occurred_at,
+          usage_events.target_id, usage_events.visit_id, usage_events.metadata, usage_events.occurred_at,
           COALESCE(NULLIF(users.display_name, ''), 'Usuario') AS actor
         FROM usage_events
         INNER JOIN users ON users.id = usage_events.actor_user_id
@@ -195,6 +198,9 @@ function toActivityItem(row: ActivityRow): ActivityItem {
     appKey: row.appKey,
     eventName: row.eventName,
     outcome: row.outcome,
+    visitId: row.visitId,
+    targetType: row.targetType,
+    targetId: row.targetId,
     target:
       row.targetType === null || row.targetId === null ? null : `${row.targetType}:${row.targetId}`,
     metadata: redactMetadata(row.source, row.eventName, row.metadata),
@@ -221,6 +227,15 @@ function redactMetadata(
   ) {
     return { reasonCode: metadata.reasonCode };
   }
+  if (
+    source === 'USAGE' &&
+    ['lista-precios.model_viewed', 'lista-precios.consultation_started'].includes(eventName) &&
+    isRecord(metadata) &&
+    isBoundedActivityText(metadata.brand, 80) &&
+    isBoundedActivityText(metadata.model, 120)
+  ) {
+    return { brand: metadata.brand, model: metadata.model };
+  }
   return {};
 }
 
@@ -232,7 +247,11 @@ function createActivityCsv(items: ActivityItem[]): string {
     'Aplicación',
     'Evento',
     'Resultado',
-    'Objetivo',
+    'Visita',
+    'Tipo de objetivo',
+    'Id objetivo',
+    'Marca',
+    'Modelo',
     'Detalle seguro',
   ];
   const body = items.map((item) => [
@@ -242,8 +261,13 @@ function createActivityCsv(items: ActivityItem[]): string {
     item.appKey,
     item.eventName,
     item.outcome,
-    item.target ?? '',
+    item.visitId ?? '',
+    item.targetType ?? '',
+    item.targetId ?? '',
+    item.metadata.brand ?? '',
+    item.metadata.model ?? '',
     Object.entries(item.metadata)
+      .filter(([key]) => key !== 'brand' && key !== 'model')
       .map(([key, value]) => `${key}: ${value}`)
       .join('; '),
   ]);
@@ -299,4 +323,8 @@ function toSafeNumber(value: number | bigint | string | undefined): number {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isBoundedActivityText(value: unknown, maxLength: number): value is string {
+  return typeof value === 'string' && value.trim().length > 0 && value.length <= maxLength;
 }
