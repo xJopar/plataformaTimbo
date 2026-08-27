@@ -478,7 +478,7 @@
   outline-offset: -3px;
 }
 
-.cc-percent-input {
+.cc-inline-input {
   display: flex;
   align-items: center;
   gap: var(--cc-sp-2);
@@ -487,7 +487,7 @@
   border: 1px solid var(--cc-c-border-strong);
   background: var(--cc-c-surface-alt);
 }
-.cc-percent-input input {
+.cc-inline-input input {
   flex: 1;
   min-height: 0;
   border: none;
@@ -495,12 +495,55 @@
   color: var(--cc-c-text-primary);
   font-weight: 700;
 }
-.cc-percent-input input:focus-visible {
+.cc-inline-input input:focus-visible {
   outline: none;
 }
-.cc-percent-input span {
+.cc-inline-input span {
+  flex-shrink: 0;
   color: var(--cc-c-text-secondary);
   font-weight: 700;
+}
+
+/* ── Checkbox de refuerzos opcionales ── */
+.cc-checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: var(--cc-sp-2);
+  cursor: pointer;
+}
+
+/* ── Aplicar cambios: plazo, entrega inicial y periodicidades quedan "quietos" hasta que se
+   presiona Calcular — el botón se activa y el aviso aparece sólo cuando hay algo para aplicar. ── */
+.cc-apply-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--cc-sp-3);
+  margin-top: var(--cc-sp-5);
+}
+.cc-apply-hint {
+  color: var(--cc-c-error-ink);
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+.cc-apply-btn {
+  min-height: 44px;
+  padding: 0 var(--cc-sp-5);
+  border: 1px solid var(--cc-c-brand);
+  background: var(--cc-c-brand);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--cc-t-fast);
+}
+.cc-apply-btn:hover:not(:disabled) {
+  background: var(--cc-c-brand-dark);
+}
+.cc-apply-btn:disabled {
+  border-color: var(--cc-c-border);
+  background: var(--cc-c-border);
+  color: var(--cc-c-text-disabled);
+  cursor: default;
 }
 
 /* ── Cuotero: única superficie con acento — es el resultado, se distingue del resto del flujo.

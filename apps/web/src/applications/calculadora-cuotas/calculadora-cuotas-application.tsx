@@ -8,15 +8,18 @@ import './calculadora-cuotas-application.css';
 import { AddItemPanel } from './add-item-panel';
 import { AddedItemsList } from './added-items-list';
 import { ConfirmRemoveDialog } from './confirm-remove-dialog';
-import { FinancingConfig, type FinancingConfigValue } from './financing-config';
+import { FinancingConfig, isSameFinancingConfig, type FinancingConfigValue } from './financing-config';
 import { InstallmentSummary } from './installment-summary';
 import { calculateInstallmentPlan, sumItemsUsd, type CalculatorItem } from './installment-calculator';
 import { parseCalculadoraCuotasRoute } from './calculadora-cuotas-routes';
 
 const DEFAULT_CONFIG: FinancingConfigValue = {
+  downPaymentMode: 'percent',
   downPaymentPercent: 20,
+  downPaymentManualUsd: 0,
   termMonths: 36,
   installmentPeriodicity: 'mensual',
+  reinforcementsEnabled: true,
   reinforcementPeriodicity: 'semestral',
 };
 
@@ -33,7 +36,11 @@ export function CalculadoraCuotasApplication({
 }: ApplicationComponentProps): React.JSX.Element {
   const { state: vehiclesState } = useVehicleCatalog(api);
   const [items, setItems] = useState<CalculatorItem[]>([]);
-  const [config, setConfig] = useState<FinancingConfigValue>(DEFAULT_CONFIG);
+  // `draftConfig` sigue los controles en vivo; `appliedConfig` es lo que realmente alimenta el
+  // cálculo y sólo se actualiza al presionar "Calcular" — así plazo/entrega inicial/periodicidad
+  // quedan quietos mientras se ajustan, en vez de recalcular en cada tecla o clic.
+  const [draftConfig, setDraftConfig] = useState<FinancingConfigValue>(DEFAULT_CONFIG);
+  const [appliedConfig, setAppliedConfig] = useState<FinancingConfigValue>(DEFAULT_CONFIG);
   const [pendingRemovalId, setPendingRemovalId] = useState<string | undefined>(undefined);
   const [preloadNotice, setPreloadNotice] = useState<string | undefined>(undefined);
   const preloadHandled = useRef(false);
@@ -76,13 +83,17 @@ export function CalculadoraCuotasApplication({
     () =>
       calculateInstallmentPlan({
         items,
-        downPaymentPercent: config.downPaymentPercent,
-        termMonths: config.termMonths,
-        installmentPeriodicity: config.installmentPeriodicity,
-        reinforcementPeriodicity: config.reinforcementPeriodicity,
+        downPaymentMode: appliedConfig.downPaymentMode,
+        downPaymentPercent: appliedConfig.downPaymentPercent,
+        downPaymentManualUsd: appliedConfig.downPaymentManualUsd,
+        termMonths: appliedConfig.termMonths,
+        installmentPeriodicity: appliedConfig.installmentPeriodicity,
+        reinforcementsEnabled: appliedConfig.reinforcementsEnabled,
+        reinforcementPeriodicity: appliedConfig.reinforcementPeriodicity,
       }),
-    [items, config],
+    [items, appliedConfig],
   );
+  const isConfigDirty = !isSameFinancingConfig(draftConfig, appliedConfig);
 
   const pendingRemovalItem = items.find((item) => item.id === pendingRemovalId);
   const hasItems = items.length > 0;
@@ -97,10 +108,19 @@ export function CalculadoraCuotasApplication({
     setPendingRemovalId(undefined);
   }
 
+  function applyConfig(): void {
+    setAppliedConfig(draftConfig);
+  }
+
   function jumpToCuotero(): void {
     const section = document.getElementById('cc-cuotero-section');
     section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     section?.focus();
+  }
+
+  function handleMobileBarClick(): void {
+    if (isConfigDirty) applyConfig();
+    jumpToCuotero();
   }
 
   return (
@@ -142,11 +162,17 @@ export function CalculadoraCuotasApplication({
           </div>
 
           <div className="cc-layout-aside">
-            <FinancingConfig value={config} totalPriceUsd={totalPriceUsd} onChange={setConfig} />
+            <FinancingConfig
+              value={draftConfig}
+              totalPriceUsd={totalPriceUsd}
+              isDirty={isConfigDirty}
+              onChange={setDraftConfig}
+              onApply={applyConfig}
+            />
             <InstallmentSummary
               plan={plan}
-              installmentPeriodicity={config.installmentPeriodicity}
-              reinforcementPeriodicity={config.reinforcementPeriodicity}
+              installmentPeriodicity={appliedConfig.installmentPeriodicity}
+              reinforcementPeriodicity={appliedConfig.reinforcementPeriodicity}
             />
           </div>
         </div>
@@ -157,8 +183,8 @@ export function CalculadoraCuotasApplication({
           <span className="cc-mobile-summary-total">
             USD {totalPriceUsd.toLocaleString('es-PY')}
           </span>
-          <button type="button" className="cc-mobile-summary-btn" onClick={jumpToCuotero}>
-            Ver cuotero
+          <button type="button" className="cc-mobile-summary-btn" onClick={handleMobileBarClick}>
+            {isConfigDirty ? 'Calcular cuota' : 'Ver cuotero'}
           </button>
         </div>
       ) : null}

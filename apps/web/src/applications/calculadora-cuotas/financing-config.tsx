@@ -1,25 +1,49 @@
-import { PERIODICITY_LABELS, type CuotaPeriodicity, type PlazoMeses } from './installment-calculator';
+import {
+  PERIODICITY_LABELS,
+  type CuotaPeriodicity,
+  type DownPaymentMode,
+  type PlazoMeses,
+} from './installment-calculator';
 
 const PLAZO_OPTIONS: PlazoMeses[] = [36, 48, 60];
 const PERIODICITY_OPTIONS: CuotaPeriodicity[] = ['mensual', 'semestral', 'anual'];
 
 export interface FinancingConfigValue {
+  downPaymentMode: DownPaymentMode;
   downPaymentPercent: number;
+  downPaymentManualUsd: number;
   termMonths: PlazoMeses;
   installmentPeriodicity: CuotaPeriodicity;
+  reinforcementsEnabled: boolean;
   reinforcementPeriodicity: CuotaPeriodicity;
+}
+
+export function isSameFinancingConfig(a: FinancingConfigValue, b: FinancingConfigValue): boolean {
+  return (
+    a.downPaymentMode === b.downPaymentMode &&
+    a.downPaymentPercent === b.downPaymentPercent &&
+    a.downPaymentManualUsd === b.downPaymentManualUsd &&
+    a.termMonths === b.termMonths &&
+    a.installmentPeriodicity === b.installmentPeriodicity &&
+    a.reinforcementsEnabled === b.reinforcementsEnabled &&
+    a.reinforcementPeriodicity === b.reinforcementPeriodicity
+  );
 }
 
 interface FinancingConfigProps {
   value: FinancingConfigValue;
   totalPriceUsd: number;
+  isDirty: boolean;
   onChange: (value: FinancingConfigValue) => void;
+  onApply: () => void;
 }
 
 export function FinancingConfig({
   value,
   totalPriceUsd,
+  isDirty,
   onChange,
+  onApply,
 }: FinancingConfigProps): React.JSX.Element {
   const hasItems = totalPriceUsd > 0;
 
@@ -58,24 +82,65 @@ export function FinancingConfig({
         </div>
 
         <div className="cc-field">
-          <label htmlFor="cc-down-payment">Entrega inicial</label>
-          <div className="cc-percent-input">
-            <input
-              id="cc-down-payment"
-              type="number"
-              min={0}
-              max={100}
-              step={1}
-              value={value.downPaymentPercent}
-              onChange={(event) =>
-                onChange({
-                  ...value,
-                  downPaymentPercent: Math.min(100, Math.max(0, Number(event.target.value))),
-                })
-              }
-            />
-            <span aria-hidden="true">%</span>
+          <span className="cc-field-label">Entrega inicial</span>
+          <div className="cc-segmented" role="radiogroup" aria-label="Modo de entrega inicial">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={value.downPaymentMode === 'percent'}
+              className={`cc-segmented-btn${value.downPaymentMode === 'percent' ? ' cc-segmented-btn--active' : ''}`}
+              onClick={() => onChange({ ...value, downPaymentMode: 'percent' })}
+            >
+              Porcentaje
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={value.downPaymentMode === 'manual'}
+              className={`cc-segmented-btn${value.downPaymentMode === 'manual' ? ' cc-segmented-btn--active' : ''}`}
+              onClick={() => onChange({ ...value, downPaymentMode: 'manual' })}
+            >
+              Monto manual
+            </button>
           </div>
+          {value.downPaymentMode === 'percent' ? (
+            <div className="cc-inline-input">
+              <input
+                id="cc-down-payment-percent"
+                aria-label="Entrega inicial en porcentaje"
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={value.downPaymentPercent}
+                onChange={(event) =>
+                  onChange({
+                    ...value,
+                    downPaymentPercent: Math.min(100, Math.max(0, Number(event.target.value))),
+                  })
+                }
+              />
+              <span aria-hidden="true">%</span>
+            </div>
+          ) : (
+            <div className="cc-inline-input">
+              <span aria-hidden="true">USD</span>
+              <input
+                id="cc-down-payment-manual"
+                aria-label="Entrega inicial en dólares"
+                type="number"
+                min={0}
+                step={100}
+                value={value.downPaymentManualUsd}
+                onChange={(event) =>
+                  onChange({
+                    ...value,
+                    downPaymentManualUsd: Math.max(0, Number(event.target.value)),
+                  })
+                }
+              />
+            </div>
+          )}
         </div>
 
         <div className="cc-field">
@@ -99,24 +164,49 @@ export function FinancingConfig({
         </div>
 
         <div className="cc-field">
-          <label htmlFor="cc-reinforcement-periodicity">Periodicidad de refuerzos</label>
-          <select
-            id="cc-reinforcement-periodicity"
-            value={value.reinforcementPeriodicity}
-            onChange={(event) =>
-              onChange({
-                ...value,
-                reinforcementPeriodicity: event.target.value as CuotaPeriodicity,
-              })
-            }
-          >
-            {PERIODICITY_OPTIONS.map((periodicity) => (
-              <option key={periodicity} value={periodicity}>
-                {PERIODICITY_LABELS[periodicity]}
-              </option>
-            ))}
-          </select>
+          <label className="cc-checkbox-field" htmlFor="cc-reinforcements-enabled">
+            <input
+              id="cc-reinforcements-enabled"
+              type="checkbox"
+              checked={value.reinforcementsEnabled}
+              onChange={(event) =>
+                onChange({ ...value, reinforcementsEnabled: event.target.checked })
+              }
+            />
+            Incluir refuerzos
+          </label>
+          {value.reinforcementsEnabled ? (
+            <select
+              id="cc-reinforcement-periodicity"
+              aria-label="Periodicidad de refuerzos"
+              value={value.reinforcementPeriodicity}
+              onChange={(event) =>
+                onChange({
+                  ...value,
+                  reinforcementPeriodicity: event.target.value as CuotaPeriodicity,
+                })
+              }
+            >
+              {PERIODICITY_OPTIONS.map((periodicity) => (
+                <option key={periodicity} value={periodicity}>
+                  {PERIODICITY_LABELS[periodicity]}
+                </option>
+              ))}
+            </select>
+          ) : null}
         </div>
+      </div>
+
+      <div className="cc-apply-row">
+        {isDirty ? <span className="cc-apply-hint">Cambios sin aplicar</span> : null}
+        <button
+          type="button"
+          className="cc-apply-btn"
+          disabled={!isDirty}
+          onClick={onApply}
+        >
+          Calcular cuota
+        </button>
       </div>
     </section>
   );
