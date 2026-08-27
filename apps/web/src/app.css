@@ -121,9 +121,12 @@ button:focus-visible {
   padding-inline: 0;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 .application-breadcrumb-back-label {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.8125rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 .top-bar-brand span,
@@ -238,6 +241,14 @@ button:focus-visible {
 .header-icon-action:disabled {
   cursor: progress;
   opacity: 0.65;
+}
+/* `.application-breadcrumb-back` combina esta clase (44x44, cuadrada, solo ícono) con
+   `.header-icon-action`, pero es un botón icono+etiqueta de ancho variable: sube la
+   especificidad aquí para que gane sin depender del orden de las reglas en el archivo. */
+.header-icon-action.application-breadcrumb-back {
+  display: inline-flex;
+  inline-size: auto;
+  justify-content: flex-start;
 }
 .header-icon-action::after {
   position: absolute;

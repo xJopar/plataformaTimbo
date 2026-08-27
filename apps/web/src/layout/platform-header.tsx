@@ -75,7 +75,7 @@ export function PlatformHeader({
               data-tooltip={backLabel === undefined ? 'Volver' : `Volver a ${backLabel}`}
               onClick={onBack}
             >
-              <AppIcon icon={ArrowLeft02Icon} />
+              <AppIcon icon={ArrowLeft02Icon} size={22} strokeWidth={2.5} />
               {backLabel === undefined ? null : (
                 <span className="application-breadcrumb-back-label">{backLabel}</span>
               )}
