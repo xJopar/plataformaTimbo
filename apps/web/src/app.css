@@ -90,15 +90,13 @@ button:focus-visible {
 .application-context {
   min-width: 0;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 2px 8px;
+  gap: 8px;
 }
 .application-current,
 .application-breadcrumb {
   min-width: 0;
   margin: 0;
-  order: 1;
   color: #fff;
   font-size: clamp(0.9375rem, 1.5vw, 1.125rem);
   font-weight: 750;
@@ -114,27 +112,6 @@ button:focus-visible {
 }
 .application-breadcrumb {
   flex: 1 1 auto;
-}
-/* El botón de volver siempre baja a su propia fila, debajo del nombre de la app y su ubicación:
-   `flex-basis: 100%` en un contenedor `wrap` fuerza el salto de línea sin importar el ancho
-   disponible, así que el mismo layout sirve en desktop y en mobile. */
-.application-breadcrumb-back {
-  flex-shrink: 0;
-  flex-basis: 100%;
-  order: 2;
-  min-inline-size: 44px;
-  inline-size: auto;
-  block-size: 44px;
-  padding-inline: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.application-breadcrumb-back-label {
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  white-space: nowrap;
 }
 .top-bar-brand span,
 .session-boot-header span {
@@ -249,14 +226,6 @@ button:focus-visible {
   cursor: progress;
   opacity: 0.65;
 }
-/* `.application-breadcrumb-back` combina esta clase (44x44, cuadrada, solo ícono) con
-   `.header-icon-action`, pero es un botón icono+etiqueta de ancho variable: sube la
-   especificidad aquí para que gane sin depender del orden de las reglas en el archivo. */
-.header-icon-action.application-breadcrumb-back {
-  display: inline-flex;
-  inline-size: auto;
-  justify-content: flex-start;
-}
 .header-icon-action::after {
   position: absolute;
   z-index: 1;
@@ -316,6 +285,41 @@ button:focus-visible {
 }
 .subheader time {
   color: #526176;
+}
+/* Franja de navegación de la app, entre la barra azul y `.subheader`: sólo existe cuando la
+   app pasa `breadcrumb` + `onBack` (hoy, lista-precios). Usa nombres de sección genéricos
+   y cortos (p. ej. "Marcas", "Modelos") en vez del valor elegido, así nunca compite en ancho
+   con el título de la barra azul ni necesita truncarse en mobile. */
+.app-breadcrumb-bar {
+  min-height: 44px;
+  padding: 0 clamp(20px, 5vw, 72px);
+  padding-inline: max(clamp(20px, 5vw, 72px), env(safe-area-inset-left))
+    max(clamp(20px, 5vw, 72px), env(safe-area-inset-right));
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #bcc9d7;
+  background: #f7f9fb;
+}
+.app-breadcrumb-back {
+  flex-shrink: 0;
+  min-block-size: 44px;
+  margin-inline-start: -8px;
+  padding-inline: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: #00388a;
+  cursor: pointer;
+}
+.app-breadcrumb-back:hover {
+  color: #142033;
+}
+.app-breadcrumb-back-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 .dispatch-board {
   width: min(1280px, 100%);
@@ -1085,8 +1089,7 @@ th {
     padding-block-end: 6px;
   }
   .application-current,
-  .application-breadcrumb,
-  .application-breadcrumb-back-label {
+  .application-breadcrumb {
     font-size: 0.8125rem;
   }
   .application-switcher summary {

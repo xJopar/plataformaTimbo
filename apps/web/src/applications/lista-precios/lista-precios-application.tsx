@@ -57,16 +57,16 @@ function computeBackLabel(
     case 'brand':
       return 'Marcas';
     case 'variants':
-      return route.brand;
+      return 'Modelos';
     case 'detail': {
       if (vehiclesState.status !== 'ready') {
         return 'Modelo';
       }
       const group = vehiclesState.groups.get(route.modelKey);
-      return group === undefined ? 'Modelo' : `Modelos`;
+      return group === undefined ? 'Variante' : `Variantes`;
     }
     case 'not-found':
-      return 'Lista de Precios';
+      return 'Inicio';
   }
 }
 

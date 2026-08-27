@@ -816,7 +816,7 @@ describe('App', () => {
     expect(screen.getByLabelText('Aplicación actual: Hello World')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Inicio' })).not.toBeInTheDocument();
     expect(screen.queryByText('Herramienta de demostración')).not.toBeInTheDocument();
-    expect(screen.getByText('Hola,')).toBeInTheDocument();
+    expect(screen.getByLabelText('Información de sesión')).toHaveTextContent('Persona Timbo');
     const applicationSwitcher = screen.getByLabelText('Cambiar aplicación');
     expect(applicationSwitcher.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument();
     await user.click(applicationSwitcher);
@@ -903,8 +903,8 @@ describe('App', () => {
       />,
     );
 
-    const backButton = await screen.findByRole('button', { name: 'Volver a Inicio' });
-    expect(backButton).toHaveAttribute('data-tooltip', 'Volver a Inicio');
+    const backButton = await screen.findByRole('button', { name: 'Volver a Marcas' });
+    expect(backButton).toHaveTextContent('Marcas');
     expect(screen.getByText('Scania')).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: 'Aplicación no disponible' }),

@@ -36,7 +36,7 @@ export function PlatformSessionBar({ session }: PlatformSessionBarProps): React.
   return (
     <section className="subheader" aria-label="Información de sesión">
       <p>
-        Hola, <strong>{employeeName}</strong>
+        <strong>{employeeName}</strong>
       </p>
       <time dateTime={currentDateTime.toISOString()}>{formatCurrentDateTime(currentDateTime)}</time>
     </section>
