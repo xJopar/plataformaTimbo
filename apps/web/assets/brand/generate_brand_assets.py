@@ -155,7 +155,7 @@ def main() -> None:
     brand_directory.mkdir(parents=True, exist_ok=True)
     icons_directory.mkdir(parents=True, exist_ok=True)
 
-    with Image.open(SOURCE_DIRECTORY / "timbo-wordmark-source.jpg") as wordmark_source:
+    with Image.open(SOURCE_DIRECTORY / "LOGO TIMBO-01.png") as wordmark_source:
         wordmark = wordmark_source.convert("RGB")
         wordmark_asset(wordmark, brand_directory / "timbo-wordmark.webp")
         wordmark_mark_asset(wordmark, brand_directory / "timbo-wordmark-mark.webp")
