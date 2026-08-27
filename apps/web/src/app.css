@@ -1075,7 +1075,20 @@ th {
   .top-bar--application .application-context {
     grid-column: 1 / -1;
     grid-row: 2;
+    flex-wrap: wrap;
+    gap: 2px 8px;
     padding-block-end: 6px;
+  }
+  /* El nombre de la app y su ubicación van en la fila de arriba; el botón de volver, con su
+     propio destino corto, pasa a una fila propia debajo para que ninguno de los dos se trunque
+     compitiendo por el mismo ancho. */
+  .application-current,
+  .application-breadcrumb {
+    order: 1;
+  }
+  .application-breadcrumb-back {
+    order: 2;
+    flex-basis: 100%;
   }
   .application-current,
   .application-breadcrumb,
