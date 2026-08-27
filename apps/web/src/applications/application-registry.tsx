@@ -1,11 +1,14 @@
 import type { ComponentType } from 'react';
 import type { ApplicationComponentProps } from './application-component';
+import { CALCULADORA_CUOTAS_LAUNCH_PATH } from './calculadora-cuotas/calculadora-cuotas-routes';
+import { CalculadoraCuotasApplication } from './calculadora-cuotas/calculadora-cuotas-application';
 import { HelloWorldApplication } from './hello-world/hello-world-application';
 import { ListaPreciosApplication } from './lista-precios/lista-precios-application';
 
 const applicationComponents: Record<string, ComponentType<ApplicationComponentProps>> = {
   '/apps/hello-world': HelloWorldApplication,
   '/apps/lista-precios': ListaPreciosApplication,
+  [CALCULADORA_CUOTAS_LAUNCH_PATH]: CalculadoraCuotasApplication,
 };
 
 /**

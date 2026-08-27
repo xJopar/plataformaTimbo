@@ -167,12 +167,14 @@ export function ListaPreciosApplication({
         <DetailScreen
           modelKey={route.modelKey}
           vehiclesState={vehiclesState}
+          availableApplications={availableApplications}
           whatsAppNumber={import.meta.env.VITE_LISTA_PRECIOS_WA_NUMBER ?? DEFAULT_WHATSAPP_NUMBER}
           whatsAppMessageTemplate={
             import.meta.env.VITE_LISTA_PRECIOS_WA_MESSAGE_TEMPLATE ??
             DEFAULT_WHATSAPP_MESSAGE_TEMPLATE
           }
           onConsultationStarted={recordConsultationStarted}
+          onNavigate={onNavigate}
         />
       ) : null}
 

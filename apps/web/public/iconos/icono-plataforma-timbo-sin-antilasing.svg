@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="512"
+   height="512"
+   viewBox="0 0 512 512"
+   sodipodi:docname="icono-plataforma-timbo-sin-antilasing.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.70710678"
+     inkscape:cx="222.03153"
+     inkscape:cy="259.50819"
+     inkscape:window-width="1366"
+     inkscape:window-height="697"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     showgrid="true" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="SVG"
+     style="fill:#000000">
+    <rect
+       style="fill:#1f245c;fill-opacity:1;stroke:#09b3b8;stroke-width:1.328;stroke-opacity:0"
+       id="rect4"
+       width="512.02277"
+       height="512.01611"
+       x="-0.01171875"
+       y="-0.0078125" />
+    <path
+       style="fill:#ffffff;stroke:#09b3b8;stroke-width:1.328;fill-opacity:1;stroke-opacity:0"
+       d="m 107.57172,225.48687 19.65252,-98.26263 h 276.1697 l -19.65253,100.33132 -75.50707,-1.03435 -35.16767,160.32323 H 153.08283 l 31.0303,-160.32323 z"
+       id="path1" />
+  </g>
+</svg>

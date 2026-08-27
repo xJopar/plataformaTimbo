@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import type { VehicleResponse } from '../../api';
+import type { AuthorizedApplication, VehicleResponse } from '../../api';
+import {
+  CALCULADORA_CUOTAS_LAUNCH_PATH,
+  buildFromStockPath,
+} from '../calculadora-cuotas/calculadora-cuotas-routes';
 import { formatPrice, parsePrice } from '../../vehicle-catalog/vehicle-catalog';
 import { Loader } from './loader';
 import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
@@ -10,9 +14,11 @@ const SEMIRREMOLQUE_BRANDS = ['FACCHINI', 'LIBRELATO'];
 interface DetailScreenProps {
   modelKey: string;
   vehiclesState: VehicleCatalogState;
+  availableApplications: readonly AuthorizedApplication[];
   whatsAppNumber: string;
   whatsAppMessageTemplate: string;
   onConsultationStarted: () => void;
+  onNavigate: (pathname: string) => void;
 }
 
 function InfoRow({
@@ -91,12 +97,17 @@ function StockUnit({
 export function DetailScreen({
   modelKey,
   vehiclesState,
+  availableApplications,
   whatsAppNumber,
   whatsAppMessageTemplate,
   onConsultationStarted,
+  onNavigate,
 }: DetailScreenProps): React.JSX.Element {
   const [selectedUnit, setSelectedUnit] = useState<VehicleResponse | null>(null);
   const group = vehiclesState.status === 'ready' ? vehiclesState.groups.get(modelKey) : undefined;
+  const canCalculateInstallments = availableApplications.some(
+    (application) => application.launchPath === CALCULADORA_CUOTAS_LAUNCH_PATH,
+  );
 
   useEffect(() => {
     if (selectedUnit !== null) {
@@ -228,6 +239,20 @@ export function DetailScreen({
                     <span className="lp-price-band-lbl">Precio lista</span>
                     <span className="lp-price-band-val">{formatPrice(unitPrice)}</span>
                   </div>
+                ) : null}
+
+                {unitPrice !== null && canCalculateInstallments ? (
+                  <button
+                    type="button"
+                    className="lp-installment-link"
+                    onClick={() =>
+                      onNavigate(
+                        buildFromStockPath(CALCULADORA_CUOTAS_LAUNCH_PATH, selectedUnit.stock),
+                      )
+                    }
+                  >
+                    Calcular cuota para esta unidad
+                  </button>
                 ) : null}
 
                 <div className="lp-unit-fields-section">
