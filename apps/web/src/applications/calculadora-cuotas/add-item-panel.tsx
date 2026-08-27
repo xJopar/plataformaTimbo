@@ -97,8 +97,8 @@ export function AddItemPanel({
   }
 
   return (
-    <section className="cc-panel" aria-labelledby="cc-add-title">
-      <h2 id="cc-add-title" className="cc-panel-title">
+    <section className="cc-section" aria-labelledby="cc-add-title">
+      <h2 id="cc-add-title" className="cc-section-title">
         Agregar al cálculo
       </h2>
 

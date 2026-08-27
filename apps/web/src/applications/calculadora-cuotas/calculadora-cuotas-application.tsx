@@ -85,6 +85,7 @@ export function CalculadoraCuotasApplication({
   );
 
   const pendingRemovalItem = items.find((item) => item.id === pendingRemovalId);
+  const hasItems = items.length > 0;
 
   function addItem(item: CalculatorItem): void {
     if (existingItemIds.has(item.id)) return;
@@ -94,6 +95,12 @@ export function CalculadoraCuotasApplication({
   function confirmRemoval(itemId: string): void {
     setItems((current) => current.filter((item) => item.id !== itemId));
     setPendingRemovalId(undefined);
+  }
+
+  function jumpToCuotero(): void {
+    const section = document.getElementById('cc-cuotero-section');
+    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    section?.focus();
   }
 
   return (
@@ -117,37 +124,44 @@ export function CalculadoraCuotasApplication({
         </p>
       )}
 
-      <section className="cc-page" aria-labelledby="cc-title">
-        <div className="cc-intro">
-          <h1 id="cc-title">Calculadora de cuotas</h1>
-          <p>
-            Armá un plan de financiación combinando unidades de Lista de Precios o un precio
-            manual en dólares.
-          </p>
-        </div>
-
+      <div className={`cc-page${hasItems ? ' cc-page--has-mobile-bar' : ''}`}>
         {preloadNotice === undefined ? null : (
           <p className="cc-preload-notice" role="status">
             {preloadNotice}
           </p>
         )}
 
-        <AddItemPanel
-          vehiclesState={vehiclesState}
-          existingItemIds={existingItemIds}
-          onAddItem={addItem}
-        />
+        <div className="cc-layout">
+          <div className="cc-layout-main">
+            <AddItemPanel
+              vehiclesState={vehiclesState}
+              existingItemIds={existingItemIds}
+              onAddItem={addItem}
+            />
+            <AddedItemsList items={items} onRequestRemove={setPendingRemovalId} />
+          </div>
 
-        <AddedItemsList items={items} onRequestRemove={setPendingRemovalId} />
+          <div className="cc-layout-aside">
+            <FinancingConfig value={config} totalPriceUsd={totalPriceUsd} onChange={setConfig} />
+            <InstallmentSummary
+              plan={plan}
+              installmentPeriodicity={config.installmentPeriodicity}
+              reinforcementPeriodicity={config.reinforcementPeriodicity}
+            />
+          </div>
+        </div>
+      </div>
 
-        <FinancingConfig value={config} totalPriceUsd={totalPriceUsd} onChange={setConfig} />
-
-        <InstallmentSummary
-          plan={plan}
-          installmentPeriodicity={config.installmentPeriodicity}
-          reinforcementPeriodicity={config.reinforcementPeriodicity}
-        />
-      </section>
+      {hasItems ? (
+        <div className="cc-mobile-summary" role="status">
+          <span className="cc-mobile-summary-total">
+            USD {totalPriceUsd.toLocaleString('es-PY')}
+          </span>
+          <button type="button" className="cc-mobile-summary-btn" onClick={jumpToCuotero}>
+            Ver cuotero
+          </button>
+        </div>
+      ) : null}
 
       <ConfirmRemoveDialog
         item={pendingRemovalItem}

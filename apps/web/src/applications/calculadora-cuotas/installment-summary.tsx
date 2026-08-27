@@ -16,9 +16,14 @@ export function InstallmentSummary({
   reinforcementPeriodicity,
 }: InstallmentSummaryProps): React.JSX.Element {
   return (
-    <section className="cc-panel cc-cuotero" aria-labelledby="cc-cuotero-title">
-      <div className="cc-panel-heading">
-        <h2 id="cc-cuotero-title" className="cc-panel-title">
+    <section
+      id="cc-cuotero-section"
+      tabIndex={-1}
+      className="cc-section cc-cuotero"
+      aria-labelledby="cc-cuotero-title"
+    >
+      <div className="cc-section-heading">
+        <h2 id="cc-cuotero-title" className="cc-section-title">
           Cuotero
         </h2>
         <span className="cc-provisional-badge">Cálculo provisorio</span>
@@ -31,8 +36,8 @@ export function InstallmentSummary({
       ) : (
         <>
           <p className="cc-cuotero-note">
-            Los montos usan un reparto lineal sin interés, sólo para probar el flujo. Se van a
-            reemplazar por la tabla de interés y la regla de redondeo reales apenas estén definidas.
+            Reparto lineal sin interés, sólo para probar el flujo — se reemplaza por la tabla de
+            interés real apenas esté definida.
           </p>
           <dl className="cc-cuotero-list">
             <div className="cc-cuotero-row">

@@ -24,8 +24,8 @@ export function FinancingConfig({
   const hasItems = totalPriceUsd > 0;
 
   return (
-    <section className="cc-panel" aria-labelledby="cc-config-title">
-      <h2 id="cc-config-title" className="cc-panel-title">
+    <section className="cc-section" aria-labelledby="cc-config-title">
+      <h2 id="cc-config-title" className="cc-section-title">
         Precio final y condiciones
       </h2>
 

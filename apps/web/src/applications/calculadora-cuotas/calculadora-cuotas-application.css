@@ -33,34 +33,27 @@
   font: inherit;
 }
 
+/* El título y la descripción de la app ya viven en el header (breadcrumb) y en el home — esta
+   página arranca directo en la primera tarea, sin repetirlos. */
 .cc-page {
-  max-width: 880px;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: clamp(24px, 4vw, 48px) clamp(20px, 5vw, 32px) 64px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--cc-sp-6);
+  padding: clamp(20px, 4vw, 40px) clamp(20px, 5vw, 32px) 40px;
 }
-
-.cc-intro h1 {
-  margin: 0 0 var(--cc-sp-2);
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
-}
-.cc-intro p {
-  max-width: 65ch;
-  margin: 0;
-  color: var(--cc-c-text-secondary);
-  line-height: 1.6;
+@media (max-width: 1023px) {
+  .cc-page--has-mobile-bar {
+    padding-bottom: 88px;
+  }
 }
 
 .cc-logout-error {
-  max-width: 880px;
+  max-width: 1040px;
   margin: var(--cc-sp-2) auto 0;
   padding: 0 clamp(20px, 5vw, 32px);
 }
 
 .cc-preload-notice {
-  margin: 0;
+  margin: 0 0 var(--cc-sp-5);
   padding: var(--cc-sp-3) var(--cc-sp-4);
   border: 1px solid var(--cc-c-border);
   border-top: 2px solid var(--cc-c-brand);
@@ -70,25 +63,60 @@
   font-weight: 600;
 }
 
-/* ── Panel base (cada zona de la calculadora) ── */
-.cc-panel {
-  padding: var(--cc-sp-5);
-  border: 1px solid var(--cc-c-border);
-  background: var(--cc-c-surface);
+/* ── Layout: una sola columna que fluye en mobile; en desktop, la columna de la izquierda es el
+   flujo de armado (agregar + lista) y la derecha es un panel de resultado siempre a la vista —
+   así no hace falta bajar toda la página para ver el precio y el cuotero. ── */
+.cc-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-6);
 }
-.cc-panel-heading {
+.cc-layout-main,
+.cc-layout-aside {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .cc-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    align-items: start;
+    gap: 0 48px;
+  }
+  .cc-layout-aside {
+    position: sticky;
+    top: var(--cc-sp-5);
+  }
+}
+
+/* ── Secciones sin caja: se separan con una regla, no con bordes+fondo repetidos en cada bloque —
+   el cuotero (`.cc-cuotero`) es la única superficie con acento propio, porque es el resultado. ── */
+.cc-section {
+  padding-top: var(--cc-sp-6);
+}
+.cc-layout-main > .cc-section:first-child,
+.cc-layout-aside > .cc-section:first-child {
+  padding-top: 0;
+}
+.cc-section + .cc-section {
+  border-top: 1px solid var(--cc-c-border);
+}
+.cc-section-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--cc-sp-3);
   margin-bottom: var(--cc-sp-4);
 }
-.cc-panel-title {
+.cc-section-title {
   margin: 0 0 var(--cc-sp-4);
-  font-size: 1.0625rem;
+  color: var(--cc-c-text-primary);
+  font-size: 1rem;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
-.cc-panel-heading .cc-panel-title {
+.cc-section-heading .cc-section-title {
   margin-bottom: 0;
 }
 
@@ -393,13 +421,13 @@
 .cc-total-label {
   color: var(--cc-c-text-secondary);
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 .cc-total-value {
   font-family: var(--cc-font-mono);
-  font-size: 1.375rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--cc-c-brand);
 }
@@ -475,9 +503,17 @@
   font-weight: 700;
 }
 
-/* ── Cuotero ── */
-.cc-cuotero {
+/* ── Cuotero: única superficie con acento — es el resultado, se distingue del resto del flujo.
+   `.cc-section.cc-cuotero` iguala la especificidad de `.cc-section + .cc-section` y la vence por
+   orden de aparición (esta regla va después), sin recurrir a `!important`. ── */
+.cc-section.cc-cuotero {
+  padding: var(--cc-sp-5);
   border-top: 3px solid var(--cc-c-brand);
+  background: var(--cc-c-surface);
+}
+.cc-cuotero:focus-visible {
+  outline: 3px solid var(--cc-c-focus);
+  outline-offset: -3px;
 }
 .cc-provisional-badge {
   flex-shrink: 0;
@@ -491,8 +527,6 @@
 }
 .cc-cuotero-note {
   margin: 0 0 var(--cc-sp-4);
-  padding: var(--cc-sp-3);
-  border: 1px dashed var(--cc-c-border-strong);
   color: var(--cc-c-text-secondary);
   font-size: 0.8125rem;
   line-height: 1.5;
@@ -546,6 +580,52 @@
 .cc-cuotero-row--highlight .cc-cuotero-periodicity {
   color: var(--cc-c-brand);
   opacity: 0.75;
+}
+
+/* ── Barra inferior fija (mobile/tablet): total corriente + salto directo al cuotero, para no
+   depender de scrollear hasta el final para ver el resultado. Desktop ya lo resuelve con la
+   columna derecha fija (`.cc-layout-aside`), así que la barra no existe ahí. ── */
+.cc-mobile-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 150;
+  padding: var(--cc-sp-3) var(--cc-sp-4);
+  padding-bottom: max(var(--cc-sp-3), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface-alt);
+}
+.cc-mobile-summary-total {
+  font-family: var(--cc-font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cc-c-text-primary);
+}
+.cc-mobile-summary-btn {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 var(--cc-sp-5);
+  border: none;
+  background: var(--cc-c-brand);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background var(--cc-t-fast);
+}
+.cc-mobile-summary-btn:hover {
+  background: var(--cc-c-brand-dark);
+}
+
+@media (min-width: 1024px) {
+  .cc-mobile-summary {
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {

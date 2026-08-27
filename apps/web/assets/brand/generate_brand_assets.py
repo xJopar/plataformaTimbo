@@ -1,16 +1,21 @@
 """Genera de forma determinista los assets públicos de marca de Timbo.
 
 Requiere Pillow en el entorno local; no forma parte de las dependencias de la
-aplicación ni modifica sus archivos de paquetes.
+aplicación ni modifica sus archivos de paquetes. Regenerar el favicon y los
+íconos PWA además requiere el ejecutable de Inkscape instalado localmente,
+solo para este script (no es una dependencia de la aplicación).
 """
 
 from __future__ import annotations
 
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 from shutil import copyfile
 
 import numpy
-from PIL import Image, ImageChops, ImageDraw, ImageOps
+from PIL import Image, ImageChops, ImageOps
 
 
 BRAND_BLUE = (31, 36, 92)
@@ -18,8 +23,10 @@ RESAMPLING = Image.Resampling.LANCZOS
 WEB_DIRECTORY = Path(__file__).resolve().parents[2]
 SOURCE_DIRECTORY = Path(__file__).resolve().parent / "originales"
 PUBLIC_DIRECTORY = WEB_DIRECTORY / "public"
-# Punto interior al trazo superior de la T en el JPG fuente (logotipo-timbo-blanco-sobre-azul.jpg).
-TIMBO_T_SEED_PIXEL = (250, 950)
+# Ícono vectorial trazado a mano en Inkscape (no derivado del wordmark JPG):
+# reproduce la silueta de la T sin el aliasing de una máscara rasterizada.
+ICON_SOURCE_SVG = PUBLIC_DIRECTORY / "iconos" / "icono-plataforma-timbo-sin-antilasing.svg"
+_WINDOWS_INKSCAPE_FALLBACK = Path(r"C:\Program Files\Inkscape\bin\inkscape.exe")
 
 
 def foreground_mask(image: Image.Image) -> Image.Image:
@@ -106,50 +113,64 @@ def facility_asset(source: Image.Image, target_width: int, destination: Path) ->
     save_webp(image.resize((output_width, output_height), RESAMPLING), destination, quality=82)
 
 
-def timbo_monogram_mask(source: Image.Image) -> Image.Image:
-    """Aísla la silueta real de la T inclinada del wordmark.
-
-    La T y la I siguiente están separadas por un hueco de fondo azul, así que un
-    flood fill desde un punto interior de la T reproduce el corte diagonal exacto
-    de la tipografía en vez de aproximarlo con un polígono dibujado a mano.
-    """
-    mask = foreground_mask(source)
-    filled = mask.copy()
-    ImageDraw.floodfill(filled, TIMBO_T_SEED_PIXEL, 128)
-    isolated = filled.point(lambda value: 255 if value == 128 else 0)
-    return isolated.crop(isolated.getbbox())
-
-
-def icon_asset(mask: Image.Image, size: int, content_ratio: float) -> Image.Image:
-    bbox = non_empty_bbox(mask)
-    glyph = mask.crop(bbox)
-    maximum_side = round(size * content_ratio)
-    scale = min(maximum_side / glyph.width, maximum_side / glyph.height)
-    glyph_size = (round(glyph.width * scale), round(glyph.height * scale))
-    glyph = glyph.resize(glyph_size, RESAMPLING)
-    icon = Image.new("RGB", (size, size), BRAND_BLUE)
-    offset = ((size - glyph.width) // 2, (size - glyph.height) // 2)
-    icon.paste((255, 255, 255), offset, glyph)
-    return icon
+def inkscape_executable() -> str:
+    found = shutil.which("inkscape")
+    if found:
+        return found
+    if _WINDOWS_INKSCAPE_FALLBACK.exists():
+        return str(_WINDOWS_INKSCAPE_FALLBACK)
+    msg = (
+        "No se encontró el ejecutable de Inkscape. Solo hace falta instalarlo "
+        "localmente para regenerar el favicon y los íconos PWA desde el SVG "
+        f"({ICON_SOURCE_SVG})."
+    )
+    raise RuntimeError(msg)
 
 
-def write_icons(source: Image.Image, icons_directory: Path) -> None:
-    mask = timbo_monogram_mask(source)
-    icon_192 = icon_asset(mask, 192, 0.66)
-    icon_512 = icon_asset(mask, 512, 0.66)
-    maskable_512 = icon_asset(mask, 512, 0.58)
-    apple_touch_icon = icon_asset(mask, 180, 0.66)
-    icon_192.save(icons_directory / "icono-plataforma-timbo-192.png", "PNG", optimize=True)
-    icon_512.save(icons_directory / "icono-plataforma-timbo-512.png", "PNG", optimize=True)
-    maskable_512.save(icons_directory / "icono-plataforma-timbo-enmascarable-512.png", "PNG", optimize=True)
-    apple_touch_icon.save(icons_directory / "icono-timbo-apple-180.png", "PNG", optimize=True)
-    icon_512.save(
+def render_svg_icon(size: int, destination: Path) -> None:
+    """Rasteriza ICON_SOURCE_SVG nativamente al tamaño pedido (sin reescalar un PNG más grande)."""
+    subprocess.run(
+        [
+            inkscape_executable(),
+            str(ICON_SOURCE_SVG),
+            "--export-type=png",
+            f"--export-filename={destination}",
+            "-w",
+            str(size),
+            "-h",
+            str(size),
+        ],
+        check=True,
+        capture_output=True,
+    )
+
+
+def write_icons(icons_directory: Path, scratch_directory: Path) -> None:
+    png_targets = {
+        "icono-plataforma-timbo-192.png": 192,
+        "icono-plataforma-timbo-512.png": 512,
+        # El SVG fuente ya deja ~21% de margen alrededor de la T (safe zone de
+        # Android maskable, que exige >=19.4%), por eso reutiliza el mismo trazo.
+        "icono-plataforma-timbo-enmascarable-512.png": 512,
+        "icono-timbo-apple-180.png": 180,
+    }
+    for filename, size in png_targets.items():
+        render_svg_icon(size, icons_directory / filename)
+
+    favicon_sizes = [16, 32, 48]
+    frames = {}
+    for size in favicon_sizes:
+        scratch_png = scratch_directory / f"favicon-{size}.png"
+        render_svg_icon(size, scratch_png)
+        frames[size] = Image.open(scratch_png).convert("RGBA")
+
+    largest = max(favicon_sizes)
+    frames[largest].save(
         PUBLIC_DIRECTORY / "favicon.ico",
         "ICO",
-        sizes=[(16, 16), (32, 32), (48, 48)],
+        sizes=[(size, size) for size in favicon_sizes],
+        append_images=[frames[size] for size in favicon_sizes if size != largest],
     )
-    # La primera versión del pipeline dejaba una copia fuera del contrato público.
-    (icons_directory / "favicon.ico").unlink(missing_ok=True)
 
 
 def main() -> None:
@@ -167,11 +188,13 @@ def main() -> None:
         wordmark = wordmark_source.convert("RGB")
         wordmark_asset(wordmark, brand_directory / "logotipo-timbo-blanco-sobre-azul.webp")
         wordmark_mark_asset(wordmark, brand_directory / "logotipo-timbo-blanco-transparente.webp")
-        write_icons(wordmark, icons_directory)
 
     with Image.open(SOURCE_DIRECTORY / "fotografia-sede-timbo.jpg") as facility_source:
         for width in (640, 960, 1600):
             facility_asset(facility_source, width, brand_directory / f"fotografia-sede-timbo-{width}.webp")
+
+    with tempfile.TemporaryDirectory() as scratch:
+        write_icons(icons_directory, Path(scratch))
 
 
 if __name__ == "__main__":
