@@ -63,7 +63,7 @@ function computeBackLabel(
         return 'Modelo';
       }
       const group = vehiclesState.groups.get(route.modelKey);
-      return group === undefined ? 'Modelo' : `Modelos ${group.marca}`;
+      return group === undefined ? 'Modelo' : `Modelos`;
     }
     case 'not-found':
       return 'Lista de Precios';
