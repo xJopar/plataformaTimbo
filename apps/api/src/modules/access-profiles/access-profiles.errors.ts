@@ -4,3 +4,24 @@ export class FirstPlatformAdministratorAlreadyAssignedError extends Error {
     this.name = new.target.name;
   }
 }
+
+export class PlatformAdministratorCannotRevokeOwnRoleError extends Error {
+  public constructor() {
+    super('Un administrador no puede revocar su propio rol de plataforma.');
+    this.name = new.target.name;
+  }
+}
+
+export class LastPlatformAdministratorCannotBeRevokedError extends Error {
+  public constructor() {
+    super('No se puede revocar el último administrador activo de la plataforma.');
+    this.name = new.target.name;
+  }
+}
+
+export class InactiveUserCannotBecomePlatformAdministratorError extends Error {
+  public constructor() {
+    super('Sólo un usuario activo puede convertirse en administrador de plataforma.');
+    this.name = new.target.name;
+  }
+}

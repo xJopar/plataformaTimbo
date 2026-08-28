@@ -20,6 +20,13 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { ACCESS_PROFILES_SERVICE } from '../access-profiles/access-profiles.tokens';
+import type { AccessProfilesService } from '../access-profiles/access-profiles.service';
+import {
+  InactiveUserCannotBecomePlatformAdministratorError,
+  LastPlatformAdministratorCannotBeRevokedError,
+  PlatformAdministratorCannotRevokeOwnRoleError,
+} from '../access-profiles/access-profiles.errors';
 import { CsrfProtectionGuard } from '../auth/csrf-protection.guard';
 import { AuthPublicError } from '../auth/auth-public.errors';
 import {
@@ -39,9 +46,14 @@ import {
 } from './dto/preauthorize-administrative-user.dto';
 import { PreauthorizeAdministrativeUserBulkResultDto } from './dto/preauthorize-administrative-users-bulk-result.dto';
 import { UpdateAdministrativeUserDto } from './dto/update-administrative-user.dto';
+import {
+  BulkAdministrativeUserStatusDto,
+  BulkAdministrativeUserStatusResultDto,
+} from './dto/bulk-administrative-user-status.dto';
 import { ADMINISTRATIVE_USERS_SERVICE } from './administration.tokens';
 
 const MAX_BULK_PREAUTHORIZE_ENTRIES = 200;
+const MAX_BULK_USER_STATUS_ENTRIES = 500;
 
 @ApiTags('administration')
 @Controller('admin/users')
@@ -49,6 +61,8 @@ const MAX_BULK_PREAUTHORIZE_ENTRIES = 200;
 export class AdministrativeUsersController {
   public constructor(
     @Inject(ADMINISTRATIVE_USERS_SERVICE) private readonly usersService: UsersService,
+    @Inject(ACCESS_PROFILES_SERVICE)
+    private readonly accessProfilesService: AccessProfilesService,
   ) {}
 
   @Get()
@@ -59,7 +73,7 @@ export class AdministrativeUsersController {
   @ApiQuery({
     name: 'search',
     required: false,
-    description: 'Texto a buscar en el correo corporativo.',
+    description: 'Texto a buscar en el correo corporativo o nombre visible.',
   })
   @ApiOkResponse({ type: AdministrativeUserResponseDto, isArray: true })
   public async listUsers(
@@ -83,10 +97,45 @@ export class AdministrativeUsersController {
   ): Promise<AdministrativeUserResponseDto> {
     const user = await this.usersService.preauthorizeUserByAdministrator({
       corporateEmail: body.corporateEmail,
-      displayName: body.displayName,
       actorUserId: this.getActorUserId(request),
     });
     return toAdministrativeUserResponse({ ...user, isPlatformAdministrator: false });
+  }
+
+  @Post('bulk-activate')
+  @UseGuards(CsrfProtectionGuard)
+  @ApiOperation({
+    operationId: 'activateAdministrativeUsersBulk',
+    summary: 'Activa varios usuarios, informando el resultado de cada uno.',
+  })
+  @ApiOkResponse({ type: BulkAdministrativeUserStatusResultDto, isArray: true })
+  public async activateUsersBulk(
+    @Body() body: BulkAdministrativeUserStatusDto,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<BulkAdministrativeUserStatusResultDto[]> {
+    return this.usersService.changeUsersStatusByAdministrator({
+      userIds: this.requireBulkUserIds(body),
+      status: 'ACTIVE',
+      actorUserId: this.getActorUserId(request),
+    });
+  }
+
+  @Post('bulk-deactivate')
+  @UseGuards(CsrfProtectionGuard)
+  @ApiOperation({
+    operationId: 'deactivateAdministrativeUsersBulk',
+    summary: 'Desactiva varios usuarios, informando el resultado de cada uno.',
+  })
+  @ApiOkResponse({ type: BulkAdministrativeUserStatusResultDto, isArray: true })
+  public async deactivateUsersBulk(
+    @Body() body: BulkAdministrativeUserStatusDto,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<BulkAdministrativeUserStatusResultDto[]> {
+    return this.usersService.changeUsersStatusByAdministrator({
+      userIds: this.requireBulkUserIds(body),
+      status: 'INACTIVE',
+      actorUserId: this.getActorUserId(request),
+    });
   }
 
   @Post('bulk')
@@ -187,6 +236,71 @@ export class AdministrativeUsersController {
       corporateEmail: user.corporateEmail,
       actorUserId: this.getActorUserId(request),
     });
+  }
+
+  @Post(':userId/platform-administrator')
+  @HttpCode(204)
+  @UseGuards(CsrfProtectionGuard)
+  @ApiOperation({
+    operationId: 'grantPlatformAdministrator',
+    summary: 'Otorga el rol de administrador de plataforma a un usuario activo.',
+  })
+  @ApiNoContentResponse({ description: 'Rol administrativo otorgado.' })
+  public async grantPlatformAdministrator(
+    @Param('userId') userId: string,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<void> {
+    try {
+      await this.accessProfilesService.grantPlatformAdministrator({
+        userId,
+        actorUserId: this.getActorUserId(request),
+      });
+    } catch (error) {
+      if (error instanceof InactiveUserCannotBecomePlatformAdministratorError) {
+        throw new AuthPublicError('PLATFORM_ADMIN_INACTIVE_USER_FORBIDDEN', 409);
+      }
+      throw error;
+    }
+  }
+
+  @Post(':userId/platform-administrator/revoke')
+  @HttpCode(204)
+  @UseGuards(CsrfProtectionGuard)
+  @ApiOperation({
+    operationId: 'revokePlatformAdministrator',
+    summary: 'Revoca el rol de administrador sin permitir auto-revocación ni último administrador.',
+  })
+  @ApiNoContentResponse({ description: 'Rol administrativo revocado.' })
+  public async revokePlatformAdministrator(
+    @Param('userId') userId: string,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<void> {
+    try {
+      await this.accessProfilesService.revokePlatformAdministrator({
+        userId,
+        actorUserId: this.getActorUserId(request),
+      });
+    } catch (error) {
+      if (error instanceof PlatformAdministratorCannotRevokeOwnRoleError) {
+        throw new AuthPublicError('PLATFORM_ADMIN_SELF_REVOCATION_FORBIDDEN', 409);
+      }
+      if (error instanceof LastPlatformAdministratorCannotBeRevokedError) {
+        throw new AuthPublicError('PLATFORM_ADMIN_LAST_ACTIVE_REVOCATION_FORBIDDEN', 409);
+      }
+      throw error;
+    }
+  }
+
+  private requireBulkUserIds(body: BulkAdministrativeUserStatusDto): string[] {
+    if (!Array.isArray(body.userIds) || body.userIds.length === 0) {
+      throw new BadRequestException('Se debe indicar al menos un usuario.');
+    }
+    if (body.userIds.length > MAX_BULK_USER_STATUS_ENTRIES) {
+      throw new BadRequestException(
+        `No se pueden cambiar más de ${MAX_BULK_USER_STATUS_ENTRIES.toString()} usuarios a la vez.`,
+      );
+    }
+    return [...new Set(body.userIds)];
   }
 
   private getActorUserId(request: AuthenticatedRequest): string {

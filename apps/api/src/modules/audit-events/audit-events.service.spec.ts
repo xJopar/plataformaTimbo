@@ -62,6 +62,8 @@ describe('AuditEventsService', () => {
       'access.user_deactivated',
       'access.user_reactivated',
       'access.platform_admin_assigned',
+      'access.platform_admin_granted',
+      'access.platform_admin_revoked',
       'access.application_created',
       'access.application_updated',
       'access.application_deactivated',
@@ -119,6 +121,16 @@ describe('AuditEventsService', () => {
     });
     expect(AUDIT_EVENT_CATALOG['access.platform_admin_assigned']).toMatchObject({
       actorType: AuditActorType.SYSTEM,
+      outcome: AuditOutcome.SUCCESS,
+      metadataFields: [],
+    });
+    expect(AUDIT_EVENT_CATALOG['access.platform_admin_granted']).toMatchObject({
+      actorType: AuditActorType.USER,
+      outcome: AuditOutcome.SUCCESS,
+      metadataFields: [],
+    });
+    expect(AUDIT_EVENT_CATALOG['access.platform_admin_revoked']).toMatchObject({
+      actorType: AuditActorType.USER,
       outcome: AuditOutcome.SUCCESS,
       metadataFields: [],
     });

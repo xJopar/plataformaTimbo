@@ -3,6 +3,7 @@ import { PrismaService } from '../../database/prisma.service';
 import type { AuditEventsService } from '../audit-events/audit-events.service';
 import {
   CorporateEmailAlreadyInUseError,
+  CorporateEmailDomainNotAllowedError,
   GoogleSubjectAlreadyLinkedError,
   InvalidCorporateEmailError,
   InvalidUserStatusTransitionError,
@@ -37,6 +38,7 @@ const createPrismaError = (
   });
 
 describe('UsersService', () => {
+  const originalCorporateEmailDomain = process.env.CORPORATE_EMAIL_DOMAIN;
   const userDelegate = {
     create: jest.fn(),
     findUnique: jest.fn(),
@@ -59,6 +61,7 @@ describe('UsersService', () => {
   let service: UsersService;
 
   beforeEach(() => {
+    process.env.CORPORATE_EMAIL_DOMAIN = 'example.test';
     userDelegate.create.mockReset();
     userDelegate.findUnique.mockReset();
     userDelegate.update.mockReset();
@@ -71,7 +74,24 @@ describe('UsersService', () => {
     service = new UsersService(prisma, auditEventsService as unknown as AuditEventsService);
   });
 
+  afterAll(() => {
+    if (originalCorporateEmailDomain === undefined) {
+      delete process.env.CORPORATE_EMAIL_DOMAIN;
+      return;
+    }
+    process.env.CORPORATE_EMAIL_DOMAIN = originalCorporateEmailDomain;
+  });
+
   describe('preauthorizeUser', () => {
+    it('rechaza correos fuera del dominio corporativo configurado', async () => {
+      process.env.CORPORATE_EMAIL_DOMAIN = 'timbo.com.py';
+
+      await expect(
+        service.preauthorizeUser({ corporateEmail: 'persona@gmail.com' }),
+      ).rejects.toBeInstanceOf(CorporateEmailDomainNotAllowedError);
+      expect(userDelegate.create).not.toHaveBeenCalled();
+    });
+
     it('normaliza el correo y conserva el nombre opcional', async () => {
       const user = createUser({
         corporateEmail: 'persona@example.test',
@@ -253,6 +273,30 @@ describe('UsersService', () => {
       });
     });
 
+    it('guarda el nombre de Google sólo cuando el nombre visible todavía está vacío', async () => {
+      const linkedUser = createUser({ googleSubject: 'google-subject-1', displayName: null });
+      const namedUser = createUser({
+        googleSubject: 'google-subject-1',
+        displayName: 'Nombre de Google',
+      });
+      userDelegate.updateManyAndReturn
+        .mockResolvedValueOnce([linkedUser])
+        .mockResolvedValueOnce([namedUser]);
+
+      await expect(
+        service.linkGoogleSubject(transactionClient, {
+          corporateEmail: 'persona@example.test',
+          googleSubject: 'google-subject-1',
+          googleDisplayName: ' Nombre de Google ',
+        }),
+      ).resolves.toBe(namedUser);
+
+      expect(userDelegate.updateManyAndReturn).toHaveBeenNthCalledWith(2, {
+        where: { id: linkedUser.id, displayName: null },
+        data: { displayName: 'Nombre de Google' },
+      });
+    });
+
     it('devuelve la fila existente para el mismo subject sin una segunda mutación', async () => {
       const originalUpdatedAt = new Date('2026-08-18T12:00:00.000Z');
       const user = createUser({ googleSubject: 'google-subject-1', updatedAt: originalUpdatedAt });
@@ -356,6 +400,41 @@ describe('UsersService', () => {
   });
 
   describe('cambios de estado', () => {
+    it('informa resultados individuales al cambiar estado masivamente y audita sólo cambios', async () => {
+      const inactiveUser = createUser({ status: UserStatus.INACTIVE });
+      const activeAdministrator = createUser({ id: 'admin-id', status: UserStatus.ACTIVE });
+      const activeUser = createUser({ id: 'active-id', status: UserStatus.ACTIVE });
+      userDelegate.findUnique
+        .mockResolvedValueOnce(inactiveUser)
+        .mockResolvedValueOnce(activeAdministrator)
+        .mockResolvedValueOnce(activeUser);
+      userProfileAssignmentDelegate.findFirst
+        .mockResolvedValueOnce({ id: 'assignment-a' })
+        .mockResolvedValueOnce(null);
+      userDelegate.update.mockResolvedValue({ ...activeUser, status: UserStatus.INACTIVE });
+
+      await expect(
+        service.changeUsersStatusByAdministrator({
+          userIds: [inactiveUser.id, activeAdministrator.id, activeUser.id],
+          status: UserStatus.INACTIVE,
+          actorUserId: ACTOR_USER_ID,
+        }),
+      ).resolves.toEqual([
+        {
+          userId: inactiveUser.id,
+          status: 'SKIPPED',
+          message: 'El usuario ya se encuentra inactivo.',
+        },
+        {
+          userId: activeAdministrator.id,
+          status: 'REJECTED',
+          message: 'Primero se debe revocar el rol de administrador de plataforma.',
+        },
+        { userId: activeUser.id, status: 'UPDATED' },
+      ]);
+      expect(auditEventsService.append).toHaveBeenCalledTimes(1);
+    });
+
     it('no desactiva a un usuario con la asignación PLATFORM_ADMIN, incluido el actor', async () => {
       userProfileAssignmentDelegate.findFirst.mockResolvedValue({ id: 'assignment-a' });
 

@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { AuditActorType, Prisma, UserStatus, type User } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { resolveCorporateEmailDomainFromEnvironment } from '../../runtime-config';
 import { AuditEventsService } from '../audit-events/audit-events.service';
 import {
   CorporateEmailAlreadyInUseError,
+  CorporateEmailDomainNotAllowedError,
   GoogleSubjectAlreadyLinkedError,
   InvalidCorporateEmailError,
   InvalidUserStatusTransitionError,
@@ -28,6 +30,7 @@ export interface FindUserByCorporateEmailInput {
 export interface LinkGoogleSubjectInput {
   corporateEmail: string;
   googleSubject: string;
+  googleDisplayName?: string;
 }
 
 export interface SaveZohoCrmUserIdInput {
@@ -65,6 +68,18 @@ export interface PreauthorizeUserByAdministratorInput extends PreauthorizeUserIn
 export interface PreauthorizeUsersByAdministratorInput {
   entries: PreauthorizeUserInput[];
   actorUserId: string;
+}
+
+export interface ChangeUsersStatusByAdministratorInput {
+  userIds: string[];
+  status: UserStatus;
+  actorUserId: string;
+}
+
+export interface ChangeUsersStatusBulkResult {
+  userId: string;
+  status: 'UPDATED' | 'SKIPPED' | 'REJECTED';
+  message?: string;
 }
 
 export type PreauthorizeUserBulkResult =
@@ -112,6 +127,7 @@ const OPERATION_DEACTIVATE = 'deactivateUser';
 const OPERATION_REACTIVATE = 'reactivateUser';
 const OPERATION_LIST_ADMINISTRATIVE_USERS = 'listAdministrativeUsers';
 const OPERATION_UPDATE_ADMINISTRATIVE_USER = 'updateAdministrativeUser';
+const OPERATION_CHANGE_USERS_STATUS = 'changeUsersStatusByAdministrator';
 
 @Injectable()
 export class UsersService {
@@ -174,7 +190,12 @@ export class UsersService {
       where:
         search === undefined
           ? undefined
-          : { corporateEmail: { contains: search, mode: 'insensitive' } },
+          : {
+              OR: [
+                { corporateEmail: { contains: search, mode: 'insensitive' } },
+                { displayName: { contains: search, mode: 'insensitive' } },
+              ],
+            },
       select: ADMINISTRATIVE_USER_SELECT,
       orderBy: [{ corporateEmail: 'asc' }],
     });
@@ -285,7 +306,7 @@ export class UsersService {
     const user = users[0];
 
     if (user !== undefined) {
-      return user;
+      return this.saveGoogleDisplayNameWhenAbsent(transactionClient, user, input.googleDisplayName);
     }
 
     const currentUser = await this.findUserByNormalizedCorporateEmail(
@@ -299,7 +320,11 @@ export class UsersService {
     }
 
     if (currentUser.googleSubject === input.googleSubject) {
-      return currentUser;
+      return this.saveGoogleDisplayNameWhenAbsent(
+        transactionClient,
+        currentUser,
+        input.googleDisplayName,
+      );
     }
 
     throw new GoogleSubjectAlreadyLinkedError(OPERATION_LINK_GOOGLE);
@@ -391,6 +416,82 @@ export class UsersService {
     );
   }
 
+  public async changeUsersStatusByAdministrator(
+    input: ChangeUsersStatusByAdministratorInput,
+  ): Promise<ChangeUsersStatusBulkResult[]> {
+    return Promise.all(
+      input.userIds.map((userId) =>
+        this.changeSingleUserStatusByAdministrator({
+          userId,
+          requestedStatus: input.status,
+          actorUserId: input.actorUserId,
+        }),
+      ),
+    );
+  }
+
+  private async changeSingleUserStatusByAdministrator(input: {
+    userId: string;
+    requestedStatus: UserStatus;
+    actorUserId: string;
+  }): Promise<ChangeUsersStatusBulkResult> {
+    return this.translatePrismaErrors(OPERATION_CHANGE_USERS_STATUS, () =>
+      this.prisma.$transaction(async (transactionClient) => {
+        const user = await transactionClient.user.findUnique({ where: { id: input.userId } });
+        if (user === null) {
+          return {
+            userId: input.userId,
+            status: 'REJECTED',
+            message: 'No se encontró el usuario seleccionado.',
+          };
+        }
+        if (user.status === input.requestedStatus) {
+          return {
+            userId: user.id,
+            status: 'SKIPPED',
+            message:
+              input.requestedStatus === UserStatus.ACTIVE
+                ? 'El usuario ya se encuentra activo.'
+                : 'El usuario ya se encuentra inactivo.',
+          };
+        }
+
+        if (input.requestedStatus === UserStatus.INACTIVE) {
+          const platformAdministratorAssignment =
+            await transactionClient.userProfileAssignment.findFirst({
+              where: { userId: user.id, profile: { key: 'PLATFORM_ADMIN' } },
+              select: { id: true },
+            });
+          if (platformAdministratorAssignment !== null) {
+            return {
+              userId: user.id,
+              status: 'REJECTED',
+              message: 'Primero se debe revocar el rol de administrador de plataforma.',
+            };
+          }
+        }
+
+        const updatedUser = await transactionClient.user.update({
+          where: { id: user.id },
+          data:
+            input.requestedStatus === UserStatus.ACTIVE
+              ? { status: UserStatus.ACTIVE, deactivatedAt: null }
+              : { status: UserStatus.INACTIVE, deactivatedAt: new Date() },
+        });
+        await this.auditEventsService.append(transactionClient, {
+          eventName:
+            input.requestedStatus === UserStatus.ACTIVE
+              ? 'access.user_reactivated'
+              : 'access.user_deactivated',
+          actor: { actorType: AuditActorType.USER, actorUserId: input.actorUserId },
+          target: { targetType: 'user', targetId: updatedUser.id },
+        });
+
+        return { userId: updatedUser.id, status: 'UPDATED' };
+      }),
+    );
+  }
+
   private normalizeAdministrativeSearch(search: string | undefined): string | undefined {
     if (search === undefined) {
       return undefined;
@@ -422,6 +523,11 @@ export class UsersService {
       throw new InvalidCorporateEmailError(operation);
     }
 
+    const corporateEmailDomain = resolveCorporateEmailDomainFromEnvironment();
+    if (!normalizedCorporateEmail.endsWith(`@${corporateEmailDomain}`)) {
+      throw new CorporateEmailDomainNotAllowedError(operation, corporateEmailDomain);
+    }
+
     return normalizedCorporateEmail;
   }
 
@@ -434,6 +540,23 @@ export class UsersService {
 
     // El nombre vacío se conserva como ausencia porque sigue siendo opcional hasta el primer login.
     return normalizedDisplayName.length === 0 ? undefined : normalizedDisplayName;
+  }
+
+  private async saveGoogleDisplayNameWhenAbsent(
+    transactionClient: Prisma.TransactionClient,
+    user: User,
+    googleDisplayName: string | undefined,
+  ): Promise<User> {
+    const normalizedGoogleDisplayName = this.normalizeOptionalDisplayName(googleDisplayName);
+    if (user.displayName !== null || normalizedGoogleDisplayName === undefined) {
+      return user;
+    }
+
+    const updatedUsers = await transactionClient.user.updateManyAndReturn({
+      where: { id: user.id, displayName: null },
+      data: { displayName: normalizedGoogleDisplayName },
+    });
+    return updatedUsers[0] ?? user;
   }
 
   private async findUserByNormalizedCorporateEmail(

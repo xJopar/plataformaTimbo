@@ -119,7 +119,10 @@ objeto HTTP.
 `PlatformAdministratorGuard` comprueba en PostgreSQL que el usuario autenticado y activo tenga
 asignado el perfil de sistema `PLATFORM_ADMIN`. Ese guard protege la gestión de usuarios, el
 catálogo de aplicaciones y la consulta de actividad. La Web puede adaptar la experiencia, pero la
-autorización efectiva siempre pertenece a la API.
+autorización efectiva siempre pertenece a la API. El comando de inicialización conserva la
+asignación del primer administrador; después, un administrador vigente puede otorgar o revocar el
+rol a otras personas activas. No se permite auto-revocación ni dejar la plataforma sin un
+administrador activo. Una persona con ese rol debe perderlo antes de ser desactivada.
 
 El catálogo persiste `key`, nombre, descripción opcional, ruta interna, estado y orden. `key` es
 inmutable, toda ruta comienza con `/apps/`, y las aplicaciones se activan o desactivan sin borrado.

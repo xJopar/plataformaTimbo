@@ -1,7 +1,11 @@
 import { AuditActorType, UserStatus, type User } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditEventsService } from '../audit-events/audit-events.service';
-import { FirstPlatformAdministratorAlreadyAssignedError } from './access-profiles.errors';
+import {
+  FirstPlatformAdministratorAlreadyAssignedError,
+  LastPlatformAdministratorCannotBeRevokedError,
+  PlatformAdministratorCannotRevokeOwnRoleError,
+} from './access-profiles.errors';
 import { AccessProfilesService } from './access-profiles.service';
 
 const user: User = {
@@ -23,7 +27,12 @@ describe('AccessProfilesService', () => {
   const transactionClient = {
     accessProfile: { findFirst: jest.fn(), create: jest.fn() },
     $queryRaw: jest.fn(),
-    userProfileAssignment: { findFirst: jest.fn(), create: jest.fn() },
+    userProfileAssignment: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+      count: jest.fn(),
+      delete: jest.fn(),
+    },
     user: { findUnique: jest.fn() },
   };
   const prisma = {
@@ -40,6 +49,8 @@ describe('AccessProfilesService', () => {
     transactionClient.$queryRaw.mockResolvedValue([{ id: 'profile-a' }]);
     transactionClient.userProfileAssignment.findFirst.mockReset();
     transactionClient.userProfileAssignment.create.mockReset();
+    transactionClient.userProfileAssignment.count.mockReset();
+    transactionClient.userProfileAssignment.delete.mockReset();
     transactionClient.user.findUnique.mockReset();
     findPlatformAdminAssignment.mockReset();
     runTransaction.mockReset();
@@ -111,5 +122,39 @@ describe('AccessProfilesService', () => {
     ).resolves.toBe(user);
 
     expect(runTransaction).toHaveBeenCalledTimes(2);
+  });
+
+  it('otorga el rol a una persona activa y conserva auditoría transaccional', async () => {
+    transactionClient.accessProfile.findFirst.mockResolvedValue({ id: 'profile-a' });
+    transactionClient.user.findUnique.mockResolvedValue(user);
+    transactionClient.userProfileAssignment.findFirst.mockResolvedValue(null);
+    transactionClient.userProfileAssignment.create.mockResolvedValue({ id: 'assignment-b' });
+    appendAuditEvent.mockResolvedValue(undefined);
+
+    await service.grantPlatformAdministrator({ actorUserId: 'actor-id', userId: user.id });
+
+    expect(transactionClient.userProfileAssignment.create).toHaveBeenCalledWith({
+      data: { userId: user.id, profileId: 'profile-a' },
+    });
+    expect(appendAuditEvent).toHaveBeenCalledWith(transactionClient, {
+      eventName: 'access.platform_admin_granted',
+      actor: { actorType: AuditActorType.USER, actorUserId: 'actor-id' },
+      target: { targetType: 'user', targetId: user.id },
+    });
+  });
+
+  it('no permite auto-revocación ni dejar sin administrador activo la plataforma', async () => {
+    await expect(
+      service.revokePlatformAdministrator({ actorUserId: user.id, userId: user.id }),
+    ).rejects.toBeInstanceOf(PlatformAdministratorCannotRevokeOwnRoleError);
+
+    transactionClient.accessProfile.findFirst.mockResolvedValue({ id: 'profile-a' });
+    transactionClient.userProfileAssignment.findFirst.mockResolvedValue({ id: 'assignment-a' });
+    transactionClient.userProfileAssignment.count.mockResolvedValue(1);
+
+    await expect(
+      service.revokePlatformAdministrator({ actorUserId: 'other-admin-id', userId: user.id }),
+    ).rejects.toBeInstanceOf(LastPlatformAdministratorCannotBeRevokedError);
+    expect(transactionClient.userProfileAssignment.delete).not.toHaveBeenCalled();
   });
 });

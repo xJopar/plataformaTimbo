@@ -107,6 +107,7 @@ export class AuthService {
           transactionClient,
           googleIdentity.email,
           googleIdentity.subject,
+          googleIdentity.displayName,
         );
         const session = await this.userSessionsService.createSession(transactionClient, {
           userId: user.id,
@@ -174,11 +175,13 @@ export class AuthService {
     transactionClient: Prisma.TransactionClient,
     corporateEmail: string,
     googleSubject: string,
+    googleDisplayName: string | undefined,
   ): Promise<User> {
     try {
       const user = await this.usersService.linkGoogleSubject(transactionClient, {
         corporateEmail,
         googleSubject,
+        googleDisplayName,
       });
 
       if (user.status !== 'ACTIVE') {

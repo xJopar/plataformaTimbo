@@ -90,6 +90,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/users/bulk-activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activa varios usuarios, informando el resultado de cada uno. */
+        post: operations["activateAdministrativeUsersBulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/bulk-deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva varios usuarios, informando el resultado de cada uno. */
+        post: operations["deactivateAdministrativeUsersBulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/users/bulk": {
         parameters: {
             query?: never;
@@ -152,6 +186,40 @@ export interface paths {
         put?: never;
         /** Reactiva un usuario. */
         post: operations["reactivateAdministrativeUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/platform-administrator": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Otorga el rol de administrador de plataforma a un usuario activo. */
+        post: operations["grantPlatformAdministrator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/platform-administrator/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoca el rol de administrador sin permitir auto-revocación ni último administrador. */
+        post: operations["revokePlatformAdministrator"];
         delete?: never;
         options?: never;
         head?: never;
@@ -616,8 +684,26 @@ export interface components {
         PreauthorizeAdministrativeUserDto: {
             /** @example persona@timbo.com */
             corporateEmail: string;
-            /** @example Persona Timbo */
-            displayName?: string;
+        };
+        BulkAdministrativeUserStatusDto: {
+            /**
+             * @description Identificadores de usuarios a los que se aplicará el cambio de estado.
+             * @example [
+             *       "d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6"
+             *     ]
+             */
+            userIds: string[];
+        };
+        BulkAdministrativeUserStatusResultDto: {
+            /** @example d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6 */
+            userId: string;
+            /**
+             * @example UPDATED
+             * @enum {string}
+             */
+            status: "UPDATED" | "SKIPPED" | "REJECTED";
+            /** @example Primero se debe revocar el rol de administrador de plataforma. */
+            message?: string;
         };
         PreauthorizeAdministrativeUsersBulkDto: {
             entries: components["schemas"]["PreauthorizeAdministrativeUserDto"][];
@@ -942,7 +1028,7 @@ export interface operations {
     listAdministrativeUsers: {
         parameters: {
             query?: {
-                /** @description Texto a buscar en el correo corporativo. */
+                /** @description Texto a buscar en el correo corporativo o nombre visible. */
                 search?: unknown;
             };
             header?: never;
@@ -980,6 +1066,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdministrativeUserResponseDto"];
+                };
+            };
+        };
+    };
+    activateAdministrativeUsersBulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkAdministrativeUserStatusDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkAdministrativeUserStatusResultDto"][];
+                };
+            };
+        };
+    };
+    deactivateAdministrativeUsersBulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkAdministrativeUserStatusDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkAdministrativeUserStatusResultDto"][];
                 };
             };
         };
@@ -1064,6 +1196,46 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Usuario reactivado. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    grantPlatformAdministrator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rol administrativo otorgado. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    revokePlatformAdministrator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rol administrativo revocado. */
             204: {
                 headers: {
                     [name: string]: unknown;

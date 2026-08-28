@@ -1,9 +1,11 @@
 import {
   DEFAULT_CORS_ORIGIN,
+  DEFAULT_CORPORATE_EMAIL_DOMAIN,
   DEFAULT_ENVIRONMENT,
   DEFAULT_PORT,
   SESSION_DURATION_MS,
   resolveDatabaseUrl,
+  resolveCorporateEmailDomain,
   resolveEnvironment,
   resolveEnvironmentFromEnvironment,
   resolveGoogleOAuthConfig,
@@ -190,4 +192,18 @@ describe('resolveEnvironment', () => {
     expect(resolveEnvironmentFromEnvironment({ NODE_ENV: 'production' })).toBe('production');
     expect(resolveEnvironmentFromEnvironment({})).toBe(DEFAULT_ENVIRONMENT);
   });
+});
+
+describe('resolveCorporateEmailDomain', () => {
+  it('usa el dominio corporativo por defecto y normaliza el configurado', () => {
+    expect(resolveCorporateEmailDomain(undefined)).toBe(DEFAULT_CORPORATE_EMAIL_DOMAIN);
+    expect(resolveCorporateEmailDomain(' TIMBO.COM.PY ')).toBe('timbo.com.py');
+  });
+
+  it.each(['@timbo.com.py', 'timbo', 'timbo..com.py', 'timbo_com.py'])(
+    'rechaza dominios que no tienen formato de dominio de correo: %s',
+    (domain) => {
+      expect(() => resolveCorporateEmailDomain(domain)).toThrow(/CORPORATE_EMAIL_DOMAIN/);
+    },
+  );
 });

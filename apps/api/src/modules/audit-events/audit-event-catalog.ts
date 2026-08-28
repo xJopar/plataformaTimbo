@@ -10,6 +10,8 @@ export type AuditEventName =
   | 'access.user_deactivated'
   | 'access.user_reactivated'
   | 'access.platform_admin_assigned'
+  | 'access.platform_admin_granted'
+  | 'access.platform_admin_revoked'
   | 'access.application_created'
   | 'access.application_updated'
   | 'access.application_deactivated'
@@ -105,6 +107,20 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
   'access.platform_admin_assigned': {
     appKey: 'platform',
     actorType: AuditActorType.SYSTEM,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'user-required',
+    metadataFields: [],
+  },
+  'access.platform_admin_granted': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'user-required',
+    metadataFields: [],
+  },
+  'access.platform_admin_revoked': {
+    appKey: 'platform',
+    actorType: AuditActorType.USER,
     outcome: AuditOutcome.SUCCESS,
     targetRule: 'user-required',
     metadataFields: [],

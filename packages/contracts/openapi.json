@@ -76,7 +76,7 @@
             "name": "search",
             "required": false,
             "in": "query",
-            "description": "Texto a buscar en el correo corporativo.",
+            "description": "Texto a buscar en el correo corporativo o nombre visible.",
             "schema": {}
           }
         ],
@@ -126,6 +126,76 @@
           }
         },
         "summary": "Preautoriza un usuario.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/bulk-activate": {
+      "post": {
+        "operationId": "activateAdministrativeUsersBulk",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkAdministrativeUserStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BulkAdministrativeUserStatusResultDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Activa varios usuarios, informando el resultado de cada uno.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/bulk-deactivate": {
+      "post": {
+        "operationId": "deactivateAdministrativeUsersBulk",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkAdministrativeUserStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BulkAdministrativeUserStatusResultDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Desactiva varios usuarios, informando el resultado de cada uno.",
         "tags": [
           "administration"
         ]
@@ -250,6 +320,54 @@
           }
         },
         "summary": "Reactiva un usuario.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/{userId}/platform-administrator": {
+      "post": {
+        "operationId": "grantPlatformAdministrator",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Rol administrativo otorgado."
+          }
+        },
+        "summary": "Otorga el rol de administrador de plataforma a un usuario activo.",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/{userId}/platform-administrator/revoke": {
+      "post": {
+        "operationId": "revokePlatformAdministrator",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Rol administrativo revocado."
+          }
+        },
+        "summary": "Revoca el rol de administrador sin permitir auto-revocación ni último administrador.",
         "tags": [
           "administration"
         ]
@@ -1716,14 +1834,54 @@
           "corporateEmail": {
             "type": "string",
             "example": "persona@timbo.com"
-          },
-          "displayName": {
-            "type": "string",
-            "example": "Persona Timbo"
           }
         },
         "required": [
           "corporateEmail"
+        ]
+      },
+      "BulkAdministrativeUserStatusDto": {
+        "type": "object",
+        "properties": {
+          "userIds": {
+            "example": [
+              "d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6"
+            ],
+            "description": "Identificadores de usuarios a los que se aplicará el cambio de estado.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "userIds"
+        ]
+      },
+      "BulkAdministrativeUserStatusResultDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "UPDATED",
+              "SKIPPED",
+              "REJECTED"
+            ],
+            "example": "UPDATED"
+          },
+          "message": {
+            "type": "string",
+            "example": "Primero se debe revocar el rol de administrador de plataforma."
+          }
+        },
+        "required": [
+          "userId",
+          "status"
         ]
       },
       "PreauthorizeAdministrativeUsersBulkDto": {

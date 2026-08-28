@@ -63,17 +63,19 @@ pnpm install
 
 Copiar `.env.example` a `.env` (en la **raíz del workspace**) y ajustar si es necesario. `DATABASE_URL` es un secreto y no se debe copiar a documentación, logs ni control de versiones.
 
-| Variable                     | Descripción                                                                                                              | Valor por defecto       |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------- |
-| `PORT`                       | Puerto de la API o del gateway, según el proceso.                                                                        | API `3000`, Web `4173`  |
-| `CORS_ORIGIN`                | Origen permitido por CORS para el cliente web local.                                                                     | `http://localhost:5173` |
-| `VITE_API_BASE_URL`          | Origen que usa la web local para llamar a la API.                                                                        | `http://localhost:3000` |
-| `API_INTERNAL_ORIGIN`        | Origen interno de la API para el gateway de `apps/web/server` (`/api/*`). Server-only; no se carga desde el `.env` raíz. | Sin valor por defecto   |
-| `DATABASE_URL`               | URL secreta de PostgreSQL para la API y las migraciones.                                                                 | Sin valor por defecto   |
-| `GOOGLE_OAUTH_CLIENT_ID`     | Identificador del cliente OAuth de Google.                                                                               | Sin valor por defecto   |
-| `GOOGLE_OAUTH_CLIENT_SECRET` | Secreto del cliente OAuth de Google.                                                                                     | Sin valor por defecto   |
-| `GOOGLE_OAUTH_REDIRECT_URI`  | Callback exacto `/api/auth/google/callback`; HTTPS fuera de localhost.                                                   | Sin valor por defecto   |
-| `NODE_ENV`                   | Etiqueta del entorno incluida en logs; no decide controles de seguridad.                                                 | `development`           |
+| Variable                      | Descripción                                                                                                              | Valor por defecto       |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------- |
+| `PORT`                        | Puerto de la API o del gateway, según el proceso.                                                                        | API `3000`, Web `4173`  |
+| `CORS_ORIGIN`                 | Origen permitido por CORS para el cliente web local.                                                                     | `http://localhost:5173` |
+| `VITE_API_BASE_URL`           | Origen que usa la web local para llamar a la API.                                                                        | `http://localhost:3000` |
+| `API_INTERNAL_ORIGIN`         | Origen interno de la API para el gateway de `apps/web/server` (`/api/*`). Server-only; no se carga desde el `.env` raíz. | Sin valor por defecto   |
+| `DATABASE_URL`                | URL secreta de PostgreSQL para la API y las migraciones.                                                                 | Sin valor por defecto   |
+| `GOOGLE_OAUTH_CLIENT_ID`      | Identificador del cliente OAuth de Google.                                                                               | Sin valor por defecto   |
+| `GOOGLE_OAUTH_CLIENT_SECRET`  | Secreto del cliente OAuth de Google.                                                                                     | Sin valor por defecto   |
+| `GOOGLE_OAUTH_REDIRECT_URI`   | Callback exacto `/api/auth/google/callback`; HTTPS fuera de localhost.                                                   | Sin valor por defecto   |
+| `NODE_ENV`                    | Etiqueta del entorno incluida en logs; no decide controles de seguridad.                                                 | `development`           |
+| `CORPORATE_EMAIL_DOMAIN`      | Dominio corporativo exigido al preautorizar y vincular identidad Google.                                                 | `timbo.com.py`          |
+| `VITE_CORPORATE_EMAIL_DOMAIN` | Dominio corporativo mostrado y validado previamente por la Web; debe coincidir con `CORPORATE_EMAIL_DOMAIN` de la API.   | `timbo.com.py`          |
 
 El `.env` raíz se carga con el flag nativo de Node `--env-file-if-exists` para la API y Vite lo usa también como directorio de variables de la web. No se agrega `dotenv` ni `@nestjs/config`. Los scripts `dev` y `start` de `apps/api` lo invocan apuntando a `../../.env` (la ruta del `.env` raíz vista desde `apps/api`); si el archivo no existe, Node continúa sin él, pero la API aborta porque la base y OAuth son obligatorios. Antes de crear Nest, `apps/api/src/runtime-config.ts` valida puerto, origen CORS, URL PostgreSQL y configuración de Google sin mostrar secretos ante un error. La web valida `VITE_API_BASE_URL`; el gateway productivo valida `API_INTERNAL_ORIGIN` y nunca lo expone al navegador.
 
@@ -91,7 +93,7 @@ El `.env` raíz se carga con el flag nativo de Node `--env-file-if-exists` para 
 | `pnpm prisma:generate`                                                         | Regenera el cliente Prisma local e ignorado.                                                                            |
 | `pnpm prisma:migrate:deploy`                                                   | Aplica migraciones versionadas pendientes; es el pre-deploy de la API.                                                  |
 | `pnpm --filter @timbo/api preauthorize-user -- --corporate-email <correo>`     | Preautoriza un usuario corporativo mediante el comando auditado.                                                        |
-| `pnpm --filter @timbo/api assign-platform-admin -- --corporate-email <correo>` | Asigna una única vez el primer administrador de plataforma.                                                             |
+| `pnpm --filter @timbo/api assign-platform-admin -- --corporate-email <correo>` | Asigna el primer administrador; luego Administración puede gestionar administradores adicionales.                       |
 | `pnpm --filter @timbo/api test:users:integration`                              | Ejecuta la integración con escritura, opt-in y sólo para development.                                                   |
 | `pnpm build`                                                                   | Compila todos los paquetes del workspace.                                                                               |
 | `pnpm typecheck`                                                               | Verifica los tipos de TypeScript sin emitir archivos.                                                                   |
@@ -186,7 +188,7 @@ AGENTS.md                 # Reglas durables para agentes que trabajen en este re
 3. Configurar en el `.env` local `DATABASE_URL` y las variables de Google OAuth. El callback local debe terminar en `/api/auth/google/callback`.
 4. Levantar la API en modo desarrollo: `pnpm dev` (por defecto, `http://localhost:3000`).
 5. En otra terminal, levantar la web: `pnpm dev:web` (por defecto, `http://localhost:5173`). La pantalla verifica la sesión y, si no existe, ofrece el acceso con Google.
-6. Preautorizar el usuario corporativo con `pnpm --filter @timbo/api preauthorize-user -- --corporate-email <correo>` y asignar una única vez el primer administrador con `pnpm --filter @timbo/api assign-platform-admin -- --corporate-email <correo>`. Estos comandos no deben apuntar a una base ajena al entorno autorizado.
+6. Preautorizar el usuario corporativo con `pnpm --filter @timbo/api preauthorize-user -- --corporate-email <correo>` y asignar el primer administrador con `pnpm --filter @timbo/api assign-platform-admin -- --corporate-email <correo>`. Los administradores posteriores se gestionan desde Administración. Estos comandos no deben apuntar a una base ajena al entorno autorizado.
 7. Ingresar con la misma cuenta de Google preautorizada. El Home muestra las aplicaciones activas
    asignadas a esa cuenta. `/admin`, `/admin/applications` y `/admin/activity` quedan protegidos por
    el perfil de administrador; desde Usuarios se administran asignaciones y perfiles funcionales.

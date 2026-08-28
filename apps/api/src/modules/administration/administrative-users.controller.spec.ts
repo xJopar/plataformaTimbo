@@ -3,6 +3,7 @@ import { UserStatus, type User } from '../../generated/prisma/client';
 import { UsersService } from '../users/users.service';
 import type { AuthenticatedRequest } from '../auth/session-authentication.guard';
 import { PlatformAdministratorCannotBeDeactivatedError } from '../users/users.errors';
+import type { AccessProfilesService } from '../access-profiles/access-profiles.service';
 import { AdministrativeUsersController } from './administrative-users.controller';
 
 const actorUser = {
@@ -30,8 +31,16 @@ describe('AdministrativeUsersController', () => {
     findUserById: jest.fn(),
     deactivateUser: jest.fn(),
     reactivateUser: jest.fn(),
+    changeUsersStatusByAdministrator: jest.fn(),
   };
-  const controller = new AdministrativeUsersController(usersService as unknown as UsersService);
+  const accessProfilesService = {
+    grantPlatformAdministrator: jest.fn(),
+    revokePlatformAdministrator: jest.fn(),
+  };
+  const controller = new AdministrativeUsersController(
+    usersService as unknown as UsersService,
+    accessProfilesService as unknown as AccessProfilesService,
+  );
 
   beforeEach(() => {
     Object.values(usersService).forEach((method) => method.mockReset());
@@ -42,14 +51,13 @@ describe('AdministrativeUsersController', () => {
 
     await expect(
       controller.preauthorizeUser(
-        { corporateEmail: administrativeUser.corporateEmail, displayName: 'Persona Timbo' },
+        { corporateEmail: administrativeUser.corporateEmail },
         authenticatedRequest,
       ),
     ).resolves.toEqual(administrativeUser);
 
     expect(usersService.preauthorizeUserByAdministrator).toHaveBeenCalledWith({
       corporateEmail: administrativeUser.corporateEmail,
-      displayName: 'Persona Timbo',
       actorUserId: actorUser.id,
     });
   });
@@ -150,6 +158,21 @@ describe('AdministrativeUsersController', () => {
     });
     expect(usersService.reactivateUser).toHaveBeenCalledWith({
       corporateEmail: administrativeUser.corporateEmail,
+      actorUserId: actorUser.id,
+    });
+  });
+
+  it('deriva el actor y elimina IDs duplicados en cambios masivos de estado', async () => {
+    usersService.changeUsersStatusByAdministrator.mockResolvedValue([]);
+
+    await controller.deactivateUsersBulk(
+      { userIds: [administrativeUser.id, administrativeUser.id] },
+      authenticatedRequest,
+    );
+
+    expect(usersService.changeUsersStatusByAdministrator).toHaveBeenCalledWith({
+      userIds: [administrativeUser.id],
+      status: UserStatus.INACTIVE,
       actorUserId: actorUser.id,
     });
   });

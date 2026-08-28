@@ -14,6 +14,12 @@ export class InvalidCorporateEmailError extends UsersDomainError {
   }
 }
 
+export class CorporateEmailDomainNotAllowedError extends UsersDomainError {
+  public constructor(operation: string, corporateEmailDomain: string) {
+    super(`El correo corporativo debe pertenecer al dominio @${corporateEmailDomain}.`, operation);
+  }
+}
+
 export class UserNotFoundError extends UsersDomainError {
   public constructor(operation: string, cause?: unknown) {
     super('No se encontró el usuario solicitado.', operation, cause);

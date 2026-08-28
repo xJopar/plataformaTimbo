@@ -23,6 +23,7 @@ export interface SessionCookieConfig {
 export const DEFAULT_PORT = 3000;
 export const DEFAULT_CORS_ORIGIN = 'http://localhost:5173';
 export const DEFAULT_ENVIRONMENT = 'development';
+export const DEFAULT_CORPORATE_EMAIL_DOMAIN = 'timbo.com.py';
 
 const MIN_PORT = 1;
 const MAX_PORT = 65535;
@@ -112,6 +113,29 @@ export function resolveEnvironment(rawEnvironment: string | undefined): string {
 
 export function resolveEnvironmentFromEnvironment(env: NodeJS.ProcessEnv = process.env): string {
   return resolveEnvironment(env.NODE_ENV);
+}
+
+export function resolveCorporateEmailDomain(rawCorporateEmailDomain: string | undefined): string {
+  const normalizedCorporateEmailDomain =
+    rawCorporateEmailDomain?.trim().toLowerCase() ?? DEFAULT_CORPORATE_EMAIL_DOMAIN;
+
+  if (
+    !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/u.test(
+      normalizedCorporateEmailDomain,
+    )
+  ) {
+    throw new Error(
+      'La variable de entorno CORPORATE_EMAIL_DOMAIN debe contener un dominio de correo válido, sin arroba.',
+    );
+  }
+
+  return normalizedCorporateEmailDomain;
+}
+
+export function resolveCorporateEmailDomainFromEnvironment(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return resolveCorporateEmailDomain(env.CORPORATE_EMAIL_DOMAIN);
 }
 
 function resolveRequiredGoogleValue(rawValue: string | undefined, variableName: string): string {

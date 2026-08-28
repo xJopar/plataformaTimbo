@@ -9,13 +9,23 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { AuditEventsService } from '../audit-events/audit-events.service';
 import { UserNotFoundError } from '../users/users.errors';
-import { FirstPlatformAdministratorAlreadyAssignedError } from './access-profiles.errors';
+import {
+  FirstPlatformAdministratorAlreadyAssignedError,
+  InactiveUserCannotBecomePlatformAdministratorError,
+  LastPlatformAdministratorCannotBeRevokedError,
+  PlatformAdministratorCannotRevokeOwnRoleError,
+} from './access-profiles.errors';
 
 const ASSIGN_PLATFORM_ADMIN_CLI_SYSTEM_ACTOR_KEY = 'assign-platform-admin-cli';
 const OPERATION_ASSIGN_FIRST_PLATFORM_ADMINISTRATOR = 'assignFirstPlatformAdministrator';
 
 export interface AssignFirstPlatformAdministratorInput {
   corporateEmail: string;
+}
+
+export interface ManagePlatformAdministratorInput {
+  actorUserId: string;
+  userId: string;
 }
 
 @Injectable()
@@ -58,6 +68,67 @@ export class AccessProfilesService {
     }
   }
 
+  public async grantPlatformAdministrator(input: ManagePlatformAdministratorInput): Promise<void> {
+    await this.prisma.$transaction(async (transactionClient) => {
+      const profile = await this.lockPlatformAdministratorProfile(transactionClient);
+      const user = await transactionClient.user.findUnique({ where: { id: input.userId } });
+      if (user === null) {
+        throw new UserNotFoundError('grantPlatformAdministrator');
+      }
+      if (user.status !== 'ACTIVE') {
+        throw new InactiveUserCannotBecomePlatformAdministratorError();
+      }
+
+      const assignment = await transactionClient.userProfileAssignment.findFirst({
+        where: { userId: user.id, profileId: profile.id },
+        select: { id: true },
+      });
+      if (assignment !== null) {
+        return;
+      }
+      await transactionClient.userProfileAssignment.create({
+        data: { userId: user.id, profileId: profile.id },
+      });
+      await this.auditEventsService.append(transactionClient, {
+        eventName: 'access.platform_admin_granted',
+        actor: { actorType: AuditActorType.USER, actorUserId: input.actorUserId },
+        target: { targetType: 'user', targetId: user.id },
+      });
+    });
+  }
+
+  public async revokePlatformAdministrator(input: ManagePlatformAdministratorInput): Promise<void> {
+    if (input.actorUserId === input.userId) {
+      throw new PlatformAdministratorCannotRevokeOwnRoleError();
+    }
+
+    await this.prisma.$transaction(async (transactionClient) => {
+      const profile = await this.lockPlatformAdministratorProfile(transactionClient);
+      const assignment = await transactionClient.userProfileAssignment.findFirst({
+        where: { userId: input.userId, profileId: profile.id },
+        select: { id: true },
+      });
+      if (assignment === null) {
+        return;
+      }
+      const activeAdministratorCount = await transactionClient.userProfileAssignment.count({
+        where: {
+          profileId: profile.id,
+          user: { status: 'ACTIVE' },
+        },
+      });
+      if (activeAdministratorCount <= 1) {
+        throw new LastPlatformAdministratorCannotBeRevokedError();
+      }
+      await transactionClient.userProfileAssignment.delete({ where: { id: assignment.id } });
+      await this.auditEventsService.append(transactionClient, {
+        eventName: 'access.platform_admin_revoked',
+        actor: { actorType: AuditActorType.USER, actorUserId: input.actorUserId },
+        target: { targetType: 'user', targetId: input.userId },
+      });
+    });
+  }
+
   private async assignFirstPlatformAdministratorInTransaction(
     corporateEmail: string,
   ): Promise<User> {
@@ -72,14 +143,7 @@ export class AccessProfilesService {
           scope: AccessProfileScope.SYSTEM,
         },
       });
-      await transactionClient.$queryRaw(
-        Prisma.sql`
-          SELECT "id"
-          FROM "access_profiles"
-          WHERE "id" = ${profile.id}::uuid
-          FOR UPDATE
-        `,
-      );
+      await this.lockAccessProfile(transactionClient, profile.id);
       const existingAssignment = await transactionClient.userProfileAssignment.findFirst({
         where: { profileId: profile.id },
         select: { id: true },
@@ -107,6 +171,28 @@ export class AccessProfilesService {
 
       return user;
     });
+  }
+
+  private async lockPlatformAdministratorProfile(transactionClient: Prisma.TransactionClient) {
+    const profile = await transactionClient.accessProfile.findFirst({
+      where: { key: 'PLATFORM_ADMIN', scope: AccessProfileScope.SYSTEM },
+    });
+    if (profile === null) {
+      throw new Error('No existe el perfil de administrador de plataforma.');
+    }
+    await this.lockAccessProfile(transactionClient, profile.id);
+    return profile;
+  }
+
+  private async lockAccessProfile(transactionClient: Prisma.TransactionClient, profileId: string) {
+    await transactionClient.$queryRaw(
+      Prisma.sql`
+        SELECT "id"
+        FROM "access_profiles"
+        WHERE "id" = ${profileId}::uuid
+        FOR UPDATE
+      `,
+    );
   }
 }
 
