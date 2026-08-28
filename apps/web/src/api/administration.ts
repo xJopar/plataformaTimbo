@@ -30,6 +30,10 @@ export type BulkApplicationAccessResult = NonNullable<
   paths['/api/admin/applications/{applicationId}/users/bulk-assign']['post']['responses'][200]['content']['application/json']
 >[number];
 
+export type BulkAdministrativeUserStatusResult = NonNullable<
+  paths['/api/admin/users/bulk-activate']['post']['responses'][200]['content']['application/json']
+>[number];
+
 export interface ActivityFilters {
   datePreset?: 'today' | 'week' | 'month';
   dateFrom?: string;
@@ -95,12 +99,9 @@ export interface AdministrationApi {
   assignApplicationProfileToUser(userId: string, profileId: string): Promise<void>;
   unassignApplicationProfileFromUser(userId: string, profileId: string): Promise<void>;
   listUsers(search?: string): Promise<AdministrativeUser[]>;
-  preauthorizeUser(input: {
-    corporateEmail: string;
-    displayName?: string;
-  }): Promise<AdministrativeUser>;
+  preauthorizeUser(input: { corporateEmail: string }): Promise<AdministrativeUser>;
   preauthorizeUsersBulk(
-    entries: { corporateEmail: string; displayName?: string }[],
+    entries: { corporateEmail: string }[],
   ): Promise<PreauthorizeAdministrativeUserBulkResult[]>;
   assignApplicationToUsers(
     applicationId: string,
@@ -113,6 +114,10 @@ export interface AdministrationApi {
   updateUser(userId: string, input: { displayName: string | null }): Promise<AdministrativeUser>;
   deactivateUser(userId: string): Promise<void>;
   reactivateUser(userId: string): Promise<void>;
+  activateUsers(userIds: string[]): Promise<BulkAdministrativeUserStatusResult[]>;
+  deactivateUsers(userIds: string[]): Promise<BulkAdministrativeUserStatusResult[]>;
+  grantPlatformAdministrator(userId: string): Promise<void>;
+  revokePlatformAdministrator(userId: string): Promise<void>;
   listActivity(filters?: ActivityFilters): Promise<AdministrativeActivity>;
   getActivityStatistics(filters?: ActivityFilters): Promise<AdministrativeActivityStatistics>;
   getActivityFilterOptions(filters?: ActivityFilters): Promise<AdministrativeActivityFilterOptions>;
@@ -404,6 +409,42 @@ export function createAdministrationApi(
       if (!response.ok) {
         throw new ApiHttpError(response.status);
       }
+    },
+
+    async activateUsers(userIds): Promise<BulkAdministrativeUserStatusResult[]> {
+      const { data, response } = await client.POST('/api/admin/users/bulk-activate', {
+        headers: { 'x-timbo-csrf': '1' },
+        body: { userIds },
+      });
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined) throw new Error('La API respondió sin el resultado esperado.');
+      return data;
+    },
+
+    async deactivateUsers(userIds): Promise<BulkAdministrativeUserStatusResult[]> {
+      const { data, response } = await client.POST('/api/admin/users/bulk-deactivate', {
+        headers: { 'x-timbo-csrf': '1' },
+        body: { userIds },
+      });
+      if (!response.ok) throw new ApiHttpError(response.status);
+      if (data === undefined) throw new Error('La API respondió sin el resultado esperado.');
+      return data;
+    },
+
+    async grantPlatformAdministrator(userId): Promise<void> {
+      const { response } = await client.POST('/api/admin/users/{userId}/platform-administrator', {
+        params: { path: { userId } },
+        headers: { 'x-timbo-csrf': '1' },
+      });
+      if (!response.ok) throw new ApiHttpError(response.status);
+    },
+
+    async revokePlatformAdministrator(userId): Promise<void> {
+      const { response } = await client.POST(
+        '/api/admin/users/{userId}/platform-administrator/revoke',
+        { params: { path: { userId } }, headers: { 'x-timbo-csrf': '1' } },
+      );
+      if (!response.ok) throw new ApiHttpError(response.status);
     },
 
     async listActivity(filters = {}): Promise<AdministrativeActivity> {

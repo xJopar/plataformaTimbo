@@ -6,6 +6,8 @@ import {
 
 export type BrowserOperation =
   | 'applications.load-authorized'
+  | 'administration.load-applications'
+  | 'administration.manage-users'
   | 'hello-world.request-joke'
   | 'hello-world.translate-joke'
   | 'lista-precios.record-usage-event';

@@ -7,6 +7,7 @@ import {
   type AdministrativeUserApplicationAccess,
   type Api,
 } from '../api';
+import { reportBrowserOperationFailed } from '../browser-diagnostics';
 
 interface AccessManagementPanelProps {
   api: Api;
@@ -55,6 +56,13 @@ export function AccessManagementPanel({
         profilesByApplicationId: Object.fromEntries(profiles),
       });
     } catch (loadError) {
+      reportBrowserOperationFailed(loadError, {
+        operation: 'administration.manage-users',
+        method: 'GET',
+        route: '/api/admin/users/{userId}/applications',
+        provider: 'api',
+        ...(loadError instanceof ApiHttpError ? { status: loadError.status } : {}),
+      });
       setError(
         loadError instanceof ApiHttpError && loadError.status === 403
           ? 'Tu sesión no tiene permiso para gestionar estos accesos.'
@@ -77,7 +85,14 @@ export function AccessManagementPanel({
       setApplicationToUnassign(undefined);
       setIsUnassignmentConfirmed(false);
       await load();
-    } catch {
+    } catch (saveError) {
+      reportBrowserOperationFailed(saveError, {
+        operation: 'administration.manage-users',
+        method: 'POST',
+        route: '/api/admin/users/{userId}/applications',
+        provider: 'api',
+        ...(saveError instanceof ApiHttpError ? { status: saveError.status } : {}),
+      });
       setError('No pudimos guardar el acceso. Verificá el estado e intentá nuevamente.');
     } finally {
       setIsSaving(false);

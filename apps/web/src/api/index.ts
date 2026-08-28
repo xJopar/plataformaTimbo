@@ -33,6 +33,7 @@ export {
   type AdministrativeUser,
   type AdministrativeUserApplicationAccess,
   type BulkApplicationAccessResult,
+  type BulkAdministrativeUserStatusResult,
   type PreauthorizeAdministrativeUserBulkResult,
 } from './administration';
 export { ApiHttpError, createApiHttpError, type HealthResponse, type SystemApi } from './system';
