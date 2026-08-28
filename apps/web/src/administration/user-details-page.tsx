@@ -1,7 +1,9 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
+import { ArrowLeft02Icon } from '@hugeicons/core-free-icons';
 import { AccessManagementPanel } from './access-management-panel';
 import { ApiHttpError, type AdministrativeUser, type Api } from '../api';
 import { reportBrowserOperationFailed } from '../browser-diagnostics';
+import { AppIcon } from '../ui/app-icon';
 
 interface UserDetailsPageProps {
   api: Api;
@@ -25,6 +27,7 @@ export function UserDetailsPage({
 }: UserDetailsPageProps): React.JSX.Element {
   const [state, setState] = useState<UserDetailsState>({ status: 'loading' });
   const [displayName, setDisplayName] = useState('');
+  const [isAccessManagementOpen, setIsAccessManagementOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
@@ -154,14 +157,15 @@ export function UserDetailsPage({
   return (
     <section className="administration-content" aria-labelledby="user-details-title">
       <a
-        className="text-link"
+        className="text-link administration-back-link"
         href="/admin"
         onClick={(event) => {
           event.preventDefault();
           onNavigate('/admin');
         }}
       >
-        Volver a Usuarios
+        <AppIcon icon={ArrowLeft02Icon} size={18} strokeWidth={2.4} />
+        <span>Volver a usuarios</span>
       </a>
       {state.status === 'loading' ? <p aria-live="polite">Cargando usuario…</p> : null}
       {state.status === 'forbidden' ? (
@@ -189,14 +193,40 @@ export function UserDetailsPage({
         <>
           <h1 id="user-details-title">{state.user.displayName ?? state.user.corporateEmail}</h1>
           <p className="administration-description">{state.user.corporateEmail}</p>
-          <div className="user-details-grid">
-            <section className="state-surface identity-edit-panel" aria-labelledby="identity-title">
-              <h2 id="identity-title">Datos de la persona</h2>
-              <form onSubmit={(event) => void saveDisplayName(event)}>
+          <section
+            className="state-surface user-profile-panel"
+            aria-labelledby="user-profile-title"
+          >
+            <div className="user-profile-panel-heading">
+              <div>
+                <h2 id="user-profile-title">Información de la persona</h2>
+                <p>Actualizá el nombre visible o gestioná el rol y el estado de esta cuenta.</p>
+              </div>
+              <dl className="user-account-facts">
+                <div>
+                  <dt>Estado</dt>
+                  <dd className={`status-badge status-badge--${state.user.status.toLowerCase()}`}>
+                    {state.user.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Rol</dt>
+                  <dd>
+                    {state.user.isPlatformAdministrator
+                      ? 'Administrador de plataforma'
+                      : 'Usuario de plataforma'}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+            <div className="user-profile-panel-body">
+              <form
+                className="identity-edit-form"
+                onSubmit={(event) => void saveDisplayName(event)}
+              >
                 <label htmlFor="display-name">Nombre visible</label>
                 <p className="field-hint">
-                  Este nombre puede actualizarse si necesitás una presentación distinta a la que
-                  provee Google.
+                  Usá un nombre distinto sólo si la presentación debe diferir del perfil de Google.
                 </p>
                 <input
                   id="display-name"
@@ -208,65 +238,68 @@ export function UserDetailsPage({
                   Guardar nombre
                 </button>
               </form>
-              {error === undefined ? null : <p role="alert">{error}</p>}
-            </section>
-            <section
-              className="state-surface user-governance-panel"
-              aria-labelledby="user-access-state-title"
-            >
-              <h2 id="user-access-state-title">Rol y estado</h2>
-              <dl>
-                <div>
-                  <dt>Estado</dt>
-                  <dd>{state.user.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}</dd>
-                </div>
-                <div>
-                  <dt>Rol de plataforma</dt>
-                  <dd>
-                    {state.user.isPlatformAdministrator
-                      ? 'Administrador de plataforma'
-                      : 'Usuario de plataforma'}
-                  </dd>
-                </div>
-              </dl>
-              {state.user.isPlatformAdministrator ? (
-                actorUserId === state.user.id ? (
-                  <p className="field-hint">No podés revocar tu propio rol administrativo.</p>
+              <div className="user-governance-actions" aria-label="Acciones de la cuenta">
+                {state.user.isPlatformAdministrator ? (
+                  actorUserId === state.user.id ? (
+                    <p className="field-hint">No podés revocar tu propio rol administrativo.</p>
+                  ) : (
+                    <button
+                      className="text-button text-button--danger"
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => void manageRole('revoke')}
+                    >
+                      Revocar administración
+                    </button>
+                  )
                 ) : (
                   <button
-                    className="text-button text-button--danger"
+                    className="text-button"
                     type="button"
-                    disabled={isSaving}
-                    onClick={() => void manageRole('revoke')}
+                    disabled={isSaving || state.user.status !== 'ACTIVE'}
+                    onClick={() => void manageRole('grant')}
                   >
-                    Revocar administración
+                    Convertir en administrador
                   </button>
-                )
-              ) : (
+                )}
                 <button
-                  className="text-button"
+                  className={
+                    state.user.status === 'ACTIVE'
+                      ? 'text-button text-button--danger'
+                      : 'action-button'
+                  }
                   type="button"
-                  disabled={isSaving || state.user.status !== 'ACTIVE'}
-                  onClick={() => void manageRole('grant')}
+                  disabled={isSaving || state.user.isPlatformAdministrator}
+                  onClick={() => void changeStatus()}
                 >
-                  Convertir en administrador
+                  {state.user.status === 'ACTIVE' ? 'Desactivar usuario' : 'Reactivar usuario'}
                 </button>
-              )}
-              <button
-                className={
-                  state.user.status === 'ACTIVE'
-                    ? 'text-button text-button--danger'
-                    : 'action-button'
-                }
-                type="button"
-                disabled={isSaving || state.user.isPlatformAdministrator}
-                onClick={() => void changeStatus()}
-              >
-                {state.user.status === 'ACTIVE' ? 'Desactivar usuario' : 'Reactivar usuario'}
-              </button>
-            </section>
-          </div>
-          <AccessManagementPanel api={api} user={state.user} onClose={() => onNavigate('/admin')} />
+              </div>
+            </div>
+            {error === undefined ? null : <p role="alert">{error}</p>}
+          </section>
+          <section className="access-management-entry" aria-labelledby="access-entry-title">
+            <div>
+              <h2 id="access-entry-title">Accesos a aplicaciones</h2>
+              <p>Asigná aplicaciones y administrá sus perfiles funcionales cuando sea necesario.</p>
+            </div>
+            <button
+              className="action-button"
+              type="button"
+              aria-controls={`access-management-panel-${state.user.id}`}
+              aria-expanded={isAccessManagementOpen}
+              onClick={() => setIsAccessManagementOpen((current) => !current)}
+            >
+              {isAccessManagementOpen ? 'Ocultar accesos' : 'Gestionar aplicaciones y perfiles'}
+            </button>
+          </section>
+          {isAccessManagementOpen ? (
+            <AccessManagementPanel
+              api={api}
+              user={state.user}
+              onClose={() => setIsAccessManagementOpen(false)}
+            />
+          ) : null}
         </>
       )}
     </section>

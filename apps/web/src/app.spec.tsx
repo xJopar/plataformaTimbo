@@ -583,8 +583,13 @@ describe('App', () => {
       />,
     );
 
-    expect(await screen.findByRole('heading', { name: 'Gestionar accesos' })).toBeInTheDocument();
-    await user.click(await screen.findByRole('button', { name: 'Asignar aplicación' }));
+    await user.click(
+      await screen.findByRole('button', { name: 'Gestionar aplicaciones y perfiles' }),
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'Aplicaciones y perfiles' }),
+    ).toBeInTheDocument();
+    await user.click(await screen.findByRole('button', { name: 'Asignar acceso' }));
     await waitFor(() =>
       expect(assignApplicationToUser).toHaveBeenCalledWith('user-a', 'application-a'),
     );
@@ -618,6 +623,9 @@ describe('App', () => {
       />,
     );
 
+    await user.click(
+      await screen.findByRole('button', { name: 'Gestionar aplicaciones y perfiles' }),
+    );
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'No pudimos cargar las asignaciones',
     );
@@ -683,12 +691,15 @@ describe('App', () => {
       />,
     );
 
-    await user.click((await screen.findAllByRole('button', { name: 'Desasignar aplicación' }))[0]!);
+    await user.click(
+      await screen.findByRole('button', { name: 'Gestionar aplicaciones y perfiles' }),
+    );
+    await user.click((await screen.findAllByRole('button', { name: 'Quitar acceso' }))[0]!);
     await user.click(
       screen.getByRole('checkbox', { name: /Confirmo que deseo retirar la aplicación/ }),
     );
     expect(screen.getByRole('button', { name: 'Confirmar desasignación' })).toBeEnabled();
-    await user.click(screen.getByRole('button', { name: 'Desasignar aplicación' }));
+    await user.click(screen.getByRole('button', { name: 'Quitar acceso' }));
     expect(screen.getByRole('button', { name: 'Confirmar desasignación' })).toBeDisabled();
   });
 

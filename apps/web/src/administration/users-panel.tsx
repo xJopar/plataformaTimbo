@@ -177,7 +177,7 @@ export function UsersPanel({ api, onNavigate }: UsersPanelProps): React.JSX.Elem
           </p>
         </div>
         <a
-          className="action-button"
+          className="action-button administration-page-action"
           href="/admin/users/preauthorize"
           onClick={(event) => {
             event.preventDefault();

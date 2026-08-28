@@ -112,14 +112,14 @@ export function AccessManagementPanel({
     >
       <div className="inline-panel-heading">
         <div>
-          <h2 id={`access-management-${user.id}`}>Gestionar accesos</h2>
+          <h2 id={`access-management-${user.id}`}>Aplicaciones y perfiles</h2>
           <p>
-            {user.displayName ?? user.corporateEmail}. La aplicación permite verla y entrar; los
-            perfiles definen qué puede hacer dentro.
+            Asigná las aplicaciones que puede abrir {user.displayName ?? user.corporateEmail}. Los
+            perfiles se administran dentro de cada aplicación asignada.
           </p>
         </div>
         <button className="text-button" type="button" onClick={onClose}>
-          Cerrar gestión de accesos
+          Volver a la ficha
         </button>
       </div>
       {user.isPlatformAdministrator ? (
@@ -159,36 +159,49 @@ export function AccessManagementPanel({
               return (
                 <section className="access-application-row" key={application.id}>
                   <div className="access-application-summary">
-                    <div>
-                      <h3>{application.name}</h3>
-                      <p>
-                        {application.status === 'ACTIVE'
-                          ? isAssigned
-                            ? 'Aplicación asignada.'
-                            : 'Aplicación disponible para asignar.'
-                          : 'Aplicación inactiva; no admite nuevas asignaciones.'}
-                      </p>
-                    </div>
+                    <h3>{application.name}</h3>
+                    <p>
+                      {application.status === 'ACTIVE'
+                        ? isAssigned
+                          ? 'Acceso habilitado.'
+                          : 'Sin acceso asignado.'
+                        : 'Esta aplicación está inactiva y no admite nuevas asignaciones.'}
+                    </p>
+                  </div>
+                  <div className="access-application-actions">
                     <span
                       className={`status-badge status-badge--${application.status.toLowerCase()}`}
                     >
                       {application.status === 'ACTIVE' ? 'Activa' : 'Inactiva'}
                     </span>
+                    {!isAssigned && application.status === 'ACTIVE' ? (
+                      <button
+                        className="action-button"
+                        type="button"
+                        disabled={isSaving || !isUserActive}
+                        onClick={() =>
+                          void save(() =>
+                            api.administration.assignApplicationToUser(user.id, application.id),
+                          )
+                        }
+                      >
+                        Asignar acceso
+                      </button>
+                    ) : null}
+                    {isAssigned && applicationToUnassign !== application.id ? (
+                      <button
+                        className="text-button text-button--danger"
+                        type="button"
+                        disabled={isSaving}
+                        onClick={() => {
+                          setApplicationToUnassign(application.id);
+                          setIsUnassignmentConfirmed(false);
+                        }}
+                      >
+                        Quitar acceso
+                      </button>
+                    ) : null}
                   </div>
-                  {!isAssigned && application.status === 'ACTIVE' ? (
-                    <button
-                      className="action-button"
-                      type="button"
-                      disabled={isSaving || !isUserActive}
-                      onClick={() =>
-                        void save(() =>
-                          api.administration.assignApplicationToUser(user.id, application.id),
-                        )
-                      }
-                    >
-                      Asignar aplicación
-                    </button>
-                  ) : null}
                   {isAssigned ? (
                     <>
                       {applicationToUnassign === application.id ? (
@@ -235,19 +248,7 @@ export function AccessManagementPanel({
                             </button>
                           </div>
                         </div>
-                      ) : (
-                        <button
-                          className="text-button"
-                          type="button"
-                          disabled={isSaving}
-                          onClick={() => {
-                            setApplicationToUnassign(application.id);
-                            setIsUnassignmentConfirmed(false);
-                          }}
-                        >
-                          Desasignar aplicación
-                        </button>
-                      )}
+                      ) : null}
                       <ProfileAssignments
                         applicationId={application.id}
                         profiles={profiles}
