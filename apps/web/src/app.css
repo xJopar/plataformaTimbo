@@ -575,14 +575,16 @@ h1 {
   grid-template-columns: minmax(180px, 0.24fr) minmax(0, 1fr);
 }
 .administration-navigation {
-  padding: 32px 24px;
+  padding: 24px;
   border-right: 1px solid #bcc9d7;
   background: #f7f9fb;
 }
 .administration-navigation a {
-  display: block;
-  margin: 0 -8px 8px;
-  padding: 11px 8px;
+  min-block-size: 44px;
+  margin: 0 0 4px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
   color: #334155;
   font-weight: 700;
   text-decoration: none;
@@ -590,8 +592,7 @@ h1 {
 .administration-navigation a[aria-current='page'] {
   background: #dcecf0;
   color: #00388a;
-  text-decoration: underline 3px #00a6a6;
-  text-underline-offset: 7px;
+  box-shadow: inset 3px 0 #00a6a6;
 }
 .administration-content {
   padding: clamp(32px, 6vw, 72px);
@@ -869,9 +870,10 @@ select {
 }
 .access-management-panel,
 .application-profiles-panel {
-  margin-top: 28px;
+  margin-bottom: 28px;
   padding: 24px;
-  border: 1px solid #00388a;
+  border: 1px solid #bcc9d7;
+  border-top: 3px solid #00388a;
   background: #f7f9fb;
 }
 .inline-panel-heading,
@@ -891,6 +893,10 @@ select {
 .profile-row h4,
 .profile-assignment-list h4 {
   margin: 0;
+}
+.inline-panel-heading .text-button {
+  flex: 0 0 auto;
+  margin-top: 0;
 }
 .inline-panel-heading p,
 .access-application-summary p,
@@ -1184,6 +1190,7 @@ th {
   }
   .administration-navigation a {
     margin: 0;
+    padding: 0 8px;
   }
   .administration-actions {
     grid-template-columns: 1fr;

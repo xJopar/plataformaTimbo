@@ -90,7 +90,11 @@ export function AccessManagementPanel({
   );
 
   return (
-    <section className="access-management-panel" aria-labelledby={`access-management-${user.id}`}>
+    <section
+      className="access-management-panel"
+      id={`access-management-panel-${user.id}`}
+      aria-labelledby={`access-management-${user.id}`}
+    >
       <div className="inline-panel-heading">
         <div>
           <h2 id={`access-management-${user.id}`}>Gestionar accesos</h2>
@@ -100,7 +104,7 @@ export function AccessManagementPanel({
           </p>
         </div>
         <button className="text-button" type="button" onClick={onClose}>
-          Cerrar
+          Cerrar gestión de accesos
         </button>
       </div>
       {user.isPlatformAdministrator ? (

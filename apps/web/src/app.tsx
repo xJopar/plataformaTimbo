@@ -397,6 +397,17 @@ function AdministrationPanel({
     }
   }, [activeSection, loadUsers, api]);
 
+  useEffect(() => {
+    if (managedUserId === undefined) {
+      return;
+    }
+
+    const managementPanel = document.getElementById(`access-management-panel-${managedUserId}`);
+    if (typeof managementPanel?.scrollIntoView === 'function') {
+      managementPanel.scrollIntoView({ block: 'start' });
+    }
+  }, [managedUserId]);
+
   const submitSearch = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     void loadUsers(search);
@@ -528,20 +539,12 @@ function AdministrationPanel({
         isLoggingOut={isLoggingOut}
         isPlatformAdministrator={session.isPlatformAdministrator}
         showAdministrationLink={false}
+        variant="home"
         onNavigate={onNavigate}
         onLogout={onLogout}
       />
       <div className="administration-layout">
         <nav className="administration-navigation" aria-label="Navegación de Administración">
-          <a
-            href="/"
-            onClick={(event) => {
-              event.preventDefault();
-              onNavigate('/');
-            }}
-          >
-            Inicio
-          </a>
           <a
             aria-current={activeSection === 'users' ? 'page' : undefined}
             href="/admin"
@@ -577,7 +580,6 @@ function AdministrationPanel({
         {activeSection === 'activity' ? <ActivityPanel api={api} /> : null}
         {activeSection === 'users' ? (
           <section className="administration-content" aria-labelledby="administration-title">
-            <p className="eyebrow">Administración</p>
             <h1 id="administration-title">Usuarios</h1>
             <p className="administration-description">
               Gestioná los accesos preautorizados de Plataforma Timbo. Sesión:{' '}
@@ -660,6 +662,13 @@ function AdministrationPanel({
                   </form>
                 </div>
                 {actionError === undefined ? null : <p role="alert">{actionError}</p>}
+                {managedUser === undefined ? null : (
+                  <AccessManagementPanel
+                    api={api}
+                    user={managedUser}
+                    onClose={() => setManagedUserId(undefined)}
+                  />
+                )}
                 {administrationState.users.length === 0 ? (
                   <section className="state-surface" aria-labelledby="empty-users-title">
                     <h2 id="empty-users-title">No encontramos usuarios</h2>
@@ -826,7 +835,13 @@ function AdministrationPanel({
                                   className="text-button"
                                   type="button"
                                   disabled={isSaving}
-                                  onClick={() => setManagedUserId(user.id)}
+                                  aria-controls={`access-management-panel-${user.id}`}
+                                  aria-expanded={managedUserId === user.id}
+                                  onClick={() =>
+                                    setManagedUserId((currentUserId) =>
+                                      currentUserId === user.id ? undefined : user.id,
+                                    )
+                                  }
                                 >
                                   Gestionar accesos
                                 </button>
@@ -851,13 +866,6 @@ function AdministrationPanel({
                       </table>
                     </div>
                   </>
-                )}
-                {managedUser === undefined ? null : (
-                  <AccessManagementPanel
-                    api={api}
-                    user={managedUser}
-                    onClose={() => setManagedUserId(undefined)}
-                  />
                 )}
               </>
             ) : null}
@@ -962,7 +970,6 @@ function ActivityPanel({ api }: { api: Api }): React.JSX.Element {
   const options = activityState.status === 'ready' ? activityState.options : emptyActivityOptions;
   return (
     <section className="administration-content activity-content" aria-labelledby="activity-title">
-      <p className="eyebrow">Administración</p>
       <h1 id="activity-title">Actividad</h1>
       <p className="administration-description">
         Consultá los eventos normalizados de las aplicaciones conectadas a Plataforma Timbo.

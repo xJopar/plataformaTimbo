@@ -377,6 +377,11 @@ describe('App', () => {
       await screen.findByRole('heading', { name: 'No encontramos usuarios' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Usuarios' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.queryByRole('link', { name: /^Inicio$/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ir al inicio de Plataforma Timbo' })).toHaveAttribute(
+      'href',
+      '/',
+    );
   });
 
   it('navega entre Usuarios y Actividad sin volver a verificar la sesión', async () => {
@@ -523,6 +528,17 @@ describe('App', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Gestionar accesos' }));
     expect(await screen.findByRole('heading', { name: 'Gestionar accesos' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Gestionar accesos' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+    await user.click(screen.getByRole('button', { name: 'Gestionar accesos' }));
+    expect(screen.queryByRole('heading', { name: 'Gestionar accesos' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Gestionar accesos' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    await user.click(screen.getByRole('button', { name: 'Gestionar accesos' }));
     await user.type(screen.getByLabelText('Buscar por correo corporativo'), 'otra@timbo.com');
     await user.click(screen.getByRole('button', { name: 'Buscar' }));
 

@@ -50,6 +50,19 @@ export function ApplicationsPanel({ api }: { api: Api }): React.JSX.Element {
     void loadApplications();
   }, [loadApplications]);
 
+  useEffect(() => {
+    if (managedApplicationId === undefined) {
+      return;
+    }
+
+    const profilesPanel = document.getElementById(
+      `application-profiles-panel-${managedApplicationId}`,
+    );
+    if (typeof profilesPanel?.scrollIntoView === 'function') {
+      profilesPanel.scrollIntoView({ block: 'start' });
+    }
+  }, [managedApplicationId]);
+
   const updateForm = (field: keyof ApplicationFormValues, value: string): void => {
     setForm((current) => ({ ...current, [field]: value }));
   };
@@ -214,6 +227,13 @@ export function ApplicationsPanel({ api }: { api: Api }): React.JSX.Element {
             </button>
           </form>
           {actionError === undefined ? null : <p role="alert">{actionError}</p>}
+          {managedApplication === undefined ? null : (
+            <ApplicationProfilesPanel
+              api={api}
+              application={managedApplication}
+              onClose={() => setManagedApplicationId(undefined)}
+            />
+          )}
           {state.applications.length === 0 ? (
             <section className="state-surface" aria-labelledby="empty-applications-title">
               <h2 id="empty-applications-title">Todavía no hay aplicaciones</h2>
@@ -265,7 +285,13 @@ export function ApplicationsPanel({ api }: { api: Api }): React.JSX.Element {
                           className="text-button"
                           type="button"
                           disabled={isSaving}
-                          onClick={() => setManagedApplicationId(application.id)}
+                          aria-controls={`application-profiles-panel-${application.id}`}
+                          aria-expanded={managedApplicationId === application.id}
+                          onClick={() =>
+                            setManagedApplicationId((currentApplicationId) =>
+                              currentApplicationId === application.id ? undefined : application.id,
+                            )
+                          }
                         >
                           Gestionar perfiles
                         </button>
@@ -283,13 +309,6 @@ export function ApplicationsPanel({ api }: { api: Api }): React.JSX.Element {
                 </tbody>
               </table>
             </div>
-          )}
-          {managedApplication === undefined ? null : (
-            <ApplicationProfilesPanel
-              api={api}
-              application={managedApplication}
-              onClose={() => setManagedApplicationId(undefined)}
-            />
           )}
         </>
       ) : null}

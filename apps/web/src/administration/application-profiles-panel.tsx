@@ -103,7 +103,11 @@ export function ApplicationProfilesPanel({
 
   const canManageProfiles = application.status === 'ACTIVE';
   return (
-    <section className="application-profiles-panel" aria-labelledby={`profiles-${application.id}`}>
+    <section
+      className="application-profiles-panel"
+      id={`application-profiles-panel-${application.id}`}
+      aria-labelledby={`profiles-${application.id}`}
+    >
       <div className="inline-panel-heading">
         <div>
           <h2 id={`profiles-${application.id}`}>Gestionar perfiles</h2>
@@ -112,7 +116,7 @@ export function ApplicationProfilesPanel({
           </p>
         </div>
         <button className="text-button" type="button" onClick={onClose}>
-          Cerrar
+          Cerrar gestión de perfiles
         </button>
       </div>
       {!canManageProfiles ? (
