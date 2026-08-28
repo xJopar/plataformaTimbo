@@ -638,7 +638,7 @@ function AdministrationPanel({
                     </p>
                     <textarea
                       id="bulk-emails"
-                      rows={5}
+                      rows={4}
                       required
                       value={bulkEmailsText}
                       onChange={(event) => setBulkEmailsText(event.target.value)}
