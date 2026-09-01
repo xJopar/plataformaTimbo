@@ -43,6 +43,7 @@
   margin: 0 auto;
   padding: clamp(20px, 4vw, 40px) clamp(20px, 5vw, 32px) 40px;
 }
+
 @media (max-width: 1023px) {
   .cc-page--has-mobile-bar {
     padding-bottom: 88px;
@@ -78,6 +79,7 @@
   flex-direction: column;
   gap: var(--cc-sp-6);
 }
+
 .cc-layout-main,
 .cc-layout-config,
 .cc-layout-result {
@@ -92,6 +94,7 @@
     align-items: start;
     gap: 0 48px;
   }
+
   .cc-layout-config,
   .cc-layout-result {
     grid-column: 2;
@@ -105,9 +108,11 @@
     grid-template-columns: minmax(0, 1fr) 300px 380px;
     gap: 0 32px;
   }
+
   .cc-layout-config {
     grid-column: 2;
   }
+
   .cc-layout-result {
     grid-column: 3;
   }
@@ -118,14 +123,17 @@
 .cc-section {
   padding-top: var(--cc-sp-6);
 }
-.cc-layout-main > .cc-section:first-child,
-.cc-layout-config > .cc-section:first-child,
-.cc-layout-result > .cc-section:first-child {
+
+.cc-layout-main>.cc-section:first-child,
+.cc-layout-config>.cc-section:first-child,
+.cc-layout-result>.cc-section:first-child {
   padding-top: 0;
 }
-.cc-section + .cc-section {
+
+.cc-section+.cc-section {
   border-top: 1px solid var(--cc-c-border);
 }
+
 .cc-section-heading {
   display: flex;
   align-items: center;
@@ -133,6 +141,7 @@
   gap: var(--cc-sp-3);
   margin-bottom: var(--cc-sp-4);
 }
+
 /* /impeccable bolder: 1rem/700 era casi cuerpo de texto para un título de sección — subido a la
    cota alta que ya autoriza DESIGN.md para etiquetas de superficies operativas (peso 700-800) en
    vez de inventar una escala nueva: más tamaño, más peso, tracking más cerrado. */
@@ -143,16 +152,19 @@
   font-weight: 800;
   letter-spacing: -0.02em;
 }
+
 .cc-section-heading .cc-section-title {
   margin-bottom: 0;
 }
+
 /* Cuotero no participa de este bolder: ya tiene su propio acento (borde superior de marca) como
    única superficie-resultado — subirle también el título compraría una segunda señal de énfasis
    sobre la misma sección y le restaría fuerza al bolder real, que es para las otras dos. */
 #cc-cuotero-title {
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 /* ── Selector de modo (agregar unidad / precio manual) ── */
@@ -163,6 +175,7 @@
   background: var(--cc-c-border);
   border: 1px solid var(--cc-c-border);
 }
+
 .cc-mode-btn {
   flex: 1;
   min-height: 44px;
@@ -177,10 +190,12 @@
     background var(--cc-t-fast),
     color var(--cc-t-fast);
 }
+
 .cc-mode-btn--active {
   background: var(--cc-c-brand);
   color: #fff;
 }
+
 .cc-mode-btn:focus-visible {
   position: relative;
   z-index: 1;
@@ -199,6 +214,7 @@
   background: var(--cc-c-surface-alt);
   color: var(--cc-c-text-secondary);
 }
+
 .cc-search-bar input {
   flex: 1;
   border: none;
@@ -207,6 +223,7 @@
   color: var(--cc-c-text-primary);
   font-size: 0.9375rem;
 }
+
 .cc-search-bar input::placeholder {
   color: var(--cc-c-text-disabled);
 }
@@ -219,6 +236,7 @@
   color: var(--cc-c-text-secondary);
   font-size: 0.875rem;
 }
+
 .cc-catalog-loading .session-boot-indicator {
   width: 20px;
   height: 20px;
@@ -241,6 +259,7 @@
   border: 1px solid var(--cc-c-border);
   background: var(--cc-c-surface-alt);
 }
+
 .cc-catalog-result {
   display: flex;
   align-items: center;
@@ -249,19 +268,23 @@
   padding: var(--cc-sp-3) var(--cc-sp-4);
   border-bottom: 1px solid var(--cc-c-border);
 }
+
 .cc-catalog-result:last-child {
   border-bottom: none;
 }
+
 .cc-catalog-result-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
+
 .cc-catalog-result-name {
   font-weight: 700;
   color: var(--cc-c-text-primary);
 }
+
 .cc-catalog-result-meta {
   font-size: 0.8125rem;
   color: var(--cc-c-text-secondary);
@@ -282,10 +305,12 @@
     background var(--cc-t-fast),
     color var(--cc-t-fast);
 }
+
 .cc-add-btn:hover:not(:disabled) {
   background: var(--cc-c-brand);
   color: #fff;
 }
+
 .cc-add-btn:disabled {
   border-color: var(--cc-c-border);
   color: var(--cc-c-text-disabled);
@@ -298,11 +323,13 @@
   flex-direction: column;
   gap: var(--cc-sp-2);
 }
+
 .cc-manual-form label {
   color: var(--cc-c-text-secondary);
   font-weight: 700;
   font-size: 0.8125rem;
 }
+
 .cc-manual-form [role='alert'] {
   margin: 0;
   padding: var(--cc-sp-2) var(--cc-sp-3);
@@ -312,6 +339,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
 }
+
 .cc-manual-submit {
   align-self: flex-start;
   margin-top: var(--cc-sp-2);
@@ -323,12 +351,14 @@
   font-size: 0.8125rem;
   font-weight: 700;
 }
+
 .cc-added-empty {
   margin: 0;
   color: var(--cc-c-text-secondary);
   font-size: 0.9375rem;
   line-height: 1.5;
 }
+
 .cc-added-list {
   display: flex;
   flex-direction: column;
@@ -338,6 +368,7 @@
   border: 1px solid var(--cc-c-border);
   background: var(--cc-c-surface-alt);
 }
+
 .cc-added-row {
   display: flex;
   align-items: center;
@@ -345,9 +376,11 @@
   padding: var(--cc-sp-3) var(--cc-sp-4);
   border-bottom: 1px solid var(--cc-c-border);
 }
+
 .cc-added-row:last-child {
   border-bottom: none;
 }
+
 .cc-added-row-info {
   flex: 1;
   min-width: 0;
@@ -355,21 +388,25 @@
   flex-direction: column;
   gap: 2px;
 }
+
 .cc-added-row-label {
   font-weight: 700;
   color: var(--cc-c-text-primary);
   overflow-wrap: anywhere;
 }
+
 .cc-added-row-meta {
   font-size: 0.8125rem;
   color: var(--cc-c-text-secondary);
 }
+
 .cc-added-row-price {
   flex-shrink: 0;
   font-family: var(--cc-font-mono);
   font-weight: 700;
   color: var(--cc-c-brand);
 }
+
 .cc-remove-btn {
   flex-shrink: 0;
   min-height: 36px;
@@ -381,11 +418,13 @@
   font-size: 0.8125rem;
   cursor: pointer;
 }
+
 .cc-remove-btn:hover {
   background: var(--cc-c-error-ink);
   border-color: var(--cc-c-error-ink);
   color: #fff;
 }
+
 .cc-remove-btn:focus-visible {
   outline: 3px solid var(--cc-c-focus);
   outline-offset: 2px;
@@ -401,29 +440,35 @@
   padding: var(--cc-sp-4);
   background: rgba(20, 32, 51, 0.5);
 }
+
 .cc-dialog {
   width: min(420px, 100%);
   padding: var(--cc-sp-5);
   border: 1px solid var(--cc-c-border);
   background: var(--cc-c-surface-alt);
 }
+
 .cc-dialog h2 {
   margin: 0 0 var(--cc-sp-3);
   font-size: 1.125rem;
 }
+
 .cc-dialog p {
   margin: 0 0 var(--cc-sp-5);
   color: var(--cc-c-text-secondary);
   line-height: 1.5;
 }
+
 .cc-dialog p strong {
   color: var(--cc-c-text-primary);
 }
+
 .cc-dialog-actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--cc-sp-3);
 }
+
 /* `.text-button` es una clase compartida de todo el App Shell (`app.css`) pensada para sentarse
    sola debajo de un párrafo — trae `margin-top: 18px` y `padding: 0 12px`. Puesta a la par de
    `.cc-dialog-confirm` en una fila flex, ese margen la corre hacia abajo y el padding más chico la
@@ -432,6 +477,7 @@
   margin-top: 0;
   padding: 0 var(--cc-sp-4);
 }
+
 .cc-dialog-confirm {
   min-height: 44px;
   padding: 0 var(--cc-sp-4);
@@ -441,10 +487,12 @@
   font-weight: 700;
   cursor: pointer;
 }
+
 .cc-dialog-confirm:hover {
   background: #6e2410;
   border-color: #6e2410;
 }
+
 .cc-dialog-confirm:focus-visible,
 .cc-dialog .text-button:focus-visible {
   outline: 3px solid var(--cc-c-focus);
@@ -464,6 +512,7 @@
   margin-bottom: var(--cc-sp-4);
   border-bottom: 1px solid var(--cc-c-border);
 }
+
 .cc-total-label {
   color: var(--cc-c-text-secondary);
   font-weight: 700;
@@ -471,12 +520,14 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
 .cc-total-value {
   font-family: var(--cc-font-mono);
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--cc-c-brand);
 }
+
 /* El placeholder ("Agregá unidades para calcular") es una instrucción, no un dato — no debe leer
    con la misma voz tabular/numérica que el precio real una vez que hay unidades cargadas. */
 .cc-total-value--empty {
@@ -500,6 +551,7 @@
   display: flex;
   flex-direction: column;
 }
+
 .cc-field-group {
   margin: 0;
   padding: 0;
@@ -509,10 +561,12 @@
   flex-direction: column;
   gap: var(--cc-sp-3);
 }
-.cc-field-group + .cc-field-group {
+
+.cc-field-group+.cc-field-group {
   padding-top: var(--cc-sp-5);
   border-top: 1px solid var(--cc-c-border);
 }
+
 .cc-field-group-label {
   display: block;
   padding: 0;
@@ -522,17 +576,20 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
 .cc-field {
   display: flex;
   flex-direction: column;
   gap: var(--cc-sp-2);
 }
+
 .cc-field label,
 .cc-field-label {
   color: var(--cc-c-text-secondary);
   font-weight: 700;
   font-size: 0.8125rem;
 }
+
 .cc-field-hint {
   color: var(--cc-c-text-disabled);
   font-size: 0.75rem;
@@ -544,6 +601,7 @@
   background: var(--cc-c-border);
   border: 1px solid var(--cc-c-border);
 }
+
 .cc-segmented-btn {
   flex: 1;
   min-height: 44px;
@@ -556,10 +614,12 @@
     background var(--cc-t-fast),
     color var(--cc-t-fast);
 }
+
 .cc-segmented-btn--active {
   background: var(--cc-c-brand);
   color: #fff;
 }
+
 .cc-segmented-btn:focus-visible {
   position: relative;
   z-index: 1;
@@ -576,6 +636,7 @@
   border: 1px solid var(--cc-c-border-strong);
   background: var(--cc-c-surface-alt);
 }
+
 .cc-inline-input input {
   flex: 1;
   min-height: 0;
@@ -584,9 +645,11 @@
   color: var(--cc-c-text-primary);
   font-weight: 700;
 }
+
 .cc-inline-input input:focus-visible {
   outline: none;
 }
+
 .cc-inline-input span {
   flex-shrink: 0;
   color: var(--cc-c-text-secondary);
@@ -610,11 +673,13 @@
   gap: var(--cc-sp-3);
   margin-top: var(--cc-sp-5);
 }
+
 .cc-apply-hint {
   color: var(--cc-c-error-ink);
   font-weight: 700;
   font-size: 0.8125rem;
 }
+
 .cc-apply-btn {
   min-height: 44px;
   padding: 0 var(--cc-sp-5);
@@ -625,9 +690,11 @@
   cursor: pointer;
   transition: background var(--cc-t-fast);
 }
+
 .cc-apply-btn:hover:not(:disabled) {
   background: var(--cc-c-brand-dark);
 }
+
 .cc-apply-btn:disabled {
   border-color: var(--cc-c-border);
   background: var(--cc-c-border);
@@ -643,16 +710,19 @@
   border-top: 3px solid var(--cc-c-brand);
   background: var(--cc-c-surface);
 }
+
 .cc-cuotero:focus-visible {
   outline: 3px solid var(--cc-c-focus);
   outline-offset: -3px;
 }
+
 .cc-cuotero-note {
   margin: 0 0 var(--cc-sp-4);
   color: var(--cc-c-text-secondary);
   font-size: 0.8125rem;
   line-height: 1.5;
 }
+
 .cc-cuotero-error {
   margin: 0;
   padding: var(--cc-sp-3) var(--cc-sp-4);
@@ -663,6 +733,7 @@
   font-weight: 600;
   line-height: 1.5;
 }
+
 /* Jerarquía por tipografía y espacio, no por cajas: "Plan de pagos" (entrega, cuotas, refuerzos,
    última cuota, total) es la respuesta que busca quien usa la calculadora — el monto de la cuota
    y el total a pagar llevan tratamiento de titular (`.cc-cuotero-hero`). "Detalles del
@@ -670,29 +741,33 @@
    necesite, deliberadamente más chica y silenciosa — nadie la lee primero. */
 .cc-cuotero-kicker {
   margin: 0 0 var(--cc-sp-2);
-  color: var(--cc-c-text-disabled);
+  color: var(--cc-c-text-secondary);
   font-weight: 600;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
 .cc-cuotero-list {
   margin: 0 0 var(--cc-sp-4);
   display: flex;
   flex-direction: column;
   gap: var(--cc-sp-3);
 }
+
 .cc-cuotero-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--cc-sp-4);
 }
+
 .cc-cuotero-row dt {
   color: var(--cc-c-text-secondary);
   font-weight: 600;
   font-size: 0.875rem;
 }
+
 .cc-cuotero-row dd {
   margin: 0;
   font-family: var(--cc-font-mono);
@@ -707,11 +782,13 @@
   gap: var(--cc-sp-1);
   margin-bottom: var(--cc-sp-4);
 }
+
 .cc-cuotero-hero-label {
   color: var(--cc-c-text-secondary);
   font-weight: 600;
   font-size: 0.875rem;
 }
+
 .cc-cuotero-hero-value {
   font-family: var(--cc-font-mono);
   font-size: 1.75rem;
@@ -719,6 +796,7 @@
   letter-spacing: -0.01em;
   color: var(--cc-c-brand);
 }
+
 .cc-cuotero-hero--total {
   padding-top: var(--cc-sp-4);
   border-top: 1px solid var(--cc-c-border);
@@ -729,23 +807,27 @@
   padding-top: var(--cc-sp-4);
   border-top: 1px solid var(--cc-c-border);
 }
+
 .cc-cuotero-detail-list {
   margin: 0;
   display: flex;
   flex-direction: column;
   gap: var(--cc-sp-2);
 }
+
 .cc-cuotero-detail-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--cc-sp-4);
 }
+
 .cc-cuotero-detail-row dt {
   color: var(--cc-c-text-disabled);
   font-weight: 500;
   font-size: 0.8125rem;
 }
+
 .cc-cuotero-detail-row dd {
   margin: 0;
   font-family: var(--cc-font-mono);
@@ -772,12 +854,14 @@
   border-top: 1px solid var(--cc-c-border);
   background: var(--cc-c-surface-alt);
 }
+
 .cc-mobile-summary-total {
   font-family: var(--cc-font-mono);
   font-size: 1rem;
   font-weight: 700;
   color: var(--cc-c-text-primary);
 }
+
 .cc-mobile-summary-btn {
   flex-shrink: 0;
   min-height: 44px;
@@ -790,6 +874,7 @@
   cursor: pointer;
   transition: background var(--cc-t-fast);
 }
+
 .cc-mobile-summary-btn:hover {
   background: var(--cc-c-brand-dark);
 }
@@ -804,9 +889,11 @@
   .cc-added-row {
     flex-wrap: wrap;
   }
+
   .cc-added-row-price {
     order: 3;
   }
+
   .cc-catalog-result {
     flex-wrap: wrap;
   }
