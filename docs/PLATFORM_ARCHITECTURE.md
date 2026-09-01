@@ -24,12 +24,16 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
   integración externa sin clave de API;
 - aplicación `Lista de Precios` en `/apps/lista-precios`, con rutas internas para marcas, modelos,
   variantes y detalle de vehículos.
+- aplicación `Calculadora de Cuotas` en `/apps/calculadora-cuotas`, para armar planes de
+  financiación desde unidades del catálogo o montos manuales y descargar el cuotero como PNG.
 - aplicación `Meta Company` en `/apps/meta-company`, para administrar metas comerciales,
   marcas y negocios que consume Power BI.
 
 `Hello World` continúa como comprobación técnica y productor de uso para una integración externa.
 `Lista de Precios` es la primera aplicación de negocio migrada y registra sólo hitos comerciales
 acotados, no clics ni contenido de catálogo completo.
+`Calculadora de Cuotas` compone un plan localmente a partir de los datos que el usuario agregó; la
+descarga PNG se genera en el navegador y no envía ni persiste el contenido del cuotero.
 `Meta Company` usa de forma temporal un proveedor PostgreSQL separado de la base central; la API
 mantiene las reglas de acceso y las auditorías administrativas en la plataforma, para que el
 proveedor pueda sustituirse posteriormente por Service Layer.
@@ -61,9 +65,9 @@ sólo en esta aplicación. No se agregan capas genéricas entre esas responsabil
 
 SPA React/Vite que presenta acceso corporativo, launcher autorizado, administración de usuarios,
 aplicaciones, asignaciones, perfiles y permisos, consulta de actividad, `Hello World`, `Lista de
-Precios` y `Meta Company`. El launcher vive en `src/home/`; el registro, el control de rutas y
-cada interfaz integrada viven en `src/applications/`, incluidas `hello-world/`, `lista-precios/`
-y `meta-company/`. `src/api/`
+Precios`, `Calculadora de Cuotas` y `Meta Company`. El launcher vive en `src/home/`; el registro,
+el control de rutas y cada interfaz integrada viven en `src/applications/`, incluidas
+`hello-world/`, `lista-precios/`, `calculadora-cuotas/` y `meta-company/`. `src/api/`
 encapsula rutas y tipos generados: los componentes no escriben endpoints HTTP manualmente.
 
 En producción, `server/` sirve la SPA y actúa como gateway de mismo origen para `/api/*`. El

@@ -66,8 +66,7 @@ export function FinancingConfig({
       </div>
 
       <div className="cc-config-grid">
-        <fieldset className="cc-field-group">
-          <legend className="cc-field-group-label">Plazo y entrega</legend>
+        <div className="cc-field-group">
           <div className="cc-field">
             <span className="cc-field-label">Plazo</span>
             <div className="cc-segmented" role="radiogroup" aria-label="Plazo en meses">
@@ -155,7 +154,7 @@ export function FinancingConfig({
               </>
             )}
           </div>
-        </fieldset>
+        </div>
 
         <fieldset className="cc-field-group">
           <legend className="cc-field-group-label">Cuotas y refuerzos</legend>

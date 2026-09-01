@@ -15,6 +15,8 @@ También incluye `Lista de Precios` en `/apps/lista-precios`: consulta el catál
 vehículos; el modelo HOWO NX de SINOTRUK permite elegir la suspensión antes de consultar sus
 variantes. Registra aperturas, vistas únicas de modelo por visita e inicios de consulta, sin
 persistir unidades de stock, filtros, precios ni mensajes de WhatsApp.
+`Calculadora de Cuotas` en `/apps/calculadora-cuotas` permite armar un plan de financiación desde
+unidades de Lista de Precios o montos manuales y descargar el cuotero calculado como imagen PNG.
 `Meta Company` en `/apps/meta-company` administra las metas comerciales que consume Power BI. Sus
 perfiles permiten editar metas y, para administradores, crear y activar o desactivar marcas y
 negocios. La aplicación usa temporalmente un proveedor PostgreSQL aislado; sus auditorías se
@@ -37,7 +39,7 @@ para el alcance y los recorridos vigentes.
   Meta Company, y eventos de uso idempotentes para Hello World y Lista de Precios; la exportación
   CSV entrega visita, objetivo, marca y modelo en columnas separadas cuando corresponden.
 - **Experiencia:** acceso corporativo, launcher de aplicaciones autorizadas, superficies de
-  Administración, `Hello World`, `Lista de Precios` y `Meta Company`.
+  Administración, `Hello World`, `Lista de Precios`, `Calculadora de Cuotas` y `Meta Company`.
 
 ## Documentación
 

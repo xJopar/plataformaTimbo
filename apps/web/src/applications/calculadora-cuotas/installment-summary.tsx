@@ -3,6 +3,10 @@ import {
   type CuotaPeriodicity,
   type InstallmentPlanResult,
 } from './installment-calculator';
+import { ImageDownloadIcon } from '@hugeicons/core-free-icons';
+import { useState } from 'react';
+import { AppIcon } from '../../ui/app-icon';
+import { downloadInstallmentSummaryImage } from './installment-summary-image';
 
 function formatUsd(amount: number): string {
   return `USD ${amount.toLocaleString('es-PY', { maximumFractionDigits: 0 })}`;
@@ -19,6 +23,31 @@ export function InstallmentSummary({
   installmentPeriodicity,
   reinforcementPeriodicity,
 }: InstallmentSummaryProps): React.JSX.Element {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadFailure, setDownloadFailure] = useState<string | undefined>(undefined);
+
+  async function downloadSummaryImage(): Promise<void> {
+    if (planResult.status !== 'ok' || isDownloading) return;
+    setIsDownloading(true);
+    setDownloadFailure(undefined);
+    try {
+      await downloadInstallmentSummaryImage({
+        plan: planResult.plan,
+        installmentPeriodicity,
+        reinforcementPeriodicity,
+      });
+    } catch (error: unknown) {
+      setDownloadFailure('No pudimos generar la imagen. Intentá descargarla nuevamente.');
+      console.error('No se pudo descargar la imagen del cuotero.', {
+        operation: 'download-installment-summary-image',
+        errorName: error instanceof Error ? error.name : 'UnknownError',
+        errorMessage: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  }
+
   return (
     <section
       id="cc-cuotero-section"
@@ -30,7 +59,24 @@ export function InstallmentSummary({
         <h2 id="cc-cuotero-title" className="cc-section-title">
           Cuotero
         </h2>
+        {planResult.status === 'ok' ? (
+          <button
+            type="button"
+            className="cc-download-image-btn"
+            disabled={isDownloading}
+            onClick={downloadSummaryImage}
+          >
+            <AppIcon icon={ImageDownloadIcon} size={22} strokeWidth={1.8} />
+            <span>{isDownloading ? 'Generando imagen…' : 'Descargar imagen'}</span>
+          </button>
+        ) : null}
       </div>
+
+      {downloadFailure === undefined ? null : (
+        <p className="cc-cuotero-error" role="alert">
+          {downloadFailure}
+        </p>
+      )}
 
       {planResult.status === 'empty' ? (
         <p className="cc-added-empty">
@@ -48,8 +94,8 @@ export function InstallmentSummary({
         </p>
       ) : planResult.status === 'regular-installment-negative' ? (
         <p className="cc-cuotero-error" role="alert">
-          El monto de la cuota regular quedó negativo o en cero. Revisá el monto de los refuerzos
-          o el plazo.
+          El monto de la cuota regular quedó negativo o en cero. Revisá el monto de los refuerzos o
+          el plazo.
         </p>
       ) : (
         (() => {
@@ -118,11 +164,6 @@ export function InstallmentSummary({
                   </div>
                 </dl>
               </div>
-
-              <p className="cc-cuotero-note">
-                Monto de refuerzo aún provisorio: la regla de negocio para definirlo todavía no
-                está confirmada.
-              </p>
             </>
           );
         })()

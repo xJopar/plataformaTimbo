@@ -713,11 +713,39 @@
   outline-offset: -3px;
 }
 
-.cc-cuotero-note {
-  margin: 0 0 var(--cc-sp-4);
-  color: var(--cc-c-text-secondary);
+.cc-download-image-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cc-sp-2);
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 var(--cc-sp-3);
+  border: 1px solid var(--cc-c-brand);
+  background: var(--cc-c-surface-alt);
+  color: var(--cc-c-brand);
+  font-weight: 700;
   font-size: 0.8125rem;
-  line-height: 1.5;
+  cursor: pointer;
+  transition:
+    background var(--cc-t-fast),
+    color var(--cc-t-fast);
+}
+
+.cc-download-image-btn:hover:not(:disabled) {
+  background: var(--cc-c-brand);
+  color: #fff;
+}
+
+.cc-download-image-btn:focus-visible {
+  outline: 3px solid var(--cc-c-focus);
+  outline-offset: 2px;
+}
+
+.cc-download-image-btn:disabled {
+  border-color: var(--cc-c-border);
+  color: var(--cc-c-text-disabled);
+  cursor: progress;
 }
 
 .cc-cuotero-error {
@@ -901,6 +929,15 @@
   }
 
   .cc-apply-btn {
+    width: 100%;
+  }
+
+  .cc-section.cc-cuotero .cc-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cc-download-image-btn {
     width: 100%;
   }
 }

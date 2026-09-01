@@ -95,10 +95,7 @@ export function AddItemPanel({
     const item = catalogItemFromMatch(match);
     if (item === undefined) return;
     onAddItem(item);
-    // El botón recién tocado queda disabled en el próximo render ("Agregada"); en mobile eso le
-    // puede robar el foco a document.body y cerrar el teclado de golpe, dando la sensación de que
-    // se perdió la búsqueda. Devolver el foco al buscador mantiene resultados y teclado a mano
-    // para seguir agregando unidades sin re-escribir la búsqueda.
+    setCatalogQuery('');
     catalogSearchInputRef.current?.focus();
   }
 
