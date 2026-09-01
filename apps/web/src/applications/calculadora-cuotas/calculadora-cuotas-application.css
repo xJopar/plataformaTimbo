@@ -156,6 +156,7 @@
 
 .cc-section-heading .cc-section-title {
   margin-bottom: 0;
+  margin-top: var(--cc-sp-2);
 }
 
 /* ── Selector de modo (agregar unidad / precio manual) ── */
