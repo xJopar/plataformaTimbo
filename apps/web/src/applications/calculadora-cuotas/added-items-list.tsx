@@ -8,7 +8,7 @@ interface AddedItemsListProps {
 
 export function AddedItemsList({ items, onRequestRemove }: AddedItemsListProps): React.JSX.Element {
   return (
-    <section className="cc-section" aria-label="Unidades agregadas">
+    <section className="cc-section" aria-label="Unidades">
       {items.length === 0 ? (
         <p className="cc-added-empty">
           Todavía no agregaste nada. Elegí una unidad de Lista de Precios o cargá un precio manual
@@ -17,7 +17,7 @@ export function AddedItemsList({ items, onRequestRemove }: AddedItemsListProps):
       ) : (
         <>
           <div className="cc-section-heading">
-            <h2 className="cc-section-title">Unidades agregadas</h2>
+            <h2 className="cc-section-title">Unidades</h2>
             <span className="cc-added-count">
               {items.length} {items.length === 1 ? 'ítem' : 'ítems'}
             </span>
@@ -36,10 +36,10 @@ export function AddedItemsList({ items, onRequestRemove }: AddedItemsListProps):
                 <button
                   type="button"
                   className="cc-remove-btn"
-                  aria-label={`Quitar ${item.label}`}
+                  aria-label={`Eliminar ${item.label}`}
                   onClick={() => onRequestRemove(item.id)}
                 >
-                  Quitar
+                  Eliminar
                 </button>
               </li>
             ))}

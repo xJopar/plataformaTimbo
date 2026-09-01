@@ -51,11 +51,11 @@ export function FinancingConfig({
   return (
     <section className="cc-section" aria-labelledby="cc-config-title">
       <h2 id="cc-config-title" className="cc-section-title">
-        Precio final y condiciones
+        Financiación
       </h2>
 
       <div className="cc-total-row">
-        <span className="cc-total-label">Precio final</span>
+        <span className="cc-total-label">Precio total</span>
         <span className={`cc-total-value${hasItems ? '' : ' cc-total-value--empty'}`}>
           {hasItems
             ? `USD ${totalPriceUsd.toLocaleString('es-PY')}`
@@ -126,9 +126,7 @@ export function FinancingConfig({
                   />
                   <span aria-hidden="true">%</span>
                 </div>
-                <span className="cc-field-hint">
-                  Mínimo {MIN_DOWN_PAYMENT_PERCENT}% para financiar.
-                </span>
+                <span className="cc-field-hint">Mínimo {MIN_DOWN_PAYMENT_PERCENT}%.</span>
               </>
             ) : (
               <>
@@ -150,8 +148,7 @@ export function FinancingConfig({
                   />
                 </div>
                 <span className="cc-field-hint">
-                  Debe representar al menos {MIN_DOWN_PAYMENT_PERCENT}% del precio final para
-                  poder financiar.
+                  Debe representar al menos {MIN_DOWN_PAYMENT_PERCENT}% del precio total.
                 </span>
               </>
             )}
@@ -161,7 +158,7 @@ export function FinancingConfig({
         <fieldset className="cc-field-group">
           <legend className="cc-field-group-label">Cuotas y refuerzos</legend>
           <div className="cc-field">
-            <label htmlFor="cc-installment-periodicity">Periodicidad de cuotas regulares</label>
+            <label htmlFor="cc-installment-periodicity">Frecuencia de pago</label>
             <select
               id="cc-installment-periodicity"
               value={value.installmentPeriodicity}
@@ -195,7 +192,7 @@ export function FinancingConfig({
             {value.reinforcementsEnabled ? (
               <select
                 id="cc-reinforcement-periodicity"
-                aria-label="Periodicidad de refuerzos"
+                aria-label="Frecuencia de refuerzos"
                 value={value.reinforcementPeriodicity}
                 onChange={(event) =>
                   onChange({

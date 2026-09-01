@@ -75,6 +75,13 @@ export const PERIODICITY_LABELS: Record<CuotaPeriodicity, string> = {
   anual: 'Anual',
 };
 
+/** Forma adjetiva plural para frases como "29 cuotas mensuales de USD 1.520". */
+export const PERIODICITY_ADJECTIVE_PLURAL: Record<CuotaPeriodicity, string> = {
+  mensual: 'mensuales',
+  semestral: 'semestrales',
+  anual: 'anuales',
+};
+
 /** Tabla de tasa anual (%) para USD: fila = plazo en meses, columna = % de entrega sobre el
  * precio final. Sólo hay datos para USD por ahora. */
 const USD_ANNUAL_RATE_TABLE = {

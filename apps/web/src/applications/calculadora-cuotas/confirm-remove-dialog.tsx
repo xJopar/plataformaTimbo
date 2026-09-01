@@ -36,16 +36,17 @@ export function ConfirmRemoveDialog({
         aria-labelledby="cc-dialog-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <h2 id="cc-dialog-title">¿Quitar esta unidad del cálculo?</h2>
+        <h2 id="cc-dialog-title">¿Eliminar esta unidad del cálculo?</h2>
         <p>
-          Vas a quitar <strong>{item.label}</strong> de la lista. Esta acción no se puede deshacer.
+          Vas a eliminar <strong>{item.label}</strong> de la lista. Esta acción no se puede
+          deshacer.
         </p>
         <div className="cc-dialog-actions">
           <button type="button" className="text-button" ref={cancelButtonRef} onClick={onCancel}>
             Cancelar
           </button>
           <button type="button" className="cc-dialog-confirm" onClick={() => onConfirm(item.id)}>
-            Quitar unidad
+            Eliminar
           </button>
         </div>
       </div>

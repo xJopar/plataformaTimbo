@@ -306,7 +306,7 @@
   margin-top: var(--cc-sp-2);
 }
 
-/* ── Unidades agregadas ── */
+/* ── Unidades ── */
 .cc-added-count {
   color: var(--cc-c-text-secondary);
   font-size: 0.8125rem;
@@ -413,6 +413,14 @@
   justify-content: flex-end;
   gap: var(--cc-sp-3);
 }
+/* `.text-button` es una clase compartida de todo el App Shell (`app.css`) pensada para sentarse
+   sola debajo de un párrafo — trae `margin-top: 18px` y `padding: 0 12px`. Puesta a la par de
+   `.cc-dialog-confirm` en una fila flex, ese margen la corre hacia abajo y el padding más chico la
+   angosta: por eso "Cancelar" se veía más chico y desalineado que "Eliminar" en el popup. */
+.cc-dialog-actions .text-button {
+  margin-top: 0;
+  padding: 0 var(--cc-sp-4);
+}
 .cc-dialog-confirm {
   min-height: 44px;
   padding: 0 var(--cc-sp-4);
@@ -432,9 +440,9 @@
   outline-offset: 2px;
 }
 
-/* ── Precio final y condiciones ── */
+/* ── Financiación ── */
 /* Label arriba, valor abajo (no lado a lado): en una columna angosta de sidebar (300-380px),
-   "Precio final" + un valor largo compitiendo en una fila con `justify-content: space-between`
+   "Precio total" + un valor largo compitiendo en una fila con `justify-content: space-between`
    fuerza a ambos a partirse en dos líneas. Apilados, cada uno tiene todo el ancho disponible y el
    valor —el número más importante de esta columna— gana peso en vez de competir con su etiqueta. */
 .cc-total-row {
@@ -644,55 +652,102 @@
   font-weight: 600;
   line-height: 1.5;
 }
-.cc-cuotero-list {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--cc-c-border);
-  background: var(--cc-c-surface-alt);
-}
-.cc-cuotero-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--cc-sp-4);
-  padding: var(--cc-sp-4);
-  border-bottom: 1px solid var(--cc-c-border);
-}
-.cc-cuotero-row:last-child {
-  border-bottom: none;
-}
-.cc-cuotero-row dt {
-  color: var(--cc-c-text-secondary);
-  font-weight: 700;
-  font-size: 0.9375rem;
-}
-.cc-cuotero-row dd {
-  margin: 0;
-  font-family: var(--cc-font-mono);
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--cc-c-text-primary);
-}
-.cc-cuotero-row--highlight {
-  background: var(--cc-c-brand-light);
-}
-.cc-cuotero-row--highlight dt,
-.cc-cuotero-row--highlight dd {
-  color: var(--cc-c-brand);
-}
-.cc-cuotero-periodicity {
-  display: block;
-  margin-top: 2px;
+/* Jerarquía por tipografía y espacio, no por cajas: "Plan de pagos" (entrega, cuotas, refuerzos,
+   última cuota, total) es la respuesta que busca quien usa la calculadora — el monto de la cuota
+   y el total a pagar llevan tratamiento de titular (`.cc-cuotero-hero`). "Detalles del
+   financiamiento" (tasa, intereses, total financiado) es información de respaldo para quien la
+   necesite, deliberadamente más chica y silenciosa — nadie la lee primero. */
+.cc-cuotero-kicker {
+  margin: 0 0 var(--cc-sp-2);
   color: var(--cc-c-text-disabled);
   font-weight: 600;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.cc-cuotero-row--highlight .cc-cuotero-periodicity {
+.cc-cuotero-list {
+  margin: 0 0 var(--cc-sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-3);
+}
+.cc-cuotero-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+}
+.cc-cuotero-row dt {
+  color: var(--cc-c-text-secondary);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.cc-cuotero-row dd {
+  margin: 0;
+  font-family: var(--cc-font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cc-c-text-primary);
+}
+.cc-cuotero-caption {
+  display: block;
+  margin-top: 2px;
+  color: var(--cc-c-text-disabled);
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.cc-cuotero-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-1);
+  margin-bottom: var(--cc-sp-4);
+}
+.cc-cuotero-hero-label {
+  color: var(--cc-c-text-secondary);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.cc-cuotero-hero-value {
+  font-family: var(--cc-font-mono);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   color: var(--cc-c-brand);
-  opacity: 0.75;
+}
+.cc-cuotero-hero--total {
+  padding-top: var(--cc-sp-4);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-cuotero-secondary {
+  margin-top: var(--cc-sp-5);
+  padding-top: var(--cc-sp-4);
+  border-top: 1px solid var(--cc-c-border);
+}
+.cc-cuotero-detail-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-2);
+}
+.cc-cuotero-detail-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+}
+.cc-cuotero-detail-row dt {
+  color: var(--cc-c-text-disabled);
+  font-weight: 500;
+  font-size: 0.8125rem;
+}
+.cc-cuotero-detail-row dd {
+  margin: 0;
+  font-family: var(--cc-font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cc-c-text-secondary);
 }
 
 /* ── Barra inferior fija (mobile/tablet): total corriente + salto directo al cuotero, para no

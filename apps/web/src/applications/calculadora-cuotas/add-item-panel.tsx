@@ -1,5 +1,5 @@
 import { Search01Icon } from '@hugeicons/core-free-icons';
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import type { VehicleResponse } from '../../api';
 import { AppIcon } from '../../ui/app-icon';
 import { formatPrice, parsePrice, type VehicleGroup } from '../../vehicle-catalog/vehicle-catalog';
@@ -59,6 +59,7 @@ export function AddItemPanel({
   const [manualPrice, setManualPrice] = useState('');
   const [manualError, setManualError] = useState<string | undefined>(undefined);
   const [catalogQuery, setCatalogQuery] = useState('');
+  const catalogSearchInputRef = useRef<HTMLInputElement>(null);
 
   const catalogMatches = useMemo(
     () => searchCatalog(vehiclesState, catalogQuery),
@@ -94,12 +95,17 @@ export function AddItemPanel({
     const item = catalogItemFromMatch(match);
     if (item === undefined) return;
     onAddItem(item);
+    // El botón recién tocado queda disabled en el próximo render ("Agregada"); en mobile eso le
+    // puede robar el foco a document.body y cerrar el teclado de golpe, dando la sensación de que
+    // se perdió la búsqueda. Devolver el foco al buscador mantiene resultados y teclado a mano
+    // para seguir agregando unidades sin re-escribir la búsqueda.
+    catalogSearchInputRef.current?.focus();
   }
 
   return (
     <section className="cc-section" aria-labelledby="cc-add-title">
       <h2 id="cc-add-title" className="cc-section-title">
-        Agregar al cálculo
+        Agregar unidad
       </h2>
 
       <div className="cc-mode-switch" role="radiogroup" aria-label="Origen del monto a agregar">
@@ -110,7 +116,7 @@ export function AddItemPanel({
           className={`cc-mode-btn${mode === 'catalog' ? ' cc-mode-btn--active' : ''}`}
           onClick={() => setMode('catalog')}
         >
-          Unidad de Lista de Precios
+          Desde lista
         </button>
         <button
           type="button"
@@ -128,6 +134,7 @@ export function AddItemPanel({
           <div className="cc-search-bar">
             <AppIcon icon={Search01Icon} size={18} />
             <input
+              ref={catalogSearchInputRef}
               type="search"
               placeholder="Buscar por marca, modelo o stock"
               aria-label="Buscar unidad en Lista de Precios"
@@ -193,7 +200,7 @@ export function AddItemPanel({
             onChange={(event) => setManualLabel(event.target.value)}
           />
 
-          <label htmlFor="cc-manual-price">Precio en dólares</label>
+          <label htmlFor="cc-manual-price">Precio (USD)</label>
           <input
             id="cc-manual-price"
             type="text"
@@ -206,7 +213,7 @@ export function AddItemPanel({
           {manualError === undefined ? null : <p role="alert">{manualError}</p>}
 
           <button type="submit" className="action-button cc-manual-submit">
-            Agregar precio manual
+            Agregar
           </button>
         </form>
       )}
