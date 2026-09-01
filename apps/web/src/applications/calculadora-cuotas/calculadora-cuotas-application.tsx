@@ -169,7 +169,10 @@ export function CalculadoraCuotasApplication({
             <AddedItemsList items={items} onRequestRemove={setPendingRemovalId} />
           </div>
 
-          <div className="cc-layout-aside">
+          {/* Config y Cuotero son columnas de grid independientes (no una sola envoltura) para
+              que, en pantallas anchas, el Cuotero tenga su propio carril desde el arranque en
+              vez de depender de la altura de Config empujándolo hacia abajo — ver `.cc-layout`. */}
+          <div className="cc-layout-config">
             <FinancingConfig
               value={draftConfig}
               totalPriceUsd={totalPriceUsd}
@@ -177,6 +180,9 @@ export function CalculadoraCuotasApplication({
               onChange={setDraftConfig}
               onApply={applyConfig}
             />
+          </div>
+
+          <div className="cc-layout-result">
             <InstallmentSummary
               planResult={planResult}
               installmentPeriodicity={appliedConfig.installmentPeriodicity}

@@ -34,9 +34,12 @@
 }
 
 /* El título y la descripción de la app ya viven en el header (breadcrumb) y en el home — esta
-   página arranca directo en la primera tarea, sin repetirlos. */
+   página arranca directo en la primera tarea, sin repetirlos.
+   1040px es el piso de lectura cómoda (ver DESIGN.md); crece con el viewport hasta 1560px en vez
+   de quedar fijo, así un monitor de oficina no deja el contenido nadando en aire muerto a los
+   costados — el 88vw evita que se sienta borde a borde en anchos intermedios. */
 .cc-page {
-  max-width: 1040px;
+  max-width: clamp(1040px, 88vw, 1560px);
   margin: 0 auto;
   padding: clamp(20px, 4vw, 40px) clamp(20px, 5vw, 32px) 40px;
 }
@@ -47,7 +50,7 @@
 }
 
 .cc-logout-error {
-  max-width: 1040px;
+  max-width: clamp(1040px, 88vw, 1560px);
   margin: var(--cc-sp-2) auto 0;
   padding: 0 clamp(20px, 5vw, 32px);
 }
@@ -63,16 +66,21 @@
   font-weight: 600;
 }
 
-/* ── Layout: una sola columna que fluye en mobile; en desktop, la columna de la izquierda es el
-   flujo de armado (agregar + lista) y la derecha es un panel de resultado siempre a la vista —
-   así no hace falta bajar toda la página para ver el precio y el cuotero. ── */
+/* ── Layout: una sola columna que fluye en mobile. Desde 1024px, grid de 2 columnas (armado |
+   config+cuotero apilados). Desde 1280px — cubre el 1366px de un notebook corporativo típico ya
+   descontado el scrollbar — Config y Cuotero se separan en sus propios carriles de grid en vez de
+   compartir uno: así el Cuotero arranca a la misma altura que Config en vez de heredar el alto
+   acumulado de sus campos, que es lo que hoy lo empuja fuera de la vista inicial. Config y Cuotero
+   son elementos de grid independientes (no una envoltura compartida) para que cada
+   `position: sticky` opere sobre su propia columna. ── */
 .cc-layout {
   display: flex;
   flex-direction: column;
   gap: var(--cc-sp-6);
 }
 .cc-layout-main,
-.cc-layout-aside {
+.cc-layout-config,
+.cc-layout-result {
   display: flex;
   flex-direction: column;
 }
@@ -84,9 +92,24 @@
     align-items: start;
     gap: 0 48px;
   }
-  .cc-layout-aside {
+  .cc-layout-config,
+  .cc-layout-result {
+    grid-column: 2;
     position: sticky;
     top: var(--cc-sp-5);
+  }
+}
+
+@media (min-width: 1280px) {
+  .cc-layout {
+    grid-template-columns: minmax(0, 1fr) 300px 380px;
+    gap: 0 32px;
+  }
+  .cc-layout-config {
+    grid-column: 2;
+  }
+  .cc-layout-result {
+    grid-column: 3;
   }
 }
 
@@ -96,7 +119,8 @@
   padding-top: var(--cc-sp-6);
 }
 .cc-layout-main > .cc-section:first-child,
-.cc-layout-aside > .cc-section:first-child {
+.cc-layout-config > .cc-section:first-child,
+.cc-layout-result > .cc-section:first-child {
   padding-top: 0;
 }
 .cc-section + .cc-section {
@@ -432,9 +456,43 @@
   color: var(--cc-c-brand);
 }
 
+/* Dos grupos apilados en vez de una grilla 2×2 plana: "Condiciones de financiación" (Plazo,
+   Entrega — de qué depende la tasa) y "Forma de pago" (Periodicidad, Refuerzos — cómo se reparte
+   la cuota). Son `<fieldset>` reales porque agrupan controles de formulario relacionados, no sólo
+   una caja visual. `align-items: start` en la fila evita que un campo corto (Plazo) se estire a
+   la altura de uno más alto con hint (Entrega inicial). Separación por padding-top + border-top
+   en el sibling (no `gap` en el contenedor): mismo patrón que `.cc-section + .cc-section` más
+   abajo, para no duplicar el espaciado entre los dos mecanismos. */
 .cc-config-grid {
+  display: flex;
+  flex-direction: column;
+}
+.cc-field-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-3);
+}
+.cc-field-group + .cc-field-group {
+  padding-top: var(--cc-sp-5);
+  border-top: 1px solid var(--cc-c-border);
+}
+.cc-field-group-label {
+  display: block;
+  padding: 0;
+  color: var(--cc-c-text-disabled);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.cc-field-group-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: var(--cc-sp-5);
 }
 .cc-field {
@@ -630,8 +688,8 @@
 }
 
 /* ── Barra inferior fija (mobile/tablet): total corriente + salto directo al cuotero, para no
-   depender de scrollear hasta el final para ver el resultado. Desktop ya lo resuelve con la
-   columna derecha fija (`.cc-layout-aside`), así que la barra no existe ahí. ── */
+   depender de scrollear hasta el final para ver el resultado. Desktop ya lo resuelve con las
+   columnas fijas (`.cc-layout-config`, `.cc-layout-result`), así que la barra no existe ahí. ── */
 .cc-mobile-summary {
   display: flex;
   align-items: center;
@@ -676,7 +734,7 @@
 }
 
 @media (max-width: 640px) {
-  .cc-config-grid {
+  .cc-field-group-row {
     grid-template-columns: 1fr;
   }
   .cc-added-row {
