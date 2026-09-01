@@ -629,11 +629,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Lista metas comerciales por período. */
+        /** Lista metas comerciales por periodo y empresa. */
         get: operations["listMetaCompanyGoals"];
         put?: never;
-        /** Crea una meta comercial. */
-        post: operations["createMetaCompanyGoal"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -647,7 +646,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Lista marcas y negocios activos. */
+        /** Lista catalogos comerciales activos. */
         get: operations["listMetaCompanyCatalogs"];
         put?: never;
         post?: never;
@@ -664,7 +663,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Lista todos los catálogos para administración. */
+        /** Lista todos los catalogos comerciales. */
         get: operations["listAllMetaCompanyCatalogs"];
         put?: never;
         post?: never;
@@ -681,7 +680,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Obtiene las acciones habilitadas para la sesión. */
+        /** Obtiene las acciones habilitadas para la sesion. */
         get: operations["getMetaCompanyCapabilities"];
         put?: never;
         post?: never;
@@ -691,7 +690,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/applications/meta-company/goals/{id}": {
+    "/api/applications/meta-company/brand-goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MetaCompanyController_createBrandGoal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/advisor-goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MetaCompanyController_createAdvisorGoal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/brand-goals/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -704,8 +735,39 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Edita el valor de una meta comercial. */
-        patch: operations["updateMetaCompanyGoal"];
+        patch: operations["MetaCompanyController_updateBrandGoal"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/advisor-goals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_updateAdvisorGoal"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/empresas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MetaCompanyController_createEmpresa"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/applications/meta-company/brands": {
@@ -717,8 +779,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Crea una marca. */
-        post: operations["createMetaCompanyBrand"];
+        post: operations["MetaCompanyController_createBrand"];
         delete?: never;
         options?: never;
         head?: never;
@@ -734,15 +795,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Crea un negocio. */
-        post: operations["createMetaCompanyBusiness"];
+        post: operations["MetaCompanyController_createBusiness"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/applications/meta-company/brands/{id}/active": {
+    "/api/applications/meta-company/advisors": {
         parameters: {
             query?: never;
             header?: never;
@@ -751,29 +811,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post?: never;
+        post: operations["MetaCompanyController_createAdvisor"];
         delete?: never;
         options?: never;
         head?: never;
-        /** Activa o desactiva una marca. */
-        patch: operations["setMetaCompanyBrandActive"];
-        trace?: never;
-    };
-    "/api/applications/meta-company/businesses/{id}/active": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Activa o desactiva un negocio. */
-        patch: operations["setMetaCompanyBusinessActive"];
+        patch?: never;
         trace?: never;
     };
     "/api/health": {
@@ -1085,10 +1127,10 @@ export interface components {
             /** @description Modelo visto o consultado. */
             model?: string;
         };
-        MetaCompanyGoalResponseDto: {
+        MetaCompanyBrandGoalResponseDto: {
             /** @example 1 */
             id: number;
-            /** @example 2025-01-01 */
+            /** @example 2026-09-01 */
             period: string;
             /** @example 1 */
             businessId: number;
@@ -1096,61 +1138,145 @@ export interface components {
             businessName: string;
             /** @example 1 */
             brandId: number;
-            /** @example FACCINI */
+            /** @example FACCHINI */
             brandName: string;
-            /** @example 10 */
-            salespersonCode?: Record<string, never>;
-            /** @enum {string} */
-            goalType: "Marca" | "Vendedor";
             /** @example 38237.42 */
             value: string;
-            /** @example 2025-01-01T12:00:00.000Z */
+            /** @example 2026-09-01T12:00:00.000Z */
             updatedAt?: Record<string, never>;
+        };
+        MetaCompanyAdvisorGoalResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example 2026-09-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example FIXIT */
+            businessName: string;
+            /** @example 1 */
+            brandId?: Record<string, never>;
+            /** @example Marca de repuesto */
+            brandName?: Record<string, never>;
+            /** @example 1 */
+            advisorId: number;
+            /** @example 195fix */
+            advisorCode: string;
+            /** @example FIX0ASU0JUAN FERREIRA */
+            advisorName: string;
+            /** @example 31708.00 */
+            value: string;
+            /** @example 22 */
+            workingDays?: Record<string, never>;
+            /** @example 2026-09-01T12:00:00.000Z */
+            updatedAt?: Record<string, never>;
+        };
+        MetaCompanyGoalsResponseDto: {
+            brandGoals: components["schemas"]["MetaCompanyBrandGoalResponseDto"][];
+            advisorGoals: components["schemas"]["MetaCompanyAdvisorGoalResponseDto"][];
+        };
+        MetaCompanyEmpresaResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example TIMBO */
+            code: string;
+            /** @example Timbo */
+            name: string;
+            /** @example true */
+            active: boolean;
         };
         MetaCompanyCatalogItemResponseDto: {
             /** @example 1 */
             id: number;
+            /** @example 1 */
+            empresaId: number;
             /** @example Comercial */
             name: string;
             /** @example true */
             active: boolean;
         };
+        MetaCompanyAdvisorResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example 1 */
+            empresaId: number;
+            /** @example SAP_B1 */
+            sourceSystem: string;
+            /** @example 10 */
+            externalCode: string;
+            /** @example Hugo Baez */
+            displayName: string;
+            /** @enum {string} */
+            kind: "PERSON" | "SALES_CHANNEL";
+            /** @example true */
+            active: boolean;
+        };
         MetaCompanyCatalogResponseDto: {
+            empresas: components["schemas"]["MetaCompanyEmpresaResponseDto"][];
             brands: components["schemas"]["MetaCompanyCatalogItemResponseDto"][];
             businesses: components["schemas"]["MetaCompanyCatalogItemResponseDto"][];
+            advisors: components["schemas"]["MetaCompanyAdvisorResponseDto"][];
         };
         MetaCompanyCapabilitiesResponseDto: {
             canManageCatalogs: boolean;
             canManageGoals: boolean;
         };
-        CreateMetaCompanyGoalDto: {
+        CreateMetaCompanyBrandGoalDto: {
             /** @example 2026-09-01 */
             period: string;
             /** @example 1 */
             businessId: number;
             /** @example 1 */
             brandId: number;
-            /** @example 10 */
-            salespersonCode?: number;
-            /**
-             * @example Marca
-             * @enum {string}
-             */
-            goalType: "Marca" | "Vendedor";
             /** @example 38237.42 */
             value: string;
+        };
+        CreateMetaCompanyAdvisorGoalDto: {
+            /** @example 2026-09-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example 1 */
+            brandId?: number;
+            /** @example 1 */
+            advisorId: number;
+            /** @example 38237.42 */
+            value: string;
+            /** @example 22 */
+            workingDays?: number;
         };
         UpdateMetaCompanyGoalDto: {
             /** @example 38237.42 */
             value: string;
+            /** @example 22 */
+            workingDays?: number;
+        };
+        CreateMetaCompanyEmpresaDto: {
+            /** @example TIMBO */
+            code: string;
+            /** @example Timbo */
+            name: string;
         };
         CreateMetaCompanyCatalogItemDto: {
+            /** @example 1 */
+            empresaId: number;
             /** @example Comercial */
             name: string;
         };
-        SetMetaCompanyCatalogItemActiveDto: {
-            /** @example false */
-            active: boolean;
+        CreateMetaCompanyAdvisorDto: {
+            /** @example 1 */
+            empresaId: number;
+            /** @example SAP_B1 */
+            sourceSystem: string;
+            /** @example 10 */
+            externalCode: string;
+            /** @example Hugo Baez */
+            displayName: string;
+            /**
+             * @example PERSON
+             * @enum {string}
+             */
+            kind: "PERSON" | "SALES_CHANNEL";
         };
         HealthResponseDto: {
             /**
@@ -2203,6 +2329,7 @@ export interface operations {
         parameters: {
             query: {
                 period: string;
+                empresaId: string;
             };
             header?: never;
             path?: never;
@@ -2215,30 +2342,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MetaCompanyGoalResponseDto"][];
-                };
-            };
-        };
-    };
-    createMetaCompanyGoal: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateMetaCompanyGoalDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MetaCompanyGoalResponseDto"];
+                    "application/json": components["schemas"]["MetaCompanyGoalsResponseDto"];
                 };
             };
         };
@@ -2300,7 +2404,49 @@ export interface operations {
             };
         };
     };
-    updateMetaCompanyGoal: {
+    MetaCompanyController_createBrandGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyBrandGoalDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MetaCompanyController_createAdvisorGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyAdvisorGoalDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MetaCompanyController_updateBrandGoal: {
         parameters: {
             query?: never;
             header?: never;
@@ -2319,59 +2465,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["MetaCompanyGoalResponseDto"];
-                };
+                content?: never;
             };
         };
     };
-    createMetaCompanyBrand: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateMetaCompanyCatalogItemDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
-                };
-            };
-        };
-    };
-    createMetaCompanyBusiness: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateMetaCompanyCatalogItemDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
-                };
-            };
-        };
-    };
-    setMetaCompanyBrandActive: {
+    MetaCompanyController_updateAdvisorGoal: {
         parameters: {
             query?: never;
             header?: never;
@@ -2382,11 +2480,10 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+                "application/json": components["schemas"]["UpdateMetaCompanyGoalDto"];
             };
         };
         responses: {
-            /** @description Estado de marca actualizado. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2395,23 +2492,83 @@ export interface operations {
             };
         };
     };
-    setMetaCompanyBusinessActive: {
+    MetaCompanyController_createEmpresa: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+                "application/json": components["schemas"]["CreateMetaCompanyEmpresaDto"];
             };
         };
         responses: {
-            /** @description Estado de negocio actualizado. */
-            200: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MetaCompanyController_createBrand: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyCatalogItemDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MetaCompanyController_createBusiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyCatalogItemDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MetaCompanyController_createAdvisor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyAdvisorDto"];
+            };
+        };
+        responses: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -134,7 +134,14 @@ export class AuditEventsService {
     if (targetRule === 'meta-company-resource-required') {
       if (
         target === undefined ||
-        !['commercial_goal', 'commercial_brand', 'commercial_business'].includes(
+        ![
+          'commercial_empresa',
+          'commercial_brand',
+          'commercial_business',
+          'commercial_advisor',
+          'commercial_brand_goal',
+          'commercial_advisor_goal',
+        ].includes(
           target.targetType,
         ) ||
         target.targetId.trim().length === 0

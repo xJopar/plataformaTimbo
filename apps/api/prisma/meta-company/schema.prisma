@@ -8,41 +8,102 @@ datasource db {
   provider = "postgresql"
 }
 
-enum CommercialGoalType {
-  BRAND @map("Marca")
-  SALESPERSON @map("Vendedor")
-  @@map("commercial_goal_type")
+enum CommercialAdvisorKind {
+  PERSON
+  SALES_CHANNEL
+
+  @@map("commercial_advisor_kind")
 }
 
-model CommercialBrand {
-  id Int @id @default(autoincrement()) @map("id_marca")
-  name String @unique @map("marca") @db.VarChar(100)
-  active Boolean @default(true) @map("activo")
-  goals CommercialSalesGoal[]
-  @@map("dim_marcas_timbo_margenes")
+model CommercialEmpresa {
+  id         Int                  @id @default(autoincrement()) @map("id_empresa")
+  code       String               @unique @map("codigo") @db.VarChar(30)
+  name       String               @unique @map("empresa") @db.VarChar(100)
+  active     Boolean              @default(true) @map("activo")
+  businesses CommercialBusiness[]
+  brands     CommercialBrand[]
+  advisors   CommercialAdvisor[]
+
+  @@map("dim_empresas_metas")
 }
 
 model CommercialBusiness {
-  id Int @id @default(autoincrement()) @map("id_negocio")
-  name String @unique @map("negocio") @db.VarChar(50)
-  active Boolean @default(true) @map("activo")
-  goals CommercialSalesGoal[]
-  @@map("dim_negocio_margenes")
+  id           Int                   @id @default(autoincrement()) @map("id_negocio")
+  empresaId    Int                   @map("id_empresa")
+  name         String                @map("negocio") @db.VarChar(50)
+  active       Boolean               @default(true) @map("activo")
+  empresa      CommercialEmpresa     @relation(fields: [empresaId], references: [id], onDelete: Restrict)
+  brandGoals   CommercialBrandGoal[]
+  advisorGoals CommercialAdvisorGoal[]
+
+  @@unique([empresaId, name])
+  @@index([empresaId, active])
+  @@map("dim_negocios_metas")
 }
 
-model CommercialSalesGoal {
-  id Int @id @default(autoincrement()) @map("id_meta")
-  period DateTime @map("periodo") @db.Date
-  businessId Int @map("id_negocio")
-  brandId Int @map("id_marca")
-  salespersonCode Int? @map("slp_code")
-  goalType CommercialGoalType @map("tipo_meta")
-  value Decimal @map("meta") @db.Decimal(18, 2)
-  createdAt DateTime @default(now()) @map("fecha_creacion") @db.Timestamptz(6)
-  updatedAt DateTime? @map("fecha_modificacion") @db.Timestamptz(6)
-  business CommercialBusiness @relation(fields: [businessId], references: [id], onDelete: Restrict)
-  brand CommercialBrand @relation(fields: [brandId], references: [id], onDelete: Restrict)
-  @@index([period, businessId, goalType])
-  @@index([salespersonCode, period])
-  @@map("ft_metas_margenes")
+model CommercialBrand {
+  id           Int                   @id @default(autoincrement()) @map("id_marca")
+  empresaId    Int                   @map("id_empresa")
+  name         String                @map("marca") @db.VarChar(100)
+  active       Boolean               @default(true) @map("activo")
+  empresa      CommercialEmpresa     @relation(fields: [empresaId], references: [id], onDelete: Restrict)
+  brandGoals   CommercialBrandGoal[]
+  advisorGoals CommercialAdvisorGoal[]
+
+  @@unique([empresaId, name])
+  @@index([empresaId, active])
+  @@map("dim_marcas_metas")
+}
+
+model CommercialAdvisor {
+  id           Int                     @id @default(autoincrement()) @map("id_asesor")
+  empresaId    Int                     @map("id_empresa")
+  sourceSystem String                  @map("sistema_origen") @db.VarChar(30)
+  externalCode String                  @map("codigo_externo") @db.VarChar(100)
+  displayName  String                  @map("nombre_visible") @db.VarChar(150)
+  kind         CommercialAdvisorKind   @default(PERSON) @map("tipo")
+  active       Boolean                 @default(true) @map("activo")
+  empresa      CommercialEmpresa       @relation(fields: [empresaId], references: [id], onDelete: Restrict)
+  goals        CommercialAdvisorGoal[]
+
+  @@unique([empresaId, sourceSystem, externalCode])
+  @@index([empresaId, active, displayName])
+  @@map("dim_asesores_metas")
+}
+
+model CommercialBrandGoal {
+  id         Int                @id @default(autoincrement()) @map("id_meta_marca")
+  period     DateTime           @map("periodo") @db.Date
+  businessId Int                @map("id_negocio")
+  brandId    Int                @map("id_marca")
+  value      Decimal            @map("meta") @db.Decimal(18, 2)
+  createdAt  DateTime           @default(now()) @map("fecha_creacion") @db.Timestamptz(6)
+  updatedAt  DateTime?          @map("fecha_modificacion") @db.Timestamptz(6)
+  business   CommercialBusiness @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  brand      CommercialBrand    @relation(fields: [brandId], references: [id], onDelete: Restrict)
+
+  @@unique([period, businessId, brandId])
+  @@index([businessId, period])
+  @@index([brandId, period])
+  @@map("ft_metas_marcas")
+}
+
+model CommercialAdvisorGoal {
+  id          Int                @id @default(autoincrement()) @map("id_meta_asesor")
+  period      DateTime           @map("periodo") @db.Date
+  businessId  Int                @map("id_negocio")
+  brandId     Int?               @map("id_marca")
+  advisorId   Int                @map("id_asesor")
+  value       Decimal            @map("meta") @db.Decimal(18, 2)
+  workingDays Int?               @map("dias_habiles")
+  createdAt   DateTime           @default(now()) @map("fecha_creacion") @db.Timestamptz(6)
+  updatedAt   DateTime?          @map("fecha_modificacion") @db.Timestamptz(6)
+  business    CommercialBusiness @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  brand       CommercialBrand?   @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  advisor     CommercialAdvisor  @relation(fields: [advisorId], references: [id], onDelete: Restrict)
+
+  @@index([businessId, period])
+  @@index([advisorId, period])
+  @@index([brandId, period])
+  @@map("ft_metas_asesores")
 }

@@ -28,12 +28,14 @@ export type AuditEventName =
   | 'access.user_application_profile_unassigned'
   | 'meta-company.goal_created'
   | 'meta-company.goal_updated'
+  | 'meta-company.empresa_created'
   | 'meta-company.brand_created'
   | 'meta-company.brand_deactivated'
   | 'meta-company.brand_reactivated'
   | 'meta-company.business_created'
   | 'meta-company.business_deactivated'
-  | 'meta-company.business_reactivated';
+  | 'meta-company.business_reactivated'
+  | 'meta-company.advisor_created';
 
 export type AuditTargetRule =
   'forbidden' | 'user-required' | 'application-required' | 'meta-company-resource-required';
@@ -246,6 +248,13 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
     targetRule: 'meta-company-resource-required',
     metadataFields: [],
   },
+  'meta-company.empresa_created': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
   'meta-company.brand_created': {
     appKey: 'meta-company',
     actorType: AuditActorType.USER,
@@ -282,6 +291,13 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
     metadataFields: [],
   },
   'meta-company.business_reactivated': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.advisor_created': {
     appKey: 'meta-company',
     actorType: AuditActorType.USER,
     outcome: AuditOutcome.SUCCESS,

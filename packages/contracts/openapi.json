@@ -1727,6 +1727,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "empresaId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1735,46 +1743,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MetaCompanyGoalResponseDto"
-                  }
+                  "$ref": "#/components/schemas/MetaCompanyGoalsResponseDto"
                 }
               }
             }
           }
         },
-        "summary": "Lista metas comerciales por período.",
-        "tags": [
-          "applications"
-        ]
-      },
-      "post": {
-        "operationId": "createMetaCompanyGoal",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateMetaCompanyGoalDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MetaCompanyGoalResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Crea una meta comercial.",
+        "summary": "Lista metas comerciales por periodo y empresa.",
         "tags": [
           "applications"
         ]
@@ -1796,7 +1771,7 @@
             }
           }
         },
-        "summary": "Lista marcas y negocios activos.",
+        "summary": "Lista catalogos comerciales activos.",
         "tags": [
           "applications"
         ]
@@ -1818,7 +1793,7 @@
             }
           }
         },
-        "summary": "Lista todos los catálogos para administración.",
+        "summary": "Lista todos los catalogos comerciales.",
         "tags": [
           "applications"
         ]
@@ -1840,15 +1815,63 @@
             }
           }
         },
-        "summary": "Obtiene las acciones habilitadas para la sesión.",
+        "summary": "Obtiene las acciones habilitadas para la sesion.",
         "tags": [
           "applications"
         ]
       }
     },
-    "/api/applications/meta-company/goals/{id}": {
+    "/api/applications/meta-company/brand-goals": {
+      "post": {
+        "operationId": "MetaCompanyController_createBrandGoal",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMetaCompanyBrandGoalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/advisor-goals": {
+      "post": {
+        "operationId": "MetaCompanyController_createAdvisorGoal",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMetaCompanyAdvisorGoalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/brand-goals/{id}": {
       "patch": {
-        "operationId": "updateMetaCompanyGoal",
+        "operationId": "MetaCompanyController_updateBrandGoal",
         "parameters": [
           {
             "name": "id",
@@ -1871,17 +1894,66 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MetaCompanyGoalResponseDto"
-                }
+            "description": ""
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/advisor-goals/{id}": {
+      "patch": {
+        "operationId": "MetaCompanyController_updateAdvisorGoal",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMetaCompanyGoalDto"
               }
             }
           }
         },
-        "summary": "Edita el valor de una meta comercial.",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/empresas": {
+      "post": {
+        "operationId": "MetaCompanyController_createEmpresa",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMetaCompanyEmpresaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
         "tags": [
           "applications"
         ]
@@ -1889,7 +1961,7 @@
     },
     "/api/applications/meta-company/brands": {
       "post": {
-        "operationId": "createMetaCompanyBrand",
+        "operationId": "MetaCompanyController_createBrand",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1903,17 +1975,9 @@
         },
         "responses": {
           "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
-        "summary": "Crea una marca.",
         "tags": [
           "applications"
         ]
@@ -1921,7 +1985,7 @@
     },
     "/api/applications/meta-company/businesses": {
       "post": {
-        "operationId": "createMetaCompanyBusiness",
+        "operationId": "MetaCompanyController_createBusiness",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1935,85 +1999,33 @@
         },
         "responses": {
           "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
-        "summary": "Crea un negocio.",
         "tags": [
           "applications"
         ]
       }
     },
-    "/api/applications/meta-company/brands/{id}/active": {
-      "patch": {
-        "operationId": "setMetaCompanyBrandActive",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+    "/api/applications/meta-company/advisors": {
+      "post": {
+        "operationId": "MetaCompanyController_createAdvisor",
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SetMetaCompanyCatalogItemActiveDto"
+                "$ref": "#/components/schemas/CreateMetaCompanyAdvisorDto"
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Estado de marca actualizado."
+          "201": {
+            "description": ""
           }
         },
-        "summary": "Activa o desactiva una marca.",
-        "tags": [
-          "applications"
-        ]
-      }
-    },
-    "/api/applications/meta-company/businesses/{id}/active": {
-      "patch": {
-        "operationId": "setMetaCompanyBusinessActive",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetMetaCompanyCatalogItemActiveDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Estado de negocio actualizado."
-          }
-        },
-        "summary": "Activa o desactiva un negocio.",
         "tags": [
           "applications"
         ]
@@ -2804,7 +2816,7 @@
           "eventName"
         ]
       },
-      "MetaCompanyGoalResponseDto": {
+      "MetaCompanyBrandGoalResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -2813,7 +2825,7 @@
           },
           "period": {
             "type": "string",
-            "example": "2025-01-01"
+            "example": "2026-09-01"
           },
           "businessId": {
             "type": "number",
@@ -2829,18 +2841,7 @@
           },
           "brandName": {
             "type": "string",
-            "example": "FACCINI"
-          },
-          "salespersonCode": {
-            "type": "object",
-            "example": 10
-          },
-          "goalType": {
-            "type": "string",
-            "enum": [
-              "Marca",
-              "Vendedor"
-            ]
+            "example": "FACCHINI"
           },
           "value": {
             "type": "string",
@@ -2848,7 +2849,7 @@
           },
           "updatedAt": {
             "type": "object",
-            "example": "2025-01-01T12:00:00.000Z"
+            "example": "2026-09-01T12:00:00.000Z"
           }
         },
         "required": [
@@ -2858,14 +2859,128 @@
           "businessName",
           "brandId",
           "brandName",
-          "goalType",
           "value"
+        ]
+      },
+      "MetaCompanyAdvisorGoalResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "period": {
+            "type": "string",
+            "example": "2026-09-01"
+          },
+          "businessId": {
+            "type": "number",
+            "example": 1
+          },
+          "businessName": {
+            "type": "string",
+            "example": "FIXIT"
+          },
+          "brandId": {
+            "type": "object",
+            "example": 1
+          },
+          "brandName": {
+            "type": "object",
+            "example": "Marca de repuesto"
+          },
+          "advisorId": {
+            "type": "number",
+            "example": 1
+          },
+          "advisorCode": {
+            "type": "string",
+            "example": "195fix"
+          },
+          "advisorName": {
+            "type": "string",
+            "example": "FIX0ASU0JUAN FERREIRA"
+          },
+          "value": {
+            "type": "string",
+            "example": "31708.00"
+          },
+          "workingDays": {
+            "type": "object",
+            "example": 22
+          },
+          "updatedAt": {
+            "type": "object",
+            "example": "2026-09-01T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "period",
+          "businessId",
+          "businessName",
+          "advisorId",
+          "advisorCode",
+          "advisorName",
+          "value"
+        ]
+      },
+      "MetaCompanyGoalsResponseDto": {
+        "type": "object",
+        "properties": {
+          "brandGoals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetaCompanyBrandGoalResponseDto"
+            }
+          },
+          "advisorGoals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetaCompanyAdvisorGoalResponseDto"
+            }
+          }
+        },
+        "required": [
+          "brandGoals",
+          "advisorGoals"
+        ]
+      },
+      "MetaCompanyEmpresaResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "code": {
+            "type": "string",
+            "example": "TIMBO"
+          },
+          "name": {
+            "type": "string",
+            "example": "Timbo"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "active"
         ]
       },
       "MetaCompanyCatalogItemResponseDto": {
         "type": "object",
         "properties": {
           "id": {
+            "type": "number",
+            "example": 1
+          },
+          "empresaId": {
             "type": "number",
             "example": 1
           },
@@ -2880,13 +2995,65 @@
         },
         "required": [
           "id",
+          "empresaId",
           "name",
+          "active"
+        ]
+      },
+      "MetaCompanyAdvisorResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "empresaId": {
+            "type": "number",
+            "example": 1
+          },
+          "sourceSystem": {
+            "type": "string",
+            "example": "SAP_B1"
+          },
+          "externalCode": {
+            "type": "string",
+            "example": "10"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Hugo Baez"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "PERSON",
+              "SALES_CHANNEL"
+            ]
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "id",
+          "empresaId",
+          "sourceSystem",
+          "externalCode",
+          "displayName",
+          "kind",
           "active"
         ]
       },
       "MetaCompanyCatalogResponseDto": {
         "type": "object",
         "properties": {
+          "empresas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetaCompanyEmpresaResponseDto"
+            }
+          },
           "brands": {
             "type": "array",
             "items": {
@@ -2898,11 +3065,19 @@
             "items": {
               "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
             }
+          },
+          "advisors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetaCompanyAdvisorResponseDto"
+            }
           }
         },
         "required": [
+          "empresas",
           "brands",
-          "businesses"
+          "businesses",
+          "advisors"
         ]
       },
       "MetaCompanyCapabilitiesResponseDto": {
@@ -2920,7 +3095,7 @@
           "canManageGoals"
         ]
       },
-      "CreateMetaCompanyGoalDto": {
+      "CreateMetaCompanyBrandGoalDto": {
         "type": "object",
         "properties": {
           "period": {
@@ -2935,18 +3110,6 @@
             "type": "number",
             "example": 1
           },
-          "salespersonCode": {
-            "type": "number",
-            "example": 10
-          },
-          "goalType": {
-            "type": "string",
-            "enum": [
-              "Marca",
-              "Vendedor"
-            ],
-            "example": "Marca"
-          },
           "value": {
             "type": "string",
             "example": "38237.42"
@@ -2956,7 +3119,41 @@
           "period",
           "businessId",
           "brandId",
-          "goalType",
+          "value"
+        ]
+      },
+      "CreateMetaCompanyAdvisorGoalDto": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "example": "2026-09-01"
+          },
+          "businessId": {
+            "type": "number",
+            "example": 1
+          },
+          "brandId": {
+            "type": "number",
+            "example": 1
+          },
+          "advisorId": {
+            "type": "number",
+            "example": 1
+          },
+          "value": {
+            "type": "string",
+            "example": "38237.42"
+          },
+          "workingDays": {
+            "type": "number",
+            "example": 22
+          }
+        },
+        "required": [
+          "period",
+          "businessId",
+          "advisorId",
           "value"
         ]
       },
@@ -2966,34 +3163,84 @@
           "value": {
             "type": "string",
             "example": "38237.42"
+          },
+          "workingDays": {
+            "type": "number",
+            "example": 22
           }
         },
         "required": [
           "value"
         ]
       },
+      "CreateMetaCompanyEmpresaDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "TIMBO"
+          },
+          "name": {
+            "type": "string",
+            "example": "Timbo"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ]
+      },
       "CreateMetaCompanyCatalogItemDto": {
         "type": "object",
         "properties": {
+          "empresaId": {
+            "type": "number",
+            "example": 1
+          },
           "name": {
             "type": "string",
             "example": "Comercial"
           }
         },
         "required": [
+          "empresaId",
           "name"
         ]
       },
-      "SetMetaCompanyCatalogItemActiveDto": {
+      "CreateMetaCompanyAdvisorDto": {
         "type": "object",
         "properties": {
-          "active": {
-            "type": "boolean",
-            "example": false
+          "empresaId": {
+            "type": "number",
+            "example": 1
+          },
+          "sourceSystem": {
+            "type": "string",
+            "example": "SAP_B1"
+          },
+          "externalCode": {
+            "type": "string",
+            "example": "10"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Hugo Baez"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "PERSON",
+              "SALES_CHANNEL"
+            ],
+            "example": "PERSON"
           }
         },
         "required": [
-          "active"
+          "empresaId",
+          "sourceSystem",
+          "externalCode",
+          "displayName",
+          "kind"
         ]
       },
       "HealthResponseDto": {
