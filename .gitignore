@@ -7,3 +7,6 @@ apps/api/src/generated/
 .env
 *.local
 graphify-out/
+docs/commercial-goals-data-model.md
+docs/commercial-goals-sql-server.sql
+docs/cuotas_redondeo.js
