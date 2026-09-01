@@ -49,10 +49,12 @@ export function FinancingConfig({
   const hasItems = totalPriceUsd > 0;
 
   return (
-    <section className="cc-section" aria-labelledby="cc-config-title">
-      <h2 id="cc-config-title" className="cc-section-title">
-        Financiación
-      </h2>
+    <section className="cc-section cc-config" aria-labelledby="cc-config-title">
+      <div className="cc-section-heading">
+        <h2 id="cc-config-title" className="cc-section-title">
+          Financiación
+        </h2>
+      </div>
 
       <div className="cc-total-row">
         <span className="cc-total-label">Precio total</span>

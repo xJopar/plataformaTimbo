@@ -124,13 +124,13 @@
   padding-top: var(--cc-sp-6);
 }
 
-.cc-layout-main>.cc-section:first-child,
-.cc-layout-config>.cc-section:first-child,
-.cc-layout-result>.cc-section:first-child {
+.cc-layout-main > .cc-section:first-child,
+.cc-layout-config > .cc-section:first-child,
+.cc-layout-result > .cc-section:first-child {
   padding-top: 0;
 }
 
-.cc-section+.cc-section {
+.cc-section + .cc-section {
   border-top: 1px solid var(--cc-c-border);
 }
 
@@ -140,31 +140,22 @@
   justify-content: space-between;
   gap: var(--cc-sp-3);
   margin-bottom: var(--cc-sp-4);
+  margin-top: var(--cc-sp-2);
 }
 
-/* /impeccable bolder: 1rem/700 era casi cuerpo de texto para un título de sección — subido a la
-   cota alta que ya autoriza DESIGN.md para etiquetas de superficies operativas (peso 700-800) en
-   vez de inventar una escala nueva: más tamaño, más peso, tracking más cerrado. */
+/* Los títulos de sección comparten la voz de Cuotero. La superficie y el contenido, no una
+   escala tipográfica paralela, distinguen los controles del resultado. */
 .cc-section-title {
   margin: 0 0 var(--cc-sp-4);
   color: var(--cc-c-text-primary);
-  font-size: 1.1875rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
 .cc-section-heading .cc-section-title {
   margin-bottom: 0;
-}
-
-/* Cuotero no participa de este bolder: ya tiene su propio acento (borde superior de marca) como
-   única superficie-resultado — subirle también el título compraría una segunda señal de énfasis
-   sobre la misma sección y le restaría fuerza al bolder real, que es para las otras dos. */
-#cc-cuotero-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
 }
 
 /* ── Selector de modo (agregar unidad / precio manual) ── */
@@ -562,7 +553,7 @@
   gap: var(--cc-sp-3);
 }
 
-.cc-field-group+.cc-field-group {
+.cc-field-group + .cc-field-group {
   padding-top: var(--cc-sp-5);
   border-top: 1px solid var(--cc-c-border);
 }
@@ -702,13 +693,18 @@
   cursor: default;
 }
 
-/* ── Cuotero: única superficie con acento — es el resultado, se distingue del resto del flujo.
-   `.cc-section.cc-cuotero` iguala la especificidad de `.cc-section + .cc-section` y la vence por
-   orden de aparición (esta regla va después), sin recurrir a `!important`. ── */
+/* Configuración y Cuotero son superficies hermanas. El acento y el blanco facilitan escanear
+   ambos bloques sin anidar tarjetas ni competir con el resultado. */
+.cc-section.cc-config,
 .cc-section.cc-cuotero {
   padding: var(--cc-sp-5);
   border-top: 3px solid var(--cc-c-brand);
-  background: var(--cc-c-surface);
+  background: var(--cc-c-surface-alt);
+}
+
+.cc-section.cc-config .cc-section-heading,
+.cc-section.cc-cuotero .cc-section-heading {
+  margin-top: 0;
 }
 
 .cc-cuotero:focus-visible {
@@ -896,5 +892,14 @@
 
   .cc-catalog-result {
     flex-wrap: wrap;
+  }
+
+  .cc-apply-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cc-apply-btn {
+    width: 100%;
   }
 }
