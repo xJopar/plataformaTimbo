@@ -5,7 +5,7 @@ import { APPLICATION_AUTHORIZATION_SERVICE } from '../access-profiles/access-pro
 import { CsrfProtectionGuard } from '../auth/csrf-protection.guard';
 import { type AuthenticatedRequest, SessionAuthenticationGuard } from '../auth/session-authentication.guard';
 import { META_COMPANY_APPLICATION_KEY, MetaCompanyApplicationAccessGuard } from './meta-company-application-access.guard';
-import { CreateMetaCompanyAdvisorDto, CreateMetaCompanyAdvisorGoalDto, CreateMetaCompanyBrandGoalDto, CreateMetaCompanyCatalogItemDto, CreateMetaCompanyEmpresaDto, MetaCompanyCapabilitiesResponseDto, MetaCompanyCatalogResponseDto, MetaCompanyGoalsResponseDto, UpdateMetaCompanyGoalDto } from './dto/meta-company.dto';
+import { CreateMetaCompanyAdvisorDto, CreateMetaCompanyAdvisorGoalDto, CreateMetaCompanyBrandGoalDto, CreateMetaCompanyCatalogItemDto, CreateMetaCompanyEmpresaDto, MetaCompanyCapabilitiesResponseDto, MetaCompanyCatalogResponseDto, UpdateMetaCompanyGoalDto } from './dto/meta-company.dto';
 import { MetaCompanyCatalogManagementGuard, MetaCompanyGoalManagementGuard } from './meta-company-permission.guards';
 import { MetaCompanyService } from './meta-company.service';
 
@@ -17,13 +17,13 @@ export class MetaCompanyController {
 
   @Get('goals')
   @ApiOperation({ operationId: 'listMetaCompanyGoals', summary: 'Lista metas comerciales por periodo y empresa.' })
-  @ApiOkResponse({ type: MetaCompanyGoalsResponseDto })
-  public async listGoals(@Query('period') period?: string, @Query('empresaId') empresaId?: string): Promise<MetaCompanyGoalsResponseDto> {
+  @ApiOkResponse()
+  public async listGoals(@Query('period') period?: string, @Query('empresaId') empresaId?: string): Promise<unknown[]> {
     const goals = await this.metaCompanyService.listGoals(period, empresaId === undefined ? undefined : Number(empresaId));
-    return {
-      brandGoals: goals.brandGoals.map((goal) => ({ id: goal.id, period: goal.period.toISOString().slice(0, 10), businessId: goal.businessId, businessName: goal.business.name, brandId: goal.brandId, brandName: goal.brand.name, value: goal.value.toFixed(2), updatedAt: goal.updatedAt?.toISOString() ?? null })),
-      advisorGoals: goals.advisorGoals.map((goal) => ({ id: goal.id, period: goal.period.toISOString().slice(0, 10), businessId: goal.businessId, businessName: goal.business.name, brandId: goal.brandId, brandName: goal.brand?.name ?? null, advisorId: goal.advisorId, advisorCode: goal.advisor.externalCode, advisorName: goal.advisor.displayName, value: goal.value.toFixed(2), workingDays: goal.workingDays, updatedAt: goal.updatedAt?.toISOString() ?? null })),
-    };
+    return [
+      ...goals.brandGoals.map((goal) => ({ id: goal.id, period: goal.period.toISOString().slice(0, 10), businessId: goal.businessId, businessName: goal.business.name, brandId: goal.brandId, brandName: goal.brand.name, salespersonCode: null, goalType: 'Marca', value: goal.value.toFixed(2), updatedAt: goal.updatedAt?.toISOString() ?? null })),
+      ...goals.advisorGoals.map((goal) => ({ id: goal.id, period: goal.period.toISOString().slice(0, 10), businessId: goal.businessId, businessName: goal.business.name, brandId: goal.brandId, brandName: goal.brand?.name ?? 'No aplica', salespersonCode: Number.isSafeInteger(Number(goal.advisor.externalCode)) ? Number(goal.advisor.externalCode) : null, goalType: 'Vendedor', value: goal.value.toFixed(2), updatedAt: goal.updatedAt?.toISOString() ?? null })),
+    ];
   }
 
   @Get('catalogs')
