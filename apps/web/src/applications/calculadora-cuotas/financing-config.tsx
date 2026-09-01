@@ -156,8 +156,7 @@ export function FinancingConfig({
           </div>
         </div>
 
-        <fieldset className="cc-field-group">
-          <legend className="cc-field-group-label">Cuotas y refuerzos</legend>
+        <div className="cc-field-group">
           <div className="cc-field">
             <label htmlFor="cc-installment-periodicity">Frecuencia de pago</label>
             <select
@@ -210,7 +209,7 @@ export function FinancingConfig({
               </select>
             ) : null}
           </div>
-        </fieldset>
+        </div>
       </div>
 
       <div className="cc-apply-row">

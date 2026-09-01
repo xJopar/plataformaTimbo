@@ -160,26 +160,25 @@ export function CalculadoraCuotasApplication({
         )}
 
         <div className="cc-layout">
-          <div className="cc-layout-main">
-            <AddItemPanel
-              vehiclesState={vehiclesState}
-              existingItemIds={existingItemIds}
-              onAddItem={addItem}
-            />
-            <AddedItemsList items={items} onRequestRemove={setPendingRemovalId} />
-          </div>
+          <div className="cc-layout-input">
+            <div className="cc-layout-main">
+              <AddItemPanel
+                vehiclesState={vehiclesState}
+                existingItemIds={existingItemIds}
+                onAddItem={addItem}
+              />
+              <AddedItemsList items={items} onRequestRemove={setPendingRemovalId} />
+            </div>
 
-          {/* Config y Cuotero son columnas de grid independientes (no una sola envoltura) para
-              que, en pantallas anchas, el Cuotero tenga su propio carril desde el arranque en
-              vez de depender de la altura de Config empujándolo hacia abajo — ver `.cc-layout`. */}
-          <div className="cc-layout-config">
-            <FinancingConfig
-              value={draftConfig}
-              totalPriceUsd={totalPriceUsd}
-              isDirty={isConfigDirty}
-              onChange={setDraftConfig}
-              onApply={applyConfig}
-            />
+            <div className="cc-layout-config">
+              <FinancingConfig
+                value={draftConfig}
+                totalPriceUsd={totalPriceUsd}
+                isDirty={isConfigDirty}
+                onChange={setDraftConfig}
+                onApply={applyConfig}
+              />
+            </div>
           </div>
 
           <div className="cc-layout-result">

@@ -87,6 +87,10 @@
   flex-direction: column;
 }
 
+.cc-layout-input {
+  display: contents;
+}
+
 @media (min-width: 1024px) {
   .cc-layout {
     display: grid;
@@ -109,8 +113,32 @@
     gap: 0 32px;
   }
 
-  .cc-layout-config {
-    grid-column: 2;
+  .cc-layout-input {
+    display: grid;
+    grid-column: 1 / span 2;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+    align-items: stretch;
+    gap: 0 var(--cc-sp-5);
+    padding: var(--cc-sp-5);
+    border-top: 3px solid var(--cc-c-brand);
+    background: var(--cc-c-surface-alt);
+  }
+
+  .cc-layout-input .cc-layout-main {
+    padding-right: var(--cc-sp-5);
+    border-right: 1px solid var(--cc-c-border);
+  }
+
+  .cc-layout-input .cc-layout-config {
+    grid-column: auto;
+    position: static;
+    top: auto;
+  }
+
+  .cc-layout-input .cc-section.cc-config {
+    padding: 0;
+    border-top: 0;
+    background: transparent;
   }
 
   .cc-layout-result {
@@ -118,8 +146,8 @@
   }
 }
 
-/* ── Secciones sin caja: se separan con una regla, no con bordes+fondo repetidos en cada bloque —
-   el cuotero (`.cc-cuotero`) es la única superficie con acento propio, porque es el resultado. ── */
+/* Las secciones internas conservan reglas ligeras. A partir de 1280 px, armado y financiación
+   comparten una sola superficie de entrada; Cuotero permanece separado como resultado. */
 .cc-section {
   padding-top: var(--cc-sp-6);
 }
@@ -557,16 +585,6 @@
 .cc-field-group + .cc-field-group {
   padding-top: var(--cc-sp-5);
   border-top: 1px solid var(--cc-c-border);
-}
-
-.cc-field-group-label {
-  display: block;
-  padding: 0;
-  color: var(--cc-c-text-disabled);
-  font-weight: 600;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .cc-field {
