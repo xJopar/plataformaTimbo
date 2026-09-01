@@ -433,11 +433,14 @@
 }
 
 /* ── Precio final y condiciones ── */
+/* Label arriba, valor abajo (no lado a lado): en una columna angosta de sidebar (300-380px),
+   "Precio final" + un valor largo compitiendo en una fila con `justify-content: space-between`
+   fuerza a ambos a partirse en dos líneas. Apilados, cada uno tiene todo el ancho disponible y el
+   valor —el número más importante de esta columna— gana peso en vez de competir con su etiqueta. */
 .cc-total-row {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--cc-sp-3);
+  flex-direction: column;
+  gap: var(--cc-sp-2);
   padding-bottom: var(--cc-sp-4);
   margin-bottom: var(--cc-sp-4);
   border-bottom: 1px solid var(--cc-c-border);
@@ -455,14 +458,25 @@
   font-weight: 700;
   color: var(--cc-c-brand);
 }
+/* El placeholder ("Agregá unidades para calcular") es una instrucción, no un dato — no debe leer
+   con la misma voz tabular/numérica que el precio real una vez que hay unidades cargadas. */
+.cc-total-value--empty {
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--cc-c-text-secondary);
+}
 
-/* Dos grupos apilados en vez de una grilla 2×2 plana: "Condiciones de financiación" (Plazo,
-   Entrega — de qué depende la tasa) y "Forma de pago" (Periodicidad, Refuerzos — cómo se reparte
-   la cuota). Son `<fieldset>` reales porque agrupan controles de formulario relacionados, no sólo
-   una caja visual. `align-items: start` en la fila evita que un campo corto (Plazo) se estire a
-   la altura de uno más alto con hint (Entrega inicial). Separación por padding-top + border-top
-   en el sibling (no `gap` en el contenedor): mismo patrón que `.cc-section + .cc-section` más
-   abajo, para no duplicar el espaciado entre los dos mecanismos. */
+/* Dos grupos de campos apilados en un solo flujo vertical, no una grilla 2×2: a 300-380px de
+   ancho (la columna de config vive en un sidebar, no a lo ancho de la página) dos campos lado a
+   lado no dejan espacio real — el segmentado de "Plazo" (36/48/60 meses) o el de "Entrega inicial"
+   (Porcentaje/Monto manual) terminaban recortados. Apilar todo verticalmente también resuelve de
+   raíz la altura dispareja entre campos cortos y largos: en flujo vertical no hay estiramiento de
+   grid que igualar. "Plazo y entrega" / "Cuotas y refuerzos": `<fieldset>`/`<legend>` reales que
+   agrupan controles de formulario relacionados, nombrados por lo que contienen (no por una
+   categoría abstracta que ya repite "condiciones" del título de la sección). Separación por
+   padding-top + border-top en el sibling (no `gap` en el contenedor): mismo patrón que
+   `.cc-section + .cc-section` más abajo, para no duplicar el espaciado entre los dos mecanismos. */
 .cc-config-grid {
   display: flex;
   flex-direction: column;
@@ -488,12 +502,6 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-}
-.cc-field-group-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
-  gap: var(--cc-sp-5);
 }
 .cc-field {
   display: flex;
@@ -734,9 +742,6 @@
 }
 
 @media (max-width: 640px) {
-  .cc-field-group-row {
-    grid-template-columns: 1fr;
-  }
   .cc-added-row {
     flex-wrap: wrap;
   }

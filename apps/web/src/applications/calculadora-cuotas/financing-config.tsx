@@ -56,7 +56,7 @@ export function FinancingConfig({
 
       <div className="cc-total-row">
         <span className="cc-total-label">Precio final</span>
-        <span className="cc-total-value">
+        <span className={`cc-total-value${hasItems ? '' : ' cc-total-value--empty'}`}>
           {hasItems
             ? `USD ${totalPriceUsd.toLocaleString('es-PY')}`
             : 'Agregá unidades para calcular'}
@@ -65,116 +65,142 @@ export function FinancingConfig({
 
       <div className="cc-config-grid">
         <fieldset className="cc-field-group">
-          <legend className="cc-field-group-label">Condiciones de financiación</legend>
-          <div className="cc-field-group-row">
-            <div className="cc-field">
-              <span className="cc-field-label">Plazo</span>
-              <div className="cc-segmented" role="radiogroup" aria-label="Plazo en meses">
-                {PLAZO_OPTIONS.map((months) => (
-                  <button
-                    key={months}
-                    type="button"
-                    role="radio"
-                    aria-checked={value.termMonths === months}
-                    className={`cc-segmented-btn${value.termMonths === months ? ' cc-segmented-btn--active' : ''}`}
-                    onClick={() => onChange({ ...value, termMonths: months })}
-                  >
-                    {months} meses
-                  </button>
-                ))}
-              </div>
+          <legend className="cc-field-group-label">Plazo y entrega</legend>
+          <div className="cc-field">
+            <span className="cc-field-label">Plazo</span>
+            <div className="cc-segmented" role="radiogroup" aria-label="Plazo en meses">
+              {PLAZO_OPTIONS.map((months) => (
+                <button
+                  key={months}
+                  type="button"
+                  role="radio"
+                  aria-checked={value.termMonths === months}
+                  className={`cc-segmented-btn${value.termMonths === months ? ' cc-segmented-btn--active' : ''}`}
+                  onClick={() => onChange({ ...value, termMonths: months })}
+                >
+                  {months} meses
+                </button>
+              ))}
             </div>
+          </div>
 
-            <div className="cc-field">
-              <span className="cc-field-label">Entrega inicial</span>
-              <div className="cc-segmented" role="radiogroup" aria-label="Modo de entrega inicial">
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={value.downPaymentMode === 'percent'}
-                  className={`cc-segmented-btn${value.downPaymentMode === 'percent' ? ' cc-segmented-btn--active' : ''}`}
-                  onClick={() => onChange({ ...value, downPaymentMode: 'percent' })}
-                >
-                  Porcentaje
-                </button>
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={value.downPaymentMode === 'manual'}
-                  className={`cc-segmented-btn${value.downPaymentMode === 'manual' ? ' cc-segmented-btn--active' : ''}`}
-                  onClick={() => onChange({ ...value, downPaymentMode: 'manual' })}
-                >
-                  Monto manual
-                </button>
-              </div>
-              {value.downPaymentMode === 'percent' ? (
-                <>
-                  <div className="cc-inline-input">
-                    <input
-                      id="cc-down-payment-percent"
-                      aria-label="Entrega inicial en porcentaje"
-                      type="number"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={value.downPaymentPercent}
-                      onChange={(event) =>
-                        onChange({
-                          ...value,
-                          downPaymentPercent: Math.min(
-                            100,
-                            Math.max(0, Number(event.target.value)),
-                          ),
-                        })
-                      }
-                    />
-                    <span aria-hidden="true">%</span>
-                  </div>
-                  <span className="cc-field-hint">
-                    Mínimo {MIN_DOWN_PAYMENT_PERCENT}% para financiar.
-                  </span>
-                </>
-              ) : (
-                <>
-                  <div className="cc-inline-input">
-                    <span aria-hidden="true">USD</span>
-                    <input
-                      id="cc-down-payment-manual"
-                      aria-label="Entrega inicial en dólares"
-                      type="number"
-                      min={0}
-                      step={100}
-                      value={value.downPaymentManualUsd}
-                      onChange={(event) =>
-                        onChange({
-                          ...value,
-                          downPaymentManualUsd: Math.max(0, Number(event.target.value)),
-                        })
-                      }
-                    />
-                  </div>
-                  <span className="cc-field-hint">
-                    Debe representar al menos {MIN_DOWN_PAYMENT_PERCENT}% del precio final para
-                    poder financiar.
-                  </span>
-                </>
-              )}
+          <div className="cc-field">
+            <span className="cc-field-label">Entrega inicial</span>
+            <div className="cc-segmented" role="radiogroup" aria-label="Modo de entrega inicial">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={value.downPaymentMode === 'percent'}
+                className={`cc-segmented-btn${value.downPaymentMode === 'percent' ? ' cc-segmented-btn--active' : ''}`}
+                onClick={() => onChange({ ...value, downPaymentMode: 'percent' })}
+              >
+                Porcentaje
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={value.downPaymentMode === 'manual'}
+                className={`cc-segmented-btn${value.downPaymentMode === 'manual' ? ' cc-segmented-btn--active' : ''}`}
+                onClick={() => onChange({ ...value, downPaymentMode: 'manual' })}
+              >
+                Monto manual
+              </button>
             </div>
+            {value.downPaymentMode === 'percent' ? (
+              <>
+                <div className="cc-inline-input">
+                  <input
+                    id="cc-down-payment-percent"
+                    aria-label="Entrega inicial en porcentaje"
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={value.downPaymentPercent}
+                    onChange={(event) =>
+                      onChange({
+                        ...value,
+                        downPaymentPercent: Math.min(100, Math.max(0, Number(event.target.value))),
+                      })
+                    }
+                  />
+                  <span aria-hidden="true">%</span>
+                </div>
+                <span className="cc-field-hint">
+                  Mínimo {MIN_DOWN_PAYMENT_PERCENT}% para financiar.
+                </span>
+              </>
+            ) : (
+              <>
+                <div className="cc-inline-input">
+                  <span aria-hidden="true">USD</span>
+                  <input
+                    id="cc-down-payment-manual"
+                    aria-label="Entrega inicial en dólares"
+                    type="number"
+                    min={0}
+                    step={100}
+                    value={value.downPaymentManualUsd}
+                    onChange={(event) =>
+                      onChange({
+                        ...value,
+                        downPaymentManualUsd: Math.max(0, Number(event.target.value)),
+                      })
+                    }
+                  />
+                </div>
+                <span className="cc-field-hint">
+                  Debe representar al menos {MIN_DOWN_PAYMENT_PERCENT}% del precio final para
+                  poder financiar.
+                </span>
+              </>
+            )}
           </div>
         </fieldset>
 
         <fieldset className="cc-field-group">
-          <legend className="cc-field-group-label">Forma de pago</legend>
-          <div className="cc-field-group-row">
-            <div className="cc-field">
-              <label htmlFor="cc-installment-periodicity">Periodicidad de cuotas regulares</label>
+          <legend className="cc-field-group-label">Cuotas y refuerzos</legend>
+          <div className="cc-field">
+            <label htmlFor="cc-installment-periodicity">Periodicidad de cuotas regulares</label>
+            <select
+              id="cc-installment-periodicity"
+              value={value.installmentPeriodicity}
+              onChange={(event) =>
+                onChange({
+                  ...value,
+                  installmentPeriodicity: event.target.value as CuotaPeriodicity,
+                })
+              }
+            >
+              {PERIODICITY_OPTIONS.map((periodicity) => (
+                <option key={periodicity} value={periodicity}>
+                  {PERIODICITY_LABELS[periodicity]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="cc-field">
+            <label className="cc-checkbox-field" htmlFor="cc-reinforcements-enabled">
+              <input
+                id="cc-reinforcements-enabled"
+                type="checkbox"
+                checked={value.reinforcementsEnabled}
+                onChange={(event) =>
+                  onChange({ ...value, reinforcementsEnabled: event.target.checked })
+                }
+              />
+              Incluir refuerzos
+            </label>
+            {value.reinforcementsEnabled ? (
               <select
-                id="cc-installment-periodicity"
-                value={value.installmentPeriodicity}
+                id="cc-reinforcement-periodicity"
+                aria-label="Periodicidad de refuerzos"
+                value={value.reinforcementPeriodicity}
                 onChange={(event) =>
                   onChange({
                     ...value,
-                    installmentPeriodicity: event.target.value as CuotaPeriodicity,
+                    reinforcementPeriodicity: event.target.value as CuotaPeriodicity,
                   })
                 }
               >
@@ -184,40 +210,7 @@ export function FinancingConfig({
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div className="cc-field">
-              <label className="cc-checkbox-field" htmlFor="cc-reinforcements-enabled">
-                <input
-                  id="cc-reinforcements-enabled"
-                  type="checkbox"
-                  checked={value.reinforcementsEnabled}
-                  onChange={(event) =>
-                    onChange({ ...value, reinforcementsEnabled: event.target.checked })
-                  }
-                />
-                Incluir refuerzos
-              </label>
-              {value.reinforcementsEnabled ? (
-                <select
-                  id="cc-reinforcement-periodicity"
-                  aria-label="Periodicidad de refuerzos"
-                  value={value.reinforcementPeriodicity}
-                  onChange={(event) =>
-                    onChange({
-                      ...value,
-                      reinforcementPeriodicity: event.target.value as CuotaPeriodicity,
-                    })
-                  }
-                >
-                  {PERIODICITY_OPTIONS.map((periodicity) => (
-                    <option key={periodicity} value={periodicity}>
-                      {PERIODICITY_LABELS[periodicity]}
-                    </option>
-                  ))}
-                </select>
-              ) : null}
-            </div>
+            ) : null}
           </div>
         </fieldset>
       </div>
