@@ -2,31 +2,32 @@
 target: Calculadora de Cuotas
 total_score: 25
 max_score: 40
-na_heuristics: 
+na_heuristics:
 p0_count: 0
 p1_count: 1
 timestamp: 2026-08-27T19-50-52Z
 slug: culadora-cuotas-calculadora-cuotas-application-tsx
 ---
+
 # Crítica de diseño — Calculadora de Cuotas
 
 Method: dual-agent (A: design-review sub-agent · B: detector + visual-evidence sub-agent)
 
 ## Design Health Score
 
-| # | Heurística | Puntaje | Hallazgo clave |
-|---|-----------|-------|-----------------|
-| 1 | Visibilidad del estado del sistema | 3/4 | Cuotero muestra resultado por defecto sin acción del usuario; "Calcular cuota" arranca deshabilitado sin explicar por qué |
-| 2 | Correspondencia con el mundo real | 3/4 | Terminología comercial correcta; copy del cuotero suena a nota de desarrollo |
-| 3 | Control y libertad del usuario | 2/4 | Quitar exige modal siempre; no hay edición inline de precio manual |
-| 4 | Consistencia y estándares | 3/4 | Fiel a DESIGN.md; pero ítems instantáneos vs. config en "borrador" sin señal que distinga |
-| 5 | Prevención de errores | 3/4 | Buena validación manual; entrega manual se recorta silenciosamente sin avisar |
-| 6 | Reconocer antes que recordar | 2/4 | Sólo búsqueda por texto, sin navegación por marca/modelo como Lista de Precios |
-| 7 | Flexibilidad y eficiencia | 2/4 | Buen patrón borrador/aplicar; sin edición inline ni comparación de escenarios |
-| 8 | Diseño estético y minimalista | 3/4 | Panel de condiciones visible e interactivo antes de que haya algo que calcular |
-| 9 | Ayuda a reconocer y recuperar errores | 2/4 | Error de carga del catálogo sin reintentar (regresión vs. Lista de Precios) |
-| 10 | Ayuda y documentación | 2/4 | Sin microcopy en el punto de mayor fricción (botón deshabilitado) |
-| **Total** | | **25/40** | **Aceptable** |
+| #         | Heurística                            | Puntaje   | Hallazgo clave                                                                                                            |
+| --------- | ------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 1         | Visibilidad del estado del sistema    | 3/4       | Cuotero muestra resultado por defecto sin acción del usuario; "Calcular cuota" arranca deshabilitado sin explicar por qué |
+| 2         | Correspondencia con el mundo real     | 3/4       | Terminología comercial correcta; copy del cuotero suena a nota de desarrollo                                              |
+| 3         | Control y libertad del usuario        | 2/4       | Quitar exige modal siempre; no hay edición inline de precio manual                                                        |
+| 4         | Consistencia y estándares             | 3/4       | Fiel a DESIGN.md; pero ítems instantáneos vs. config en "borrador" sin señal que distinga                                 |
+| 5         | Prevención de errores                 | 3/4       | Buena validación manual; entrega manual se recorta silenciosamente sin avisar                                             |
+| 6         | Reconocer antes que recordar          | 2/4       | Sólo búsqueda por texto, sin navegación por marca/modelo como Lista de Precios                                            |
+| 7         | Flexibilidad y eficiencia             | 2/4       | Buen patrón borrador/aplicar; sin edición inline ni comparación de escenarios                                             |
+| 8         | Diseño estético y minimalista         | 3/4       | Panel de condiciones visible e interactivo antes de que haya algo que calcular                                            |
+| 9         | Ayuda a reconocer y recuperar errores | 2/4       | Error de carga del catálogo sin reintentar (regresión vs. Lista de Precios)                                               |
+| 10        | Ayuda y documentación                 | 2/4       | Sin microcopy en el punto de mayor fricción (botón deshabilitado)                                                         |
+| **Total** |                                       | **25/40** | **Aceptable**                                                                                                             |
 
 ## Design Specificity Verdict
 
@@ -35,6 +36,7 @@ Específico por integración de dominio (cuotero, refuerzos semestrales/anuales,
 Scan determinístico: `detect.mjs` — 0 hallazgos sobre calculadora-cuotas (detector verificado funcional contra otra app del monorepo).
 
 Verificación de contraste contra CSS real (corrige dos falsos positivos de la evidencia visual):
+
 - Botón "Quitar" (error-ink #8C2F16 sobre error-surface #FFF7F4, ambos documentados en DESIGN.md): 7.84:1 — cumple AA. Falso positivo.
 - Texto de ayuda del buscador (text-secondary #475569 sobre #EDF2F7): 6.73:1 — cumple AA. Falso positivo.
 - Botón "Calcular cuota" deshabilitado (text-disabled #64748B sobre border #BCC9D7): 2.82:1 — confirmado por debajo de AA, coincide con el hallazgo independiente de Assessment A sobre el mismo botón.

@@ -3,9 +3,7 @@
 export const CALCULADORA_CUOTAS_LAUNCH_PATH = '/apps/calculadora-cuotas';
 
 export type CalculadoraCuotasRoute =
-  | { view: 'home' }
-  | { view: 'from-stock'; stock: string }
-  | { view: 'not-found' };
+  { view: 'home' } | { view: 'from-stock'; stock: string } | { view: 'not-found' };
 
 /**
  * `pathname` puede ser el `launchPath` exacto o su sub-ruta `desde-stock/:stock` — el deep link

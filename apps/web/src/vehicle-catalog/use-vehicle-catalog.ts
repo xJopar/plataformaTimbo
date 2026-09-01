@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Api } from '../api';
-import { extractBrands, groupByModel, type BrandSummary, type VehicleGroup } from './vehicle-catalog';
+import {
+  extractBrands,
+  groupByModel,
+  type BrandSummary,
+  type VehicleGroup,
+} from './vehicle-catalog';
 
 export type VehicleCatalogState =
   | { status: 'loading' }

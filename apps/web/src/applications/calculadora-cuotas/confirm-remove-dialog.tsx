@@ -44,11 +44,7 @@ export function ConfirmRemoveDialog({
           <button type="button" className="text-button" ref={cancelButtonRef} onClick={onCancel}>
             Cancelar
           </button>
-          <button
-            type="button"
-            className="cc-dialog-confirm"
-            onClick={() => onConfirm(item.id)}
-          >
+          <button type="button" className="cc-dialog-confirm" onClick={() => onConfirm(item.id)}>
             Quitar unidad
           </button>
         </div>
