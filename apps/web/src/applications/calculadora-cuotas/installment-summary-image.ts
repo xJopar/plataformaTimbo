@@ -4,12 +4,12 @@ import {
   type InstallmentPlan,
 } from './installment-calculator';
 
-const IMAGE_WIDTH = 800;
+const IMAGE_WIDTH = 760;
 const IMAGE_SCALE = 2;
-const IMAGE_HORIZONTAL_PADDING = 56;
-const IMAGE_VERTICAL_PADDING = 52;
-// Altura del plan sin refuerzo ni cuota de redondeo, incluida la respiración inferior.
-const IMAGE_BASE_HEIGHT = 672;
+const IMAGE_HORIZONTAL_PADDING = 48;
+const IMAGE_VERTICAL_PADDING = 40;
+// Altura del cuotero sin refuerzo ni cuota de redondeo, incluida la respiración inferior.
+const IMAGE_BASE_HEIGHT = 600;
 const BRAND_BLUE = '#00388a';
 const INK = '#142033';
 const MUTED_INK = '#475569';
@@ -86,7 +86,7 @@ export interface InstallmentSummaryImageInput {
   reinforcementPeriodicity: CuotaPeriodicity;
 }
 
-/** Genera una lámina autónoma del plan: el PNG no replica los controles de la aplicación. */
+/** Genera el contenido del Cuotero sin los controles de la aplicación. */
 export async function downloadInstallmentSummaryImage({
   plan,
   installmentPeriodicity,
@@ -111,14 +111,6 @@ export async function downloadInstallmentSummaryImage({
   context.fillRect(0, 0, IMAGE_WIDTH, 6);
 
   let y = IMAGE_VERTICAL_PADDING;
-  setFont(context, 17, 800);
-  context.fillStyle = BRAND_BLUE;
-  context.fillText('TIMBO', IMAGE_HORIZONTAL_PADDING, y);
-  setFont(context, 16, 600);
-  context.fillStyle = MUTED_INK;
-  context.fillText('Calculadora de Cuotas', IMAGE_HORIZONTAL_PADDING + 82, y);
-
-  y += 54;
   setFont(context, 28, 800);
   context.fillStyle = INK;
   context.fillText('Cuotero', IMAGE_HORIZONTAL_PADDING, y);

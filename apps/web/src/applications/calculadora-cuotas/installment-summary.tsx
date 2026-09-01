@@ -59,17 +59,6 @@ export function InstallmentSummary({
         <h2 id="cc-cuotero-title" className="cc-section-title">
           Cuotero
         </h2>
-        {planResult.status === 'ok' ? (
-          <button
-            type="button"
-            className="cc-download-image-btn"
-            disabled={isDownloading}
-            onClick={downloadSummaryImage}
-          >
-            <AppIcon icon={ImageDownloadIcon} size={22} strokeWidth={1.8} />
-            <span>{isDownloading ? 'Generando imagen…' : 'Descargar imagen'}</span>
-          </button>
-        ) : null}
       </div>
 
       {downloadFailure === undefined ? null : (
@@ -163,6 +152,20 @@ export function InstallmentSummary({
                     <dd>{formatUsd(plan.saldoAFinanciarUsd)}</dd>
                   </div>
                 </dl>
+              </div>
+
+              <div className="cc-download-image-footer">
+                <button
+                  type="button"
+                  className="cc-download-image-btn"
+                  disabled={isDownloading}
+                  onClick={downloadSummaryImage}
+                >
+                  <AppIcon icon={ImageDownloadIcon} size={22} strokeWidth={1.8} />
+                  <span>
+                    {isDownloading ? 'Generando imagen…' : 'Descargar cuotero como imagen'}
+                  </span>
+                </button>
               </div>
             </>
           );
