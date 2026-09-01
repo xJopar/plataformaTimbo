@@ -47,10 +47,11 @@
 
 @media (max-width: 1023px) {
   .cc-page--has-mobile-bar {
+    padding-top: var(--cc-sp-1);
     padding-bottom: 88px;
   }
 
-  .cc-config-action {
+  .cc-cuotero-footer--needs-calculation {
     display: none;
   }
 }
@@ -674,16 +675,6 @@
   cursor: pointer;
 }
 
-/* La acción cierra la secuencia de controles: configurar, recalcular y leer el cuotero. */
-.cc-config-action {
-  display: flex;
-  flex-direction: column;
-  gap: var(--cc-sp-2);
-  margin-top: var(--cc-sp-6);
-  padding-top: var(--cc-sp-4);
-  border-top: 1px solid var(--cc-c-border);
-}
-
 .cc-apply-hint {
   margin: 0;
   color: var(--cc-c-text-secondary);
@@ -729,6 +720,10 @@
   margin-top: 0;
 }
 
+.cc-section.cc-cuotero .cc-section-heading {
+  margin-top: var(--cc-sp-2);
+}
+
 .cc-cuotero:focus-visible {
   outline: 3px solid var(--cc-c-focus);
   outline-offset: -3px;
@@ -769,10 +764,16 @@
   cursor: progress;
 }
 
-.cc-download-image-footer {
+.cc-cuotero-footer {
   margin-top: var(--cc-sp-5);
   padding-top: var(--cc-sp-4);
   border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-cuotero-calculate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-2);
 }
 
 .cc-cuotero-error {

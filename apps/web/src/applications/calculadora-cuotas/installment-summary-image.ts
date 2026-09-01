@@ -7,7 +7,7 @@ import {
 const IMAGE_WIDTH = 760;
 const IMAGE_SCALE = 2;
 const IMAGE_HORIZONTAL_PADDING = 48;
-const HEADER_HEIGHT = 128;
+const HEADER_HEIGHT = 96;
 const IMAGE_BASE_HEIGHT = 730;
 const BRAND_BLUE = '#00388a';
 const INK = '#142033';
@@ -159,10 +159,10 @@ export async function downloadInstallmentSummaryImage({
 
   context.fillStyle = BRAND_BLUE;
   context.fillRect(0, 0, IMAGE_WIDTH, HEADER_HEIGHT);
-  context.drawImage(brandLogo, IMAGE_HORIZONTAL_PADDING, 31, 194, 49);
-  setFont(context, 14, 700);
+  setFont(context, 20, 700);
   context.fillStyle = '#ffffff';
-  context.fillText('PLAN DE PAGOS', IMAGE_HORIZONTAL_PADDING, 105);
+  context.fillText('PLAN DE PAGOS', IMAGE_HORIZONTAL_PADDING, 61);
+  context.drawImage(brandLogo, 250, 27, 168, 42);
 
   let y = HEADER_HEIGHT + 54;
   y = drawAmountRow(

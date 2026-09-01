@@ -8,6 +8,7 @@ import {
 
 const PLAZO_OPTIONS: PlazoMeses[] = [36, 48, 60];
 const PERIODICITY_OPTIONS: CuotaPeriodicity[] = ['mensual', 'semestral', 'anual'];
+const REINFORCEMENT_PERIODICITY_OPTIONS: CuotaPeriodicity[] = ['semestral', 'anual'];
 
 export interface FinancingConfigValue {
   downPaymentMode: DownPaymentMode;
@@ -34,17 +35,13 @@ export function isSameFinancingConfig(a: FinancingConfigValue, b: FinancingConfi
 interface FinancingConfigProps {
   value: FinancingConfigValue;
   totalPriceUsd: number;
-  isDirty: boolean;
   onChange: (value: FinancingConfigValue) => void;
-  onApply: () => void;
 }
 
 export function FinancingConfig({
   value,
   totalPriceUsd,
-  isDirty,
   onChange,
-  onApply,
 }: FinancingConfigProps): React.JSX.Element {
   const hasItems = totalPriceUsd > 0;
 
@@ -201,7 +198,7 @@ export function FinancingConfig({
                   })
                 }
               >
-                {PERIODICITY_OPTIONS.map((periodicity) => (
+                {REINFORCEMENT_PERIODICITY_OPTIONS.map((periodicity) => (
                   <option key={periodicity} value={periodicity}>
                     {PERIODICITY_LABELS[periodicity]}
                   </option>
@@ -210,17 +207,6 @@ export function FinancingConfig({
             ) : null}
           </div>
         </div>
-      </div>
-
-      <div className="cc-config-action">
-        {isDirty ? (
-          <p className="cc-apply-hint" role="status">
-            Recalculá para actualizar el cuotero.
-          </p>
-        ) : null}
-        <button type="button" className="cc-apply-btn" disabled={!isDirty} onClick={onApply}>
-          Calcular cuota
-        </button>
       </div>
     </section>
   );

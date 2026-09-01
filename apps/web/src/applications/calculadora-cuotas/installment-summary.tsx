@@ -16,18 +16,22 @@ interface InstallmentSummaryProps {
   planResult: InstallmentPlanResult;
   installmentPeriodicity: CuotaPeriodicity;
   reinforcementPeriodicity: CuotaPeriodicity;
+  isConfigDirty: boolean;
+  onApply: () => void;
 }
 
 export function InstallmentSummary({
   planResult,
   installmentPeriodicity,
   reinforcementPeriodicity,
+  isConfigDirty,
+  onApply,
 }: InstallmentSummaryProps): React.JSX.Element {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadFailure, setDownloadFailure] = useState<string | undefined>(undefined);
 
   async function downloadSummaryImage(): Promise<void> {
-    if (planResult.status !== 'ok' || isDownloading) return;
+    if (planResult.status !== 'ok' || isConfigDirty || isDownloading) return;
     setIsDownloading(true);
     setDownloadFailure(undefined);
     try {
@@ -153,23 +157,38 @@ export function InstallmentSummary({
                   </div>
                 </dl>
               </div>
-
-              <div className="cc-download-image-footer">
-                <button
-                  type="button"
-                  className="cc-download-image-btn"
-                  disabled={isDownloading}
-                  onClick={downloadSummaryImage}
-                >
-                  <AppIcon icon={ImageDownloadIcon} size={22} strokeWidth={1.8} />
-                  <span>
-                    {isDownloading ? 'Generando imagen…' : 'Descargar cuotero como imagen'}
-                  </span>
-                </button>
-              </div>
             </>
           );
         })()
+      )}
+
+      {planResult.status === 'empty' ? null : (
+        <footer
+          className={`cc-cuotero-footer${isConfigDirty ? ' cc-cuotero-footer--needs-calculation' : ''}`}
+        >
+          {isConfigDirty ? (
+            <div className="cc-cuotero-calculate">
+              <p className="cc-apply-hint" role="status">
+                Recalculá para actualizar el cuotero.
+              </p>
+              <button type="button" className="cc-apply-btn" onClick={onApply}>
+                Calcular cuota
+              </button>
+            </div>
+          ) : planResult.status === 'ok' ? (
+            <div className="cc-download-image-footer">
+              <button
+                type="button"
+                className="cc-download-image-btn"
+                disabled={isDownloading}
+                onClick={downloadSummaryImage}
+              >
+                <AppIcon icon={ImageDownloadIcon} size={22} strokeWidth={1.8} />
+                <span>{isDownloading ? 'Generando imagen…' : 'Descargar cuotero como imagen'}</span>
+              </button>
+            </div>
+          ) : null}
+        </footer>
       )}
     </section>
   );

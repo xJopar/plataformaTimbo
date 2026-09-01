@@ -174,9 +174,7 @@ export function CalculadoraCuotasApplication({
               <FinancingConfig
                 value={draftConfig}
                 totalPriceUsd={totalPriceUsd}
-                isDirty={isConfigDirty}
                 onChange={setDraftConfig}
-                onApply={applyConfig}
               />
             </div>
           </div>
@@ -186,6 +184,8 @@ export function CalculadoraCuotasApplication({
               planResult={planResult}
               installmentPeriodicity={appliedConfig.installmentPeriodicity}
               reinforcementPeriodicity={appliedConfig.reinforcementPeriodicity}
+              isConfigDirty={isConfigDirty}
+              onApply={applyConfig}
             />
           </div>
         </div>
