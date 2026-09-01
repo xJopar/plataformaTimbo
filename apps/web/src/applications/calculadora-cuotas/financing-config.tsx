@@ -1,4 +1,5 @@
 import {
+  MIN_DOWN_PAYMENT_PERCENT,
   PERIODICITY_LABELS,
   type CuotaPeriodicity,
   type DownPaymentMode,
@@ -104,42 +105,51 @@ export function FinancingConfig({
             </button>
           </div>
           {value.downPaymentMode === 'percent' ? (
-            <div className="cc-inline-input">
-              <input
-                id="cc-down-payment-percent"
-                aria-label="Entrega inicial en porcentaje"
-                type="number"
-                min={0}
-                max={100}
-                step={1}
-                value={value.downPaymentPercent}
-                onChange={(event) =>
-                  onChange({
-                    ...value,
-                    downPaymentPercent: Math.min(100, Math.max(0, Number(event.target.value))),
-                  })
-                }
-              />
-              <span aria-hidden="true">%</span>
-            </div>
+            <>
+              <div className="cc-inline-input">
+                <input
+                  id="cc-down-payment-percent"
+                  aria-label="Entrega inicial en porcentaje"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={value.downPaymentPercent}
+                  onChange={(event) =>
+                    onChange({
+                      ...value,
+                      downPaymentPercent: Math.min(100, Math.max(0, Number(event.target.value))),
+                    })
+                  }
+                />
+                <span aria-hidden="true">%</span>
+              </div>
+              <span className="cc-field-hint">Mínimo {MIN_DOWN_PAYMENT_PERCENT}% para financiar.</span>
+            </>
           ) : (
-            <div className="cc-inline-input">
-              <span aria-hidden="true">USD</span>
-              <input
-                id="cc-down-payment-manual"
-                aria-label="Entrega inicial en dólares"
-                type="number"
-                min={0}
-                step={100}
-                value={value.downPaymentManualUsd}
-                onChange={(event) =>
-                  onChange({
-                    ...value,
-                    downPaymentManualUsd: Math.max(0, Number(event.target.value)),
-                  })
-                }
-              />
-            </div>
+            <>
+              <div className="cc-inline-input">
+                <span aria-hidden="true">USD</span>
+                <input
+                  id="cc-down-payment-manual"
+                  aria-label="Entrega inicial en dólares"
+                  type="number"
+                  min={0}
+                  step={100}
+                  value={value.downPaymentManualUsd}
+                  onChange={(event) =>
+                    onChange({
+                      ...value,
+                      downPaymentManualUsd: Math.max(0, Number(event.target.value)),
+                    })
+                  }
+                />
+              </div>
+              <span className="cc-field-hint">
+                Debe representar al menos {MIN_DOWN_PAYMENT_PERCENT}% del precio final para poder
+                financiar.
+              </span>
+            </>
           )}
         </div>
 
@@ -199,12 +209,7 @@ export function FinancingConfig({
 
       <div className="cc-apply-row">
         {isDirty ? <span className="cc-apply-hint">Cambios sin aplicar</span> : null}
-        <button
-          type="button"
-          className="cc-apply-btn"
-          disabled={!isDirty}
-          onClick={onApply}
-        >
+        <button type="button" className="cc-apply-btn" disabled={!isDirty} onClick={onApply}>
           Calcular cuota
         </button>
       </div>

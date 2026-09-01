@@ -8,9 +8,17 @@ import './calculadora-cuotas-application.css';
 import { AddItemPanel } from './add-item-panel';
 import { AddedItemsList } from './added-items-list';
 import { ConfirmRemoveDialog } from './confirm-remove-dialog';
-import { FinancingConfig, isSameFinancingConfig, type FinancingConfigValue } from './financing-config';
+import {
+  FinancingConfig,
+  isSameFinancingConfig,
+  type FinancingConfigValue,
+} from './financing-config';
 import { InstallmentSummary } from './installment-summary';
-import { calculateInstallmentPlan, sumItemsUsd, type CalculatorItem } from './installment-calculator';
+import {
+  calculateInstallmentPlan,
+  sumItemsUsd,
+  type CalculatorItem,
+} from './installment-calculator';
 import { parseCalculadoraCuotasRoute } from './calculadora-cuotas-routes';
 
 const DEFAULT_CONFIG: FinancingConfigValue = {
@@ -79,7 +87,7 @@ export function CalculadoraCuotasApplication({
 
   const existingItemIds = useMemo(() => new Set(items.map((item) => item.id)), [items]);
   const totalPriceUsd = useMemo(() => sumItemsUsd(items), [items]);
-  const plan = useMemo(
+  const planResult = useMemo(
     () =>
       calculateInstallmentPlan({
         items,
@@ -170,7 +178,7 @@ export function CalculadoraCuotasApplication({
               onApply={applyConfig}
             />
             <InstallmentSummary
-              plan={plan}
+              planResult={planResult}
               installmentPeriodicity={appliedConfig.installmentPeriodicity}
               reinforcementPeriodicity={appliedConfig.reinforcementPeriodicity}
             />

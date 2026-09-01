@@ -448,6 +448,10 @@
   font-weight: 700;
   font-size: 0.8125rem;
 }
+.cc-field-hint {
+  color: var(--cc-c-text-disabled);
+  font-size: 0.75rem;
+}
 
 .cc-segmented {
   display: flex;
@@ -558,20 +562,20 @@
   outline: 3px solid var(--cc-c-focus);
   outline-offset: -3px;
 }
-.cc-provisional-badge {
-  flex-shrink: 0;
-  padding: 4px var(--cc-sp-2);
-  background: #e7e9ed;
-  color: var(--cc-c-text-secondary);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
 .cc-cuotero-note {
   margin: 0 0 var(--cc-sp-4);
   color: var(--cc-c-text-secondary);
   font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.cc-cuotero-error {
+  margin: 0;
+  padding: var(--cc-sp-3) var(--cc-sp-4);
+  border: 1px solid var(--cc-c-error-border);
+  background: var(--cc-c-error-surface);
+  color: var(--cc-c-error-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
   line-height: 1.5;
 }
 .cc-cuotero-list {
