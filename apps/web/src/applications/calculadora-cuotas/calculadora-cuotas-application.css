@@ -133,15 +133,26 @@
   gap: var(--cc-sp-3);
   margin-bottom: var(--cc-sp-4);
 }
+/* /impeccable bolder: 1rem/700 era casi cuerpo de texto para un título de sección — subido a la
+   cota alta que ya autoriza DESIGN.md para etiquetas de superficies operativas (peso 700-800) en
+   vez de inventar una escala nueva: más tamaño, más peso, tracking más cerrado. */
 .cc-section-title {
   margin: 0 0 var(--cc-sp-4);
   color: var(--cc-c-text-primary);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 1.1875rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 .cc-section-heading .cc-section-title {
   margin-bottom: 0;
+}
+/* Cuotero no participa de este bolder: ya tiene su propio acento (borde superior de marca) como
+   única superficie-resultado — subirle también el título compraría una segunda señal de énfasis
+   sobre la misma sección y le restaría fuerza al bolder real, que es para las otras dos. */
+#cc-cuotero-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 /* ── Selector de modo (agregar unidad / precio manual) ── */
@@ -688,13 +699,6 @@
   font-size: 1rem;
   font-weight: 700;
   color: var(--cc-c-text-primary);
-}
-.cc-cuotero-caption {
-  display: block;
-  margin-top: 2px;
-  color: var(--cc-c-text-disabled);
-  font-weight: 500;
-  font-size: 0.75rem;
 }
 
 .cc-cuotero-hero {

@@ -75,27 +75,25 @@ export function InstallmentSummary({
                 </strong>
               </div>
 
-              {plan.reinforcementCount > 0 || plan.hasAdjustmentInstallment ? (
+              {plan.reinforcementCount > 0 ? (
                 <dl className="cc-cuotero-list">
-                  {plan.reinforcementCount > 0 ? (
-                    <div className="cc-cuotero-row">
-                      <dt>
-                        {plan.reinforcementCount} refuerzos{' '}
-                        {PERIODICITY_ADJECTIVE_PLURAL[reinforcementPeriodicity]} de
-                      </dt>
-                      <dd>{formatUsd(plan.reinforcementAmountUsd)}</dd>
-                    </div>
-                  ) : null}
-                  {plan.hasAdjustmentInstallment ? (
-                    <div className="cc-cuotero-row">
-                      <dt>
-                        Última cuota
-                        <span className="cc-cuotero-caption">Ajustada por redondeo</span>
-                      </dt>
-                      <dd>{formatUsd(plan.adjustmentInstallmentAmountUsd)}</dd>
-                    </div>
-                  ) : null}
+                  <div className="cc-cuotero-row">
+                    <dt>
+                      {plan.reinforcementCount} refuerzos{' '}
+                      {PERIODICITY_ADJECTIVE_PLURAL[reinforcementPeriodicity]} de
+                    </dt>
+                    <dd>{formatUsd(plan.reinforcementAmountUsd)}</dd>
+                  </div>
                 </dl>
+              ) : null}
+
+              {plan.hasAdjustmentInstallment ? (
+                <div className="cc-cuotero-hero">
+                  <span className="cc-cuotero-hero-label">Cuota redondeo</span>
+                  <strong className="cc-cuotero-hero-value">
+                    {formatUsd(plan.adjustmentInstallmentAmountUsd)}
+                  </strong>
+                </div>
               ) : null}
 
               <div className="cc-cuotero-hero cc-cuotero-hero--total">
