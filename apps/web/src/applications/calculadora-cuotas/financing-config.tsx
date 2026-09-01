@@ -214,9 +214,13 @@ export function FinancingConfig({
       </div>
 
       <div className="cc-apply-row">
-        {isDirty ? <span className="cc-apply-hint">Cambios sin aplicar</span> : null}
+        {isDirty ? (
+          <span className="cc-apply-hint" role="status">
+            Cambios pendientes
+          </span>
+        ) : null}
         <button type="button" className="cc-apply-btn" disabled={!isDirty} onClick={onApply}>
-          Calcular cuota
+          Actualizar cuotero
         </button>
       </div>
     </section>

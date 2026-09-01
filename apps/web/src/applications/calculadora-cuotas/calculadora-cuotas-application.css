@@ -660,19 +660,23 @@
    presiona Calcular — el botón se activa y el aviso aparece sólo cuando hay algo para aplicar. ── */
 .cc-apply-row {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--cc-sp-3);
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--cc-sp-2);
   margin-top: var(--cc-sp-5);
+  padding-top: var(--cc-sp-4);
+  border-top: 1px solid var(--cc-c-border);
 }
 
 .cc-apply-hint {
   color: var(--cc-c-error-ink);
   font-weight: 700;
   font-size: 0.8125rem;
+  line-height: 1.35;
 }
 
 .cc-apply-btn {
+  width: 100%;
   min-height: 44px;
   padding: 0 var(--cc-sp-5);
   border: 1px solid var(--cc-c-brand);
@@ -927,15 +931,6 @@
 
   .cc-catalog-result {
     flex-wrap: wrap;
-  }
-
-  .cc-apply-row {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .cc-apply-btn {
-    width: 100%;
   }
 
   .cc-section.cc-cuotero .cc-section-heading {
