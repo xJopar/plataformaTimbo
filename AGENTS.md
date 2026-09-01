@@ -38,6 +38,10 @@ Ver `docs/CODING_CONVENTIONS.md` para el detalle completo. Resumen operativo:
 - Un cambio administrativo que exige auditoría escribe el evento en la misma transacción Prisma. Un productor de uso define un catálogo concreto y respeta los resultados `recorded`, `duplicate` y `failed`.
 - Si cambia una capacidad vigente o un contrato durable, actualizar en el mismo incremento el README y la documentación propietaria. No documentar planes futuros como funcionalidad ya disponible.
 
+### Persistencia con ciclos de vida distintos
+
+- Una base temporal, un proveedor externo o una futura migración de fuente no se agrega al Prisma principal por conveniencia. Si su ciclo de vida difiere de `DATABASE_URL`, debe tener cliente, esquema, migraciones, variable server-only y pre-deploy propios; el Prisma central conserva identidad, acceso, auditoría y catálogo. Confirmar explícitamente el destino de cada migración antes de desplegar.
+
 ## Checks obligatorios
 
 Antes de considerar terminado un cambio, deben pasar desde la raíz del workspace:

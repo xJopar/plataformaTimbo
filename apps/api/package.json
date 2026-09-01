@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "tsc-watch -p tsconfig.build.json --noClear --onSuccess \"node --env-file-if-exists=../../.env dist/main.js\"",
     "prisma:validate": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js validate --config prisma.config.ts",
-    "prisma:generate": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js generate --config prisma.config.ts",
+    "prisma:generate": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js generate --config prisma.config.ts && node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js generate --config meta-company.prisma.config.ts",
     "prisma:migrate:dev": "node --env-file=../../.env ./node_modules/prisma/build/index.js migrate dev --config prisma.config.ts",
-    "prisma:migrate:deploy": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js migrate deploy --config prisma.config.ts",
+    "prisma:migrate:deploy": "node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js migrate deploy --config prisma.config.ts && node --env-file-if-exists=../../.env ./node_modules/prisma/build/index.js migrate deploy --config meta-company.prisma.config.ts",
     "preauthorize-user": "node scripts/run-preauthorize-user.cjs",
     "assign-platform-admin": "node scripts/run-assign-platform-admin.cjs",
     "predev": "pnpm --filter @timbo/observability run build && pnpm run prisma:generate",

@@ -1,0 +1,127 @@
+.meta-company-shell {
+  color: #142033;
+  background: #edf2f7;
+  min-height: 100vh;
+}
+.mc-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 24px 72px;
+}
+.mc-title {
+  border-bottom: 3px solid #00388a;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+.mc-title h1 {
+  margin: 0 0 8px;
+  font-size: 30px;
+  letter-spacing: -0.03em;
+}
+.mc-title p {
+  margin: 0;
+  color: #475569;
+}
+.mc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+  padding: 16px;
+  background: #f7f9fb;
+  border: 1px solid #bcc9d7;
+}
+.mc-toolbar label,
+.mc-goal label {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.mc-toolbar input,
+.mc-goal input {
+  min-height: 44px;
+  border: 1px solid #94a3b8;
+  background: white;
+  padding: 0 10px;
+  font: inherit;
+}
+.mc-switch {
+  display: flex;
+}
+.mc-switch button,
+.mc-goal button {
+  min-height: 44px;
+  border: 1px solid #00388a;
+  background: white;
+  color: #00388a;
+  font-weight: 700;
+  padding: 0 16px;
+  cursor: pointer;
+}
+.mc-switch .is-active,
+.mc-goal button {
+  background: #00388a;
+  color: white;
+}
+.mc-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+.mc-group {
+  background: #f7f9fb;
+  border: 1px solid #bcc9d7;
+}
+.mc-group h2 {
+  margin: 0;
+  padding: 16px;
+  font-size: 18px;
+  border-bottom: 1px solid #bcc9d7;
+}
+.mc-goal {
+  display: grid;
+  grid-template-columns: 1fr 130px auto;
+  gap: 12px;
+  align-items: end;
+  padding: 16px;
+  border-bottom: 1px solid #bcc9d7;
+}
+.mc-goal:last-child {
+  border-bottom: 0;
+}
+.mc-goal span {
+  display: block;
+  margin-top: 4px;
+  color: #475569;
+  font-size: 13px;
+}
+.mc-error {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid #e8b5a4;
+  background: #fff7f4;
+  color: #8c2f16;
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #00a6a6;
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .mc-page {
+    padding: 24px 16px 48px;
+  }
+  .mc-toolbar,
+  .mc-goal {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+  .mc-toolbar {
+    align-items: stretch;
+  }
+  .mc-switch button {
+    flex: 1;
+  }
+}

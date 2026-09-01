@@ -100,6 +100,12 @@ export function resolveDatabaseUrlFromEnvironment(env: NodeJS.ProcessEnv = proce
   return resolveDatabaseUrl(env.DATABASE_URL);
 }
 
+export function resolveMetaCompanyDatabaseUrlFromEnvironment(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return resolveDatabaseUrl(env.DATABASE_META_EXAMPLE_URL);
+}
+
 /**
  * `NODE_ENV` es opcional y no bloquea el arranque: sólo identifica el entorno en los logs
  * operativos estructurados (campo `environment`), nunca decide comportamiento de seguridad.

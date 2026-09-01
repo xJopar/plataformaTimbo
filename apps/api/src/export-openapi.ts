@@ -20,6 +20,13 @@ import { HelloWorldService } from './modules/hello-world/hello-world.service';
 import { ListaPreciosApplicationAccessGuard } from './modules/lista-precios/lista-precios-application-access.guard';
 import { ListaPreciosController } from './modules/lista-precios/lista-precios.controller';
 import { ListaPreciosService } from './modules/lista-precios/lista-precios.service';
+import { MetaCompanyApplicationAccessGuard } from './modules/meta-company/meta-company-application-access.guard';
+import { MetaCompanyController } from './modules/meta-company/meta-company.controller';
+import {
+  MetaCompanyCatalogManagementGuard,
+  MetaCompanyGoalManagementGuard,
+} from './modules/meta-company/meta-company-permission.guards';
+import { MetaCompanyService } from './modules/meta-company/meta-company.service';
 import { UsageEventsService } from './modules/usage-events/usage-events.service';
 import { ACTIVITY_SERVICE } from './modules/administration/administration.tokens';
 import { ADMINISTRATIVE_APPLICATIONS_SERVICE } from './modules/administration/administration.tokens';
@@ -43,6 +50,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     ActivityController,
     HelloWorldController,
     ListaPreciosController,
+    MetaCompanyController,
   ],
   providers: [
     { provide: AuthService, useValue: {} },
@@ -53,6 +61,10 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     { provide: HelloWorldService, useValue: {} },
     { provide: ListaPreciosApplicationAccessGuard, useValue: { canActivate: () => true } },
     { provide: ListaPreciosService, useValue: {} },
+    { provide: MetaCompanyApplicationAccessGuard, useValue: { canActivate: () => true } },
+    { provide: MetaCompanyCatalogManagementGuard, useValue: { canActivate: () => true } },
+    { provide: MetaCompanyGoalManagementGuard, useValue: { canActivate: () => true } },
+    { provide: MetaCompanyService, useValue: {} },
     { provide: UsageEventsService, useValue: {} },
     { provide: ADMINISTRATIVE_USERS_SERVICE, useValue: {} },
     { provide: ADMINISTRATIVE_APPLICATIONS_SERVICE, useValue: {} },

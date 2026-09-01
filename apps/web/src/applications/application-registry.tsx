@@ -4,10 +4,12 @@ import { CALCULADORA_CUOTAS_LAUNCH_PATH } from './calculadora-cuotas/calculadora
 import { CalculadoraCuotasApplication } from './calculadora-cuotas/calculadora-cuotas-application';
 import { HelloWorldApplication } from './hello-world/hello-world-application';
 import { ListaPreciosApplication } from './lista-precios/lista-precios-application';
+import { MetaCompanyApplication } from './meta-company/meta-company-application';
 
 const applicationComponents: Record<string, ComponentType<ApplicationComponentProps>> = {
   '/apps/hello-world': HelloWorldApplication,
   '/apps/lista-precios': ListaPreciosApplication,
+  '/apps/meta-company': MetaCompanyApplication,
   [CALCULADORA_CUOTAS_LAUNCH_PATH]: CalculadoraCuotasApplication,
 };
 

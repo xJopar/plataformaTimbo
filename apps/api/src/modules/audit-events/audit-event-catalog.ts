@@ -25,9 +25,18 @@ export type AuditEventName =
   | 'access.application_profile_permission_added'
   | 'access.application_profile_permission_removed'
   | 'access.user_application_profile_assigned'
-  | 'access.user_application_profile_unassigned';
+  | 'access.user_application_profile_unassigned'
+  | 'meta-company.goal_created'
+  | 'meta-company.goal_updated'
+  | 'meta-company.brand_created'
+  | 'meta-company.brand_deactivated'
+  | 'meta-company.brand_reactivated'
+  | 'meta-company.business_created'
+  | 'meta-company.business_deactivated'
+  | 'meta-company.business_reactivated';
 
-export type AuditTargetRule = 'forbidden' | 'user-required' | 'application-required';
+export type AuditTargetRule =
+  'forbidden' | 'user-required' | 'application-required' | 'meta-company-resource-required';
 
 export type LoginDeniedReasonCode =
   'USER_NOT_AUTHORIZED' | 'USER_INACTIVE' | 'GOOGLE_IDENTITY_MISMATCH' | 'GOOGLE_IDENTITY_INVALID';
@@ -40,7 +49,7 @@ export const LOGIN_DENIED_REASON_CODES: readonly LoginDeniedReasonCode[] = [
 ];
 
 export interface AuditEventCatalogEntry {
-  appKey: 'platform';
+  appKey: 'platform' | 'meta-company';
   actorType: AuditActorType;
   outcome: AuditOutcome;
   targetRule: AuditTargetRule;
@@ -222,5 +231,61 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
     outcome: AuditOutcome.SUCCESS,
     targetRule: 'user-required',
     metadataFields: ['profileId'],
+  },
+  'meta-company.goal_created': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.goal_updated': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.brand_created': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.brand_deactivated': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.brand_reactivated': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.business_created': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.business_deactivated': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.business_reactivated': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
   },
 };

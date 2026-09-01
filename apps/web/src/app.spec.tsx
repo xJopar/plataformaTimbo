@@ -157,6 +157,19 @@ function createApi(
       recordListaPreciosUsageEvent: vi
         .fn<ApplicationsApi['recordListaPreciosUsageEvent']>()
         .mockResolvedValue(undefined),
+      listMetaCompanyGoals: vi.fn<ApplicationsApi['listMetaCompanyGoals']>().mockResolvedValue([]),
+      listMetaCompanyCatalogs: vi
+        .fn<ApplicationsApi['listMetaCompanyCatalogs']>()
+        .mockResolvedValue({
+          brands: [],
+          businesses: [],
+        }),
+      getMetaCompanyCapabilities: vi
+        .fn<ApplicationsApi['getMetaCompanyCapabilities']>()
+        .mockResolvedValue({ canManageCatalogs: false, canManageGoals: false }),
+      updateMetaCompanyGoal: vi
+        .fn<ApplicationsApi['updateMetaCompanyGoal']>()
+        .mockResolvedValue(undefined),
       ...applicationsOverrides,
     },
     system: { getHealth: vi.fn() },

@@ -227,6 +227,20 @@ Un evento de auditoría no se captura con `try/catch` para permitir que la opera
 continúe. La ausencia de auditoría ante un cambio que exige trazabilidad es un fallo de la
 operación completa.
 
+### Proveedor externo de Meta Company
+
+Durante desarrollo, Meta Company usa `DATABASE_META_EXAMPLE_URL` como proveedor temporal de
+metas, marcas y negocios. Esa base representa el futuro Service Layer: no contiene `audit_events`
+ni duplicados de la auditoría del App Shell. Después de que el proveedor confirma una creación,
+edición, desactivación o reactivación, `MetaCompanyService` abre una transacción en la base central
+e invoca `AuditEventsService` con uno de los eventos `meta-company.*`.
+
+La auditoría sólo conserva el actor, el recurso (`commercial_goal`, `commercial_brand` o
+`commercial_business`) y su identificador. No registra nombres de catálogo, valor de meta ni
+otros datos de negocio. Al ser dos proveedores independientes no hay una transacción distribuida:
+si la auditoría central falla, la API propaga el error para que la operación pueda diagnosticarse y
+revisarse durante las pruebas.
+
 ## Analítica de uso persistente
 
 `UsageEventsService` valida cada evento contra el catálogo inyectado mediante

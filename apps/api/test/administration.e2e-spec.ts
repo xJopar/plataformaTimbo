@@ -7,6 +7,7 @@ import { UserStatus, type User } from '../src/generated/prisma/client';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/bootstrap';
 import { PrismaService } from '../src/database/prisma.service';
+import { MetaCompanyPrismaService } from '../src/modules/meta-company/meta-company-prisma.service';
 import { ACCESS_PROFILES_SERVICE } from '../src/modules/access-profiles/access-profiles.tokens';
 import { AuditEventsService } from '../src/modules/audit-events/audit-events.service';
 import { ActivityService } from '../src/modules/administration/activity.service';
@@ -52,6 +53,8 @@ describe('Administración HTTP (e2e)', () => {
       imports: [AppModule],
     })
       .overrideProvider(PrismaService)
+      .useValue({})
+      .overrideProvider(MetaCompanyPrismaService)
       .useValue({})
       .overrideProvider(UsersService)
       .useValue(usersService)

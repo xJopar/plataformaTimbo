@@ -130,6 +130,18 @@ export class AuditEventsService {
         throw new Error('El catálogo del evento de auditoría requiere una aplicación objetivo.');
       }
     }
+
+    if (targetRule === 'meta-company-resource-required') {
+      if (
+        target === undefined ||
+        !['commercial_goal', 'commercial_brand', 'commercial_business'].includes(
+          target.targetType,
+        ) ||
+        target.targetId.trim().length === 0
+      ) {
+        throw new Error('El catálogo de auditoría requiere un recurso de Meta Company.');
+      }
+    }
   }
 
   private validateMetadata(

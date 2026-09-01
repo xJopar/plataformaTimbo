@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client"
+  output = "../../src/generated/meta-company-prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CommercialGoalType {
+  BRAND @map("Marca")
+  SALESPERSON @map("Vendedor")
+  @@map("commercial_goal_type")
+}
+
+model CommercialBrand {
+  id Int @id @default(autoincrement()) @map("id_marca")
+  name String @unique @map("marca") @db.VarChar(100)
+  active Boolean @default(true) @map("activo")
+  goals CommercialSalesGoal[]
+  @@map("dim_marcas_timbo_margenes")
+}
+
+model CommercialBusiness {
+  id Int @id @default(autoincrement()) @map("id_negocio")
+  name String @unique @map("negocio") @db.VarChar(50)
+  active Boolean @default(true) @map("activo")
+  goals CommercialSalesGoal[]
+  @@map("dim_negocio_margenes")
+}
+
+model CommercialSalesGoal {
+  id Int @id @default(autoincrement()) @map("id_meta")
+  period DateTime @map("periodo") @db.Date
+  businessId Int @map("id_negocio")
+  brandId Int @map("id_marca")
+  salespersonCode Int? @map("slp_code")
+  goalType CommercialGoalType @map("tipo_meta")
+  value Decimal @map("meta") @db.Decimal(18, 2)
+  createdAt DateTime @default(now()) @map("fecha_creacion") @db.Timestamptz(6)
+  updatedAt DateTime? @map("fecha_modificacion") @db.Timestamptz(6)
+  business CommercialBusiness @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  brand CommercialBrand @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  @@index([period, businessId, goalType])
+  @@index([salespersonCode, period])
+  @@map("ft_metas_margenes")
+}

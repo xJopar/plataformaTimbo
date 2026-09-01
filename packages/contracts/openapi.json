@@ -1716,6 +1716,236 @@
         ]
       }
     },
+    "/api/applications/meta-company/goals": {
+      "get": {
+        "operationId": "listMetaCompanyGoals",
+        "parameters": [
+          {
+            "name": "period",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaCompanyGoalResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista metas comerciales por período.",
+        "tags": [
+          "applications"
+        ]
+      },
+      "post": {
+        "operationId": "createMetaCompanyGoal",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Crea una meta comercial.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/catalogs": {
+      "get": {
+        "operationId": "listMetaCompanyCatalogs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyCatalogResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista marcas y negocios activos.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/catalogs/all": {
+      "get": {
+        "operationId": "listAllMetaCompanyCatalogs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyCatalogResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista todos los catálogos para administración.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/capabilities": {
+      "get": {
+        "operationId": "getMetaCompanyCapabilities",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyCapabilitiesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtiene las acciones habilitadas para la sesión.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/goals/{id}": {
+      "patch": {
+        "operationId": "updateMetaCompanyGoal",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "value"
+                ],
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "example": "38237.42"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Edita el valor de una meta comercial.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/brands": {
+      "post": {
+        "operationId": "MetaCompanyController_createBrand",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/businesses": {
+      "post": {
+        "operationId": "MetaCompanyController_createBusiness",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/brands/{id}/active": {
+      "patch": {
+        "operationId": "MetaCompanyController_setBrandActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/businesses/{id}/active": {
+      "patch": {
+        "operationId": "MetaCompanyController_setBusinessActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "getHealth",
@@ -2499,6 +2729,122 @@
           "eventId",
           "visitId",
           "eventName"
+        ]
+      },
+      "MetaCompanyGoalResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "period": {
+            "type": "string",
+            "example": "2025-01-01"
+          },
+          "businessId": {
+            "type": "number",
+            "example": 1
+          },
+          "businessName": {
+            "type": "string",
+            "example": "Comercial"
+          },
+          "brandId": {
+            "type": "number",
+            "example": 1
+          },
+          "brandName": {
+            "type": "string",
+            "example": "FACCINI"
+          },
+          "salespersonCode": {
+            "type": "object",
+            "example": 10
+          },
+          "goalType": {
+            "type": "string",
+            "enum": [
+              "Marca",
+              "Vendedor"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "example": "38237.42"
+          },
+          "updatedAt": {
+            "type": "object",
+            "example": "2025-01-01T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "period",
+          "businessId",
+          "businessName",
+          "brandId",
+          "brandName",
+          "goalType",
+          "value"
+        ]
+      },
+      "MetaCompanyCatalogItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Comercial"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "active"
+        ]
+      },
+      "MetaCompanyCatalogResponseDto": {
+        "type": "object",
+        "properties": {
+          "brands": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
+            }
+          },
+          "businesses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
+            }
+          }
+        },
+        "required": [
+          "brands",
+          "businesses"
+        ]
+      },
+      "MetaCompanyCapabilitiesResponseDto": {
+        "type": "object",
+        "properties": {
+          "canManageCatalogs": {
+            "type": "boolean"
+          },
+          "canManageGoals": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "canManageCatalogs",
+          "canManageGoals"
         ]
       },
       "HealthResponseDto": {

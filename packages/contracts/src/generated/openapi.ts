@@ -622,6 +622,156 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications/meta-company/goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista metas comerciales por período. */
+        get: operations["listMetaCompanyGoals"];
+        put?: never;
+        /** Crea una meta comercial. */
+        post: operations["createMetaCompanyGoal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/catalogs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista marcas y negocios activos. */
+        get: operations["listMetaCompanyCatalogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/catalogs/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista todos los catálogos para administración. */
+        get: operations["listAllMetaCompanyCatalogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene las acciones habilitadas para la sesión. */
+        get: operations["getMetaCompanyCapabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/goals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edita el valor de una meta comercial. */
+        patch: operations["updateMetaCompanyGoal"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MetaCompanyController_createBrand"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/businesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MetaCompanyController_createBusiness"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/brands/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_setBrandActive"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/businesses/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_setBusinessActive"];
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -930,6 +1080,44 @@ export interface components {
             brand?: string;
             /** @description Modelo visto o consultado. */
             model?: string;
+        };
+        MetaCompanyGoalResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example 2025-01-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example Comercial */
+            businessName: string;
+            /** @example 1 */
+            brandId: number;
+            /** @example FACCINI */
+            brandName: string;
+            /** @example 10 */
+            salespersonCode?: Record<string, never>;
+            /** @enum {string} */
+            goalType: "Marca" | "Vendedor";
+            /** @example 38237.42 */
+            value: string;
+            /** @example 2025-01-01T12:00:00.000Z */
+            updatedAt?: Record<string, never>;
+        };
+        MetaCompanyCatalogItemResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example Comercial */
+            name: string;
+            /** @example true */
+            active: boolean;
+        };
+        MetaCompanyCatalogResponseDto: {
+            brands: components["schemas"]["MetaCompanyCatalogItemResponseDto"][];
+            businesses: components["schemas"]["MetaCompanyCatalogItemResponseDto"][];
+        };
+        MetaCompanyCapabilitiesResponseDto: {
+            canManageCatalogs: boolean;
+            canManageGoals: boolean;
         };
         HealthResponseDto: {
             /**
@@ -1971,6 +2159,199 @@ export interface operations {
             };
             /** @description El evento de uso no cumple el contrato permitido. */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listMetaCompanyGoals: {
+        parameters: {
+            query: {
+                period: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyGoalResponseDto"][];
+                };
+            };
+        };
+    };
+    createMetaCompanyGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listMetaCompanyCatalogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogResponseDto"];
+                };
+            };
+        };
+    };
+    listAllMetaCompanyCatalogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogResponseDto"];
+                };
+            };
+        };
+    };
+    getMetaCompanyCapabilities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCapabilitiesResponseDto"];
+                };
+            };
+        };
+    };
+    updateMetaCompanyGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @example 38237.42 */
+                    value: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MetaCompanyController_createBrand: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MetaCompanyController_createBusiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MetaCompanyController_setBrandActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MetaCompanyController_setBusinessActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

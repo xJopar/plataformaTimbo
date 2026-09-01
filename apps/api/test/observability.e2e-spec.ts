@@ -7,6 +7,7 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { API_GLOBAL_PREFIX, configureApp } from '../src/bootstrap';
 import { PrismaService } from '../src/database/prisma.service';
+import { MetaCompanyPrismaService } from '../src/modules/meta-company/meta-company-prisma.service';
 import { UserSessionsService } from '../src/modules/auth/user-sessions.service';
 import { DEFAULT_CORS_ORIGIN } from '../src/runtime-config';
 
@@ -39,6 +40,8 @@ describe('Log operativo estructurado y X-Request-Id (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService)
       .useValue(prismaService)
+      .overrideProvider(MetaCompanyPrismaService)
+      .useValue({})
       .overrideProvider(UserSessionsService)
       .useValue(userSessionsService)
       .compile();

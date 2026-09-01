@@ -78,6 +78,14 @@ describe('AuditEventsService', () => {
       'access.application_profile_permission_removed',
       'access.user_application_profile_assigned',
       'access.user_application_profile_unassigned',
+      'meta-company.goal_created',
+      'meta-company.goal_updated',
+      'meta-company.brand_created',
+      'meta-company.brand_deactivated',
+      'meta-company.brand_reactivated',
+      'meta-company.business_created',
+      'meta-company.business_deactivated',
+      'meta-company.business_reactivated',
     ]);
     expect(AUDIT_EVENT_CATALOG['security.login_succeeded']).toMatchObject({
       actorType: AuditActorType.USER,
@@ -138,6 +146,13 @@ describe('AuditEventsService', () => {
       actorType: AuditActorType.USER,
       outcome: AuditOutcome.SUCCESS,
       targetRule: 'application-required',
+      metadataFields: [],
+    });
+    expect(AUDIT_EVENT_CATALOG['meta-company.goal_created']).toMatchObject({
+      appKey: 'meta-company',
+      actorType: AuditActorType.USER,
+      outcome: AuditOutcome.SUCCESS,
+      targetRule: 'meta-company-resource-required',
       metadataFields: [],
     });
   });
@@ -213,6 +228,13 @@ describe('AuditEventsService', () => {
         actor: { actorType: AuditActorType.USER, actorUserId: 'user-a' },
       }),
     ).rejects.toThrow('requiere un usuario objetivo');
+    await expect(
+      service.append(transactionClient, {
+        eventName: 'meta-company.goal_created',
+        actor: { actorType: AuditActorType.USER, actorUserId: 'user-a' },
+        target: { targetType: 'application', targetId: 'meta-a' },
+      }),
+    ).rejects.toThrow('requiere un recurso de Meta Company');
     await expect(
       service.append(transactionClient, {
         eventName: 'security.login_denied',

@@ -36,6 +36,18 @@ export interface ApplicationsApi {
   requestHelloWorldJoke(input: HelloWorldJokeRequest): Promise<HelloWorldJoke>;
   listListaPreciosVehicles(): Promise<VehicleResponse[]>;
   recordListaPreciosUsageEvent(input: ListaPreciosUsageEventRequest): Promise<void>;
+  listMetaCompanyGoals(
+    period: string,
+  ): Promise<
+    paths['/api/applications/meta-company/goals']['get']['responses'][200]['content']['application/json']
+  >;
+  listMetaCompanyCatalogs(): Promise<
+    paths['/api/applications/meta-company/catalogs']['get']['responses'][200]['content']['application/json']
+  >;
+  getMetaCompanyCapabilities(): Promise<
+    paths['/api/applications/meta-company/capabilities']['get']['responses'][200]['content']['application/json']
+  >;
+  updateMetaCompanyGoal(id: number, value: string): Promise<void>;
 }
 
 export class ApplicationsApiUnavailableError extends Error {
@@ -127,6 +139,34 @@ export function createApplicationsApi(
       if (!response.ok) {
         throw createApiHttpError(response);
       }
+    },
+    async listMetaCompanyGoals(period) {
+      const { data, response } = await client.GET('/api/applications/meta-company/goals', {
+        params: { query: { period } },
+      });
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin las metas esperadas.');
+      return data;
+    },
+    async listMetaCompanyCatalogs() {
+      const { data, response } = await client.GET('/api/applications/meta-company/catalogs');
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin los catálogos esperados.');
+      return data;
+    },
+    async getMetaCompanyCapabilities() {
+      const { data, response } = await client.GET('/api/applications/meta-company/capabilities');
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin las capacidades esperadas.');
+      return data;
+    },
+    async updateMetaCompanyGoal(id, value) {
+      const { response } = await client.PATCH('/api/applications/meta-company/goals/{id}', {
+        params: { path: { id: String(id) } },
+        body: { value },
+        headers: { 'x-timbo-csrf': '1' },
+      });
+      if (!response.ok) throw createApiHttpError(response);
     },
   };
 }
