@@ -54,7 +54,16 @@ export function FinancingConfig({
         <h2 id="cc-config-title" className="cc-section-title">
           Financiación
         </h2>
+        <button type="button" className="cc-apply-btn" disabled={!isDirty} onClick={onApply}>
+          Calcular cuota
+        </button>
       </div>
+
+      {isDirty ? (
+        <p className="cc-apply-hint" role="status">
+          Cambios pendientes
+        </p>
+      ) : null}
 
       <div className="cc-total-row">
         <span className="cc-total-label">Precio total</span>
@@ -210,17 +219,6 @@ export function FinancingConfig({
             ) : null}
           </div>
         </div>
-      </div>
-
-      <div className="cc-apply-row">
-        {isDirty ? (
-          <span className="cc-apply-hint" role="status">
-            Cambios pendientes
-          </span>
-        ) : null}
-        <button type="button" className="cc-apply-btn" disabled={!isDirty} onClick={onApply}>
-          Actualizar cuotero
-        </button>
       </div>
     </section>
   );

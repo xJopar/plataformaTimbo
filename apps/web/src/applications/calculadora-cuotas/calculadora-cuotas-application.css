@@ -116,17 +116,12 @@
   .cc-layout-input {
     display: grid;
     grid-column: 1 / span 2;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
     align-items: stretch;
-    gap: 0 var(--cc-sp-5);
+    gap: 0 var(--cc-sp-6);
     padding: var(--cc-sp-5);
     border-top: 3px solid var(--cc-c-brand);
     background: var(--cc-c-surface-alt);
-  }
-
-  .cc-layout-input .cc-layout-main {
-    padding-right: var(--cc-sp-5);
-    border-right: 1px solid var(--cc-c-border);
   }
 
   .cc-layout-input .cc-layout-config {
@@ -674,19 +669,9 @@
   cursor: pointer;
 }
 
-/* ── Aplicar cambios: plazo, entrega inicial y periodicidades quedan "quietos" hasta que se
-   presiona Calcular — el botón se activa y el aviso aparece sólo cuando hay algo para aplicar. ── */
-.cc-apply-row {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--cc-sp-2);
-  margin-top: var(--cc-sp-5);
-  padding-top: var(--cc-sp-4);
-  border-top: 1px solid var(--cc-c-border);
-}
-
+/* La acción permanece junto al título para estar disponible sin atravesar todo el formulario. */
 .cc-apply-hint {
+  margin: calc(-1 * var(--cc-sp-2)) 0 var(--cc-sp-4);
   color: var(--cc-c-error-ink);
   font-weight: 700;
   font-size: 0.8125rem;
@@ -694,9 +679,9 @@
 }
 
 .cc-apply-btn {
-  width: 100%;
+  flex-shrink: 0;
   min-height: 44px;
-  padding: 0 var(--cc-sp-5);
+  padding: 0 var(--cc-sp-3);
   border: 1px solid var(--cc-c-brand);
   background: var(--cc-c-brand);
   color: #fff;
@@ -954,5 +939,14 @@
   .cc-section.cc-cuotero .cc-section-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .cc-section.cc-config .cc-section-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cc-section.cc-config .cc-apply-btn {
+    width: 100%;
   }
 }
