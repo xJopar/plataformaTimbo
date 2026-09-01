@@ -164,11 +164,29 @@ function createApi(
           brands: [],
           businesses: [],
         }),
+      listAllMetaCompanyCatalogs: vi
+        .fn<ApplicationsApi['listAllMetaCompanyCatalogs']>()
+        .mockResolvedValue({ brands: [], businesses: [] }),
       getMetaCompanyCapabilities: vi
         .fn<ApplicationsApi['getMetaCompanyCapabilities']>()
         .mockResolvedValue({ canManageCatalogs: false, canManageGoals: false }),
+      createMetaCompanyGoal: vi
+        .fn<ApplicationsApi['createMetaCompanyGoal']>()
+        .mockResolvedValue(undefined as never),
       updateMetaCompanyGoal: vi
         .fn<ApplicationsApi['updateMetaCompanyGoal']>()
+        .mockResolvedValue(undefined as never),
+      createMetaCompanyBrand: vi
+        .fn<ApplicationsApi['createMetaCompanyBrand']>()
+        .mockResolvedValue(undefined as never),
+      createMetaCompanyBusiness: vi
+        .fn<ApplicationsApi['createMetaCompanyBusiness']>()
+        .mockResolvedValue(undefined as never),
+      setMetaCompanyBrandActive: vi
+        .fn<ApplicationsApi['setMetaCompanyBrandActive']>()
+        .mockResolvedValue(undefined),
+      setMetaCompanyBusinessActive: vi
+        .fn<ApplicationsApi['setMetaCompanyBusinessActive']>()
         .mockResolvedValue(undefined),
       ...applicationsOverrides,
     },

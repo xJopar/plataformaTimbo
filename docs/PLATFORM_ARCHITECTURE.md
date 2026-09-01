@@ -24,10 +24,15 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
   integración externa sin clave de API;
 - aplicación `Lista de Precios` en `/apps/lista-precios`, con rutas internas para marcas, modelos,
   variantes y detalle de vehículos.
+- aplicación `Meta Company` en `/apps/meta-company`, para administrar metas comerciales,
+  marcas y negocios que consume Power BI.
 
 `Hello World` continúa como comprobación técnica y productor de uso para una integración externa.
 `Lista de Precios` es la primera aplicación de negocio migrada y registra sólo hitos comerciales
 acotados, no clics ni contenido de catálogo completo.
+`Meta Company` usa de forma temporal un proveedor PostgreSQL separado de la base central; la API
+mantiene las reglas de acceso y las auditorías administrativas en la plataforma, para que el
+proveedor pueda sustituirse posteriormente por Service Layer.
 
 ## Componentes del workspace
 
@@ -40,6 +45,7 @@ API NestJS y única propietaria de PostgreSQL y Prisma. Sus módulos vigentes so
 - `hello-world`: endpoint funcional protegido y obtención de chistes desde icanhazdadjoke;
 - `lista-precios`: catálogo protegido de vehículos desde Zoho Analytics y eventos de uso del
   recorrido comercial;
+- `meta-company`: metas comerciales y catálogos de marcas y negocios en un proveedor aislado;
 - `users`: preautorización, consulta y cambios administrativos de usuarios;
 - `access-profiles`: perfil de sistema `PLATFORM_ADMIN` y autorización funcional por aplicación;
 - `administration`: endpoints protegidos para usuarios, aplicaciones, asignaciones, perfiles,
@@ -54,9 +60,10 @@ sólo en esta aplicación. No se agregan capas genéricas entre esas responsabil
 ### `apps/web`
 
 SPA React/Vite que presenta acceso corporativo, launcher autorizado, administración de usuarios,
-aplicaciones, asignaciones, perfiles y permisos, consulta de actividad, `Hello World` y `Lista de
-Precios`. El launcher vive en `src/home/`; el registro, el control de rutas y cada interfaz
-integrada viven en `src/applications/`, incluidas `hello-world/` y `lista-precios/`. `src/api/`
+aplicaciones, asignaciones, perfiles y permisos, consulta de actividad, `Hello World`, `Lista de
+Precios` y `Meta Company`. El launcher vive en `src/home/`; el registro, el control de rutas y
+cada interfaz integrada viven en `src/applications/`, incluidas `hello-world/`, `lista-precios/`
+y `meta-company/`. `src/api/`
 encapsula rutas y tipos generados: los componentes no escriben endpoints HTTP manualmente.
 
 En producción, `server/` sirve la SPA y actúa como gateway de mismo origen para `/api/*`. El

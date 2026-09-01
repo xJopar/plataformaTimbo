@@ -11,7 +11,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { ApplicationAuthorizationService } from '../access-profiles/application-authorization.service';
 import { APPLICATION_AUTHORIZATION_SERVICE } from '../access-profiles/access-profiles.tokens';
 import { CsrfProtectionGuard } from '../auth/csrf-protection.guard';
@@ -26,8 +26,13 @@ import {
 } from './meta-company-application-access.guard';
 import {
   MetaCompanyCapabilitiesResponseDto,
+  MetaCompanyCatalogItemResponseDto,
   MetaCompanyCatalogResponseDto,
+  CreateMetaCompanyCatalogItemDto,
+  CreateMetaCompanyGoalDto,
   MetaCompanyGoalResponseDto,
+  SetMetaCompanyCatalogItemActiveDto,
+  UpdateMetaCompanyGoalDto,
 } from './dto/meta-company.dto';
 import {
   MetaCompanyCatalogManagementGuard,
@@ -104,6 +109,8 @@ export class MetaCompanyController {
   @Post('goals')
   @UseGuards(CsrfProtectionGuard, MetaCompanyGoalManagementGuard)
   @ApiOperation({ operationId: 'createMetaCompanyGoal', summary: 'Crea una meta comercial.' })
+  @ApiBody({ type: CreateMetaCompanyGoalDto })
+  @ApiCreatedResponse({ type: MetaCompanyGoalResponseDto })
   public async createGoal(
     @Req() request: AuthenticatedRequest,
     @Body() body: Record<string, unknown>,
@@ -118,17 +125,12 @@ export class MetaCompanyController {
 
   @Patch('goals/:id')
   @UseGuards(CsrfProtectionGuard, MetaCompanyGoalManagementGuard)
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: ['value'],
-      properties: { value: { type: 'string', example: '38237.42' } },
-    },
-  })
+  @ApiBody({ type: UpdateMetaCompanyGoalDto })
   @ApiOperation({
     operationId: 'updateMetaCompanyGoal',
     summary: 'Edita el valor de una meta comercial.',
   })
+  @ApiOkResponse({ type: MetaCompanyGoalResponseDto })
   public async updateGoal(
     @Req() request: AuthenticatedRequest,
     @Param('id') id: string,
@@ -145,6 +147,9 @@ export class MetaCompanyController {
 
   @Post('brands')
   @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard)
+  @ApiOperation({ operationId: 'createMetaCompanyBrand', summary: 'Crea una marca.' })
+  @ApiBody({ type: CreateMetaCompanyCatalogItemDto })
+  @ApiCreatedResponse({ type: MetaCompanyCatalogItemResponseDto })
   public async createBrand(
     @Req() request: AuthenticatedRequest,
     @Body() body: Record<string, unknown>,
@@ -157,6 +162,9 @@ export class MetaCompanyController {
 
   @Post('businesses')
   @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard)
+  @ApiOperation({ operationId: 'createMetaCompanyBusiness', summary: 'Crea un negocio.' })
+  @ApiBody({ type: CreateMetaCompanyCatalogItemDto })
+  @ApiCreatedResponse({ type: MetaCompanyCatalogItemResponseDto })
   public async createBusiness(
     @Req() request: AuthenticatedRequest,
     @Body() body: Record<string, unknown>,
@@ -169,6 +177,12 @@ export class MetaCompanyController {
 
   @Patch('brands/:id/active')
   @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard)
+  @ApiOperation({
+    operationId: 'setMetaCompanyBrandActive',
+    summary: 'Activa o desactiva una marca.',
+  })
+  @ApiBody({ type: SetMetaCompanyCatalogItemActiveDto })
+  @ApiOkResponse({ description: 'Estado de marca actualizado.' })
   public async setBrandActive(
     @Req() request: AuthenticatedRequest,
     @Param('id') id: string,
@@ -183,6 +197,12 @@ export class MetaCompanyController {
 
   @Patch('businesses/:id/active')
   @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard)
+  @ApiOperation({
+    operationId: 'setMetaCompanyBusinessActive',
+    summary: 'Activa o desactiva un negocio.',
+  })
+  @ApiBody({ type: SetMetaCompanyCatalogItemActiveDto })
+  @ApiOkResponse({ description: 'Estado de negocio actualizado.' })
   public async setBusinessActive(
     @Req() request: AuthenticatedRequest,
     @Param('id') id: string,

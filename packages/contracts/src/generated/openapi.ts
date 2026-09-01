@@ -717,7 +717,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["MetaCompanyController_createBrand"];
+        /** Crea una marca. */
+        post: operations["createMetaCompanyBrand"];
         delete?: never;
         options?: never;
         head?: never;
@@ -733,7 +734,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["MetaCompanyController_createBusiness"];
+        /** Crea un negocio. */
+        post: operations["createMetaCompanyBusiness"];
         delete?: never;
         options?: never;
         head?: never;
@@ -753,7 +755,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["MetaCompanyController_setBrandActive"];
+        /** Activa o desactiva una marca. */
+        patch: operations["setMetaCompanyBrandActive"];
         trace?: never;
     };
     "/api/applications/meta-company/businesses/{id}/active": {
@@ -769,7 +772,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["MetaCompanyController_setBusinessActive"];
+        /** Activa o desactiva un negocio. */
+        patch: operations["setMetaCompanyBusinessActive"];
         trace?: never;
     };
     "/api/health": {
@@ -1118,6 +1122,35 @@ export interface components {
         MetaCompanyCapabilitiesResponseDto: {
             canManageCatalogs: boolean;
             canManageGoals: boolean;
+        };
+        CreateMetaCompanyGoalDto: {
+            /** @example 2026-09-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example 1 */
+            brandId: number;
+            /** @example 10 */
+            salespersonCode?: number;
+            /**
+             * @example Marca
+             * @enum {string}
+             */
+            goalType: "Marca" | "Vendedor";
+            /** @example 38237.42 */
+            value: string;
+        };
+        UpdateMetaCompanyGoalDto: {
+            /** @example 38237.42 */
+            value: string;
+        };
+        CreateMetaCompanyCatalogItemDto: {
+            /** @example Comercial */
+            name: string;
+        };
+        SetMetaCompanyCatalogItemActiveDto: {
+            /** @example false */
+            active: boolean;
         };
         HealthResponseDto: {
             /**
@@ -2194,13 +2227,19 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyGoalDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyGoalResponseDto"];
+                };
             };
         };
     };
@@ -2272,10 +2311,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    /** @example 38237.42 */
-                    value: string;
-                };
+                "application/json": components["schemas"]["UpdateMetaCompanyGoalDto"];
             };
         };
         responses: {
@@ -2283,45 +2319,59 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyGoalResponseDto"];
+                };
             };
         };
     };
-    MetaCompanyController_createBrand: {
+    createMetaCompanyBrand: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyCatalogItemDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
             };
         };
     };
-    MetaCompanyController_createBusiness: {
+    createMetaCompanyBusiness: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyCatalogItemDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
             };
         };
     };
-    MetaCompanyController_setBrandActive: {
+    setMetaCompanyBrandActive: {
         parameters: {
             query?: never;
             header?: never;
@@ -2330,8 +2380,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+            };
+        };
         responses: {
+            /** @description Estado de marca actualizado. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2340,7 +2395,7 @@ export interface operations {
             };
         };
     };
-    MetaCompanyController_setBusinessActive: {
+    setMetaCompanyBusinessActive: {
         parameters: {
             query?: never;
             header?: never;
@@ -2349,8 +2404,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+            };
+        };
         responses: {
+            /** @description Estado de negocio actualizado. */
             200: {
                 headers: {
                     [name: string]: unknown;

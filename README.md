@@ -15,6 +15,10 @@ También incluye `Lista de Precios` en `/apps/lista-precios`: consulta el catál
 vehículos; el modelo HOWO NX de SINOTRUK permite elegir la suspensión antes de consultar sus
 variantes. Registra aperturas, vistas únicas de modelo por visita e inicios de consulta, sin
 persistir unidades de stock, filtros, precios ni mensajes de WhatsApp.
+`Meta Company` en `/apps/meta-company` administra las metas comerciales que consume Power BI. Sus
+perfiles permiten editar metas y, para administradores, crear y activar o desactivar marcas y
+negocios. La aplicación usa temporalmente un proveedor PostgreSQL aislado; sus auditorías se
+conservan en la base central de la plataforma.
 Administración permite asignar aplicaciones a empleados y gestionar sus perfiles y permisos
 funcionales. El Home autenticado presenta solamente las aplicaciones activas asignadas al usuario
 y abre sus rutas internas. Consultar [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md)
@@ -29,11 +33,11 @@ para el alcance y los recorridos vigentes.
   filtrado por asignaciones activas.
 - **Observabilidad:** logs JSON de API y gateway, diagnósticos estructurados en el navegador,
   redacción segura y correlación por `X-Request-Id`.
-- **Datos de actividad:** auditoría persistente y eventos de uso idempotentes para Hello World y
-  Lista de Precios; la exportación CSV entrega visita, objetivo, marca y modelo en columnas
-  separadas cuando corresponden.
+- **Datos de actividad:** auditoría persistente para operaciones administrativas, incluidas las de
+  Meta Company, y eventos de uso idempotentes para Hello World y Lista de Precios; la exportación
+  CSV entrega visita, objetivo, marca y modelo en columnas separadas cuando corresponden.
 - **Experiencia:** acceso corporativo, launcher de aplicaciones autorizadas, superficies de
-  Administración, `Hello World` y `Lista de Precios` como primera aplicación de negocio integrada.
+  Administración, `Hello World`, `Lista de Precios` y `Meta Company`.
 
 ## Documentación
 

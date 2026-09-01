@@ -10,11 +10,16 @@ export type BrowserOperation =
   | 'administration.manage-users'
   | 'hello-world.request-joke'
   | 'hello-world.translate-joke'
-  | 'lista-precios.record-usage-event';
+  | 'lista-precios.record-usage-event'
+  | 'meta-company.load-data'
+  | 'meta-company.update-goal'
+  | 'meta-company.create-goal'
+  | 'meta-company.create-catalog'
+  | 'meta-company.update-catalog';
 
 export interface BrowserOperationFailureContext {
   operation: BrowserOperation;
-  method: 'GET' | 'POST';
+  method: 'GET' | 'POST' | 'PATCH';
   route: string;
   provider: 'api' | 'mymemory';
   status?: number;

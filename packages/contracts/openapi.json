@@ -1752,9 +1752,26 @@
       "post": {
         "operationId": "createMetaCompanyGoal",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMetaCompanyGoalDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyGoalResponseDto"
+                }
+              }
+            }
           }
         },
         "summary": "Crea una meta comercial.",
@@ -1847,23 +1864,21 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": [
-                  "value"
-                ],
-                "properties": {
-                  "value": {
-                    "type": "string",
-                    "example": "38237.42"
-                  }
-                }
+                "$ref": "#/components/schemas/UpdateMetaCompanyGoalDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyGoalResponseDto"
+                }
+              }
+            }
           }
         },
         "summary": "Edita el valor de una meta comercial.",
@@ -1874,13 +1889,31 @@
     },
     "/api/applications/meta-company/brands": {
       "post": {
-        "operationId": "MetaCompanyController_createBrand",
+        "operationId": "createMetaCompanyBrand",
         "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMetaCompanyCatalogItemDto"
+              }
+            }
           }
         },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crea una marca.",
         "tags": [
           "applications"
         ]
@@ -1888,13 +1921,31 @@
     },
     "/api/applications/meta-company/businesses": {
       "post": {
-        "operationId": "MetaCompanyController_createBusiness",
+        "operationId": "createMetaCompanyBusiness",
         "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMetaCompanyCatalogItemDto"
+              }
+            }
           }
         },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crea un negocio.",
         "tags": [
           "applications"
         ]
@@ -1902,7 +1953,7 @@
     },
     "/api/applications/meta-company/brands/{id}/active": {
       "patch": {
-        "operationId": "MetaCompanyController_setBrandActive",
+        "operationId": "setMetaCompanyBrandActive",
         "parameters": [
           {
             "name": "id",
@@ -1913,11 +1964,22 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": ""
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMetaCompanyCatalogItemActiveDto"
+              }
+            }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Estado de marca actualizado."
+          }
+        },
+        "summary": "Activa o desactiva una marca.",
         "tags": [
           "applications"
         ]
@@ -1925,7 +1987,7 @@
     },
     "/api/applications/meta-company/businesses/{id}/active": {
       "patch": {
-        "operationId": "MetaCompanyController_setBusinessActive",
+        "operationId": "setMetaCompanyBusinessActive",
         "parameters": [
           {
             "name": "id",
@@ -1936,11 +1998,22 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": ""
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMetaCompanyCatalogItemActiveDto"
+              }
+            }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Estado de negocio actualizado."
+          }
+        },
+        "summary": "Activa o desactiva un negocio.",
         "tags": [
           "applications"
         ]
@@ -2845,6 +2918,82 @@
         "required": [
           "canManageCatalogs",
           "canManageGoals"
+        ]
+      },
+      "CreateMetaCompanyGoalDto": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "example": "2026-09-01"
+          },
+          "businessId": {
+            "type": "number",
+            "example": 1
+          },
+          "brandId": {
+            "type": "number",
+            "example": 1
+          },
+          "salespersonCode": {
+            "type": "number",
+            "example": 10
+          },
+          "goalType": {
+            "type": "string",
+            "enum": [
+              "Marca",
+              "Vendedor"
+            ],
+            "example": "Marca"
+          },
+          "value": {
+            "type": "string",
+            "example": "38237.42"
+          }
+        },
+        "required": [
+          "period",
+          "businessId",
+          "brandId",
+          "goalType",
+          "value"
+        ]
+      },
+      "UpdateMetaCompanyGoalDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "example": "38237.42"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      },
+      "CreateMetaCompanyCatalogItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Comercial"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "SetMetaCompanyCatalogItemActiveDto": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "active"
         ]
       },
       "HealthResponseDto": {
