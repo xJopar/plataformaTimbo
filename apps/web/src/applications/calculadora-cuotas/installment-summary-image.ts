@@ -7,13 +7,14 @@ import {
 const IMAGE_WIDTH = 760;
 const IMAGE_SCALE = 2;
 const IMAGE_HORIZONTAL_PADDING = 48;
-const IMAGE_VERTICAL_PADDING = 40;
-// Altura del cuotero sin refuerzo ni cuota de redondeo, incluida la respiración inferior.
-const IMAGE_BASE_HEIGHT = 600;
+const HEADER_HEIGHT = 128;
+const IMAGE_BASE_HEIGHT = 730;
 const BRAND_BLUE = '#00388a';
 const INK = '#142033';
 const MUTED_INK = '#475569';
 const BORDER = '#bcc9d7';
+const SECONDARY_SURFACE = '#f7f9fb';
+const BRAND_LOGO_SOURCE = '/marca/logotipo-timbo-blanco-transparente.webp';
 
 function formatUsd(amount: number): string {
   return `USD ${amount.toLocaleString('es-PY', { maximumFractionDigits: 0 })}`;
@@ -45,7 +46,7 @@ function drawAmountRow(
   setFont(context, 17, 600);
   context.fillStyle = MUTED_INK;
   context.fillText(label, IMAGE_HORIZONTAL_PADDING, y);
-  setFont(context, 17, 700);
+  setFont(context, 18, 700);
   context.fillStyle = INK;
   context.textAlign = 'right';
   context.fillText(amount, IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, y);
@@ -53,7 +54,7 @@ function drawAmountRow(
   return y + 38;
 }
 
-function drawHero(
+function drawSupportingAmount(
   context: CanvasRenderingContext2D,
   y: number,
   label: string,
@@ -62,10 +63,57 @@ function drawHero(
   setFont(context, 17, 600);
   context.fillStyle = MUTED_INK;
   context.fillText(label, IMAGE_HORIZONTAL_PADDING, y);
-  setFont(context, 33, 800);
+  setFont(context, 28, 700);
+  context.fillStyle = INK;
+  context.fillText(amount, IMAGE_HORIZONTAL_PADDING, y + 38);
+  return y + 76;
+}
+
+function drawRegularInstallment(
+  context: CanvasRenderingContext2D,
+  y: number,
+  label: string,
+  amount: string,
+): number {
+  setFont(context, 18, 600);
+  context.fillStyle = MUTED_INK;
+  context.fillText(label, IMAGE_HORIZONTAL_PADDING, y);
+  setFont(context, 58, 800);
   context.fillStyle = BRAND_BLUE;
-  context.fillText(amount, IMAGE_HORIZONTAL_PADDING, y + 40);
-  return y + 82;
+  context.fillText(amount, IMAGE_HORIZONTAL_PADDING, y + 66);
+  return y + 112;
+}
+
+function drawTotal(context: CanvasRenderingContext2D, y: number, amount: string): number {
+  drawRule(context, y);
+  setFont(context, 18, 600);
+  context.fillStyle = MUTED_INK;
+  context.fillText('Total a pagar', IMAGE_HORIZONTAL_PADDING, y + 48);
+  setFont(context, 36, 800);
+  context.fillStyle = BRAND_BLUE;
+  context.fillText(amount, IMAGE_HORIZONTAL_PADDING, y + 92);
+  return y + 132;
+}
+
+function loadBrandLogo(): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const logo = document.createElement('img');
+    logo.addEventListener(
+      'load',
+      () => {
+        resolve(logo);
+      },
+      { once: true },
+    );
+    logo.addEventListener(
+      'error',
+      () => {
+        reject(new Error('No se pudo cargar el logotipo de TIMBO para la imagen del cuotero.'));
+      },
+      { once: true },
+    );
+    logo.src = BRAND_LOGO_SOURCE;
+  });
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
@@ -86,16 +134,17 @@ export interface InstallmentSummaryImageInput {
   reinforcementPeriodicity: CuotaPeriodicity;
 }
 
-/** Genera el contenido del Cuotero sin los controles de la aplicación. */
+/** Genera una cotización de TIMBO lista para compartir, sin controles de la aplicación. */
 export async function downloadInstallmentSummaryImage({
   plan,
   installmentPeriodicity,
   reinforcementPeriodicity,
 }: InstallmentSummaryImageInput): Promise<void> {
+  const brandLogo = await loadBrandLogo();
   const hasReinforcements = plan.reinforcementCount > 0;
   const hasAdjustmentInstallment = plan.hasAdjustmentInstallment;
   const imageHeight =
-    IMAGE_BASE_HEIGHT + (hasReinforcements ? 38 : 0) + (hasAdjustmentInstallment ? 82 : 0);
+    IMAGE_BASE_HEIGHT + (hasReinforcements ? 38 : 0) + (hasAdjustmentInstallment ? 76 : 0);
   const canvas = document.createElement('canvas');
   canvas.width = IMAGE_WIDTH * IMAGE_SCALE;
   canvas.height = imageHeight * IMAGE_SCALE;
@@ -107,51 +156,56 @@ export async function downloadInstallmentSummaryImage({
   context.scale(IMAGE_SCALE, IMAGE_SCALE);
   context.fillStyle = '#ffffff';
   context.fillRect(0, 0, IMAGE_WIDTH, imageHeight);
+
   context.fillStyle = BRAND_BLUE;
-  context.fillRect(0, 0, IMAGE_WIDTH, 6);
-
-  let y = IMAGE_VERTICAL_PADDING;
-  setFont(context, 28, 800);
-  context.fillStyle = INK;
-  context.fillText('Cuotero', IMAGE_HORIZONTAL_PADDING, y);
-  y += 32;
+  context.fillRect(0, 0, IMAGE_WIDTH, HEADER_HEIGHT);
+  context.drawImage(brandLogo, IMAGE_HORIZONTAL_PADDING, 31, 194, 49);
   setFont(context, 14, 700);
-  context.fillStyle = MUTED_INK;
-  context.fillText('PLAN DE PAGOS', IMAGE_HORIZONTAL_PADDING, y);
-  y += 42;
+  context.fillStyle = '#ffffff';
+  context.fillText('PLAN DE PAGOS', IMAGE_HORIZONTAL_PADDING, 105);
 
+  let y = HEADER_HEIGHT + 54;
   y = drawAmountRow(
     context,
     y,
     `Entrega inicial · ${String(Math.round(plan.downPaymentPercent))}%`,
     formatUsd(plan.downPaymentUsd),
   );
-  y = drawHero(
+
+  if (hasAdjustmentInstallment) {
+    y = drawSupportingAmount(
+      context,
+      y + 30,
+      'Cuota redondeo',
+      formatUsd(plan.adjustmentInstallmentAmountUsd),
+    );
+  }
+
+  y = drawRegularInstallment(
     context,
-    y,
+    y + 28,
     `${String(plan.regularInstallmentCount)} cuotas ${PERIODICITY_ADJECTIVE_PLURAL[installmentPeriodicity]} de`,
     formatUsd(plan.regularInstallmentAmountUsd),
   );
+
   if (hasReinforcements) {
     y = drawAmountRow(
       context,
-      y,
+      y + 30,
       `${String(plan.reinforcementCount)} refuerzos ${PERIODICITY_ADJECTIVE_PLURAL[reinforcementPeriodicity]} de`,
       formatUsd(plan.reinforcementAmountUsd),
     );
   }
-  if (hasAdjustmentInstallment) {
-    y = drawHero(context, y, 'Cuota redondeo', formatUsd(plan.adjustmentInstallmentAmountUsd));
-  }
 
-  drawRule(context, y + 4);
-  y = drawHero(context, y + 44, 'Total a pagar', formatUsd(plan.totalPagarUsd));
-  drawRule(context, y + 2);
-  y += 44;
+  y = drawTotal(context, y + 30, formatUsd(plan.totalPagarUsd));
+  drawRule(context, y);
+  y += 48;
 
-  setFont(context, 14, 700);
-  context.fillStyle = MUTED_INK;
-  context.fillText('DETALLES DEL FINANCIAMIENTO', IMAGE_HORIZONTAL_PADDING, y);
+  context.fillStyle = SECONDARY_SURFACE;
+  context.fillRect(0, y - 28, IMAGE_WIDTH, imageHeight - y + 28);
+  setFont(context, 16, 700);
+  context.fillStyle = INK;
+  context.fillText('Detalle del financiamiento', IMAGE_HORIZONTAL_PADDING, y);
   y += 36;
   y = drawAmountRow(context, y, 'Tasa anual', `${plan.annualRatePercent.toLocaleString('es-PY')}%`);
   y = drawAmountRow(context, y, 'Intereses', formatUsd(plan.interestTotalUsd));
