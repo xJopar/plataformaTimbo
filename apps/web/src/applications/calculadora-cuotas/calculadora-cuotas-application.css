@@ -24,6 +24,7 @@
   --cc-sp-4: 16px;
   --cc-sp-5: 20px;
   --cc-sp-6: 24px;
+  --cc-sp-7: 32px;
   --cc-t-fast: 120ms ease-out;
 }
 
@@ -47,6 +48,10 @@
 @media (max-width: 1023px) {
   .cc-page--has-mobile-bar {
     padding-bottom: 88px;
+  }
+
+  .cc-config-action {
+    display: none;
   }
 }
 
@@ -118,7 +123,7 @@
     grid-column: 1 / span 2;
     grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
     align-items: stretch;
-    gap: 0 var(--cc-sp-6);
+    gap: 0 var(--cc-sp-7);
     padding: var(--cc-sp-5);
     border-top: 3px solid var(--cc-c-brand);
     background: var(--cc-c-surface-alt);
@@ -163,7 +168,7 @@
   justify-content: space-between;
   gap: var(--cc-sp-3);
   margin-bottom: var(--cc-sp-4);
-  margin-top: var(--cc-sp-2);
+  margin-top: 0;
 }
 
 /* Los títulos de sección comparten la voz de Cuotero. La superficie y el contenido, no una
@@ -179,7 +184,7 @@
 
 .cc-section-heading .cc-section-title {
   margin-bottom: 0;
-  margin-top: var(--cc-sp-2);
+  margin-top: 0;
 }
 
 /* ── Selector de modo (agregar unidad / precio manual) ── */
@@ -669,17 +674,26 @@
   cursor: pointer;
 }
 
-/* La acción permanece junto al título para estar disponible sin atravesar todo el formulario. */
+/* La acción cierra la secuencia de controles: configurar, recalcular y leer el cuotero. */
+.cc-config-action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-2);
+  margin-top: var(--cc-sp-6);
+  padding-top: var(--cc-sp-4);
+  border-top: 1px solid var(--cc-c-border);
+}
+
 .cc-apply-hint {
-  margin: calc(-1 * var(--cc-sp-2)) 0 var(--cc-sp-4);
-  color: var(--cc-c-error-ink);
-  font-weight: 700;
+  margin: 0;
+  color: var(--cc-c-text-secondary);
+  font-weight: 600;
   font-size: 0.8125rem;
   line-height: 1.35;
 }
 
 .cc-apply-btn {
-  flex-shrink: 0;
+  width: 100%;
   min-height: 44px;
   padding: 0 var(--cc-sp-3);
   border: 1px solid var(--cc-c-brand);
@@ -939,14 +953,5 @@
   .cc-section.cc-cuotero .cc-section-heading {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .cc-section.cc-config .cc-section-heading {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .cc-section.cc-config .cc-apply-btn {
-    width: 100%;
   }
 }
