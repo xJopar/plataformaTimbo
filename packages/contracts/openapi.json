@@ -1997,6 +1997,86 @@
         ]
       }
     },
+    "/api/applications/meta-company/empresas/{id}": {
+      "patch": {
+        "operationId": "MetaCompanyController_updateEmpresa",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMetaCompanyEmpresaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyEmpresaResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/empresas/{id}/active": {
+      "patch": {
+        "operationId": "MetaCompanyController_setEmpresaActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMetaCompanyCatalogItemActiveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyEmpresaResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
     "/api/applications/meta-company/brands": {
       "post": {
         "operationId": "MetaCompanyController_createBrand",
@@ -2028,6 +2108,86 @@
         ]
       }
     },
+    "/api/applications/meta-company/brands/{id}": {
+      "patch": {
+        "operationId": "MetaCompanyController_updateBrand",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMetaCompanyCatalogItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/brands/{id}/active": {
+      "patch": {
+        "operationId": "MetaCompanyController_setBrandActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMetaCompanyCatalogItemActiveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
     "/api/applications/meta-company/businesses": {
       "post": {
         "operationId": "MetaCompanyController_createBusiness",
@@ -2044,6 +2204,86 @@
         },
         "responses": {
           "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/businesses/{id}": {
+      "patch": {
+        "operationId": "MetaCompanyController_updateBusiness",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMetaCompanyCatalogItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/businesses/{id}/active": {
+      "patch": {
+        "operationId": "MetaCompanyController_setBusinessActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMetaCompanyCatalogItemActiveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -3707,7 +3947,53 @@
           "name"
         ]
       },
+      "UpdateMetaCompanyEmpresaDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "TIMBO"
+          },
+          "name": {
+            "type": "string",
+            "example": "Timbo"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ]
+      },
+      "SetMetaCompanyCatalogItemActiveDto": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "active"
+        ]
+      },
       "CreateMetaCompanyCatalogItemDto": {
+        "type": "object",
+        "properties": {
+          "empresaId": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Comercial"
+          }
+        },
+        "required": [
+          "empresaId",
+          "name"
+        ]
+      },
+      "UpdateMetaCompanyCatalogItemDto": {
         "type": "object",
         "properties": {
           "empresaId": {
@@ -3794,18 +4080,6 @@
           "externalCode",
           "displayName",
           "kind"
-        ]
-      },
-      "SetMetaCompanyCatalogItemActiveDto": {
-        "type": "object",
-        "properties": {
-          "active": {
-            "type": "boolean",
-            "example": false
-          }
-        },
-        "required": [
-          "active"
         ]
       },
       "FiveSCapabilitiesResponseDto": {

@@ -94,6 +94,10 @@ export class CreateMetaCompanyAdvisorDto {
 
 export class UpdateMetaCompanyAdvisorDto extends CreateMetaCompanyAdvisorDto {}
 
+export class UpdateMetaCompanyEmpresaDto extends CreateMetaCompanyEmpresaDto {}
+
+export class UpdateMetaCompanyCatalogItemDto extends CreateMetaCompanyCatalogItemDto {}
+
 export class CreateMetaCompanyBrandGoalDto {
   @ApiProperty({ example: '2026-09-01' }) period!: string;
   @ApiProperty({ example: 1 }) businessId!: number;

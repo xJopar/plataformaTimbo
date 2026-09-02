@@ -1,4 +1,4 @@
-import type { AdvisorMonthGoal } from './meta-company-mock-data';
+import type { MonthGoal } from './meta-company-mock-data';
 
 const SHORT_MONTH_NAMES = [
   'Ene',
@@ -31,7 +31,7 @@ export function formatMoney(value: string): string {
 }
 
 interface MonthGoalRowProps {
-  month: AdvisorMonthGoal;
+  month: MonthGoal;
   canEdit: boolean;
   isSaving: boolean;
   onSave: (periodo: string, value: string) => void;

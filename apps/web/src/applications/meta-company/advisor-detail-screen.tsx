@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react';
-import {
-  fetchAdvisorMetas,
-  fetchAdvisorName,
-  saveAdvisorMonthGoal,
-  type AdvisorMonthGoal,
-} from './meta-company-mock-data';
+import { fetchMonthGoals, saveMonthGoal, type MonthGoal } from './meta-company-mock-data';
+import type { Advisor } from './meta-company-types';
 import { MonthGoalRow } from './month-goal-row';
 import { YearFilter } from './year-filter';
 
 interface AdvisorDetailScreenProps {
   advisorId: number;
+  advisors: Advisor[];
   year: number;
   canEdit: boolean;
   onNavigateYear: (year: number) => void;
@@ -17,27 +14,26 @@ interface AdvisorDetailScreenProps {
 
 export function AdvisorDetailScreen({
   advisorId,
+  advisors,
   year,
   canEdit,
   onNavigateYear,
 }: AdvisorDetailScreenProps): React.JSX.Element {
-  const [advisorName, setAdvisorName] = useState<string>();
-  const [months, setMonths] = useState<AdvisorMonthGoal[]>([]);
+  const [months, setMonths] = useState<MonthGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [savingPeriodo, setSavingPeriodo] = useState<string>();
+
+  const advisor = advisors.find((item) => item.id === advisorId);
 
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    void Promise.all([fetchAdvisorName(advisorId), fetchAdvisorMetas(advisorId, year)]).then(
-      ([name, metas]) => {
-        if (!cancelled) {
-          setAdvisorName(name);
-          setMonths(metas);
-          setIsLoading(false);
-        }
-      },
-    );
+    void fetchMonthGoals('advisor', advisorId, year).then((metas) => {
+      if (!cancelled) {
+        setMonths(metas);
+        setIsLoading(false);
+      }
+    });
     return () => {
       cancelled = true;
     };
@@ -45,18 +41,27 @@ export function AdvisorDetailScreen({
 
   const saveMonth = async (periodo: string, value: string): Promise<void> => {
     setSavingPeriodo(periodo);
-    const savedMonth = await saveAdvisorMonthGoal(advisorId, periodo, value);
+    const savedMonth = await saveMonthGoal('advisor', advisorId, periodo, value);
     setMonths((current) =>
       current.map((month) => (month.periodo === periodo ? savedMonth : month)),
     );
     setSavingPeriodo(undefined);
   };
 
+  if (advisor === undefined) {
+    return (
+      <section className="mc-empty">
+        <h2>Asesor no encontrado</h2>
+        <p>Puede que haya sido desactivado. Volvé a la lista de asesores e intentá de nuevo.</p>
+      </section>
+    );
+  }
+
   return (
     <section className="mc-advisor-detail" aria-labelledby="mc-advisor-detail-title">
       <div className="mc-workbench-heading">
         <div>
-          <h2 id="mc-advisor-detail-title">{advisorName ?? 'Asesor'}</h2>
+          <h2 id="mc-advisor-detail-title">{advisor.displayName}</h2>
           <p>Recorré los años del asesor y editá sus metas mensuales.</p>
         </div>
         <YearFilter year={year} onChange={onNavigateYear} />

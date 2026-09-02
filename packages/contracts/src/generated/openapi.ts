@@ -770,6 +770,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications/meta-company/empresas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_updateEmpresa"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/empresas/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_setEmpresaActive"];
+        trace?: never;
+    };
     "/api/applications/meta-company/brands": {
         parameters: {
             query?: never;
@@ -786,6 +818,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications/meta-company/brands/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_updateBrand"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/brands/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_setBrandActive"];
+        trace?: never;
+    };
     "/api/applications/meta-company/businesses": {
         parameters: {
             query?: never;
@@ -800,6 +864,38 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/businesses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_updateBusiness"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/businesses/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_setBusinessActive"];
         trace?: never;
     };
     "/api/applications/meta-company/advisors": {
@@ -1462,7 +1558,23 @@ export interface components {
             /** @example Timbo */
             name: string;
         };
+        UpdateMetaCompanyEmpresaDto: {
+            /** @example TIMBO */
+            code: string;
+            /** @example Timbo */
+            name: string;
+        };
+        SetMetaCompanyCatalogItemActiveDto: {
+            /** @example false */
+            active: boolean;
+        };
         CreateMetaCompanyCatalogItemDto: {
+            /** @example 1 */
+            empresaId: number;
+            /** @example Comercial */
+            name: string;
+        };
+        UpdateMetaCompanyCatalogItemDto: {
             /** @example 1 */
             empresaId: number;
             /** @example Comercial */
@@ -1497,10 +1609,6 @@ export interface components {
              * @enum {string}
              */
             kind: "PERSON" | "SALES_CHANNEL";
-        };
-        SetMetaCompanyCatalogItemActiveDto: {
-            /** @example false */
-            active: boolean;
         };
         FiveSCapabilitiesResponseDto: {
             canManageIndicators: boolean;
@@ -2842,6 +2950,56 @@ export interface operations {
             };
         };
     };
+    MetaCompanyController_updateEmpresa: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMetaCompanyEmpresaDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyEmpresaResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_setEmpresaActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyEmpresaResponseDto"];
+                };
+            };
+        };
+    };
     MetaCompanyController_createBrand: {
         parameters: {
             query?: never;
@@ -2865,6 +3023,56 @@ export interface operations {
             };
         };
     };
+    MetaCompanyController_updateBrand: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMetaCompanyCatalogItemDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_setBrandActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
+            };
+        };
+    };
     MetaCompanyController_createBusiness: {
         parameters: {
             query?: never;
@@ -2879,6 +3087,56 @@ export interface operations {
         };
         responses: {
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_updateBusiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMetaCompanyCatalogItemDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_setBusinessActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+            };
+        };
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

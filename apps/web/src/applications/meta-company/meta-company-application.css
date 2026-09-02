@@ -47,13 +47,6 @@
   background: #f7f9fb;
   border: 1px solid #bcc9d7;
 }
-.mc-catalog-create label {
-  display: grid;
-  gap: 5px;
-  font-size: 13px;
-  font-weight: 700;
-}
-.mc-catalog-create input,
 .mc-month-row input,
 .mc-year-select {
   min-height: 44px;
@@ -66,7 +59,8 @@
 }
 .mc-primary-action,
 .mc-secondary-action,
-.mc-text-action {
+.mc-text-action,
+.mc-mode-switch button {
   min-height: 44px;
   border: 1px solid #00388a;
   padding: 0 16px;
@@ -74,12 +68,14 @@
   font-weight: 700;
   cursor: pointer;
 }
-.mc-primary-action {
+.mc-primary-action,
+.mc-mode-switch .is-active {
   background: #00388a;
   color: #fff;
 }
 .mc-secondary-action,
-.mc-text-action {
+.mc-text-action,
+.mc-mode-switch button {
   background: #fff;
   color: #00388a;
 }
@@ -88,16 +84,25 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.mc-primary-action:hover:not(:disabled) {
+.mc-primary-action:hover:not(:disabled),
+.mc-mode-switch .is-active:hover {
   background: #002d70;
 }
 .mc-secondary-action:hover:not(:disabled),
-.mc-text-action:hover:not(:disabled) {
+.mc-text-action:hover:not(:disabled),
+.mc-mode-switch button:hover:not(.is-active) {
   background: #e7eef7;
 }
 button:disabled {
   cursor: wait;
   opacity: 0.64;
+}
+.mc-mode-switch {
+  display: flex;
+  margin-top: 16px;
+}
+.mc-mode-switch button + button {
+  border-left: 0;
 }
 .mc-error,
 .mc-notice {
@@ -131,63 +136,23 @@ button:disabled {
 .mc-advisor-detail h2 {
   font-size: 22px;
 }
-.mc-catalog-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
+.mc-manage-form {
   margin-top: 20px;
 }
-.mc-catalog-section {
-  border-top: 1px solid #bcc9d7;
-}
-.mc-catalog-section h3 {
-  margin: 16px 0;
-  font-size: 18px;
-}
-.mc-catalog-create > div {
-  display: flex;
-  gap: 8px;
-}
-.mc-catalog-create input {
-  flex: 1;
-}
-.mc-catalog-list {
-  list-style: none;
-  padding: 0;
-  margin: 20px 0 0;
-  border-top: 1px solid #bcc9d7;
-}
-.mc-catalog-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #bcc9d7;
-}
-.mc-catalog-list span {
-  display: block;
-  color: #526176;
-  font-size: 13px;
-  margin-top: 3px;
-}
-.mc-advisor-form {
-  margin-top: 20px;
-}
-.mc-advisor-form label {
+.mc-manage-form label {
   display: grid;
   gap: 5px;
   font-size: 13px;
   font-weight: 700;
 }
-.mc-advisor-form-grid {
+.mc-manage-form-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 16px;
 }
-.mc-advisor-form input,
-.mc-advisor-form select {
+.mc-manage-form input,
+.mc-manage-form select {
   min-height: 44px;
   box-sizing: border-box;
   border: 1px solid #94a3b8;
@@ -196,28 +161,28 @@ button:disabled {
   color: #142033;
   font: inherit;
 }
-.mc-advisor-table-wrapper {
+.mc-manage-table-wrapper {
   margin-top: 24px;
   overflow-x: auto;
   border-top: 1px solid #bcc9d7;
 }
-.mc-advisor-table {
+.mc-manage-table {
   width: 100%;
   border-collapse: collapse;
 }
-.mc-advisor-table caption {
+.mc-manage-table caption {
   text-align: left;
   padding: 12px 0;
   font-weight: 700;
 }
-.mc-advisor-table th,
-.mc-advisor-table td {
+.mc-manage-table th,
+.mc-manage-table td {
   text-align: left;
   padding: 10px 12px;
   border-bottom: 1px solid #bcc9d7;
   white-space: nowrap;
 }
-.mc-advisor-actions {
+.mc-manage-actions {
   display: flex;
   gap: 12px;
 }
@@ -273,7 +238,7 @@ button:disabled {
   }
 }
 
-/* Metas por asesor: lista con acordeón */
+/* Metas por asesor / por marca: lista con acordeón */
 .mc-advisor-goals {
   margin-top: 24px;
 }
@@ -296,6 +261,7 @@ button:disabled {
   padding: 12px 16px;
   cursor: pointer;
   list-style: none;
+  font-weight: 700;
 }
 .mc-advisor-summary::-webkit-details-marker {
   display: none;
@@ -370,13 +336,12 @@ summary:focus-visible {
   .mc-title-actions button {
     flex: 1;
   }
-  .mc-catalog-grid,
-  .mc-advisor-form-grid,
+  .mc-manage-form-grid,
   .mc-month-row {
     grid-template-columns: 1fr;
   }
-  .mc-catalog-create > div {
-    flex-direction: column;
+  .mc-mode-switch button {
+    flex: 1;
   }
   .mc-month-value {
     justify-content: start;

@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
-import {
-  fetchAdvisorsAnnualSummary,
-  saveAdvisorMonthGoal,
-  type AdvisorAnnualSummary,
-} from './meta-company-mock-data';
+import { fetchMonthGoals, saveMonthGoal, type MonthGoal } from './meta-company-mock-data';
+import type { Advisor } from './meta-company-types';
 import { MonthGoalRow } from './month-goal-row';
 import { YearFilter } from './year-filter';
 
 interface AdvisorGoalsListScreenProps {
+  advisors: Advisor[];
   year: number;
   onYearChange: (year: number) => void;
   canEdit: boolean;
@@ -15,44 +13,41 @@ interface AdvisorGoalsListScreenProps {
 }
 
 export function AdvisorGoalsListScreen({
+  advisors,
   year,
   onYearChange,
   canEdit,
   onSelectAdvisor,
 }: AdvisorGoalsListScreenProps): React.JSX.Element {
-  const [summaries, setSummaries] = useState<AdvisorAnnualSummary[]>([]);
+  const [monthsByAdvisor, setMonthsByAdvisor] = useState<Record<number, MonthGoal[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<string>();
 
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    void fetchAdvisorsAnnualSummary(year).then((result) => {
+    void Promise.all(
+      advisors.map(async (advisor) => [advisor.id, await fetchMonthGoals('advisor', advisor.id, year)] as const),
+    ).then((entries) => {
       if (!cancelled) {
-        setSummaries(result);
+        setMonthsByAdvisor(Object.fromEntries(entries));
         setIsLoading(false);
       }
     });
     return () => {
       cancelled = true;
     };
-  }, [year]);
+  }, [advisors, year]);
 
   const saveMonth = async (advisorId: number, periodo: string, value: string): Promise<void> => {
     setSavingKey(`${advisorId}-${periodo}`);
-    const savedMonth = await saveAdvisorMonthGoal(advisorId, periodo, value);
-    setSummaries((current) =>
-      current.map((summary) =>
-        summary.id_asesor === advisorId
-          ? {
-              ...summary,
-              meses: summary.meses.map((month) =>
-                month.periodo === periodo ? savedMonth : month,
-              ),
-            }
-          : summary,
+    const savedMonth = await saveMonthGoal('advisor', advisorId, periodo, value);
+    setMonthsByAdvisor((current) => ({
+      ...current,
+      [advisorId]: (current[advisorId] ?? []).map((month) =>
+        month.periodo === periodo ? savedMonth : month,
       ),
-    );
+    }));
     setSavingKey(undefined);
   };
 
@@ -67,20 +62,20 @@ export function AdvisorGoalsListScreen({
       </div>
 
       {isLoading ? <p className="mc-state">Cargando asesores…</p> : null}
-      {!isLoading && summaries.length === 0 ? (
+      {!isLoading && advisors.length === 0 ? (
         <section className="mc-empty">
-          <h2>No hay asesores para mostrar</h2>
-          <p>Probá con otro año.</p>
+          <h2>No hay asesores activos</h2>
+          <p>Creá un asesor desde "Gestionar asesores" para poder cargarle metas acá.</p>
         </section>
       ) : null}
 
       <ul className="mc-advisor-list">
-        {summaries.map((summary) => (
-          <li key={summary.id_asesor}>
+        {advisors.map((advisor) => (
+          <li key={advisor.id}>
             <details className="mc-advisor-accordion">
               <summary
                 className="mc-advisor-summary"
-                aria-label={`Ver los 12 meses de ${summary.asesor}`}
+                aria-label={`Ver los 12 meses de ${advisor.displayName}`}
               >
                 <span aria-hidden="true" className="mc-advisor-disclosure">
                   ›
@@ -88,24 +83,24 @@ export function AdvisorGoalsListScreen({
                 <button
                   type="button"
                   className="mc-text-action"
-                  aria-label={`Ver detalle de ${summary.asesor}`}
+                  aria-label={`Ver detalle de ${advisor.displayName}`}
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    onSelectAdvisor(summary.id_asesor);
+                    onSelectAdvisor(advisor.id);
                   }}
                 >
-                  {summary.asesor}
+                  {advisor.displayName}
                 </button>
               </summary>
               <div className="mc-advisor-months">
-                {summary.meses.map((month) => (
+                {(monthsByAdvisor[advisor.id] ?? []).map((month) => (
                   <MonthGoalRow
                     key={month.periodo}
                     month={month}
                     canEdit={canEdit}
-                    isSaving={savingKey === `${summary.id_asesor}-${month.periodo}`}
-                    onSave={(periodo, value) => void saveMonth(summary.id_asesor, periodo, value)}
+                    isSaving={savingKey === `${advisor.id}-${month.periodo}`}
+                    onSave={(periodo, value) => void saveMonth(advisor.id, periodo, value)}
                   />
                 ))}
               </div>

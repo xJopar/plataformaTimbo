@@ -29,10 +29,15 @@ export type AuditEventName =
   | 'meta-company.goal_created'
   | 'meta-company.goal_updated'
   | 'meta-company.empresa_created'
+  | 'meta-company.empresa_updated'
+  | 'meta-company.empresa_deactivated'
+  | 'meta-company.empresa_reactivated'
   | 'meta-company.brand_created'
+  | 'meta-company.brand_updated'
   | 'meta-company.brand_deactivated'
   | 'meta-company.brand_reactivated'
   | 'meta-company.business_created'
+  | 'meta-company.business_updated'
   | 'meta-company.business_deactivated'
   | 'meta-company.business_reactivated'
   | 'meta-company.advisor_created'
@@ -266,7 +271,35 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
     targetRule: 'meta-company-resource-required',
     metadataFields: [],
   },
+  'meta-company.empresa_updated': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.empresa_deactivated': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.empresa_reactivated': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
   'meta-company.brand_created': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.brand_updated': {
     appKey: 'meta-company',
     actorType: AuditActorType.USER,
     outcome: AuditOutcome.SUCCESS,
@@ -288,6 +321,13 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
     metadataFields: [],
   },
   'meta-company.business_created': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.business_updated': {
     appKey: 'meta-company',
     actorType: AuditActorType.USER,
     outcome: AuditOutcome.SUCCESS,

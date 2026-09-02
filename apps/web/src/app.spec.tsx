@@ -184,11 +184,32 @@ function createApi(
       updateMetaCompanyAdvisorGoal: vi
         .fn<ApplicationsApi['updateMetaCompanyAdvisorGoal']>()
         .mockResolvedValue(undefined as never),
+      createMetaCompanyEmpresa: vi
+        .fn<ApplicationsApi['createMetaCompanyEmpresa']>()
+        .mockResolvedValue(undefined as never),
+      updateMetaCompanyEmpresa: vi
+        .fn<ApplicationsApi['updateMetaCompanyEmpresa']>()
+        .mockResolvedValue(undefined as never),
+      setMetaCompanyEmpresaActive: vi
+        .fn<ApplicationsApi['setMetaCompanyEmpresaActive']>()
+        .mockResolvedValue(undefined as never),
       createMetaCompanyBrand: vi
         .fn<ApplicationsApi['createMetaCompanyBrand']>()
         .mockResolvedValue(undefined as never),
+      updateMetaCompanyBrand: vi
+        .fn<ApplicationsApi['updateMetaCompanyBrand']>()
+        .mockResolvedValue(undefined as never),
+      setMetaCompanyBrandActive: vi
+        .fn<ApplicationsApi['setMetaCompanyBrandActive']>()
+        .mockResolvedValue(undefined as never),
       createMetaCompanyBusiness: vi
         .fn<ApplicationsApi['createMetaCompanyBusiness']>()
+        .mockResolvedValue(undefined as never),
+      updateMetaCompanyBusiness: vi
+        .fn<ApplicationsApi['updateMetaCompanyBusiness']>()
+        .mockResolvedValue(undefined as never),
+      setMetaCompanyBusinessActive: vi
+        .fn<ApplicationsApi['setMetaCompanyBusinessActive']>()
         .mockResolvedValue(undefined as never),
       createMetaCompanyAdvisor: vi
         .fn<ApplicationsApi['createMetaCompanyAdvisor']>()

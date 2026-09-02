@@ -9,40 +9,43 @@ import { PlatformSessionBar } from '../../layout/platform-session-bar';
 import type { ApplicationComponentProps } from '../application-component';
 import { AdvisorDetailScreen } from './advisor-detail-screen';
 import { AdvisorGoalsListScreen } from './advisor-goals-list-screen';
+import { BrandGoalsListScreen } from './brand-goals-list-screen';
+import { CatalogItemManagementScreen } from './catalog-item-management-screen';
+import { EmpresaManagementScreen } from './empresa-management-screen';
 import './meta-company-application.css';
-import { buildAdvisorDetailPath, parseMetaCompanyRoute } from './meta-company-routes';
-
-type Catalogs = Awaited<
-  ReturnType<ApplicationComponentProps['api']['applications']['listMetaCompanyCatalogs']>
->;
-type CatalogItem = Catalogs['brands'][number];
-type Advisor = Catalogs['advisors'][number];
-type Capabilities = Awaited<
-  ReturnType<ApplicationComponentProps['api']['applications']['getMetaCompanyCapabilities']>
->;
-type CatalogKind = 'brand' | 'business';
-
-const EMPTY_CATALOGS: Catalogs = { empresas: [], brands: [], businesses: [], advisors: [] };
-const NO_CAPABILITIES: Capabilities = { canManageCatalogs: false, canManageGoals: false };
+import {
+  buildAdvisorDetailPath,
+  buildBrandGoalsPath,
+  buildManageEmpresasPath,
+  buildManageMarcasPath,
+  buildManageNegociosPath,
+  parseMetaCompanyRoute,
+} from './meta-company-routes';
+import { EMPTY_CATALOGS, NO_CAPABILITIES, type Advisor, type CatalogItem, type Catalogs, type Empresa } from './meta-company-types';
 
 export function MetaCompanyApplication(props: ApplicationComponentProps): React.JSX.Element {
+  const launchPath = props.application.launchPath;
   const route = useMemo(
-    () => parseMetaCompanyRoute(props.pathname, props.application.launchPath),
-    [props.pathname, props.application.launchPath],
+    () => parseMetaCompanyRoute(props.pathname, launchPath),
+    [props.pathname, launchPath],
   );
   const [year, setYear] = useState(() => new Date().getFullYear());
+  const [catalogs, setCatalogs] = useState<Catalogs>(EMPTY_CATALOGS);
   const [allCatalogs, setAllCatalogs] = useState<Catalogs>(EMPTY_CATALOGS);
-  const [capabilities, setCapabilities] = useState<Capabilities>(NO_CAPABILITIES);
+  const [capabilities, setCapabilities] = useState(NO_CAPABILITIES);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
-  const [isManagingCatalogs, setIsManagingCatalogs] = useState(false);
   const [isManagingAdvisors, setIsManagingAdvisors] = useState(false);
   const [catalogAction, setCatalogAction] = useState<string>();
 
   const loadWorkspace = async (): Promise<void> => {
     setError(undefined);
     try {
-      const loadedCapabilities = await props.api.applications.getMetaCompanyCapabilities();
+      const [loadedCatalogs, loadedCapabilities] = await Promise.all([
+        props.api.applications.listMetaCompanyCatalogs(),
+        props.api.applications.getMetaCompanyCapabilities(),
+      ]);
+      setCatalogs(loadedCatalogs);
       setCapabilities(loadedCapabilities);
       if (loadedCapabilities.canManageCatalogs) {
         setAllCatalogs(await props.api.applications.listAllMetaCompanyCatalogs());
@@ -64,33 +67,110 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
     void loadWorkspace();
   }, [props.api]);
 
-  const createCatalogItem = async (kind: CatalogKind, form: HTMLFormElement): Promise<void> => {
-    const values = new FormData(form);
-    const name = String(values.get('name') ?? '');
-    const empresaId = Number(values.get('empresaId'));
-    setCatalogAction(`${kind}-create`);
+  const saveEmpresa = async (
+    input: { code: string; name: string },
+    editingId: number | undefined,
+  ): Promise<void> => {
+    setCatalogAction(editingId === undefined ? 'empresa-create' : `empresa-edit-${editingId}`);
+    setError(undefined);
+    setNotice(undefined);
+    try {
+      if (editingId === undefined) {
+        await props.api.applications.createMetaCompanyEmpresa(input);
+      } else {
+        await props.api.applications.updateMetaCompanyEmpresa(editingId, input);
+      }
+      await loadWorkspace();
+      setNotice(editingId === undefined ? 'Empresa creada.' : 'Empresa actualizada.');
+    } catch (creationError: unknown) {
+      reportFailure(creationError, {
+        operation: 'meta-company.save-empresa',
+        method: editingId === undefined ? 'POST' : 'PATCH',
+        route: '/api/applications/meta-company/empresas',
+        provider: 'api',
+      });
+      setError('No pudimos guardar la empresa. Revisá los datos e intentá nuevamente.');
+      throw creationError;
+    } finally {
+      setCatalogAction(undefined);
+    }
+  };
+
+  const toggleEmpresaActive = async (empresa: Empresa): Promise<void> => {
+    setCatalogAction(`empresa-${empresa.id}`);
+    setError(undefined);
+    setNotice(undefined);
+    try {
+      await props.api.applications.setMetaCompanyEmpresaActive(empresa.id, !empresa.active);
+      await loadWorkspace();
+      setNotice(empresa.active ? `${empresa.name} fue desactivada.` : `${empresa.name} fue reactivada.`);
+    } catch (statusError: unknown) {
+      reportFailure(statusError, {
+        operation: 'meta-company.update-empresa-status',
+        method: 'PATCH',
+        route: '/api/applications/meta-company/empresas/:id/active',
+        provider: 'api',
+      });
+      setError('No pudimos actualizar el estado de la empresa. Intentá nuevamente.');
+    } finally {
+      setCatalogAction(undefined);
+    }
+  };
+
+  const saveCatalogItem = async (
+    kind: 'brand' | 'business',
+    input: { empresaId: number; name: string },
+    editingId: number | undefined,
+  ): Promise<void> => {
+    setCatalogAction(editingId === undefined ? `${kind}-create` : `${kind}-edit-${editingId}`);
     setError(undefined);
     setNotice(undefined);
     try {
       if (kind === 'brand') {
-        await props.api.applications.createMetaCompanyBrand({ empresaId, name });
+        if (editingId === undefined) await props.api.applications.createMetaCompanyBrand(input);
+        else await props.api.applications.updateMetaCompanyBrand(editingId, input);
+      } else if (editingId === undefined) {
+        await props.api.applications.createMetaCompanyBusiness(input);
       } else {
-        await props.api.applications.createMetaCompanyBusiness({ empresaId, name });
+        await props.api.applications.updateMetaCompanyBusiness(editingId, input);
       }
       await loadWorkspace();
-      form.reset();
-      setNotice(kind === 'brand' ? 'Marca creada.' : 'Negocio creado.');
+      const label = kind === 'brand' ? 'Marca' : 'Negocio';
+      setNotice(editingId === undefined ? `${label} creado.` : `${label} actualizado.`);
     } catch (creationError: unknown) {
       reportFailure(creationError, {
-        operation: 'meta-company.create-catalog',
-        method: 'POST',
-        route:
-          kind === 'brand'
-            ? '/api/applications/meta-company/brands'
-            : '/api/applications/meta-company/businesses',
+        operation: 'meta-company.save-catalog-item',
+        method: editingId === undefined ? 'POST' : 'PATCH',
+        route: `/api/applications/meta-company/${kind === 'brand' ? 'brands' : 'businesses'}`,
         provider: 'api',
       });
-      setError(kind === 'brand' ? 'No pudimos crear la marca.' : 'No pudimos crear el negocio.');
+      setError(kind === 'brand' ? 'No pudimos guardar la marca.' : 'No pudimos guardar el negocio.');
+      throw creationError;
+    } finally {
+      setCatalogAction(undefined);
+    }
+  };
+
+  const toggleCatalogItemActive = async (kind: 'brand' | 'business', item: CatalogItem): Promise<void> => {
+    setCatalogAction(`${kind}-${item.id}`);
+    setError(undefined);
+    setNotice(undefined);
+    try {
+      if (kind === 'brand') {
+        await props.api.applications.setMetaCompanyBrandActive(item.id, !item.active);
+      } else {
+        await props.api.applications.setMetaCompanyBusinessActive(item.id, !item.active);
+      }
+      await loadWorkspace();
+      setNotice(item.active ? `${item.name} fue desactivado.` : `${item.name} fue reactivado.`);
+    } catch (statusError: unknown) {
+      reportFailure(statusError, {
+        operation: 'meta-company.update-catalog-status',
+        method: 'PATCH',
+        route: `/api/applications/meta-company/${kind === 'brand' ? 'brands' : 'businesses'}/:id/active`,
+        provider: 'api',
+      });
+      setError('No pudimos actualizar el estado. Intentá nuevamente.');
     } finally {
       setCatalogAction(undefined);
     }
@@ -152,21 +232,28 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
     }
   };
 
-  const isDetail = route.view === 'advisor-detail';
+  const isHome = route.view === 'advisors' || route.view === 'brands';
+  const managementBreadcrumbs: Partial<Record<typeof route.view, string>> = {
+    'advisor-detail': 'Detalle de asesor',
+    'manage-empresas': 'Gestión de empresas',
+    'manage-negocios': 'Gestión de negocios',
+    'manage-marcas': 'Gestión de marcas',
+  };
+  const breadcrumb = managementBreadcrumbs[route.view];
 
   return (
     <main className="platform-shell meta-company-shell">
       <PlatformHeader
         applications={props.availableApplications}
         applicationName={props.application.name}
-        applicationLaunchPath={props.application.launchPath}
+        applicationLaunchPath={launchPath}
         isLoggingOut={props.isLoggingOut}
         isPlatformAdministrator={props.session.isPlatformAdministrator}
         showAdministrationLink={false}
         variant="application"
-        breadcrumb={isDetail ? 'Detalle de asesor' : undefined}
-        backLabel={isDetail ? 'Metas por asesor' : undefined}
-        onBack={isDetail ? () => props.onNavigate(props.application.launchPath) : undefined}
+        breadcrumb={breadcrumb}
+        backLabel={breadcrumb === undefined ? undefined : 'Metas comerciales'}
+        onBack={breadcrumb === undefined ? undefined : () => props.onNavigate(launchPath)}
         onNavigate={props.onNavigate}
         onLogout={props.onLogout}
       />
@@ -183,7 +270,7 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
           </p>
         )}
 
-        {route.view === 'advisors' ? (
+        {isHome ? (
           <>
             <header className="mc-title">
               <div>
@@ -192,14 +279,29 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
               </div>
               <div className="mc-title-actions">
                 {capabilities.canManageCatalogs ? (
-                  <button
-                    type="button"
-                    className="mc-secondary-action"
-                    aria-expanded={isManagingCatalogs}
-                    onClick={() => setIsManagingCatalogs((visible) => !visible)}
-                  >
-                    Gestionar marcas y negocios
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className="mc-secondary-action"
+                      onClick={() => props.onNavigate(buildManageEmpresasPath(launchPath))}
+                    >
+                      Gestionar empresas
+                    </button>
+                    <button
+                      type="button"
+                      className="mc-secondary-action"
+                      onClick={() => props.onNavigate(buildManageNegociosPath(launchPath))}
+                    >
+                      Gestionar negocios
+                    </button>
+                    <button
+                      type="button"
+                      className="mc-secondary-action"
+                      onClick={() => props.onNavigate(buildManageMarcasPath(launchPath))}
+                    >
+                      Gestionar marcas
+                    </button>
+                  </>
                 ) : null}
                 {capabilities.canManageCatalogs ? (
                   <button
@@ -214,36 +316,22 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
               </div>
             </header>
 
-            {isManagingCatalogs ? (
-              <section className="mc-workbench" aria-labelledby="mc-catalog-title">
-                <div className="mc-workbench-heading">
-                  <div>
-                    <h2 id="mc-catalog-title">Marcas y negocios</h2>
-                    <p>
-                      Los registros inactivos se conservan para no alterar el histórico de Power BI.
-                    </p>
-                  </div>
-                </div>
-                <div className="mc-catalog-grid">
-                  <CatalogManagement
-                    title="Marcas"
-                    items={allCatalogs.brands}
-                    empresas={allCatalogs.empresas}
-                    kind="brand"
-                    action={catalogAction}
-                    onCreate={createCatalogItem}
-                  />
-                  <CatalogManagement
-                    title="Negocios"
-                    items={allCatalogs.businesses}
-                    empresas={allCatalogs.empresas}
-                    kind="business"
-                    action={catalogAction}
-                    onCreate={createCatalogItem}
-                  />
-                </div>
-              </section>
-            ) : null}
+            <div className="mc-mode-switch" role="group" aria-label="Tipo de metas">
+              <button
+                type="button"
+                className={route.view === 'advisors' ? 'is-active' : ''}
+                onClick={() => props.onNavigate(launchPath)}
+              >
+                Por asesor
+              </button>
+              <button
+                type="button"
+                className={route.view === 'brands' ? 'is-active' : ''}
+                onClick={() => props.onNavigate(buildBrandGoalsPath(launchPath))}
+              >
+                Por marca
+              </button>
+            </div>
 
             {isManagingAdvisors ? (
               <section className="mc-workbench" aria-labelledby="mc-advisor-title">
@@ -263,28 +351,70 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
               </section>
             ) : null}
 
-            <AdvisorGoalsListScreen
-              year={year}
-              onYearChange={setYear}
-              canEdit={capabilities.canManageGoals}
-              onSelectAdvisor={(advisorId) =>
-                props.onNavigate(buildAdvisorDetailPath(props.application.launchPath, advisorId, year))
-              }
-            />
+            {route.view === 'advisors' ? (
+              <AdvisorGoalsListScreen
+                advisors={catalogs.advisors}
+                year={year}
+                onYearChange={setYear}
+                canEdit={capabilities.canManageGoals}
+                onSelectAdvisor={(advisorId) =>
+                  props.onNavigate(buildAdvisorDetailPath(launchPath, advisorId, year))
+                }
+              />
+            ) : (
+              <BrandGoalsListScreen
+                brands={catalogs.brands}
+                year={year}
+                onYearChange={setYear}
+                canEdit={capabilities.canManageGoals}
+              />
+            )}
           </>
         ) : null}
 
         {route.view === 'advisor-detail' ? (
           <AdvisorDetailScreen
             advisorId={route.advisorId}
+            advisors={catalogs.advisors}
             year={route.year ?? year}
             canEdit={capabilities.canManageGoals}
             onNavigateYear={(newYear) => {
               setYear(newYear);
-              props.onNavigate(
-                buildAdvisorDetailPath(props.application.launchPath, route.advisorId, newYear),
-              );
+              props.onNavigate(buildAdvisorDetailPath(launchPath, route.advisorId, newYear));
             }}
+          />
+        ) : null}
+
+        {route.view === 'manage-empresas' ? (
+          <EmpresaManagementScreen
+            empresas={allCatalogs.empresas}
+            action={catalogAction}
+            onSave={saveEmpresa}
+            onToggle={toggleEmpresaActive}
+          />
+        ) : null}
+
+        {route.view === 'manage-negocios' ? (
+          <CatalogItemManagementScreen
+            kind="business"
+            title="Negocios"
+            items={allCatalogs.businesses}
+            empresas={allCatalogs.empresas}
+            action={catalogAction}
+            onSave={(input, editingId) => saveCatalogItem('business', input, editingId)}
+            onToggle={(item) => toggleCatalogItemActive('business', item)}
+          />
+        ) : null}
+
+        {route.view === 'manage-marcas' ? (
+          <CatalogItemManagementScreen
+            kind="brand"
+            title="Marcas"
+            items={allCatalogs.brands}
+            empresas={allCatalogs.empresas}
+            action={catalogAction}
+            onSave={(input, editingId) => saveCatalogItem('brand', input, editingId)}
+            onToggle={(item) => toggleCatalogItemActive('brand', item)}
           />
         ) : null}
 
@@ -296,68 +426,6 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
         ) : null}
       </section>
     </main>
-  );
-}
-
-interface CatalogManagementProps {
-  title: string;
-  items: CatalogItem[];
-  empresas: Catalogs['empresas'];
-  kind: CatalogKind;
-  action: string | undefined;
-  onCreate: (kind: CatalogKind, form: HTMLFormElement) => Promise<void>;
-}
-
-function CatalogManagement({
-  title,
-  items,
-  empresas,
-  kind,
-  action,
-  onCreate,
-}: CatalogManagementProps): React.JSX.Element {
-  return (
-    <section className="mc-catalog-section">
-      <h3>{title}</h3>
-      <form
-        className="mc-catalog-create"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void onCreate(kind, event.currentTarget);
-        }}
-      >
-        <label htmlFor={`mc-${kind}-empresa`}>Empresa</label>
-        <select id={`mc-${kind}-empresa`} name="empresaId" required defaultValue="">
-          <option value="" disabled>
-            Seleccioná una empresa
-          </option>
-          {empresas.map((empresa) => (
-            <option key={empresa.id} value={empresa.id}>
-              {empresa.name}
-            </option>
-          ))}
-        </select>
-        <label htmlFor={`mc-${kind}-name`}>
-          {kind === 'brand' ? 'Nueva marca' : 'Nuevo negocio'}
-        </label>
-        <div>
-          <input id={`mc-${kind}-name`} name="name" required />
-          <button className="mc-secondary-action" disabled={action === `${kind}-create`}>
-            {action === `${kind}-create` ? 'Agregando…' : 'Agregar'}
-          </button>
-        </div>
-      </form>
-      <ul className="mc-catalog-list">
-        {items.map((item) => (
-          <li key={item.id}>
-            <div>
-              <strong>{item.name}</strong>
-              <span>{item.active ? 'Activo' : 'Inactivo'}</span>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
   );
 }
 
@@ -448,7 +516,7 @@ function AdvisorManagement({
 
   return (
     <>
-      <form className="mc-advisor-form" onSubmit={(event) => void submit(event)}>
+      <form className="mc-manage-form" onSubmit={(event) => void submit(event)}>
         <div className="mc-workbench-heading">
           <h3>{editingId === undefined ? 'Nuevo asesor' : 'Editar asesor'}</h3>
           {editingId === undefined ? null : (
@@ -457,7 +525,7 @@ function AdvisorManagement({
             </button>
           )}
         </div>
-        <div className="mc-advisor-form-grid">
+        <div className="mc-manage-form-grid">
           <label>
             Empresa
             <select
@@ -515,8 +583,8 @@ function AdvisorManagement({
           {isSaving ? 'Guardando…' : editingId === undefined ? 'Agregar asesor' : 'Guardar cambios'}
         </button>
       </form>
-      <div className="mc-advisor-table-wrapper">
-        <table className="mc-advisor-table">
+      <div className="mc-manage-table-wrapper">
+        <table className="mc-manage-table">
           <caption>Asesores registrados</caption>
           <thead>
             <tr>
@@ -540,7 +608,7 @@ function AdvisorManagement({
                 </td>
                 <td>{advisor.kind === 'PERSON' ? 'Persona' : 'Canal de venta'}</td>
                 <td>{advisor.active ? 'Activo' : 'Inactivo'}</td>
-                <td className="mc-advisor-actions">
+                <td className="mc-manage-actions">
                   <button
                     type="button"
                     className="mc-text-action"

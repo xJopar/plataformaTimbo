@@ -64,6 +64,29 @@ export class MetaCompanyService {
     return empresa;
   }
 
+  public async updateEmpresa(id: number, code: string, name: string, actorUserId: string) {
+    const empresa = await this.prisma.commercialEmpresa.update({
+      where: { id: parseId(id) },
+      data: { code: normalizeCode(code), name: normalizeName(name, 100) },
+    }).catch(throwEmpresaNotFound);
+    await this.appendAuditEvent('meta-company.empresa_updated', actorUserId, 'commercial_empresa', empresa.id);
+    return empresa;
+  }
+
+  public async setEmpresaActive(id: number, active: boolean, actorUserId: string) {
+    const empresa = await this.prisma.commercialEmpresa.update({
+      where: { id: parseId(id) },
+      data: { active },
+    }).catch(throwEmpresaNotFound);
+    await this.appendAuditEvent(
+      active ? 'meta-company.empresa_reactivated' : 'meta-company.empresa_deactivated',
+      actorUserId,
+      'commercial_empresa',
+      empresa.id,
+    );
+    return empresa;
+  }
+
   public async createBrand(empresaId: number, name: string, actorUserId: string) {
     const brand = await this.prisma.commercialBrand.create({
       data: { empresaId: await this.requireActiveEmpresa(empresaId), name: normalizeName(name, 100) },
@@ -72,11 +95,57 @@ export class MetaCompanyService {
     return brand;
   }
 
+  public async updateBrand(id: number, empresaId: number, name: string, actorUserId: string) {
+    const brand = await this.prisma.commercialBrand.update({
+      where: { id: parseId(id) },
+      data: { empresaId: await this.requireActiveEmpresa(empresaId), name: normalizeName(name, 100) },
+    }).catch(throwBrandNotFound);
+    await this.appendAuditEvent('meta-company.brand_updated', actorUserId, 'commercial_brand', brand.id);
+    return brand;
+  }
+
+  public async setBrandActive(id: number, active: boolean, actorUserId: string) {
+    const brand = await this.prisma.commercialBrand.update({
+      where: { id: parseId(id) },
+      data: { active },
+    }).catch(throwBrandNotFound);
+    await this.appendAuditEvent(
+      active ? 'meta-company.brand_reactivated' : 'meta-company.brand_deactivated',
+      actorUserId,
+      'commercial_brand',
+      brand.id,
+    );
+    return brand;
+  }
+
   public async createBusiness(empresaId: number, name: string, actorUserId: string) {
     const business = await this.prisma.commercialBusiness.create({
       data: { empresaId: await this.requireActiveEmpresa(empresaId), name: normalizeName(name, 50) },
     });
     await this.appendAuditEvent('meta-company.business_created', actorUserId, 'commercial_business', business.id);
+    return business;
+  }
+
+  public async updateBusiness(id: number, empresaId: number, name: string, actorUserId: string) {
+    const business = await this.prisma.commercialBusiness.update({
+      where: { id: parseId(id) },
+      data: { empresaId: await this.requireActiveEmpresa(empresaId), name: normalizeName(name, 50) },
+    }).catch(throwBusinessNotFound);
+    await this.appendAuditEvent('meta-company.business_updated', actorUserId, 'commercial_business', business.id);
+    return business;
+  }
+
+  public async setBusinessActive(id: number, active: boolean, actorUserId: string) {
+    const business = await this.prisma.commercialBusiness.update({
+      where: { id: parseId(id) },
+      data: { active },
+    }).catch(throwBusinessNotFound);
+    await this.appendAuditEvent(
+      active ? 'meta-company.business_reactivated' : 'meta-company.business_deactivated',
+      actorUserId,
+      'commercial_business',
+      business.id,
+    );
     return business;
   }
 
@@ -191,6 +260,9 @@ export class MetaCompanyService {
 
 function throwGoalNotFound(): never { throw new NotFoundException('No se encontro la meta solicitada.'); }
 function throwAdvisorNotFound(): never { throw new NotFoundException('No se encontro el asesor solicitado.'); }
+function throwEmpresaNotFound(): never { throw new NotFoundException('No se encontro la empresa solicitada.'); }
+function throwBrandNotFound(): never { throw new NotFoundException('No se encontro la marca solicitada.'); }
+function throwBusinessNotFound(): never { throw new NotFoundException('No se encontro el negocio solicitado.'); }
 function parsePeriod(value: string): Date { if (!/^\d{4}-\d{2}-01$/.test(value)) throw new BadRequestException('El periodo debe ser el primer dia de un mes.'); const date = new Date(`${value}T00:00:00.000Z`); if (Number.isNaN(date.valueOf())) throw new BadRequestException('El periodo no es valido.'); return date; }
 function parseId(value: number): number { if (!Number.isSafeInteger(value) || value <= 0) throw new BadRequestException('El identificador es invalido.'); return value; }
 function parseValue(value: string): Prisma.Decimal { if (!/^\d{1,16}(?:\.\d{1,2})?$/.test(value)) throw new BadRequestException('La meta debe ser un decimal no negativo con hasta dos decimales.'); return new Prisma.Decimal(value); }

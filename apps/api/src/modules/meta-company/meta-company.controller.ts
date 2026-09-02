@@ -5,7 +5,7 @@ import { APPLICATION_AUTHORIZATION_SERVICE } from '../access-profiles/access-pro
 import { CsrfProtectionGuard } from '../auth/csrf-protection.guard';
 import { type AuthenticatedRequest, SessionAuthenticationGuard } from '../auth/session-authentication.guard';
 import { META_COMPANY_APPLICATION_KEY, MetaCompanyApplicationAccessGuard } from './meta-company-application-access.guard';
-import { CreateMetaCompanyAdvisorDto, CreateMetaCompanyAdvisorGoalDto, CreateMetaCompanyBrandGoalDto, CreateMetaCompanyCatalogItemDto, CreateMetaCompanyEmpresaDto, MetaCompanyAdvisorGoalListItemDto, MetaCompanyAdvisorGoalResponseDto, MetaCompanyAdvisorResponseDto, MetaCompanyBrandGoalResponseDto, MetaCompanyCapabilitiesResponseDto, MetaCompanyCatalogItemResponseDto, MetaCompanyCatalogResponseDto, MetaCompanyEmpresaResponseDto, SetMetaCompanyCatalogItemActiveDto, UpdateMetaCompanyAdvisorDto, UpdateMetaCompanyGoalDto } from './dto/meta-company.dto';
+import { CreateMetaCompanyAdvisorDto, CreateMetaCompanyAdvisorGoalDto, CreateMetaCompanyBrandGoalDto, CreateMetaCompanyCatalogItemDto, CreateMetaCompanyEmpresaDto, MetaCompanyAdvisorGoalListItemDto, MetaCompanyAdvisorGoalResponseDto, MetaCompanyAdvisorResponseDto, MetaCompanyBrandGoalResponseDto, MetaCompanyCapabilitiesResponseDto, MetaCompanyCatalogItemResponseDto, MetaCompanyCatalogResponseDto, MetaCompanyEmpresaResponseDto, SetMetaCompanyCatalogItemActiveDto, UpdateMetaCompanyAdvisorDto, UpdateMetaCompanyCatalogItemDto, UpdateMetaCompanyEmpresaDto, UpdateMetaCompanyGoalDto } from './dto/meta-company.dto';
 import { MetaCompanyCatalogManagementGuard, MetaCompanyGoalManagementGuard } from './meta-company-permission.guards';
 import { MetaCompanyService } from './meta-company.service';
 
@@ -66,11 +66,29 @@ export class MetaCompanyController {
   @Post('empresas') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyEmpresaDto }) @ApiCreatedResponse({ type: MetaCompanyEmpresaResponseDto })
   public async createEmpresa(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return this.metaCompanyService.createEmpresa(stringValue(body.code), stringValue(body.name), requireAuthenticatedUserId(request)); }
 
+  @Patch('empresas/:id') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: UpdateMetaCompanyEmpresaDto }) @ApiOkResponse({ type: MetaCompanyEmpresaResponseDto })
+  public async updateEmpresa(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return this.metaCompanyService.updateEmpresa(Number(id), stringValue(body.code), stringValue(body.name), requireAuthenticatedUserId(request)); }
+
+  @Patch('empresas/:id/active') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: SetMetaCompanyCatalogItemActiveDto }) @ApiOkResponse({ type: MetaCompanyEmpresaResponseDto })
+  public async setEmpresaActive(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return this.metaCompanyService.setEmpresaActive(Number(id), booleanValue(body.active), requireAuthenticatedUserId(request)); }
+
   @Post('brands') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyCatalogItemDto }) @ApiCreatedResponse({ type: MetaCompanyCatalogItemResponseDto })
   public async createBrand(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return this.metaCompanyService.createBrand(numberValue(body.empresaId), stringValue(body.name), requireAuthenticatedUserId(request)); }
 
+  @Patch('brands/:id') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: UpdateMetaCompanyCatalogItemDto }) @ApiOkResponse({ type: MetaCompanyCatalogItemResponseDto })
+  public async updateBrand(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return this.metaCompanyService.updateBrand(Number(id), numberValue(body.empresaId), stringValue(body.name), requireAuthenticatedUserId(request)); }
+
+  @Patch('brands/:id/active') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: SetMetaCompanyCatalogItemActiveDto }) @ApiOkResponse({ type: MetaCompanyCatalogItemResponseDto })
+  public async setBrandActive(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return this.metaCompanyService.setBrandActive(Number(id), booleanValue(body.active), requireAuthenticatedUserId(request)); }
+
   @Post('businesses') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyCatalogItemDto }) @ApiCreatedResponse({ type: MetaCompanyCatalogItemResponseDto })
   public async createBusiness(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return this.metaCompanyService.createBusiness(numberValue(body.empresaId), stringValue(body.name), requireAuthenticatedUserId(request)); }
+
+  @Patch('businesses/:id') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: UpdateMetaCompanyCatalogItemDto }) @ApiOkResponse({ type: MetaCompanyCatalogItemResponseDto })
+  public async updateBusiness(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return this.metaCompanyService.updateBusiness(Number(id), numberValue(body.empresaId), stringValue(body.name), requireAuthenticatedUserId(request)); }
+
+  @Patch('businesses/:id/active') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: SetMetaCompanyCatalogItemActiveDto }) @ApiOkResponse({ type: MetaCompanyCatalogItemResponseDto })
+  public async setBusinessActive(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return this.metaCompanyService.setBusinessActive(Number(id), booleanValue(body.active), requireAuthenticatedUserId(request)); }
 
   @Post('advisors') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyAdvisorDto }) @ApiCreatedResponse({ type: MetaCompanyAdvisorResponseDto })
   public async createAdvisor(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return this.metaCompanyService.createAdvisor({ empresaId: numberValue(body.empresaId), sourceSystem: stringValue(body.sourceSystem), externalCode: stringValue(body.externalCode), displayName: stringValue(body.displayName), kind: stringValue(body.kind) }, requireAuthenticatedUserId(request)); }

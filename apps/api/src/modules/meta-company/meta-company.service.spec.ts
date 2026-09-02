@@ -5,15 +5,17 @@ import { MetaCompanyService } from './meta-company.service';
 
 describe('MetaCompanyService', () => {
   const secondaryPrisma = {
-    commercialEmpresa: { findMany: jest.fn() },
-    commercialBrand: { findMany: jest.fn() },
+    commercialEmpresa: { findMany: jest.fn(), update: jest.fn() },
+    commercialBrand: { findMany: jest.fn(), update: jest.fn() },
     commercialBusiness: { findMany: jest.fn() },
     commercialAdvisor: { findMany: jest.fn() },
   };
+  const auditEventsService = { append: jest.fn().mockResolvedValue(undefined) };
+  const platformPrisma = { $transaction: jest.fn((callback: (tx: unknown) => unknown) => callback({})) };
   const service = new MetaCompanyService(
     secondaryPrisma as unknown as MetaCompanyPrismaService,
-    {} as PrismaService,
-    {} as AuditEventsService,
+    platformPrisma as unknown as PrismaService,
+    auditEventsService as unknown as AuditEventsService,
   );
 
   it('lista las dimensiones activas del espacio comercial', async () => {
@@ -32,5 +34,43 @@ describe('MetaCompanyService', () => {
       where: { active: true },
       orderBy: { name: 'asc' },
     });
+  });
+
+  it('actualiza una empresa y audita el evento correspondiente', async () => {
+    secondaryPrisma.commercialEmpresa.update.mockResolvedValue({ id: 1, code: 'TIMBO', name: 'Timbo SA', active: true });
+
+    await expect(service.updateEmpresa(1, 'timbo', 'Timbo SA', 'user-1')).resolves.toEqual({
+      id: 1,
+      code: 'TIMBO',
+      name: 'Timbo SA',
+      active: true,
+    });
+    expect(secondaryPrisma.commercialEmpresa.update).toHaveBeenCalledWith({
+      where: { id: 1 },
+      data: { code: 'TIMBO', name: 'Timbo SA' },
+    });
+    expect(auditEventsService.append).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({ eventName: 'meta-company.empresa_updated' }),
+    );
+  });
+
+  it('activa/desactiva una marca y audita el evento correspondiente', async () => {
+    secondaryPrisma.commercialBrand.update.mockResolvedValue({ id: 2, empresaId: 1, name: 'Facchini', active: false });
+
+    await expect(service.setBrandActive(2, false, 'user-1')).resolves.toEqual({
+      id: 2,
+      empresaId: 1,
+      name: 'Facchini',
+      active: false,
+    });
+    expect(secondaryPrisma.commercialBrand.update).toHaveBeenCalledWith({
+      where: { id: 2 },
+      data: { active: false },
+    });
+    expect(auditEventsService.append).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({ eventName: 'meta-company.brand_deactivated' }),
+    );
   });
 });
