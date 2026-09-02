@@ -15,11 +15,15 @@ export type BrowserOperation =
   | 'meta-company.update-goal'
   | 'meta-company.create-goal'
   | 'meta-company.create-catalog'
-  | 'meta-company.update-catalog';
+  | 'meta-company.update-catalog'
+  | 'seguimiento-5s.load-data'
+  | 'seguimiento-5s.save-entries'
+  | 'seguimiento-5s.manage-indicators'
+  | 'seguimiento-5s.manage-participants';
 
 export interface BrowserOperationFailureContext {
   operation: BrowserOperation;
-  method: 'GET' | 'POST' | 'PATCH';
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT';
   route: string;
   provider: 'api' | 'mymemory';
   status?: number;

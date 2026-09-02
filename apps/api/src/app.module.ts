@@ -9,6 +9,7 @@ import { HelloWorldModule } from './modules/hello-world/hello-world.module';
 import { ListaPreciosModule } from './modules/lista-precios/lista-precios.module';
 import { MetaCompanyModule } from './modules/meta-company/meta-company.module';
 import { ObservabilityModule } from './modules/observability/observability.module';
+import { Seguimiento5sModule } from './modules/seguimiento-5s/seguimiento-5s.module';
 import { UsersModule } from './modules/users/users.module';
 import { UsageEventsModule } from './modules/usage-events/usage-events.module';
 
@@ -24,6 +25,7 @@ import { UsageEventsModule } from './modules/usage-events/usage-events.module';
     HelloWorldModule,
     ListaPreciosModule,
     MetaCompanyModule,
+    Seguimiento5sModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: AuthExceptionFilter }],
 })

@@ -141,12 +141,19 @@ export class AuditEventsService {
           'commercial_advisor',
           'commercial_brand_goal',
           'commercial_advisor_goal',
-        ].includes(
-          target.targetType,
-        ) ||
+        ].includes(target.targetType) ||
         target.targetId.trim().length === 0
       ) {
         throw new Error('El catálogo de auditoría requiere un recurso de Meta Company.');
+      }
+    }
+
+    if (targetRule === 'seguimiento-5s-indicator-required') {
+      if (
+        target?.targetType !== 'seguimiento_5s_indicator' ||
+        target.targetId.trim().length === 0
+      ) {
+        throw new Error('El catálogo de auditoría requiere un indicador de Seguimiento 5S.');
       }
     }
   }

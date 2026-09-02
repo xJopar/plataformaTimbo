@@ -31,6 +31,47 @@ export interface ListaPreciosUsageEventRequest {
   model?: string;
 }
 
+export type FiveSIndicator = NonNullable<
+  paths['/api/applications/seguimiento-5s/indicators']['get']['responses'][200]['content']['application/json']
+>[number];
+
+export type FiveSParticipant = NonNullable<
+  paths['/api/applications/seguimiento-5s/participants']['get']['responses'][200]['content']['application/json']
+>[number];
+
+export type FiveSDailyEntries = NonNullable<
+  paths['/api/applications/seguimiento-5s/entries']['get']['responses'][200]['content']['application/json']
+>;
+
+export type FiveSDashboardSummary = NonNullable<
+  paths['/api/applications/seguimiento-5s/dashboard/summary']['get']['responses'][200]['content']['application/json']
+>;
+
+export type FiveSCapabilities = NonNullable<
+  paths['/api/applications/seguimiento-5s/capabilities']['get']['responses'][200]['content']['application/json']
+>;
+
+export type FiveSRoleKey = NonNullable<FiveSParticipant['roleKey']>;
+export type FiveSEntryValue = 'MET' | 'NOT_MET' | 'NOT_APPLICABLE';
+
+export interface CreateFiveSIndicatorRequest {
+  key: string;
+  name: string;
+  controlledSince: string;
+  displayOrder?: number;
+}
+
+export interface UpdateFiveSIndicatorRequest {
+  name?: string;
+  controlledSince?: string;
+  displayOrder?: number;
+}
+
+export interface SaveFiveSDailyEntriesRequest {
+  entryDate: string;
+  entries: { userId: string; indicatorId: string; value: FiveSEntryValue }[];
+}
+
 export interface MetaCompanyGoalRequest {
   period: string;
   businessId: number;
@@ -86,6 +127,19 @@ export interface ApplicationsApi {
   >;
   setMetaCompanyBrandActive(id: number, active: boolean): Promise<void>;
   setMetaCompanyBusinessActive(id: number, active: boolean): Promise<void>;
+  getSeguimiento5sCapabilities(): Promise<FiveSCapabilities>;
+  listSeguimiento5sIndicators(includeInactive: boolean): Promise<FiveSIndicator[]>;
+  createSeguimiento5sIndicator(input: CreateFiveSIndicatorRequest): Promise<FiveSIndicator>;
+  updateSeguimiento5sIndicator(
+    id: string,
+    input: UpdateFiveSIndicatorRequest,
+  ): Promise<FiveSIndicator>;
+  setSeguimiento5sIndicatorActive(id: string, active: boolean): Promise<void>;
+  listSeguimiento5sParticipants(): Promise<FiveSParticipant[]>;
+  setSeguimiento5sParticipantRole(userId: string, roleKey: FiveSRoleKey): Promise<void>;
+  getSeguimiento5sDailyEntries(entryDate: string): Promise<FiveSDailyEntries>;
+  saveSeguimiento5sDailyEntries(input: SaveFiveSDailyEntriesRequest): Promise<FiveSDailyEntries>;
+  getSeguimiento5sDashboardSummary(from: string, to: string): Promise<FiveSDashboardSummary>;
 }
 
 export class ApplicationsApiUnavailableError extends Error {
@@ -259,6 +313,159 @@ export function createApplicationsApi(
         },
       );
       if (!response.ok) throw createApiHttpError(response);
+    },
+    async getSeguimiento5sCapabilities(): Promise<FiveSCapabilities> {
+      const { data, response } = await client
+        .GET('/api/applications/seguimiento-5s/capabilities')
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('getSeguimiento5sCapabilities', {
+            cause: error,
+          });
+        });
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin las capacidades esperadas.');
+      return data;
+    },
+    async listSeguimiento5sIndicators(includeInactive: boolean): Promise<FiveSIndicator[]> {
+      const { data, response } = await client
+        .GET('/api/applications/seguimiento-5s/indicators', {
+          params: { query: { includeInactive: String(includeInactive) } },
+        })
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('listSeguimiento5sIndicators', {
+            cause: error,
+          });
+        });
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin los indicadores esperados.');
+      return data;
+    },
+    async createSeguimiento5sIndicator(
+      input: CreateFiveSIndicatorRequest,
+    ): Promise<FiveSIndicator> {
+      const { data, response } = await client
+        .POST('/api/applications/seguimiento-5s/indicators', {
+          body: input,
+          headers: { 'x-timbo-csrf': '1' },
+        })
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('createSeguimiento5sIndicator', {
+            cause: error,
+          });
+        });
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin el indicador creado.');
+      return data;
+    },
+    async updateSeguimiento5sIndicator(
+      id: string,
+      input: UpdateFiveSIndicatorRequest,
+    ): Promise<FiveSIndicator> {
+      const { data, response } = await client
+        .PATCH('/api/applications/seguimiento-5s/indicators/{id}', {
+          params: { path: { id } },
+          body: input,
+          headers: { 'x-timbo-csrf': '1' },
+        })
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('updateSeguimiento5sIndicator', {
+            cause: error,
+          });
+        });
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin el indicador editado.');
+      return data;
+    },
+    async setSeguimiento5sIndicatorActive(id: string, active: boolean): Promise<void> {
+      const path = active
+        ? '/api/applications/seguimiento-5s/indicators/{id}/reactivate'
+        : '/api/applications/seguimiento-5s/indicators/{id}/deactivate';
+      const { response } = await client
+        .POST(path, {
+          params: { path: { id } },
+          headers: { 'x-timbo-csrf': '1' },
+        })
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('setSeguimiento5sIndicatorActive', {
+            cause: error,
+          });
+        });
+      if (!response.ok) throw createApiHttpError(response);
+    },
+    async listSeguimiento5sParticipants(): Promise<FiveSParticipant[]> {
+      const { data, response } = await client
+        .GET('/api/applications/seguimiento-5s/participants')
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('listSeguimiento5sParticipants', {
+            cause: error,
+          });
+        });
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin los participantes esperados.');
+      return data;
+    },
+    async setSeguimiento5sParticipantRole(userId: string, roleKey: FiveSRoleKey): Promise<void> {
+      const { response } = await client
+        .POST('/api/applications/seguimiento-5s/participants/{userId}/role', {
+          params: { path: { userId } },
+          body: { roleKey },
+          headers: { 'x-timbo-csrf': '1' },
+        })
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('setSeguimiento5sParticipantRole', {
+            cause: error,
+          });
+        });
+      if (!response.ok) throw createApiHttpError(response);
+    },
+    async getSeguimiento5sDailyEntries(entryDate: string): Promise<FiveSDailyEntries> {
+      const { data, response } = await client
+        .GET('/api/applications/seguimiento-5s/entries', {
+          params: { query: { date: entryDate } },
+        })
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('getSeguimiento5sDailyEntries', {
+            cause: error,
+          });
+        });
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin el checklist diario esperado.');
+      return data;
+    },
+    async saveSeguimiento5sDailyEntries(
+      input: SaveFiveSDailyEntriesRequest,
+    ): Promise<FiveSDailyEntries> {
+      const { data, response } = await client
+        .PUT('/api/applications/seguimiento-5s/entries', {
+          body: input,
+          headers: { 'x-timbo-csrf': '1' },
+        })
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('saveSeguimiento5sDailyEntries', {
+            cause: error,
+          });
+        });
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin el checklist diario guardado.');
+      return data;
+    },
+    async getSeguimiento5sDashboardSummary(
+      from: string,
+      to: string,
+    ): Promise<FiveSDashboardSummary> {
+      const { data, response } = await client
+        .GET('/api/applications/seguimiento-5s/dashboard/summary', {
+          params: { query: { from, to } },
+        })
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('getSeguimiento5sDashboardSummary', {
+            cause: error,
+          });
+        });
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined)
+        throw new Error('La API respondió sin el resumen de dashboard esperado.');
+      return data;
     },
   };
 }

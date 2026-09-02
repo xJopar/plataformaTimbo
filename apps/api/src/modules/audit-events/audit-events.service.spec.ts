@@ -80,12 +80,18 @@ describe('AuditEventsService', () => {
       'access.user_application_profile_unassigned',
       'meta-company.goal_created',
       'meta-company.goal_updated',
+      'meta-company.empresa_created',
       'meta-company.brand_created',
       'meta-company.brand_deactivated',
       'meta-company.brand_reactivated',
       'meta-company.business_created',
       'meta-company.business_deactivated',
       'meta-company.business_reactivated',
+      'meta-company.advisor_created',
+      'seguimiento-5s.indicator_created',
+      'seguimiento-5s.indicator_updated',
+      'seguimiento-5s.indicator_deactivated',
+      'seguimiento-5s.indicator_reactivated',
     ]);
     expect(AUDIT_EVENT_CATALOG['security.login_succeeded']).toMatchObject({
       actorType: AuditActorType.USER,
@@ -153,6 +159,13 @@ describe('AuditEventsService', () => {
       actorType: AuditActorType.USER,
       outcome: AuditOutcome.SUCCESS,
       targetRule: 'meta-company-resource-required',
+      metadataFields: [],
+    });
+    expect(AUDIT_EVENT_CATALOG['seguimiento-5s.indicator_created']).toMatchObject({
+      appKey: 'seguimiento-5s',
+      actorType: AuditActorType.USER,
+      outcome: AuditOutcome.SUCCESS,
+      targetRule: 'seguimiento-5s-indicator-required',
       metadataFields: [],
     });
   });
@@ -235,6 +248,13 @@ describe('AuditEventsService', () => {
         target: { targetType: 'application', targetId: 'meta-a' },
       }),
     ).rejects.toThrow('requiere un recurso de Meta Company');
+    await expect(
+      service.append(transactionClient, {
+        eventName: 'seguimiento-5s.indicator_created',
+        actor: { actorType: AuditActorType.USER, actorUserId: 'user-a' },
+        target: { targetType: 'application', targetId: 'seguimiento-5s' },
+      }),
+    ).rejects.toThrow('requiere un indicador de Seguimiento 5S');
     await expect(
       service.append(transactionClient, {
         eventName: 'security.login_denied',

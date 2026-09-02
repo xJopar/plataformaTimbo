@@ -35,10 +35,18 @@ export type AuditEventName =
   | 'meta-company.business_created'
   | 'meta-company.business_deactivated'
   | 'meta-company.business_reactivated'
-  | 'meta-company.advisor_created';
+  | 'meta-company.advisor_created'
+  | 'seguimiento-5s.indicator_created'
+  | 'seguimiento-5s.indicator_updated'
+  | 'seguimiento-5s.indicator_deactivated'
+  | 'seguimiento-5s.indicator_reactivated';
 
 export type AuditTargetRule =
-  'forbidden' | 'user-required' | 'application-required' | 'meta-company-resource-required';
+  | 'forbidden'
+  | 'user-required'
+  | 'application-required'
+  | 'meta-company-resource-required'
+  | 'seguimiento-5s-indicator-required';
 
 export type LoginDeniedReasonCode =
   'USER_NOT_AUTHORIZED' | 'USER_INACTIVE' | 'GOOGLE_IDENTITY_MISMATCH' | 'GOOGLE_IDENTITY_INVALID';
@@ -51,7 +59,7 @@ export const LOGIN_DENIED_REASON_CODES: readonly LoginDeniedReasonCode[] = [
 ];
 
 export interface AuditEventCatalogEntry {
-  appKey: 'platform' | 'meta-company';
+  appKey: 'platform' | 'meta-company' | 'seguimiento-5s';
   actorType: AuditActorType;
   outcome: AuditOutcome;
   targetRule: AuditTargetRule;
@@ -302,6 +310,34 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
     actorType: AuditActorType.USER,
     outcome: AuditOutcome.SUCCESS,
     targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'seguimiento-5s.indicator_created': {
+    appKey: 'seguimiento-5s',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'seguimiento-5s-indicator-required',
+    metadataFields: [],
+  },
+  'seguimiento-5s.indicator_updated': {
+    appKey: 'seguimiento-5s',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'seguimiento-5s-indicator-required',
+    metadataFields: [],
+  },
+  'seguimiento-5s.indicator_deactivated': {
+    appKey: 'seguimiento-5s',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'seguimiento-5s-indicator-required',
+    metadataFields: [],
+  },
+  'seguimiento-5s.indicator_reactivated': {
+    appKey: 'seguimiento-5s',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'seguimiento-5s-indicator-required',
     metadataFields: [],
   },
 };

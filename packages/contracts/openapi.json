@@ -1739,14 +1739,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MetaCompanyGoalsResponseDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "summary": "Lista metas comerciales por periodo y empresa.",
@@ -2026,6 +2019,340 @@
             "description": ""
           }
         },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/seguimiento-5s/capabilities": {
+      "get": {
+        "operationId": "getSeguimiento5sCapabilities",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiveSCapabilitiesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtiene las acciones habilitadas para la sesión en Seguimiento 5S.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/seguimiento-5s/indicators": {
+      "get": {
+        "operationId": "listSeguimiento5sIndicators",
+        "parameters": [
+          {
+            "name": "includeInactive",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FiveSIndicatorResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista los indicadores 5S activos (o todos, si se pide explícitamente).",
+        "tags": [
+          "applications"
+        ]
+      },
+      "post": {
+        "operationId": "createSeguimiento5sIndicator",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFiveSIndicatorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiveSIndicatorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crea un indicador 5S.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/seguimiento-5s/indicators/{id}": {
+      "patch": {
+        "operationId": "updateSeguimiento5sIndicator",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFiveSIndicatorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiveSIndicatorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Edita un indicador 5S.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/seguimiento-5s/indicators/{id}/deactivate": {
+      "post": {
+        "operationId": "deactivateSeguimiento5sIndicator",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Desactiva un indicador 5S.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/seguimiento-5s/indicators/{id}/reactivate": {
+      "post": {
+        "operationId": "reactivateSeguimiento5sIndicator",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Reactiva un indicador 5S.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/seguimiento-5s/participants": {
+      "get": {
+        "operationId": "listSeguimiento5sParticipants",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FiveSParticipantResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista a los empleados asignados con su rol dentro de Seguimiento 5S.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/seguimiento-5s/participants/{userId}/role": {
+      "post": {
+        "operationId": "setSeguimiento5sParticipantRole",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFiveSParticipantRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Asigna el rol de líder o miembro a un participante.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/seguimiento-5s/entries": {
+      "get": {
+        "operationId": "getSeguimiento5sDailyEntries",
+        "parameters": [
+          {
+            "name": "date",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiveSDailyEntriesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtiene el checklist diario de todo el equipo para una fecha.",
+        "tags": [
+          "applications"
+        ]
+      },
+      "put": {
+        "operationId": "saveSeguimiento5sDailyEntries",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveFiveSDailyEntriesRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiveSDailyEntriesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Guarda el checklist diario de todo el equipo para una fecha.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/seguimiento-5s/dashboard/summary": {
+      "get": {
+        "operationId": "getSeguimiento5sDashboardSummary",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiveSDashboardSummaryResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtiene los indicadores del dashboard y la serie diaria de cumplimiento ponderado.",
         "tags": [
           "applications"
         ]
@@ -2816,136 +3143,6 @@
           "eventName"
         ]
       },
-      "MetaCompanyBrandGoalResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
-          },
-          "period": {
-            "type": "string",
-            "example": "2026-09-01"
-          },
-          "businessId": {
-            "type": "number",
-            "example": 1
-          },
-          "businessName": {
-            "type": "string",
-            "example": "Comercial"
-          },
-          "brandId": {
-            "type": "number",
-            "example": 1
-          },
-          "brandName": {
-            "type": "string",
-            "example": "FACCHINI"
-          },
-          "value": {
-            "type": "string",
-            "example": "38237.42"
-          },
-          "updatedAt": {
-            "type": "object",
-            "example": "2026-09-01T12:00:00.000Z"
-          }
-        },
-        "required": [
-          "id",
-          "period",
-          "businessId",
-          "businessName",
-          "brandId",
-          "brandName",
-          "value"
-        ]
-      },
-      "MetaCompanyAdvisorGoalResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
-          },
-          "period": {
-            "type": "string",
-            "example": "2026-09-01"
-          },
-          "businessId": {
-            "type": "number",
-            "example": 1
-          },
-          "businessName": {
-            "type": "string",
-            "example": "FIXIT"
-          },
-          "brandId": {
-            "type": "object",
-            "example": 1
-          },
-          "brandName": {
-            "type": "object",
-            "example": "Marca de repuesto"
-          },
-          "advisorId": {
-            "type": "number",
-            "example": 1
-          },
-          "advisorCode": {
-            "type": "string",
-            "example": "195fix"
-          },
-          "advisorName": {
-            "type": "string",
-            "example": "FIX0ASU0JUAN FERREIRA"
-          },
-          "value": {
-            "type": "string",
-            "example": "31708.00"
-          },
-          "workingDays": {
-            "type": "object",
-            "example": 22
-          },
-          "updatedAt": {
-            "type": "object",
-            "example": "2026-09-01T12:00:00.000Z"
-          }
-        },
-        "required": [
-          "id",
-          "period",
-          "businessId",
-          "businessName",
-          "advisorId",
-          "advisorCode",
-          "advisorName",
-          "value"
-        ]
-      },
-      "MetaCompanyGoalsResponseDto": {
-        "type": "object",
-        "properties": {
-          "brandGoals": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetaCompanyBrandGoalResponseDto"
-            }
-          },
-          "advisorGoals": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetaCompanyAdvisorGoalResponseDto"
-            }
-          }
-        },
-        "required": [
-          "brandGoals",
-          "advisorGoals"
-        ]
-      },
       "MetaCompanyEmpresaResponseDto": {
         "type": "object",
         "properties": {
@@ -3241,6 +3438,332 @@
           "externalCode",
           "displayName",
           "kind"
+        ]
+      },
+      "FiveSCapabilitiesResponseDto": {
+        "type": "object",
+        "properties": {
+          "canManageIndicators": {
+            "type": "boolean"
+          },
+          "canManageEntries": {
+            "type": "boolean"
+          },
+          "canManageParticipants": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "canManageIndicators",
+          "canManageEntries",
+          "canManageParticipants"
+        ]
+      },
+      "FiveSIndicatorResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "controlledSince": {
+            "type": "string",
+            "example": "2026-08-17"
+          },
+          "displayOrder": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name",
+          "controlledSince",
+          "displayOrder",
+          "status"
+        ]
+      },
+      "CreateFiveSIndicatorDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "orden-de-cables",
+            "description": "Clave en kebab-case, única."
+          },
+          "name": {
+            "type": "string",
+            "example": "Orden de cables"
+          },
+          "controlledSince": {
+            "type": "string",
+            "example": "2026-08-17",
+            "description": "Fecha desde la que se controla (AAAA-MM-DD)."
+          },
+          "displayOrder": {
+            "type": "number",
+            "example": 0,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "controlledSince"
+        ]
+      },
+      "UpdateFiveSIndicatorDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Orden de cables"
+          },
+          "controlledSince": {
+            "type": "string",
+            "example": "2026-08-17"
+          },
+          "displayOrder": {
+            "type": "number",
+            "example": 0,
+            "minimum": 0
+          }
+        }
+      },
+      "FiveSParticipantResponseDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "corporateEmail": {
+            "type": "string"
+          },
+          "roleKey": {
+            "type": "string",
+            "enum": [
+              "lider-5s",
+              "miembro-5s"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "userId",
+          "displayName",
+          "corporateEmail",
+          "roleKey"
+        ]
+      },
+      "SetFiveSParticipantRoleDto": {
+        "type": "object",
+        "properties": {
+          "roleKey": {
+            "type": "string",
+            "enum": [
+              "lider-5s",
+              "miembro-5s"
+            ]
+          }
+        },
+        "required": [
+          "roleKey"
+        ]
+      },
+      "FiveSDailyIndicatorValueDto": {
+        "type": "object",
+        "properties": {
+          "indicatorId": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string",
+            "enum": [
+              "MET",
+              "NOT_MET",
+              "NOT_APPLICABLE"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "indicatorId",
+          "value"
+        ]
+      },
+      "FiveSDailyPersonSummaryDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "roleKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "indicatorValues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiveSDailyIndicatorValueDto"
+            }
+          },
+          "points": {
+            "type": "number"
+          },
+          "evaluated": {
+            "type": "number"
+          },
+          "notApplicable": {
+            "type": "number"
+          },
+          "pending": {
+            "type": "number"
+          },
+          "compliance": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "userId",
+          "displayName",
+          "roleKey",
+          "indicatorValues",
+          "points",
+          "evaluated",
+          "notApplicable",
+          "pending",
+          "compliance"
+        ]
+      },
+      "FiveSDailyEntriesResponseDto": {
+        "type": "object",
+        "properties": {
+          "entryDate": {
+            "type": "string",
+            "example": "2026-08-17"
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiveSDailyPersonSummaryDto"
+            }
+          }
+        },
+        "required": [
+          "entryDate",
+          "people"
+        ]
+      },
+      "SaveFiveSDailyEntryItemDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "indicatorId": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string",
+            "enum": [
+              "MET",
+              "NOT_MET",
+              "NOT_APPLICABLE"
+            ]
+          }
+        },
+        "required": [
+          "userId",
+          "indicatorId",
+          "value"
+        ]
+      },
+      "SaveFiveSDailyEntriesRequestDto": {
+        "type": "object",
+        "properties": {
+          "entryDate": {
+            "type": "string",
+            "example": "2026-08-17"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaveFiveSDailyEntryItemDto"
+            }
+          }
+        },
+        "required": [
+          "entryDate",
+          "entries"
+        ]
+      },
+      "FiveSDashboardDailyPointDto": {
+        "type": "object",
+        "properties": {
+          "entryDate": {
+            "type": "string",
+            "example": "2026-08-17"
+          },
+          "compliance": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "entryDate",
+          "compliance"
+        ]
+      },
+      "FiveSDashboardSummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "lastLoadedDate": {
+            "type": "string",
+            "nullable": true,
+            "example": "2026-08-17"
+          },
+          "lastLoadedCompliance": {
+            "type": "number",
+            "nullable": true
+          },
+          "controlsPerformed": {
+            "type": "number"
+          },
+          "markedNotApplicable": {
+            "type": "number"
+          },
+          "dailySeries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiveSDashboardDailyPointDto"
+            }
+          }
+        },
+        "required": [
+          "lastLoadedDate",
+          "lastLoadedCompliance",
+          "controlsPerformed",
+          "markedNotApplicable",
+          "dailySeries"
         ]
       },
       "HealthResponseDto": {

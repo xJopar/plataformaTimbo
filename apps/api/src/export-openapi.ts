@@ -27,6 +27,14 @@ import {
   MetaCompanyGoalManagementGuard,
 } from './modules/meta-company/meta-company-permission.guards';
 import { MetaCompanyService } from './modules/meta-company/meta-company.service';
+import { Seguimiento5sApplicationAccessGuard } from './modules/seguimiento-5s/seguimiento-5s-application-access.guard';
+import {
+  Seguimiento5sEntryManagementGuard,
+  Seguimiento5sIndicatorManagementGuard,
+  Seguimiento5sParticipantManagementGuard,
+} from './modules/seguimiento-5s/seguimiento-5s-permission.guards';
+import { Seguimiento5sController } from './modules/seguimiento-5s/seguimiento-5s.controller';
+import { Seguimiento5sService } from './modules/seguimiento-5s/seguimiento-5s.service';
 import { UsageEventsService } from './modules/usage-events/usage-events.service';
 import { ACTIVITY_SERVICE } from './modules/administration/administration.tokens';
 import { ADMINISTRATIVE_APPLICATIONS_SERVICE } from './modules/administration/administration.tokens';
@@ -51,6 +59,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     HelloWorldController,
     ListaPreciosController,
     MetaCompanyController,
+    Seguimiento5sController,
   ],
   providers: [
     { provide: AuthService, useValue: {} },
@@ -65,6 +74,11 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     { provide: MetaCompanyCatalogManagementGuard, useValue: { canActivate: () => true } },
     { provide: MetaCompanyGoalManagementGuard, useValue: { canActivate: () => true } },
     { provide: MetaCompanyService, useValue: {} },
+    { provide: Seguimiento5sApplicationAccessGuard, useValue: { canActivate: () => true } },
+    { provide: Seguimiento5sIndicatorManagementGuard, useValue: { canActivate: () => true } },
+    { provide: Seguimiento5sEntryManagementGuard, useValue: { canActivate: () => true } },
+    { provide: Seguimiento5sParticipantManagementGuard, useValue: { canActivate: () => true } },
+    { provide: Seguimiento5sService, useValue: {} },
     { provide: UsageEventsService, useValue: {} },
     { provide: ADMINISTRATIVE_USERS_SERVICE, useValue: {} },
     { provide: ADMINISTRATIVE_APPLICATIONS_SERVICE, useValue: {} },

@@ -818,6 +818,161 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications/seguimiento-5s/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene las acciones habilitadas para la sesión en Seguimiento 5S. */
+        get: operations["getSeguimiento5sCapabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/indicators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista los indicadores 5S activos (o todos, si se pide explícitamente). */
+        get: operations["listSeguimiento5sIndicators"];
+        put?: never;
+        /** Crea un indicador 5S. */
+        post: operations["createSeguimiento5sIndicator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/indicators/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edita un indicador 5S. */
+        patch: operations["updateSeguimiento5sIndicator"];
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/indicators/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva un indicador 5S. */
+        post: operations["deactivateSeguimiento5sIndicator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/indicators/{id}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reactiva un indicador 5S. */
+        post: operations["reactivateSeguimiento5sIndicator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista a los empleados asignados con su rol dentro de Seguimiento 5S. */
+        get: operations["listSeguimiento5sParticipants"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/participants/{userId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asigna el rol de líder o miembro a un participante. */
+        post: operations["setSeguimiento5sParticipantRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene el checklist diario de todo el equipo para una fecha. */
+        get: operations["getSeguimiento5sDailyEntries"];
+        /** Guarda el checklist diario de todo el equipo para una fecha. */
+        put: operations["saveSeguimiento5sDailyEntries"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/dashboard/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene los indicadores del dashboard y la serie diaria de cumplimiento ponderado. */
+        get: operations["getSeguimiento5sDashboardSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -1127,54 +1282,6 @@ export interface components {
             /** @description Modelo visto o consultado. */
             model?: string;
         };
-        MetaCompanyBrandGoalResponseDto: {
-            /** @example 1 */
-            id: number;
-            /** @example 2026-09-01 */
-            period: string;
-            /** @example 1 */
-            businessId: number;
-            /** @example Comercial */
-            businessName: string;
-            /** @example 1 */
-            brandId: number;
-            /** @example FACCHINI */
-            brandName: string;
-            /** @example 38237.42 */
-            value: string;
-            /** @example 2026-09-01T12:00:00.000Z */
-            updatedAt?: Record<string, never>;
-        };
-        MetaCompanyAdvisorGoalResponseDto: {
-            /** @example 1 */
-            id: number;
-            /** @example 2026-09-01 */
-            period: string;
-            /** @example 1 */
-            businessId: number;
-            /** @example FIXIT */
-            businessName: string;
-            /** @example 1 */
-            brandId?: Record<string, never>;
-            /** @example Marca de repuesto */
-            brandName?: Record<string, never>;
-            /** @example 1 */
-            advisorId: number;
-            /** @example 195fix */
-            advisorCode: string;
-            /** @example FIX0ASU0JUAN FERREIRA */
-            advisorName: string;
-            /** @example 31708.00 */
-            value: string;
-            /** @example 22 */
-            workingDays?: Record<string, never>;
-            /** @example 2026-09-01T12:00:00.000Z */
-            updatedAt?: Record<string, never>;
-        };
-        MetaCompanyGoalsResponseDto: {
-            brandGoals: components["schemas"]["MetaCompanyBrandGoalResponseDto"][];
-            advisorGoals: components["schemas"]["MetaCompanyAdvisorGoalResponseDto"][];
-        };
         MetaCompanyEmpresaResponseDto: {
             /** @example 1 */
             id: number;
@@ -1277,6 +1384,101 @@ export interface components {
              * @enum {string}
              */
             kind: "PERSON" | "SALES_CHANNEL";
+        };
+        FiveSCapabilitiesResponseDto: {
+            canManageIndicators: boolean;
+            canManageEntries: boolean;
+            canManageParticipants: boolean;
+        };
+        FiveSIndicatorResponseDto: {
+            id: string;
+            key: string;
+            name: string;
+            /** @example 2026-08-17 */
+            controlledSince: string;
+            displayOrder: number;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+        };
+        CreateFiveSIndicatorDto: {
+            /**
+             * @description Clave en kebab-case, única.
+             * @example orden-de-cables
+             */
+            key: string;
+            /** @example Orden de cables */
+            name: string;
+            /**
+             * @description Fecha desde la que se controla (AAAA-MM-DD).
+             * @example 2026-08-17
+             */
+            controlledSince: string;
+            /** @example 0 */
+            displayOrder?: number;
+        };
+        UpdateFiveSIndicatorDto: {
+            /** @example Orden de cables */
+            name?: string;
+            /** @example 2026-08-17 */
+            controlledSince?: string;
+            /** @example 0 */
+            displayOrder?: number;
+        };
+        FiveSParticipantResponseDto: {
+            userId: string;
+            displayName: string;
+            corporateEmail: string;
+            /** @enum {string|null} */
+            roleKey: "lider-5s" | "miembro-5s" | null;
+        };
+        SetFiveSParticipantRoleDto: {
+            /** @enum {string} */
+            roleKey: "lider-5s" | "miembro-5s";
+        };
+        FiveSDailyIndicatorValueDto: {
+            indicatorId: string;
+            /** @enum {string|null} */
+            value: "MET" | "NOT_MET" | "NOT_APPLICABLE" | null;
+        };
+        FiveSDailyPersonSummaryDto: {
+            userId: string;
+            displayName: string;
+            roleKey: string | null;
+            indicatorValues: components["schemas"]["FiveSDailyIndicatorValueDto"][];
+            points: number;
+            evaluated: number;
+            notApplicable: number;
+            pending: number;
+            compliance: number | null;
+        };
+        FiveSDailyEntriesResponseDto: {
+            /** @example 2026-08-17 */
+            entryDate: string;
+            people: components["schemas"]["FiveSDailyPersonSummaryDto"][];
+        };
+        SaveFiveSDailyEntryItemDto: {
+            userId: string;
+            indicatorId: string;
+            /** @enum {string} */
+            value: "MET" | "NOT_MET" | "NOT_APPLICABLE";
+        };
+        SaveFiveSDailyEntriesRequestDto: {
+            /** @example 2026-08-17 */
+            entryDate: string;
+            entries: components["schemas"]["SaveFiveSDailyEntryItemDto"][];
+        };
+        FiveSDashboardDailyPointDto: {
+            /** @example 2026-08-17 */
+            entryDate: string;
+            compliance: number | null;
+        };
+        FiveSDashboardSummaryResponseDto: {
+            /** @example 2026-08-17 */
+            lastLoadedDate: string | null;
+            lastLoadedCompliance: number | null;
+            controlsPerformed: number;
+            markedNotApplicable: number;
+            dailySeries: components["schemas"]["FiveSDashboardDailyPointDto"][];
         };
         HealthResponseDto: {
             /**
@@ -2341,9 +2543,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["MetaCompanyGoalsResponseDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -2573,6 +2773,240 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getSeguimiento5sCapabilities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSCapabilitiesResponseDto"];
+                };
+            };
+        };
+    };
+    listSeguimiento5sIndicators: {
+        parameters: {
+            query: {
+                includeInactive: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSIndicatorResponseDto"][];
+                };
+            };
+        };
+    };
+    createSeguimiento5sIndicator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFiveSIndicatorDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSIndicatorResponseDto"];
+                };
+            };
+        };
+    };
+    updateSeguimiento5sIndicator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFiveSIndicatorDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSIndicatorResponseDto"];
+                };
+            };
+        };
+    };
+    deactivateSeguimiento5sIndicator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reactivateSeguimiento5sIndicator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listSeguimiento5sParticipants: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSParticipantResponseDto"][];
+                };
+            };
+        };
+    };
+    setSeguimiento5sParticipantRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetFiveSParticipantRoleDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getSeguimiento5sDailyEntries: {
+        parameters: {
+            query: {
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSDailyEntriesResponseDto"];
+                };
+            };
+        };
+    };
+    saveSeguimiento5sDailyEntries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveFiveSDailyEntriesRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSDailyEntriesResponseDto"];
+                };
+            };
+        };
+    };
+    getSeguimiento5sDashboardSummary: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSDashboardSummaryResponseDto"];
+                };
             };
         };
     };

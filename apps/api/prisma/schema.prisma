@@ -59,6 +59,21 @@ enum AuditOutcome {
   @@map("audit_outcome")
 }
 
+enum FiveSIndicatorStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("five_s_indicator_status")
+}
+
+enum FiveSEntryValue {
+  MET
+  NOT_MET
+  NOT_APPLICABLE
+
+  @@map("five_s_entry_value")
+}
+
 
 model User {
   id             String        @id @default(uuid()) @db.Uuid
@@ -75,6 +90,8 @@ model User {
   applicationAssignments UserApplicationAssignment[]
   auditEvents    AuditEvent[]  @relation("AuditEventActorUser")
   usageEvents    UsageEvent[]  @relation("UsageEventActorUser")
+  fiveSEntries         FiveSDailyEntry[] @relation("FiveSDailyEntryUser")
+  fiveSEntriesRecorded FiveSDailyEntry[] @relation("FiveSDailyEntryRecordedBy")
 
   @@map("users")
 }
@@ -257,4 +274,45 @@ model UsageEvent {
   @@index([eventName, occurredAt])
   @@index([visitId, occurredAt])
   @@map("usage_events")
+}
+
+// La migración SQL agrega CHECK para la clave, la longitud del nombre y la coherencia entre
+// estado y fecha de desactivación, igual que Application. Prisma no expresa estas invariantes.
+model FiveSIndicator {
+  id              String               @id @default(uuid()) @db.Uuid
+  key             String               @unique
+  name            String
+  controlledSince DateTime             @map("controlled_since") @db.Date
+  displayOrder    Int                  @default(0) @map("display_order")
+  status          FiveSIndicatorStatus @default(ACTIVE)
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deactivatedAt   DateTime?            @map("deactivated_at") @db.Timestamptz(6)
+  entries         FiveSDailyEntry[]
+
+  @@index([status, displayOrder, name])
+  @@map("five_s_indicators")
+}
+
+// Un mismo día/persona/indicador tiene a lo sumo un valor: sin fila registrada, el indicador
+// queda pendiente para esa persona ese día (igual que una celda vacía en la planilla original).
+// Prisma no puede declarar en el schema que userId y recordedByUserId apuntan a la misma tabla
+// User con roles distintos sin dos relaciones nombradas explícitas.
+model FiveSDailyEntry {
+  id               String          @id @default(uuid()) @db.Uuid
+  entryDate        DateTime        @map("entry_date") @db.Date
+  userId           String          @map("user_id") @db.Uuid
+  indicatorId      String          @map("indicator_id") @db.Uuid
+  value            FiveSEntryValue
+  recordedByUserId String          @map("recorded_by_user_id") @db.Uuid
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user             User            @relation("FiveSDailyEntryUser", fields: [userId], references: [id], onDelete: Restrict)
+  indicator        FiveSIndicator  @relation(fields: [indicatorId], references: [id], onDelete: Restrict)
+  recordedByUser   User            @relation("FiveSDailyEntryRecordedBy", fields: [recordedByUserId], references: [id], onDelete: Restrict)
+
+  @@unique([entryDate, userId, indicatorId])
+  @@index([entryDate])
+  @@index([userId, entryDate])
+  @@map("five_s_daily_entries")
 }

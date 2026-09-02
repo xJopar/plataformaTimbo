@@ -188,6 +188,46 @@ function createApi(
       setMetaCompanyBusinessActive: vi
         .fn<ApplicationsApi['setMetaCompanyBusinessActive']>()
         .mockResolvedValue(undefined),
+      getSeguimiento5sCapabilities: vi
+        .fn<ApplicationsApi['getSeguimiento5sCapabilities']>()
+        .mockResolvedValue({
+          canManageIndicators: false,
+          canManageEntries: false,
+          canManageParticipants: false,
+        }),
+      listSeguimiento5sIndicators: vi
+        .fn<ApplicationsApi['listSeguimiento5sIndicators']>()
+        .mockResolvedValue([]),
+      createSeguimiento5sIndicator: vi
+        .fn<ApplicationsApi['createSeguimiento5sIndicator']>()
+        .mockResolvedValue(undefined as never),
+      updateSeguimiento5sIndicator: vi
+        .fn<ApplicationsApi['updateSeguimiento5sIndicator']>()
+        .mockResolvedValue(undefined as never),
+      setSeguimiento5sIndicatorActive: vi
+        .fn<ApplicationsApi['setSeguimiento5sIndicatorActive']>()
+        .mockResolvedValue(undefined),
+      listSeguimiento5sParticipants: vi
+        .fn<ApplicationsApi['listSeguimiento5sParticipants']>()
+        .mockResolvedValue([]),
+      setSeguimiento5sParticipantRole: vi
+        .fn<ApplicationsApi['setSeguimiento5sParticipantRole']>()
+        .mockResolvedValue(undefined),
+      getSeguimiento5sDailyEntries: vi
+        .fn<ApplicationsApi['getSeguimiento5sDailyEntries']>()
+        .mockResolvedValue({ entryDate: '2026-08-17', people: [] }),
+      saveSeguimiento5sDailyEntries: vi
+        .fn<ApplicationsApi['saveSeguimiento5sDailyEntries']>()
+        .mockResolvedValue({ entryDate: '2026-08-17', people: [] }),
+      getSeguimiento5sDashboardSummary: vi
+        .fn<ApplicationsApi['getSeguimiento5sDashboardSummary']>()
+        .mockResolvedValue({
+          lastLoadedDate: null,
+          lastLoadedCompliance: null,
+          controlsPerformed: 0,
+          markedNotApplicable: 0,
+          dailySeries: [],
+        }),
       ...applicationsOverrides,
     },
     system: { getHealth: vi.fn() },
