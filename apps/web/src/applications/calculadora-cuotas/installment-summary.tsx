@@ -128,6 +128,19 @@ export function InstallmentSummary({
                 <span className="cc-cuotero-hero-label">Total a pagar</span>
                 <strong className="cc-cuotero-hero-value">{formatUsd(plan.totalPagarUsd)}</strong>
               </div>
+
+              <div className="cc-cuotero-secondary" aria-label="Detalle del cálculo">
+                <dl className="cc-cuotero-detail-list">
+                  <div className="cc-cuotero-detail-row">
+                    <dt>Tasa de interés aplicada</dt>
+                    <dd>{plan.annualRatePercent.toLocaleString('es-PY')}%</dd>
+                  </div>
+                  <div className="cc-cuotero-detail-row">
+                    <dt>Intereses</dt>
+                    <dd>{formatUsd(plan.interestTotalUsd)}</dd>
+                  </div>
+                </dl>
+              </div>
             </>
           );
         })()
