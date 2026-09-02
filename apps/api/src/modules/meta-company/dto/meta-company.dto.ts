@@ -51,7 +51,7 @@ export class MetaCompanyAdvisorGoalResponseDto {
   @ApiProperty({ example: '2026-09-01' }) period!: string;
   @ApiProperty({ example: 1 }) businessId!: number;
   @ApiProperty({ example: 'FIXIT' }) businessName!: string;
-  @ApiPropertyOptional({ example: 1 }) brandId!: number | null;
+  @ApiPropertyOptional({ example: 1, nullable: true, type: Number }) brandId!: number | null;
   @ApiPropertyOptional({ example: 'Marca de repuesto' }) brandName!: string | null;
   @ApiProperty({ example: 1 }) advisorId!: number;
   @ApiProperty({ example: '195fix' }) advisorCode!: string;
@@ -92,6 +92,8 @@ export class CreateMetaCompanyAdvisorDto {
   kind!: 'PERSON' | 'SALES_CHANNEL';
 }
 
+export class UpdateMetaCompanyAdvisorDto extends CreateMetaCompanyAdvisorDto {}
+
 export class CreateMetaCompanyBrandGoalDto {
   @ApiProperty({ example: '2026-09-01' }) period!: string;
   @ApiProperty({ example: 1 }) businessId!: number;
@@ -115,4 +117,17 @@ export class UpdateMetaCompanyGoalDto {
 
 export class SetMetaCompanyCatalogItemActiveDto {
   @ApiProperty({ example: false }) active!: boolean;
+}
+
+export class MetaCompanyAdvisorGoalListItemDto {
+  @ApiProperty({ example: 1 }) id!: number;
+  @ApiProperty({ example: '2026-09-01' }) period!: string;
+  @ApiProperty({ example: 1 }) businessId!: number;
+  @ApiProperty({ example: 'Comercial' }) businessName!: string;
+  @ApiPropertyOptional({ example: 1 }) brandId!: number | null;
+  @ApiProperty({ example: 'No aplica' }) brandName!: string;
+  @ApiPropertyOptional({ example: 10, nullable: true, type: Number }) salespersonCode!: number | null;
+  @ApiProperty({ enum: ['Marca', 'Vendedor'] }) goalType!: 'Marca' | 'Vendedor';
+  @ApiProperty({ example: '38237.42' }) value!: string;
+  @ApiPropertyOptional({ example: '2026-09-01T12:00:00.000Z', nullable: true, type: String }) updatedAt!: string | null;
 }

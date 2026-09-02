@@ -1722,7 +1722,7 @@
         "parameters": [
           {
             "name": "period",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "string"
@@ -1730,7 +1730,7 @@
           },
           {
             "name": "empresaId",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "string"
@@ -1739,7 +1739,17 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaCompanyAdvisorGoalListItemDto"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "Lista metas comerciales por periodo y empresa.",
@@ -2016,7 +2026,94 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyAdvisorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/advisors/{id}": {
+      "patch": {
+        "operationId": "MetaCompanyController_updateAdvisor",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMetaCompanyAdvisorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyAdvisorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/meta-company/advisors/{id}/active": {
+      "patch": {
+        "operationId": "MetaCompanyController_setAdvisorActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMetaCompanyCatalogItemActiveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyAdvisorResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -3143,6 +3240,63 @@
           "eventName"
         ]
       },
+      "MetaCompanyAdvisorGoalListItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "period": {
+            "type": "string",
+            "example": "2026-09-01"
+          },
+          "businessId": {
+            "type": "number",
+            "example": 1
+          },
+          "businessName": {
+            "type": "string",
+            "example": "Comercial"
+          },
+          "brandId": {
+            "type": "object",
+            "example": 1
+          },
+          "brandName": {
+            "type": "string",
+            "example": "No aplica"
+          },
+          "salespersonCode": {
+            "type": "object",
+            "example": 10
+          },
+          "goalType": {
+            "type": "string",
+            "enum": [
+              "Marca",
+              "Vendedor"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "example": "38237.42"
+          },
+          "updatedAt": {
+            "type": "object",
+            "example": "2026-09-01T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "period",
+          "businessId",
+          "businessName",
+          "brandName",
+          "goalType",
+          "value"
+        ]
+      },
       "MetaCompanyEmpresaResponseDto": {
         "type": "object",
         "properties": {
@@ -3438,6 +3592,54 @@
           "externalCode",
           "displayName",
           "kind"
+        ]
+      },
+      "UpdateMetaCompanyAdvisorDto": {
+        "type": "object",
+        "properties": {
+          "empresaId": {
+            "type": "number",
+            "example": 1
+          },
+          "sourceSystem": {
+            "type": "string",
+            "example": "SAP_B1"
+          },
+          "externalCode": {
+            "type": "string",
+            "example": "10"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Hugo Baez"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "PERSON",
+              "SALES_CHANNEL"
+            ],
+            "example": "PERSON"
+          }
+        },
+        "required": [
+          "empresaId",
+          "sourceSystem",
+          "externalCode",
+          "displayName",
+          "kind"
+        ]
+      },
+      "SetMetaCompanyCatalogItemActiveDto": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "active"
         ]
       },
       "FiveSCapabilitiesResponseDto": {

@@ -818,6 +818,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications/meta-company/advisors/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_updateAdvisor"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/advisors/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_setAdvisorActive"];
+        trace?: never;
+    };
     "/api/applications/seguimiento-5s/capabilities": {
         parameters: {
             query?: never;
@@ -1282,6 +1314,28 @@ export interface components {
             /** @description Modelo visto o consultado. */
             model?: string;
         };
+        MetaCompanyAdvisorGoalListItemDto: {
+            /** @example 1 */
+            id: number;
+            /** @example 2026-09-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example Comercial */
+            businessName: string;
+            /** @example 1 */
+            brandId?: Record<string, never>;
+            /** @example No aplica */
+            brandName: string;
+            /** @example 10 */
+            salespersonCode?: Record<string, never>;
+            /** @enum {string} */
+            goalType: "Marca" | "Vendedor";
+            /** @example 38237.42 */
+            value: string;
+            /** @example 2026-09-01T12:00:00.000Z */
+            updatedAt?: Record<string, never>;
+        };
         MetaCompanyEmpresaResponseDto: {
             /** @example 1 */
             id: number;
@@ -1384,6 +1438,25 @@ export interface components {
              * @enum {string}
              */
             kind: "PERSON" | "SALES_CHANNEL";
+        };
+        UpdateMetaCompanyAdvisorDto: {
+            /** @example 1 */
+            empresaId: number;
+            /** @example SAP_B1 */
+            sourceSystem: string;
+            /** @example 10 */
+            externalCode: string;
+            /** @example Hugo Baez */
+            displayName: string;
+            /**
+             * @example PERSON
+             * @enum {string}
+             */
+            kind: "PERSON" | "SALES_CHANNEL";
+        };
+        SetMetaCompanyCatalogItemActiveDto: {
+            /** @example false */
+            active: boolean;
         };
         FiveSCapabilitiesResponseDto: {
             canManageIndicators: boolean;
@@ -2529,9 +2602,9 @@ export interface operations {
     };
     listMetaCompanyGoals: {
         parameters: {
-            query: {
-                period: string;
-                empresaId: string;
+            query?: {
+                period?: string;
+                empresaId?: string;
             };
             header?: never;
             path?: never;
@@ -2543,7 +2616,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorGoalListItemDto"][];
+                };
             };
         };
     };
@@ -2772,7 +2847,59 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_updateAdvisor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMetaCompanyAdvisorDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_setAdvisorActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorResponseDto"];
+                };
             };
         };
     };

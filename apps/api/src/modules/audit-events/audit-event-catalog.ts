@@ -36,6 +36,9 @@ export type AuditEventName =
   | 'meta-company.business_deactivated'
   | 'meta-company.business_reactivated'
   | 'meta-company.advisor_created'
+  | 'meta-company.advisor_updated'
+  | 'meta-company.advisor_deactivated'
+  | 'meta-company.advisor_reactivated'
   | 'seguimiento-5s.indicator_created'
   | 'seguimiento-5s.indicator_updated'
   | 'seguimiento-5s.indicator_deactivated'
@@ -306,6 +309,27 @@ export const AUDIT_EVENT_CATALOG: Readonly<Record<AuditEventName, AuditEventCata
     metadataFields: [],
   },
   'meta-company.advisor_created': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.advisor_updated': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.advisor_deactivated': {
+    appKey: 'meta-company',
+    actorType: AuditActorType.USER,
+    outcome: AuditOutcome.SUCCESS,
+    targetRule: 'meta-company-resource-required',
+    metadataFields: [],
+  },
+  'meta-company.advisor_reactivated': {
     appKey: 'meta-company',
     actorType: AuditActorType.USER,
     outcome: AuditOutcome.SUCCESS,

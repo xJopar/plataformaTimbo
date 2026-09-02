@@ -98,6 +98,39 @@ export class MetaCompanyService {
     return advisor;
   }
 
+  public async updateAdvisor(
+    id: number,
+    input: { empresaId: number; sourceSystem: string; externalCode: string; displayName: string; kind: string },
+    actorUserId: string,
+  ) {
+    const advisor = await this.prisma.commercialAdvisor.update({
+      where: { id: parseId(id) },
+      data: {
+        empresaId: await this.requireActiveEmpresa(input.empresaId),
+        sourceSystem: normalizeName(input.sourceSystem, 30),
+        externalCode: normalizeName(input.externalCode, 100),
+        displayName: normalizeName(input.displayName, 150),
+        kind: parseAdvisorKind(input.kind),
+      },
+    }).catch(throwAdvisorNotFound);
+    await this.appendAuditEvent('meta-company.advisor_updated', actorUserId, 'commercial_advisor', advisor.id);
+    return advisor;
+  }
+
+  public async setAdvisorActive(id: number, active: boolean, actorUserId: string) {
+    const advisor = await this.prisma.commercialAdvisor.update({
+      where: { id: parseId(id) },
+      data: { active },
+    }).catch(throwAdvisorNotFound);
+    await this.appendAuditEvent(
+      active ? 'meta-company.advisor_reactivated' : 'meta-company.advisor_deactivated',
+      actorUserId,
+      'commercial_advisor',
+      advisor.id,
+    );
+    return advisor;
+  }
+
   public async createBrandGoal(input: { period: string; businessId: number; brandId: number; value: string }, actorUserId: string) {
     const data = { period: parsePeriod(input.period), businessId: parseId(input.businessId), brandId: parseId(input.brandId), value: parseValue(input.value) };
     await this.requireScope(data.businessId, data.brandId);
@@ -157,6 +190,7 @@ export class MetaCompanyService {
 }
 
 function throwGoalNotFound(): never { throw new NotFoundException('No se encontro la meta solicitada.'); }
+function throwAdvisorNotFound(): never { throw new NotFoundException('No se encontro el asesor solicitado.'); }
 function parsePeriod(value: string): Date { if (!/^\d{4}-\d{2}-01$/.test(value)) throw new BadRequestException('El periodo debe ser el primer dia de un mes.'); const date = new Date(`${value}T00:00:00.000Z`); if (Number.isNaN(date.valueOf())) throw new BadRequestException('El periodo no es valido.'); return date; }
 function parseId(value: number): number { if (!Number.isSafeInteger(value) || value <= 0) throw new BadRequestException('El identificador es invalido.'); return value; }
 function parseValue(value: string): Prisma.Decimal { if (!/^\d{1,16}(?:\.\d{1,2})?$/.test(value)) throw new BadRequestException('La meta debe ser un decimal no negativo con hasta dos decimales.'); return new Prisma.Decimal(value); }

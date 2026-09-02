@@ -72,17 +72,12 @@ export interface SaveFiveSDailyEntriesRequest {
   entries: { userId: string; indicatorId: string; value: FiveSEntryValue }[];
 }
 
-export interface MetaCompanyGoalRequest {
-  period: string;
-  businessId: number;
-  brandId: number;
-  salespersonCode?: number;
-  goalType: 'Marca' | 'Vendedor';
-  value: string;
-}
-
-export interface MetaCompanyCatalogItemRequest {
-  name: string;
+export interface MetaCompanyAdvisorRequest {
+  empresaId: number;
+  sourceSystem: string;
+  externalCode: string;
+  displayName: string;
+  kind: 'PERSON' | 'SALES_CHANNEL';
 }
 
 export interface ApplicationsApi {
@@ -90,9 +85,7 @@ export interface ApplicationsApi {
   requestHelloWorldJoke(input: HelloWorldJokeRequest): Promise<HelloWorldJoke>;
   listListaPreciosVehicles(): Promise<VehicleResponse[]>;
   recordListaPreciosUsageEvent(input: ListaPreciosUsageEventRequest): Promise<void>;
-  listMetaCompanyGoals(
-    period: string,
-  ): Promise<
+  listMetaCompanyGoals(period: string, empresaId?: number): Promise<
     paths['/api/applications/meta-company/goals']['get']['responses'][200]['content']['application/json']
   >;
   listMetaCompanyCatalogs(): Promise<
@@ -104,29 +97,15 @@ export interface ApplicationsApi {
   getMetaCompanyCapabilities(): Promise<
     paths['/api/applications/meta-company/capabilities']['get']['responses'][200]['content']['application/json']
   >;
-  createMetaCompanyGoal(
-    input: MetaCompanyGoalRequest,
-  ): Promise<
-    paths['/api/applications/meta-company/goals']['post']['responses'][201]['content']['application/json']
+  createMetaCompanyAdvisor(input: MetaCompanyAdvisorRequest): Promise<
+    paths['/api/applications/meta-company/advisors']['post']['responses'][201]['content']['application/json']
   >;
-  updateMetaCompanyGoal(
-    id: number,
-    value: string,
-  ): Promise<
-    paths['/api/applications/meta-company/goals/{id}']['patch']['responses'][200]['content']['application/json']
+  updateMetaCompanyAdvisor(id: number, input: MetaCompanyAdvisorRequest): Promise<
+    paths['/api/applications/meta-company/advisors/{id}']['patch']['responses'][200]['content']['application/json']
   >;
-  createMetaCompanyBrand(
-    input: MetaCompanyCatalogItemRequest,
-  ): Promise<
-    paths['/api/applications/meta-company/brands']['post']['responses'][201]['content']['application/json']
+  setMetaCompanyAdvisorActive(id: number, active: boolean): Promise<
+    paths['/api/applications/meta-company/advisors/{id}/active']['patch']['responses'][200]['content']['application/json']
   >;
-  createMetaCompanyBusiness(
-    input: MetaCompanyCatalogItemRequest,
-  ): Promise<
-    paths['/api/applications/meta-company/businesses']['post']['responses'][201]['content']['application/json']
-  >;
-  setMetaCompanyBrandActive(id: number, active: boolean): Promise<void>;
-  setMetaCompanyBusinessActive(id: number, active: boolean): Promise<void>;
   getSeguimiento5sCapabilities(): Promise<FiveSCapabilities>;
   listSeguimiento5sIndicators(includeInactive: boolean): Promise<FiveSIndicator[]>;
   createSeguimiento5sIndicator(input: CreateFiveSIndicatorRequest): Promise<FiveSIndicator>;
@@ -232,9 +211,9 @@ export function createApplicationsApi(
         throw createApiHttpError(response);
       }
     },
-    async listMetaCompanyGoals(period) {
+    async listMetaCompanyGoals(period, empresaId) {
       const { data, response } = await client.GET('/api/applications/meta-company/goals', {
-        params: { query: { period } },
+        params: { query: { period, ...(empresaId === undefined ? {} : { empresaId: String(empresaId) }) } },
       });
       if (!response.ok) throw createApiHttpError(response);
       if (data === undefined) throw new Error('La API respondió sin las metas esperadas.');

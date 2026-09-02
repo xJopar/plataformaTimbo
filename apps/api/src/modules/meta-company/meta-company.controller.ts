@@ -1,11 +1,11 @@
 import { BadRequestException, Body, Controller, Get, Inject, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { ApplicationAuthorizationService } from '../access-profiles/application-authorization.service';
 import { APPLICATION_AUTHORIZATION_SERVICE } from '../access-profiles/access-profiles.tokens';
 import { CsrfProtectionGuard } from '../auth/csrf-protection.guard';
 import { type AuthenticatedRequest, SessionAuthenticationGuard } from '../auth/session-authentication.guard';
 import { META_COMPANY_APPLICATION_KEY, MetaCompanyApplicationAccessGuard } from './meta-company-application-access.guard';
-import { CreateMetaCompanyAdvisorDto, CreateMetaCompanyAdvisorGoalDto, CreateMetaCompanyBrandGoalDto, CreateMetaCompanyCatalogItemDto, CreateMetaCompanyEmpresaDto, MetaCompanyCapabilitiesResponseDto, MetaCompanyCatalogResponseDto, UpdateMetaCompanyGoalDto } from './dto/meta-company.dto';
+import { CreateMetaCompanyAdvisorDto, CreateMetaCompanyAdvisorGoalDto, CreateMetaCompanyBrandGoalDto, CreateMetaCompanyCatalogItemDto, CreateMetaCompanyEmpresaDto, MetaCompanyAdvisorGoalListItemDto, MetaCompanyAdvisorResponseDto, MetaCompanyCapabilitiesResponseDto, MetaCompanyCatalogResponseDto, SetMetaCompanyCatalogItemActiveDto, UpdateMetaCompanyAdvisorDto, UpdateMetaCompanyGoalDto } from './dto/meta-company.dto';
 import { MetaCompanyCatalogManagementGuard, MetaCompanyGoalManagementGuard } from './meta-company-permission.guards';
 import { MetaCompanyService } from './meta-company.service';
 
@@ -17,12 +17,14 @@ export class MetaCompanyController {
 
   @Get('goals')
   @ApiOperation({ operationId: 'listMetaCompanyGoals', summary: 'Lista metas comerciales por periodo y empresa.' })
-  @ApiOkResponse()
-  public async listGoals(@Query('period') period?: string, @Query('empresaId') empresaId?: string): Promise<unknown[]> {
+  @ApiQuery({ name: 'period', required: false })
+  @ApiQuery({ name: 'empresaId', required: false })
+  @ApiOkResponse({ type: MetaCompanyAdvisorGoalListItemDto, isArray: true })
+  public async listGoals(@Query('period') period?: string, @Query('empresaId') empresaId?: string): Promise<MetaCompanyAdvisorGoalListItemDto[]> {
     const goals = await this.metaCompanyService.listGoals(period, empresaId === undefined ? undefined : Number(empresaId));
     return [
-      ...goals.brandGoals.map((goal) => ({ id: goal.id, period: goal.period.toISOString().slice(0, 10), businessId: goal.businessId, businessName: goal.business.name, brandId: goal.brandId, brandName: goal.brand.name, salespersonCode: null, goalType: 'Marca', value: goal.value.toFixed(2), updatedAt: goal.updatedAt?.toISOString() ?? null })),
-      ...goals.advisorGoals.map((goal) => ({ id: goal.id, period: goal.period.toISOString().slice(0, 10), businessId: goal.businessId, businessName: goal.business.name, brandId: goal.brandId, brandName: goal.brand?.name ?? 'No aplica', salespersonCode: Number.isSafeInteger(Number(goal.advisor.externalCode)) ? Number(goal.advisor.externalCode) : null, goalType: 'Vendedor', value: goal.value.toFixed(2), updatedAt: goal.updatedAt?.toISOString() ?? null })),
+      ...goals.brandGoals.map((goal) => ({ id: goal.id, period: goal.period.toISOString().slice(0, 10), businessId: goal.businessId, businessName: goal.business.name, brandId: goal.brandId, brandName: goal.brand.name, salespersonCode: null, goalType: 'Marca' as const, value: goal.value.toFixed(2), updatedAt: goal.updatedAt?.toISOString() ?? null })),
+      ...goals.advisorGoals.map((goal) => ({ id: goal.id, period: goal.period.toISOString().slice(0, 10), businessId: goal.businessId, businessName: goal.business.name, brandId: goal.brandId, brandName: goal.brand?.name ?? 'No aplica', salespersonCode: Number.isSafeInteger(Number(goal.advisor.externalCode)) ? Number(goal.advisor.externalCode) : null, goalType: 'Vendedor' as const, value: goal.value.toFixed(2), updatedAt: goal.updatedAt?.toISOString() ?? null })),
     ];
   }
 
@@ -70,10 +72,17 @@ export class MetaCompanyController {
   @Post('businesses') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyCatalogItemDto }) @ApiCreatedResponse()
   public async createBusiness(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return this.metaCompanyService.createBusiness(numberValue(body.empresaId), stringValue(body.name), requireAuthenticatedUserId(request)); }
 
-  @Post('advisors') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyAdvisorDto }) @ApiCreatedResponse()
+  @Post('advisors') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyAdvisorDto }) @ApiCreatedResponse({ type: MetaCompanyAdvisorResponseDto })
   public async createAdvisor(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return this.metaCompanyService.createAdvisor({ empresaId: numberValue(body.empresaId), sourceSystem: stringValue(body.sourceSystem), externalCode: stringValue(body.externalCode), displayName: stringValue(body.displayName), kind: stringValue(body.kind) }, requireAuthenticatedUserId(request)); }
+
+  @Patch('advisors/:id') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: UpdateMetaCompanyAdvisorDto }) @ApiOkResponse({ type: MetaCompanyAdvisorResponseDto })
+  public async updateAdvisor(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return this.metaCompanyService.updateAdvisor(Number(id), { empresaId: numberValue(body.empresaId), sourceSystem: stringValue(body.sourceSystem), externalCode: stringValue(body.externalCode), displayName: stringValue(body.displayName), kind: stringValue(body.kind) }, requireAuthenticatedUserId(request)); }
+
+  @Patch('advisors/:id/active') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: SetMetaCompanyCatalogItemActiveDto }) @ApiOkResponse({ type: MetaCompanyAdvisorResponseDto })
+  public async setAdvisorActive(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return this.metaCompanyService.setAdvisorActive(Number(id), booleanValue(body.active), requireAuthenticatedUserId(request)); }
 }
 
 function stringValue(value: unknown): string { if (typeof value !== 'string') throw new BadRequestException('La solicitud es invalida.'); return value; }
 function numberValue(value: unknown): number { if (typeof value !== 'number') throw new BadRequestException('La solicitud es invalida.'); return value; }
+function booleanValue(value: unknown): boolean { if (typeof value !== 'boolean') throw new BadRequestException('La solicitud es invalida.'); return value; }
 function requireAuthenticatedUserId(request: AuthenticatedRequest): string { if (request.authenticatedUser === undefined) throw new Error('El guard de sesion no adjunto un usuario autenticado.'); return request.authenticatedUser.id; }
