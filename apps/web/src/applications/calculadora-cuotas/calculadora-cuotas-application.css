@@ -45,6 +45,100 @@
   padding: clamp(20px, 4vw, 40px) clamp(20px, 5vw, 32px) 40px;
 }
 
+/* El wizard concentra una decisión por pantalla: evita que unidades, condiciones y resultado
+   compitan por atención al armar una cotización. */
+.cc-wizard {
+  width: min(100%, 880px);
+  margin: 0 auto;
+}
+
+.cc-wizard-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--cc-sp-2);
+  margin: 0 0 var(--cc-sp-7);
+  padding: 0;
+  list-style: none;
+}
+
+.cc-wizard-steps li {
+  padding: 0 0 var(--cc-sp-2);
+  border-bottom: 2px solid var(--cc-c-border);
+  color: var(--cc-c-text-disabled);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.cc-wizard-steps .cc-wizard-step--active {
+  border-color: var(--cc-c-brand);
+  color: var(--cc-c-brand);
+}
+
+.cc-wizard-steps .cc-wizard-step--complete {
+  border-color: var(--cc-c-focus);
+  color: var(--cc-c-text-secondary);
+}
+
+.cc-wizard-screen--main {
+  padding: var(--cc-sp-5);
+  border-top: 3px solid var(--cc-c-brand);
+  background: var(--cc-c-surface-alt);
+}
+
+.cc-wizard-screen--main > .cc-section:first-child {
+  padding-top: 0;
+}
+
+.cc-wizard-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cc-sp-3);
+  margin-top: var(--cc-sp-6);
+  padding-top: var(--cc-sp-4);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-wizard-actions .cc-apply-btn {
+  width: auto;
+  min-width: 210px;
+}
+
+.cc-wizard-total {
+  color: var(--cc-c-text-secondary);
+  font-family: var(--cc-font-mono);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.cc-secondary-action {
+  min-height: 44px;
+  padding: 0 var(--cc-sp-4);
+  border: 1px solid var(--cc-c-border-strong);
+  background: transparent;
+  color: var(--cc-c-text-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cc-secondary-action:hover {
+  border-color: var(--cc-c-brand);
+  color: var(--cc-c-brand);
+}
+
+.cc-secondary-action:focus-visible,
+.cc-wizard-actions .cc-apply-btn:focus-visible {
+  outline: 3px solid var(--cc-c-focus);
+  outline-offset: 2px;
+}
+
+.cc-section-description {
+  margin: var(--cc-sp-1) 0 0;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
 @media (max-width: 1023px) {
   .cc-page--has-mobile-bar {
     padding-top: var(--cc-sp-1);
@@ -724,6 +818,11 @@
   margin-top: var(--cc-sp-2);
 }
 
+.cc-section.cc-config .cc-section-heading,
+.cc-section.cc-cuotero .cc-section-heading {
+  align-items: flex-start;
+}
+
 .cc-cuotero:focus-visible {
   outline: 3px solid var(--cc-c-focus);
   outline-offset: -3px;
@@ -939,6 +1038,35 @@
 }
 
 @media (max-width: 640px) {
+  .cc-wizard-steps {
+    gap: var(--cc-sp-1);
+    margin-bottom: var(--cc-sp-5);
+  }
+
+  .cc-wizard-steps li {
+    font-size: 0.75rem;
+  }
+
+  .cc-wizard-screen--main,
+  .cc-section.cc-config,
+  .cc-section.cc-cuotero {
+    padding: var(--cc-sp-4);
+  }
+
+  .cc-wizard-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .cc-wizard-actions .cc-apply-btn,
+  .cc-secondary-action {
+    width: 100%;
+  }
+
+  .cc-total-value {
+    font-size: 1rem;
+  }
+
   .cc-added-row {
     flex-wrap: wrap;
   }

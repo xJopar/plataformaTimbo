@@ -15,8 +15,9 @@ También incluye `Lista de Precios` en `/apps/lista-precios`: consulta el catál
 vehículos; el modelo HOWO NX de SINOTRUK permite elegir la suspensión antes de consultar sus
 variantes. Registra aperturas, vistas únicas de modelo por visita e inicios de consulta, sin
 persistir unidades de stock, filtros, precios ni mensajes de WhatsApp.
-`Calculadora de Cuotas` en `/apps/calculadora-cuotas` permite armar un plan de financiación desde
-unidades de Lista de Precios o montos manuales y descargar el cuotero calculado como imagen PNG.
+`Calculadora de Cuotas` en `/apps/calculadora-cuotas` permite armar un plan de financiación en un
+flujo guiado desde unidades de Lista de Precios o montos manuales, definir cuotas y refuerzos, y
+descargar el cuotero calculado como imagen PNG.
 `Meta Company` en `/apps/meta-company` administra las metas comerciales que consume Power BI. Sus
 perfiles permiten editar metas y, para administradores, crear y activar o desactivar marcas y
 negocios. La aplicación usa temporalmente un proveedor PostgreSQL aislado; sus auditorías se

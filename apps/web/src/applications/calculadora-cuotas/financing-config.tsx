@@ -1,12 +1,10 @@
 import {
-  MIN_DOWN_PAYMENT_PERCENT,
+  formatUsd,
   PERIODICITY_LABELS,
   type CuotaPeriodicity,
   type DownPaymentMode,
-  type PlazoMeses,
 } from './installment-calculator';
 
-const PLAZO_OPTIONS: PlazoMeses[] = [36, 48, 60];
 const PERIODICITY_OPTIONS: CuotaPeriodicity[] = ['mensual', 'semestral', 'anual'];
 const REINFORCEMENT_PERIODICITY_OPTIONS: CuotaPeriodicity[] = ['semestral', 'anual'];
 
@@ -14,71 +12,62 @@ export interface FinancingConfigValue {
   downPaymentMode: DownPaymentMode;
   downPaymentPercent: number;
   downPaymentManualUsd: number;
-  termMonths: PlazoMeses;
+  termMonths: number;
   installmentPeriodicity: CuotaPeriodicity;
   reinforcementsEnabled: boolean;
   reinforcementPeriodicity: CuotaPeriodicity;
-}
-
-export function isSameFinancingConfig(a: FinancingConfigValue, b: FinancingConfigValue): boolean {
-  return (
-    a.downPaymentMode === b.downPaymentMode &&
-    a.downPaymentPercent === b.downPaymentPercent &&
-    a.downPaymentManualUsd === b.downPaymentManualUsd &&
-    a.termMonths === b.termMonths &&
-    a.installmentPeriodicity === b.installmentPeriodicity &&
-    a.reinforcementsEnabled === b.reinforcementsEnabled &&
-    a.reinforcementPeriodicity === b.reinforcementPeriodicity
-  );
+  desiredRegularInstallmentAmountUsd: number;
 }
 
 interface FinancingConfigProps {
   value: FinancingConfigValue;
   totalPriceUsd: number;
+  onBack: () => void;
+  onCalculate: () => void;
   onChange: (value: FinancingConfigValue) => void;
+}
+
+function positiveInteger(value: string): number {
+  return Math.max(1, Math.floor(Number(value) || 1));
 }
 
 export function FinancingConfig({
   value,
   totalPriceUsd,
+  onBack,
+  onCalculate,
   onChange,
 }: FinancingConfigProps): React.JSX.Element {
-  const hasItems = totalPriceUsd > 0;
-
   return (
     <section className="cc-section cc-config" aria-labelledby="cc-config-title">
       <div className="cc-section-heading">
-        <h2 id="cc-config-title" className="cc-section-title">
-          Financiación
-        </h2>
-      </div>
-
-      <div className="cc-total-row">
-        <span className="cc-total-label">Precio total</span>
-        <span className={`cc-total-value${hasItems ? '' : ' cc-total-value--empty'}`}>
-          {hasItems
-            ? `USD ${totalPriceUsd.toLocaleString('es-PY')}`
-            : 'Agregá unidades para calcular'}
-        </span>
+        <div>
+          <h2 id="cc-config-title" className="cc-section-title">
+            Configurá la financiación
+          </h2>
+          <p className="cc-section-description">
+            Definí las condiciones del plan antes de calcularlo.
+          </p>
+        </div>
+        <span className="cc-total-value">{formatUsd(totalPriceUsd)}</span>
       </div>
 
       <div className="cc-config-grid">
         <div className="cc-field-group">
           <div className="cc-field">
-            <span className="cc-field-label">Plazo</span>
-            <div className="cc-segmented" role="radiogroup" aria-label="Plazo en meses">
-              {PLAZO_OPTIONS.map((months) => (
-                <button
-                  key={months}
-                  type="button"
-                  role="radio"
-                  aria-checked={value.termMonths === months}
-                  className={`cc-segmented-btn${value.termMonths === months ? ' cc-segmented-btn--active' : ''}`}
-                  onClick={() => onChange({ ...value, termMonths: months })}
-                >
-                  {months} meses
-                </button>
-              ))}
+            <label htmlFor="cc-term-months">Plazo en meses</label>
+            <div className="cc-inline-input">
+              <input
+                id="cc-term-months"
+                type="number"
+                min={1}
+                step={1}
+                value={value.termMonths}
+                onChange={(event) =>
+                  onChange({ ...value, termMonths: positiveInteger(event.target.value) })
+                }
+              />
+              <span aria-hidden="true">meses</span>
             </div>
           </div>
 
@@ -105,50 +94,42 @@ export function FinancingConfig({
               </button>
             </div>
             {value.downPaymentMode === 'percent' ? (
-              <>
-                <div className="cc-inline-input">
-                  <input
-                    id="cc-down-payment-percent"
-                    aria-label="Entrega inicial en porcentaje"
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={1}
-                    value={value.downPaymentPercent}
-                    onChange={(event) =>
-                      onChange({
-                        ...value,
-                        downPaymentPercent: Math.min(100, Math.max(0, Number(event.target.value))),
-                      })
-                    }
-                  />
-                  <span aria-hidden="true">%</span>
-                </div>
-                <span className="cc-field-hint">Mínimo {MIN_DOWN_PAYMENT_PERCENT}%.</span>
-              </>
+              <div className="cc-inline-input">
+                <input
+                  id="cc-down-payment-percent"
+                  aria-label="Entrega inicial en porcentaje"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.01}
+                  value={value.downPaymentPercent}
+                  onChange={(event) =>
+                    onChange({
+                      ...value,
+                      downPaymentPercent: Math.min(100, Math.max(0, Number(event.target.value))),
+                    })
+                  }
+                />
+                <span aria-hidden="true">%</span>
+              </div>
             ) : (
-              <>
-                <div className="cc-inline-input">
-                  <span aria-hidden="true">USD</span>
-                  <input
-                    id="cc-down-payment-manual"
-                    aria-label="Entrega inicial en dólares"
-                    type="number"
-                    min={0}
-                    step={100}
-                    value={value.downPaymentManualUsd}
-                    onChange={(event) =>
-                      onChange({
-                        ...value,
-                        downPaymentManualUsd: Math.max(0, Number(event.target.value)),
-                      })
-                    }
-                  />
-                </div>
-                <span className="cc-field-hint">
-                  Debe representar al menos {MIN_DOWN_PAYMENT_PERCENT}% del precio total.
-                </span>
-              </>
+              <div className="cc-inline-input">
+                <input
+                  id="cc-down-payment-manual"
+                  aria-label="Entrega inicial en dólares"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={value.downPaymentManualUsd}
+                  onChange={(event) =>
+                    onChange({
+                      ...value,
+                      downPaymentManualUsd: Math.max(0, Number(event.target.value)),
+                    })
+                  }
+                />
+                <span aria-hidden="true">USD</span>
+              </div>
             )}
           </div>
         </div>
@@ -184,30 +165,58 @@ export function FinancingConfig({
                   onChange({ ...value, reinforcementsEnabled: event.target.checked })
                 }
               />
-              Incluir refuerzos
+              Calcular con refuerzos
             </label>
             {value.reinforcementsEnabled ? (
-              <select
-                id="cc-reinforcement-periodicity"
-                aria-label="Frecuencia de refuerzos"
-                value={value.reinforcementPeriodicity}
-                onChange={(event) =>
-                  onChange({
-                    ...value,
-                    reinforcementPeriodicity: event.target.value as CuotaPeriodicity,
-                  })
-                }
-              >
-                {REINFORCEMENT_PERIODICITY_OPTIONS.map((periodicity) => (
-                  <option key={periodicity} value={periodicity}>
-                    {PERIODICITY_LABELS[periodicity]}
-                  </option>
-                ))}
-              </select>
+              <>
+                <label htmlFor="cc-desired-regular-installment">Monto de cada cuota regular</label>
+                <div className="cc-inline-input">
+                  <input
+                    id="cc-desired-regular-installment"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={value.desiredRegularInstallmentAmountUsd}
+                    onChange={(event) =>
+                      onChange({
+                        ...value,
+                        desiredRegularInstallmentAmountUsd: Math.max(0, Number(event.target.value)),
+                      })
+                    }
+                  />
+                  <span aria-hidden="true">USD</span>
+                </div>
+                <label htmlFor="cc-reinforcement-periodicity">Frecuencia de refuerzos</label>
+                <select
+                  id="cc-reinforcement-periodicity"
+                  value={value.reinforcementPeriodicity}
+                  onChange={(event) =>
+                    onChange({
+                      ...value,
+                      reinforcementPeriodicity: event.target.value as CuotaPeriodicity,
+                    })
+                  }
+                >
+                  {REINFORCEMENT_PERIODICITY_OPTIONS.map((periodicity) => (
+                    <option key={periodicity} value={periodicity}>
+                      {PERIODICITY_LABELS[periodicity]}
+                    </option>
+                  ))}
+                </select>
+              </>
             ) : null}
           </div>
         </div>
       </div>
+
+      <footer className="cc-wizard-actions">
+        <button type="button" className="cc-secondary-action" onClick={onBack}>
+          Volver a unidades
+        </button>
+        <button type="button" className="cc-apply-btn" onClick={onCalculate}>
+          Calcular plan
+        </button>
+      </footer>
     </section>
   );
 }

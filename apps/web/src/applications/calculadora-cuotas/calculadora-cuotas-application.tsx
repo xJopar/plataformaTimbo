@@ -8,14 +8,11 @@ import './calculadora-cuotas-application.css';
 import { AddItemPanel } from './add-item-panel';
 import { AddedItemsList } from './added-items-list';
 import { ConfirmRemoveDialog } from './confirm-remove-dialog';
-import {
-  FinancingConfig,
-  isSameFinancingConfig,
-  type FinancingConfigValue,
-} from './financing-config';
+import { FinancingConfig, type FinancingConfigValue } from './financing-config';
 import { InstallmentSummary } from './installment-summary';
 import {
   calculateInstallmentPlan,
+  formatUsd,
   sumItemsUsd,
   type CalculatorItem,
 } from './installment-calculator';
@@ -27,9 +24,12 @@ const DEFAULT_CONFIG: FinancingConfigValue = {
   downPaymentManualUsd: 0,
   termMonths: 36,
   installmentPeriodicity: 'mensual',
-  reinforcementsEnabled: true,
+  reinforcementsEnabled: false,
   reinforcementPeriodicity: 'semestral',
+  desiredRegularInstallmentAmountUsd: 0,
 };
+
+type WizardScreen = 'main' | 'config' | 'result';
 
 export function CalculadoraCuotasApplication({
   api,
@@ -44,11 +44,9 @@ export function CalculadoraCuotasApplication({
 }: ApplicationComponentProps): React.JSX.Element {
   const { state: vehiclesState } = useVehicleCatalog(api);
   const [items, setItems] = useState<CalculatorItem[]>([]);
-  // `draftConfig` sigue los controles en vivo; `appliedConfig` es lo que realmente alimenta el
-  // cálculo y sólo se actualiza al presionar "Calcular" — así plazo/entrega inicial/periodicidad
-  // quedan quietos mientras se ajustan, en vez de recalcular en cada tecla o clic.
   const [draftConfig, setDraftConfig] = useState<FinancingConfigValue>(DEFAULT_CONFIG);
-  const [appliedConfig, setAppliedConfig] = useState<FinancingConfigValue>(DEFAULT_CONFIG);
+  const [calculatedConfig, setCalculatedConfig] = useState<FinancingConfigValue>(DEFAULT_CONFIG);
+  const [screen, setScreen] = useState<WizardScreen>('main');
   const [pendingRemovalId, setPendingRemovalId] = useState<string | undefined>(undefined);
   const [preloadNotice, setPreloadNotice] = useState<string | undefined>(undefined);
   const preloadHandled = useRef(false);
@@ -91,17 +89,17 @@ export function CalculadoraCuotasApplication({
     () =>
       calculateInstallmentPlan({
         items,
-        downPaymentMode: appliedConfig.downPaymentMode,
-        downPaymentPercent: appliedConfig.downPaymentPercent,
-        downPaymentManualUsd: appliedConfig.downPaymentManualUsd,
-        termMonths: appliedConfig.termMonths,
-        installmentPeriodicity: appliedConfig.installmentPeriodicity,
-        reinforcementsEnabled: appliedConfig.reinforcementsEnabled,
-        reinforcementPeriodicity: appliedConfig.reinforcementPeriodicity,
+        downPaymentMode: calculatedConfig.downPaymentMode,
+        downPaymentPercent: calculatedConfig.downPaymentPercent,
+        downPaymentManualUsd: calculatedConfig.downPaymentManualUsd,
+        termMonths: calculatedConfig.termMonths,
+        installmentPeriodicity: calculatedConfig.installmentPeriodicity,
+        reinforcementsEnabled: calculatedConfig.reinforcementsEnabled,
+        reinforcementPeriodicity: calculatedConfig.reinforcementPeriodicity,
+        desiredRegularInstallmentAmountUsd: calculatedConfig.desiredRegularInstallmentAmountUsd,
       }),
-    [items, appliedConfig],
+    [items, calculatedConfig],
   );
-  const isConfigDirty = !isSameFinancingConfig(draftConfig, appliedConfig);
 
   const pendingRemovalItem = items.find((item) => item.id === pendingRemovalId);
   const hasItems = items.length > 0;
@@ -116,19 +114,9 @@ export function CalculadoraCuotasApplication({
     setPendingRemovalId(undefined);
   }
 
-  function applyConfig(): void {
-    setAppliedConfig(draftConfig);
-  }
-
-  function jumpToCuotero(): void {
-    const section = document.getElementById('cc-cuotero-section');
-    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    section?.focus();
-  }
-
-  function handleMobileBarClick(): void {
-    if (isConfigDirty) applyConfig();
-    jumpToCuotero();
+  function calculatePlan(): void {
+    setCalculatedConfig(draftConfig);
+    setScreen('result');
   }
 
   return (
@@ -152,55 +140,91 @@ export function CalculadoraCuotasApplication({
         </p>
       )}
 
-      <div className={`cc-page${hasItems ? ' cc-page--has-mobile-bar' : ''}`}>
+      <div className="cc-page">
         {preloadNotice === undefined ? null : (
           <p className="cc-preload-notice" role="status">
             {preloadNotice}
           </p>
         )}
 
-        <div className="cc-layout">
-          <div className="cc-layout-input">
-            <div className="cc-layout-main">
+        <div className="cc-wizard" aria-label="Flujo de cálculo">
+          <ol className="cc-wizard-steps">
+            <li
+              className={screen === 'main' ? 'cc-wizard-step--active' : 'cc-wizard-step--complete'}
+            >
+              Unidades
+            </li>
+            <li
+              className={
+                screen === 'config'
+                  ? 'cc-wizard-step--active'
+                  : screen === 'result'
+                    ? 'cc-wizard-step--complete'
+                    : ''
+              }
+            >
+              Configuración
+            </li>
+            <li className={screen === 'result' ? 'cc-wizard-step--active' : ''}>Plan final</li>
+          </ol>
+
+          {screen === 'main' ? (
+            <div className="cc-wizard-screen cc-wizard-screen--main">
               <AddItemPanel
                 vehiclesState={vehiclesState}
                 existingItemIds={existingItemIds}
                 onAddItem={addItem}
               />
               <AddedItemsList items={items} onRequestRemove={setPendingRemovalId} />
+              <footer className="cc-wizard-actions">
+                <span className="cc-wizard-total">Total: {formatUsd(totalPriceUsd)}</span>
+                <button
+                  type="button"
+                  className="cc-apply-btn"
+                  disabled={!hasItems}
+                  onClick={() => setScreen('config')}
+                >
+                  Continuar con la financiación
+                </button>
+              </footer>
             </div>
+          ) : null}
 
-            <div className="cc-layout-config">
+          {screen === 'config' ? (
+            <div className="cc-wizard-screen cc-wizard-screen--config">
               <FinancingConfig
                 value={draftConfig}
                 totalPriceUsd={totalPriceUsd}
                 onChange={setDraftConfig}
+                onBack={() => setScreen('main')}
+                onCalculate={calculatePlan}
               />
             </div>
-          </div>
+          ) : null}
 
-          <div className="cc-layout-result">
-            <InstallmentSummary
-              planResult={planResult}
-              installmentPeriodicity={appliedConfig.installmentPeriodicity}
-              reinforcementPeriodicity={appliedConfig.reinforcementPeriodicity}
-              isConfigDirty={isConfigDirty}
-              onApply={applyConfig}
-            />
-          </div>
+          {screen === 'result' ? (
+            <div className="cc-wizard-screen cc-wizard-screen--result">
+              <InstallmentSummary
+                planResult={planResult}
+                installmentPeriodicity={calculatedConfig.installmentPeriodicity}
+                reinforcementPeriodicity={calculatedConfig.reinforcementPeriodicity}
+              />
+              <footer className="cc-wizard-actions">
+                <button
+                  type="button"
+                  className="cc-secondary-action"
+                  onClick={() => setScreen('main')}
+                >
+                  Editar unidades
+                </button>
+                <button type="button" className="cc-apply-btn" onClick={() => setScreen('config')}>
+                  Cambiar configuración
+                </button>
+              </footer>
+            </div>
+          ) : null}
         </div>
       </div>
-
-      {hasItems ? (
-        <div className="cc-mobile-summary" role="status">
-          <span className="cc-mobile-summary-total">
-            USD {totalPriceUsd.toLocaleString('es-PY')}
-          </span>
-          <button type="button" className="cc-mobile-summary-btn" onClick={handleMobileBarClick}>
-            {isConfigDirty ? 'Calcular cuota' : 'Ver cuotero'}
-          </button>
-        </div>
-      ) : null}
 
       <ConfirmRemoveDialog
         item={pendingRemovalItem}

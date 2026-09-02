@@ -1,4 +1,5 @@
 import {
+  formatUsd,
   PERIODICITY_ADJECTIVE_PLURAL,
   type CuotaPeriodicity,
   type InstallmentPlan,
@@ -8,17 +9,12 @@ const IMAGE_WIDTH = 760;
 const IMAGE_SCALE = 2;
 const IMAGE_HORIZONTAL_PADDING = 48;
 const HEADER_HEIGHT = 96;
-const IMAGE_BASE_HEIGHT = 730;
+const IMAGE_BASE_HEIGHT = 560;
 const BRAND_BLUE = '#00388a';
 const INK = '#142033';
 const MUTED_INK = '#475569';
 const BORDER = '#bcc9d7';
-const SECONDARY_SURFACE = '#f7f9fb';
 const BRAND_LOGO_SOURCE = '/marca/logotipo-timbo-blanco-transparente.webp';
-
-function formatUsd(amount: number): string {
-  return `USD ${amount.toLocaleString('es-PY', { maximumFractionDigits: 0 })}`;
-}
 
 function setFont(
   context: CanvasRenderingContext2D,
@@ -52,21 +48,6 @@ function drawAmountRow(
   context.fillText(amount, IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, y);
   context.textAlign = 'left';
   return y + 38;
-}
-
-function drawSupportingAmount(
-  context: CanvasRenderingContext2D,
-  y: number,
-  label: string,
-  amount: string,
-): number {
-  setFont(context, 17, 600);
-  context.fillStyle = MUTED_INK;
-  context.fillText(label, IMAGE_HORIZONTAL_PADDING, y);
-  setFont(context, 28, 700);
-  context.fillStyle = INK;
-  context.fillText(amount, IMAGE_HORIZONTAL_PADDING, y + 38);
-  return y + 76;
 }
 
 function drawRegularInstallment(
@@ -142,9 +123,7 @@ export async function downloadInstallmentSummaryImage({
 }: InstallmentSummaryImageInput): Promise<void> {
   const brandLogo = await loadBrandLogo();
   const hasReinforcements = plan.reinforcementCount > 0;
-  const hasAdjustmentInstallment = plan.hasAdjustmentInstallment;
-  const imageHeight =
-    IMAGE_BASE_HEIGHT + (hasReinforcements ? 38 : 0) + (hasAdjustmentInstallment ? 76 : 0);
+  const imageHeight = IMAGE_BASE_HEIGHT + (hasReinforcements ? 52 : 0);
   const canvas = document.createElement('canvas');
   canvas.width = IMAGE_WIDTH * IMAGE_SCALE;
   canvas.height = imageHeight * IMAGE_SCALE;
@@ -160,9 +139,11 @@ export async function downloadInstallmentSummaryImage({
   context.fillStyle = BRAND_BLUE;
   context.fillRect(0, 0, IMAGE_WIDTH, HEADER_HEIGHT);
   setFont(context, 20, 700);
+  context.drawImage(brandLogo, IMAGE_HORIZONTAL_PADDING, 27, 168, 42);
   context.fillStyle = '#ffffff';
-  context.fillText('PLAN DE PAGOS', IMAGE_HORIZONTAL_PADDING, 61);
-  context.drawImage(brandLogo, 250, 27, 168, 42);
+  context.textAlign = 'right';
+  context.fillText('PLAN DE PAGOS', IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, 61);
+  context.textAlign = 'left';
 
   let y = HEADER_HEIGHT + 54;
   y = drawAmountRow(
@@ -171,15 +152,6 @@ export async function downloadInstallmentSummaryImage({
     `Entrega inicial · ${String(Math.round(plan.downPaymentPercent))}%`,
     formatUsd(plan.downPaymentUsd),
   );
-
-  if (hasAdjustmentInstallment) {
-    y = drawSupportingAmount(
-      context,
-      y + 30,
-      'Cuota redondeo',
-      formatUsd(plan.adjustmentInstallmentAmountUsd),
-    );
-  }
 
   y = drawRegularInstallment(
     context,
@@ -199,17 +171,6 @@ export async function downloadInstallmentSummaryImage({
 
   y = drawTotal(context, y + 30, formatUsd(plan.totalPagarUsd));
   drawRule(context, y);
-  y += 48;
-
-  context.fillStyle = SECONDARY_SURFACE;
-  context.fillRect(0, y - 28, IMAGE_WIDTH, imageHeight - y + 28);
-  setFont(context, 16, 700);
-  context.fillStyle = INK;
-  context.fillText('Detalle del financiamiento', IMAGE_HORIZONTAL_PADDING, y);
-  y += 36;
-  y = drawAmountRow(context, y, 'Tasa anual', `${plan.annualRatePercent.toLocaleString('es-PY')}%`);
-  y = drawAmountRow(context, y, 'Intereses', formatUsd(plan.interestTotalUsd));
-  drawAmountRow(context, y, 'Total financiado con intereses', formatUsd(plan.saldoAFinanciarUsd));
 
   const imageBlob = await canvasToBlob(canvas);
   const imageUrl = URL.createObjectURL(imageBlob);

@@ -25,7 +25,8 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
 - aplicación `Lista de Precios` en `/apps/lista-precios`, con rutas internas para marcas, modelos,
   variantes y detalle de vehículos.
 - aplicación `Calculadora de Cuotas` en `/apps/calculadora-cuotas`, para armar planes de
-  financiación desde unidades del catálogo o montos manuales y descargar el cuotero como PNG.
+  financiación en un flujo guiado desde unidades del catálogo o montos manuales, calcular cuotas
+  regulares y refuerzos, y descargar el cuotero como PNG.
 - aplicación `Meta Company` en `/apps/meta-company`, para administrar metas comerciales,
   marcas y negocios que consume Power BI.
 
