@@ -1,9 +1,10 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { Api, AuthSession, AuthorizedApplication } from '../../api';
 import type { ApplicationComponentProps } from '../application-component';
 import { MetaCompanyApplication } from './meta-company-application';
+import * as metaCompanyMockData from './meta-company-mock-data';
 
 const application: AuthorizedApplication = {
   key: 'meta-company',
@@ -21,126 +22,60 @@ const session: AuthSession = {
 };
 
 const empresa = { id: 1, code: 'TIMBO', name: 'Timbo', active: true };
-const brand = { id: 2, empresaId: 1, name: 'Faccini', active: true };
-const business = { id: 3, empresaId: 1, name: 'Comercial', active: true };
-const advisor = {
-  id: 4,
-  empresaId: 1,
-  sourceSystem: 'SAP_B1',
-  externalCode: '10',
-  displayName: 'Hugo Baez',
-  kind: 'PERSON' as const,
-  active: true,
-};
+
+function renderMetaCompany(pathname: string, overrides: Partial<ApplicationComponentProps> = {}) {
+  const api = {
+    applications: {
+      listMetaCompanyCatalogs: vi.fn().mockResolvedValue({
+        empresas: [empresa],
+        brands: [],
+        businesses: [],
+        advisors: [],
+      }),
+      listAllMetaCompanyCatalogs: vi.fn().mockResolvedValue({
+        empresas: [empresa],
+        brands: [],
+        businesses: [],
+        advisors: [],
+      }),
+      getMetaCompanyCapabilities: vi
+        .fn()
+        .mockResolvedValue({ canManageCatalogs: true, canManageGoals: true }),
+      createMetaCompanyAdvisor: vi.fn(),
+    },
+  };
+
+  const rendered = render(
+    <MetaCompanyApplication
+      api={api as unknown as Api}
+      application={application}
+      availableApplications={[application]}
+      session={session}
+      pathname={pathname}
+      isLoggingOut={false}
+      logoutFailure={undefined}
+      onNavigate={vi.fn<ApplicationComponentProps['onNavigate']>()}
+      onLogout={vi.fn<ApplicationComponentProps['onLogout']>()}
+      {...overrides}
+    />,
+  );
+
+  return { ...rendered, api };
+}
 
 describe('MetaCompanyApplication', () => {
-  it('crea una meta por marca contra el endpoint de metas por marca', async () => {
-    const user = userEvent.setup();
-    const createMetaCompanyBrandGoal = vi.fn().mockResolvedValue({
-      id: 12,
-      period: '2026-09-01',
-      businessId: 3,
-      businessName: 'Comercial',
-      brandId: 2,
-      brandName: 'Faccini',
-      value: '500.00',
-      updatedAt: null,
-    });
-    const api = {
-      applications: {
-        listMetaCompanyGoals: vi.fn().mockResolvedValue([]),
-        listMetaCompanyCatalogs: vi.fn().mockResolvedValue({
-          empresas: [empresa],
-          brands: [brand],
-          businesses: [business],
-          advisors: [advisor],
-        }),
-        listAllMetaCompanyCatalogs: vi.fn().mockResolvedValue({
-          empresas: [empresa],
-          brands: [brand],
-          businesses: [business],
-          advisors: [advisor],
-        }),
-        getMetaCompanyCapabilities: vi
-          .fn()
-          .mockResolvedValue({ canManageCatalogs: true, canManageGoals: true }),
-        createMetaCompanyBrandGoal,
-      },
-    } as unknown as Api;
-
-    render(
-      <MetaCompanyApplication
-        api={api}
-        application={application}
-        availableApplications={[application]}
-        session={session}
-        pathname="/apps/meta-company"
-        isLoggingOut={false}
-        logoutFailure={undefined}
-        onNavigate={vi.fn<ApplicationComponentProps['onNavigate']>()}
-        onLogout={vi.fn<ApplicationComponentProps['onLogout']>()}
-      />,
-    );
-
-    await user.click(await screen.findByRole('button', { name: 'Nueva meta' }));
-    await user.selectOptions(screen.getByLabelText('Negocio'), '3');
-    await user.selectOptions(screen.getByLabelText(/^Marca/), '2');
-    await user.type(screen.getByLabelText('Valor de meta'), '500.00');
-    await user.click(screen.getByRole('button', { name: 'Crear meta' }));
-
-    await waitFor(() =>
-      expect(createMetaCompanyBrandGoal).toHaveBeenCalledWith({
-        period: expect.stringMatching(/^\d{4}-\d{2}-01$/u),
-        businessId: 3,
-        brandId: 2,
-        value: '500.00',
-      }),
-    );
-
-    await user.click(screen.getByRole('button', { name: 'Gestionar marcas y negocios' }));
-    expect(await screen.findByRole('heading', { name: 'Marcas y negocios' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Nueva marca')).toBeInTheDocument();
-    expect(screen.getByLabelText('Nuevo negocio')).toBeInTheDocument();
-  });
-
   it('crea un asesor desde la sección de gestión de asesores', async () => {
     const user = userEvent.setup();
-    const createMetaCompanyAdvisor = vi.fn().mockResolvedValue({ ...advisor, id: 5 });
-    const api = {
-      applications: {
-        listMetaCompanyGoals: vi.fn().mockResolvedValue([]),
-        listMetaCompanyCatalogs: vi.fn().mockResolvedValue({
-          empresas: [empresa],
-          brands: [brand],
-          businesses: [business],
-          advisors: [advisor],
-        }),
-        listAllMetaCompanyCatalogs: vi.fn().mockResolvedValue({
-          empresas: [empresa],
-          brands: [brand],
-          businesses: [business],
-          advisors: [advisor],
-        }),
-        getMetaCompanyCapabilities: vi
-          .fn()
-          .mockResolvedValue({ canManageCatalogs: true, canManageGoals: true }),
-        createMetaCompanyAdvisor,
-      },
-    } as unknown as Api;
-
-    render(
-      <MetaCompanyApplication
-        api={api}
-        application={application}
-        availableApplications={[application]}
-        session={session}
-        pathname="/apps/meta-company"
-        isLoggingOut={false}
-        logoutFailure={undefined}
-        onNavigate={vi.fn<ApplicationComponentProps['onNavigate']>()}
-        onLogout={vi.fn<ApplicationComponentProps['onLogout']>()}
-      />,
-    );
+    const { api } = renderMetaCompany('/apps/meta-company');
+    api.applications.createMetaCompanyAdvisor.mockResolvedValue({
+      id: 5,
+      empresaId: 1,
+      sourceSystem: 'SAP_B1',
+      externalCode: '20',
+      displayName: 'Nueva Asesora',
+      kind: 'PERSON',
+      active: true,
+    });
 
     await user.click(await screen.findByRole('button', { name: 'Gestionar asesores' }));
     expect(await screen.findByRole('heading', { name: 'Nuevo asesor' })).toBeInTheDocument();
@@ -152,7 +87,7 @@ describe('MetaCompanyApplication', () => {
     await user.click(screen.getByRole('button', { name: 'Agregar asesor' }));
 
     await waitFor(() =>
-      expect(createMetaCompanyAdvisor).toHaveBeenCalledWith({
+      expect(api.applications.createMetaCompanyAdvisor).toHaveBeenCalledWith({
         empresaId: 1,
         sourceSystem: 'SAP_B1',
         externalCode: '20',
@@ -160,5 +95,60 @@ describe('MetaCompanyApplication', () => {
         kind: 'PERSON',
       }),
     );
+  });
+
+  it('despliega el acordeón de un asesor y guarda un mes sin meta cargada', async () => {
+    const user = userEvent.setup();
+    const saveSpy = vi.spyOn(metaCompanyMockData, 'saveAdvisorMonthGoal');
+    renderMetaCompany('/apps/meta-company');
+
+    const luisButton = await screen.findByRole('button', { name: 'Ver detalle de Luis Reguera' });
+    const luisDetails = luisButton.closest('details');
+    expect(luisDetails).not.toBeNull();
+    await user.click(within(luisDetails!).getByText('›'));
+    expect(luisDetails).toHaveProperty('open', true);
+    expect(within(luisDetails!).getByText('01/2026 · Ene')).toBeInTheDocument();
+
+    const mirnaButton = await screen.findByRole('button', { name: 'Ver detalle de Mirna Ovelar' });
+    const mirnaDetails = mirnaButton.closest('details');
+    expect(mirnaDetails).not.toBeNull();
+    await user.click(within(mirnaDetails!).getByText('›'));
+
+    const emptyMonthInput = within(mirnaDetails!).getByLabelText('Meta de 03/2026 · Mar');
+    await user.type(emptyMonthInput, '150000.00');
+    await user.click(
+      within(emptyMonthInput.closest('form')!).getByRole('button', { name: 'Guardar' }),
+    );
+
+    await waitFor(() =>
+      expect(saveSpy).toHaveBeenCalledWith(153, '2026-03-01', '150000.00'),
+    );
+  });
+
+  it('el clic en el nombre del asesor navega al detalle sin desplegar el acordeón', async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn<ApplicationComponentProps['onNavigate']>();
+    renderMetaCompany('/apps/meta-company', { onNavigate });
+
+    const luisButton = await screen.findByRole('button', { name: 'Ver detalle de Luis Reguera' });
+    const luisDetails = luisButton.closest('details');
+    await user.click(luisButton);
+
+    const currentYear = new Date().getFullYear();
+    expect(onNavigate).toHaveBeenCalledWith(`/apps/meta-company/asesores/152/${currentYear}`);
+    expect(luisDetails).toHaveProperty('open', false);
+  });
+
+  it('la pantalla de detalle carga un año por URL y navega al siguiente', async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn<ApplicationComponentProps['onNavigate']>();
+    renderMetaCompany('/apps/meta-company/asesores/152/2026', { onNavigate });
+
+    expect(await screen.findByRole('heading', { name: 'Luis Reguera' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Meta de 01/2026 · Ene')).toHaveValue('291419.00');
+
+    await user.click(screen.getByRole('button', { name: 'Año siguiente' }));
+
+    expect(onNavigate).toHaveBeenCalledWith('/apps/meta-company/asesores/152/2027');
   });
 });

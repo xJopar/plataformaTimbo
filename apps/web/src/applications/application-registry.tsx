@@ -5,13 +5,14 @@ import { CalculadoraCuotasApplication } from './calculadora-cuotas/calculadora-c
 import { HelloWorldApplication } from './hello-world/hello-world-application';
 import { ListaPreciosApplication } from './lista-precios/lista-precios-application';
 import { MetaCompanyApplication } from './meta-company/meta-company-application';
+import { META_COMPANY_LAUNCH_PATH } from './meta-company/meta-company-routes';
 import { SEGUIMIENTO_5S_LAUNCH_PATH } from './seguimiento-5s/seguimiento-5s-routes';
 import { Seguimiento5sApplication } from './seguimiento-5s/seguimiento-5s-application';
 
 const applicationComponents: Record<string, ComponentType<ApplicationComponentProps>> = {
   '/apps/hello-world': HelloWorldApplication,
   '/apps/lista-precios': ListaPreciosApplication,
-  '/apps/meta-company': MetaCompanyApplication,
+  [META_COMPANY_LAUNCH_PATH]: MetaCompanyApplication,
   [CALCULADORA_CUOTAS_LAUNCH_PATH]: CalculadoraCuotasApplication,
   [SEGUIMIENTO_5S_LAUNCH_PATH]: Seguimiento5sApplication,
 };

@@ -7,11 +7,11 @@ import {
 import { PlatformHeader } from '../../layout/platform-header';
 import { PlatformSessionBar } from '../../layout/platform-session-bar';
 import type { ApplicationComponentProps } from '../application-component';
+import { AdvisorDetailScreen } from './advisor-detail-screen';
+import { AdvisorGoalsListScreen } from './advisor-goals-list-screen';
 import './meta-company-application.css';
+import { buildAdvisorDetailPath, parseMetaCompanyRoute } from './meta-company-routes';
 
-type Goal = Awaited<
-  ReturnType<ApplicationComponentProps['api']['applications']['listMetaCompanyGoals']>
->[number];
 type Catalogs = Awaited<
   ReturnType<ApplicationComponentProps['api']['applications']['listMetaCompanyCatalogs']>
 >;
@@ -26,33 +26,23 @@ const EMPTY_CATALOGS: Catalogs = { empresas: [], brands: [], businesses: [], adv
 const NO_CAPABILITIES: Capabilities = { canManageCatalogs: false, canManageGoals: false };
 
 export function MetaCompanyApplication(props: ApplicationComponentProps): React.JSX.Element {
-  const [period, setPeriod] = useState(new Date().toISOString().slice(0, 7));
-  const [mode, setMode] = useState<'advisor' | 'brand'>('advisor');
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [catalogs, setCatalogs] = useState<Catalogs>(EMPTY_CATALOGS);
+  const route = useMemo(
+    () => parseMetaCompanyRoute(props.pathname, props.application.launchPath),
+    [props.pathname, props.application.launchPath],
+  );
+  const [year, setYear] = useState(() => new Date().getFullYear());
   const [allCatalogs, setAllCatalogs] = useState<Catalogs>(EMPTY_CATALOGS);
   const [capabilities, setCapabilities] = useState<Capabilities>(NO_CAPABILITIES);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [savingId, setSavingId] = useState<number>();
-  const [isCreatingGoal, setIsCreatingGoal] = useState(false);
-  const [newGoalType, setNewGoalType] = useState<'Marca' | 'Vendedor'>('Marca');
   const [isManagingCatalogs, setIsManagingCatalogs] = useState(false);
   const [isManagingAdvisors, setIsManagingAdvisors] = useState(false);
   const [catalogAction, setCatalogAction] = useState<string>();
 
   const loadWorkspace = async (): Promise<void> => {
-    setIsLoading(true);
     setError(undefined);
     try {
-      const [loadedGoals, loadedCatalogs, loadedCapabilities] = await Promise.all([
-        props.api.applications.listMetaCompanyGoals(`${period}-01`),
-        props.api.applications.listMetaCompanyCatalogs(),
-        props.api.applications.getMetaCompanyCapabilities(),
-      ]);
-      setGoals(loadedGoals);
-      setCatalogs(loadedCatalogs);
+      const loadedCapabilities = await props.api.applications.getMetaCompanyCapabilities();
       setCapabilities(loadedCapabilities);
       if (loadedCapabilities.canManageCatalogs) {
         setAllCatalogs(await props.api.applications.listAllMetaCompanyCatalogs());
@@ -66,100 +56,13 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
         route: '/api/applications/meta-company',
         provider: 'api',
       });
-      setError('No pudimos cargar las metas y los catálogos. Intentá nuevamente.');
-    } finally {
-      setIsLoading(false);
+      setError('No pudimos cargar los catálogos. Intentá nuevamente.');
     }
   };
 
   useEffect(() => {
     void loadWorkspace();
-  }, [period, props.api]);
-
-  const groups = useMemo(() => {
-    const grouped = new Map<string, Goal[]>();
-    for (const goal of goals) {
-      const key =
-        mode === 'advisor'
-          ? goal.salespersonCode === null
-            ? 'Metas por marca'
-            : `Asesor #${goal.salespersonCode}`
-          : goal.brandName;
-      grouped.set(key, [...(grouped.get(key) ?? []), goal]);
-    }
-    return [...grouped.entries()];
-  }, [goals, mode]);
-
-  const saveGoal = async (goal: Goal, value: string): Promise<void> => {
-    setSavingId(goal.id);
-    setError(undefined);
-    setNotice(undefined);
-    try {
-      const updatedGoal =
-        goal.goalType === 'Marca'
-          ? mapBrandGoalToListItem(
-              await props.api.applications.updateMetaCompanyBrandGoal(goal.id, value),
-            )
-          : mapAdvisorGoalToListItem(
-              await props.api.applications.updateMetaCompanyAdvisorGoal(goal.id, value),
-            );
-      setGoals((items) => items.map((item) => (item.id === goal.id ? updatedGoal : item)));
-      setNotice('Meta actualizada.');
-    } catch (saveError: unknown) {
-      reportFailure(saveError, {
-        operation: 'meta-company.update-goal',
-        method: 'PATCH',
-        route: '/api/applications/meta-company/{brand,advisor}-goals/:id',
-        provider: 'api',
-      });
-      setError('No pudimos guardar la meta. Revisá el valor e intentá nuevamente.');
-    } finally {
-      setSavingId(undefined);
-    }
-  };
-
-  const createGoal = async (form: HTMLFormElement): Promise<void> => {
-    const values = new FormData(form);
-    const goalType = String(values.get('goalType')) as 'Marca' | 'Vendedor';
-    const brandIdText = String(values.get('brandId') ?? '').trim();
-    setCatalogAction('goal');
-    setError(undefined);
-    setNotice(undefined);
-    try {
-      const createdGoal =
-        goalType === 'Marca'
-          ? mapBrandGoalToListItem(
-              await props.api.applications.createMetaCompanyBrandGoal({
-                period: `${period}-01`,
-                businessId: Number(values.get('businessId')),
-                brandId: Number(brandIdText),
-                value: String(values.get('value')),
-              }),
-            )
-          : mapAdvisorGoalToListItem(
-              await props.api.applications.createMetaCompanyAdvisorGoal({
-                period: `${period}-01`,
-                businessId: Number(values.get('businessId')),
-                ...(brandIdText === '' ? {} : { brandId: Number(brandIdText) }),
-                advisorId: Number(values.get('advisorId')),
-                value: String(values.get('value')),
-              }),
-            );
-      setGoals((items) => [...items, createdGoal]);
-      setIsCreatingGoal(false);
-      setNotice('Meta creada.');
-    } catch (creationError: unknown) {
-      reportFailure(creationError, {
-        operation: 'meta-company.create-goal',
-        method: 'POST',
-        route: '/api/applications/meta-company/{brand,advisor}-goals',
-        provider: 'api',
-      });
-      setError('No pudimos crear la meta. Verificá los datos e intentá nuevamente.');
-    } finally {
-      setCatalogAction(undefined);
-    }
-  };
+  }, [props.api]);
 
   const createCatalogItem = async (kind: CatalogKind, form: HTMLFormElement): Promise<void> => {
     const values = new FormData(form);
@@ -249,6 +152,8 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
     }
   };
 
+  const isDetail = route.view === 'advisor-detail';
+
   return (
     <main className="platform-shell meta-company-shell">
       <PlatformHeader
@@ -259,76 +164,14 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
         isPlatformAdministrator={props.session.isPlatformAdministrator}
         showAdministrationLink={false}
         variant="application"
+        breadcrumb={isDetail ? 'Detalle de asesor' : undefined}
+        backLabel={isDetail ? 'Metas por asesor' : undefined}
+        onBack={isDetail ? () => props.onNavigate(props.application.launchPath) : undefined}
         onNavigate={props.onNavigate}
         onLogout={props.onLogout}
       />
       <PlatformSessionBar session={props.session} />
       <section className="mc-page">
-        <header className="mc-title">
-          <div>
-            <h1>Metas comerciales</h1>
-            <p>Actualizá los valores que Power BI utilizará en sus reportes.</p>
-          </div>
-          <div className="mc-title-actions">
-            {capabilities.canManageGoals ? (
-              <button
-                type="button"
-                className="mc-primary-action"
-                onClick={() => setIsCreatingGoal(true)}
-              >
-                Nueva meta
-              </button>
-            ) : null}
-            {capabilities.canManageCatalogs ? (
-              <button
-                type="button"
-                className="mc-secondary-action"
-                aria-expanded={isManagingCatalogs}
-                onClick={() => setIsManagingCatalogs((visible) => !visible)}
-              >
-                Gestionar marcas y negocios
-              </button>
-            ) : null}
-            {capabilities.canManageCatalogs ? (
-              <button
-                type="button"
-                className="mc-secondary-action"
-                aria-expanded={isManagingAdvisors}
-                onClick={() => setIsManagingAdvisors((visible) => !visible)}
-              >
-                Gestionar asesores
-              </button>
-            ) : null}
-          </div>
-        </header>
-
-        <div className="mc-toolbar">
-          <label>
-            Período
-            <input
-              type="month"
-              value={period}
-              onChange={(event) => setPeriod(event.target.value)}
-            />
-          </label>
-          <div className="mc-switch" role="group" aria-label="Agrupar metas">
-            <button
-              type="button"
-              className={mode === 'advisor' ? 'is-active' : ''}
-              onClick={() => setMode('advisor')}
-            >
-              Por asesor
-            </button>
-            <button
-              type="button"
-              className={mode === 'brand' ? 'is-active' : ''}
-              onClick={() => setMode('brand')}
-            >
-              Por marca
-            </button>
-          </div>
-        </div>
-
         {error === undefined ? null : (
           <p className="mc-error" role="alert">
             {error}
@@ -340,210 +183,117 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
           </p>
         )}
 
-        {isCreatingGoal ? (
-          <section className="mc-workbench" aria-labelledby="mc-create-goal-title">
-            <div className="mc-workbench-heading">
+        {route.view === 'advisors' ? (
+          <>
+            <header className="mc-title">
               <div>
-                <h2 id="mc-create-goal-title">Registrar meta para {formatPeriod(period)}</h2>
-                <p>
-                  Elegí el negocio y la marca. Para una meta por vendedor, elegí el asesor.
-                </p>
+                <h1>Metas comerciales</h1>
+                <p>Actualizá los valores que Power BI utilizará en sus reportes.</p>
               </div>
-              <button
-                type="button"
-                className="mc-text-action"
-                onClick={() => setIsCreatingGoal(false)}
-              >
-                Cancelar
-              </button>
-            </div>
-            <form
-              className="mc-create-goal-form"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void createGoal(event.currentTarget);
-              }}
-            >
-              <label>
-                Tipo de meta
-                <select
-                  name="goalType"
-                  value={newGoalType}
-                  onChange={(event) => setNewGoalType(event.target.value as 'Marca' | 'Vendedor')}
-                >
-                  <option value="Marca">Por marca</option>
-                  <option value="Vendedor">Por vendedor</option>
-                </select>
-              </label>
-              <label>
-                Negocio
-                <select name="businessId" required defaultValue="">
-                  <option value="" disabled>
-                    Seleccioná un negocio
-                  </option>
-                  {catalogs.businesses.map((business) => (
-                    <option key={business.id} value={business.id}>
-                      {business.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Marca{' '}
-                <span>
-                  {newGoalType === 'Marca' ? 'Obligatoria' : 'Opcional para meta por vendedor'}
-                </span>
-                <select
-                  name="brandId"
-                  required={newGoalType === 'Marca'}
-                  defaultValue=""
-                >
-                  <option value="">
-                    {newGoalType === 'Marca' ? 'Seleccioná una marca' : 'No aplica'}
-                  </option>
-                  {catalogs.brands.map((brand) => (
-                    <option key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Asesor{' '}
-                <span>
-                  {newGoalType === 'Vendedor'
-                    ? 'Obligatorio para meta por vendedor'
-                    : 'No aplica a una meta por marca'}
-                </span>
-                <select
-                  name="advisorId"
-                  disabled={newGoalType === 'Marca'}
-                  required={newGoalType === 'Vendedor'}
-                  defaultValue=""
-                >
-                  <option value="" disabled>
-                    Seleccioná un asesor
-                  </option>
-                  {catalogs.advisors.map((advisor) => (
-                    <option key={advisor.id} value={advisor.id}>
-                      {advisor.displayName} ({advisor.externalCode})
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Valor de meta
-                <input name="value" inputMode="decimal" required placeholder="0,00" />
-              </label>
-              <button className="mc-primary-action" disabled={catalogAction === 'goal'}>
-                {catalogAction === 'goal' ? 'Creando…' : 'Crear meta'}
-              </button>
-            </form>
-          </section>
-        ) : null}
-
-        {isManagingCatalogs ? (
-          <section className="mc-workbench" aria-labelledby="mc-catalog-title">
-            <div className="mc-workbench-heading">
-              <div>
-                <h2 id="mc-catalog-title">Marcas y negocios</h2>
-                <p>
-                  Los registros inactivos se conservan para no alterar el histórico de Power BI.
-                </p>
+              <div className="mc-title-actions">
+                {capabilities.canManageCatalogs ? (
+                  <button
+                    type="button"
+                    className="mc-secondary-action"
+                    aria-expanded={isManagingCatalogs}
+                    onClick={() => setIsManagingCatalogs((visible) => !visible)}
+                  >
+                    Gestionar marcas y negocios
+                  </button>
+                ) : null}
+                {capabilities.canManageCatalogs ? (
+                  <button
+                    type="button"
+                    className="mc-secondary-action"
+                    aria-expanded={isManagingAdvisors}
+                    onClick={() => setIsManagingAdvisors((visible) => !visible)}
+                  >
+                    Gestionar asesores
+                  </button>
+                ) : null}
               </div>
-            </div>
-            <div className="mc-catalog-grid">
-              <CatalogManagement
-                title="Marcas"
-                items={allCatalogs.brands}
-                empresas={allCatalogs.empresas}
-                kind="brand"
-                action={catalogAction}
-                onCreate={createCatalogItem}
-              />
-              <CatalogManagement
-                title="Negocios"
-                items={allCatalogs.businesses}
-                empresas={allCatalogs.empresas}
-                kind="business"
-                action={catalogAction}
-                onCreate={createCatalogItem}
-              />
-            </div>
-          </section>
-        ) : null}
+            </header>
 
-        {isManagingAdvisors ? (
-          <section className="mc-workbench" aria-labelledby="mc-advisor-title">
-            <div className="mc-workbench-heading">
-              <div>
-                <h2 id="mc-advisor-title">Asesores</h2>
-                <p>Los asesores inactivos dejan de estar disponibles para nuevas metas.</p>
-              </div>
-            </div>
-            <AdvisorManagement
-              advisors={allCatalogs.advisors}
-              empresas={allCatalogs.empresas}
-              action={catalogAction}
-              onSave={saveAdvisor}
-              onToggle={toggleAdvisorActive}
-            />
-          </section>
-        ) : null}
-
-        {isLoading ? <p className="mc-state">Cargando metas…</p> : null}
-        {!isLoading && groups.length === 0 ? (
-          <section className="mc-empty">
-            <h2>No hay metas para este período</h2>
-            <p>
-              {capabilities.canManageGoals
-                ? 'Creá la primera meta para que quede disponible para Power BI.'
-                : 'Probá otro período o consultá con un administrador de Meta Company.'}
-            </p>
-          </section>
-        ) : null}
-        <div className="mc-groups">
-          {groups.map(([title, items]) => (
-            <section className="mc-group" key={title}>
-              <h2>{title}</h2>
-              {items.map((goal) => (
-                <form
-                  className="mc-goal"
-                  key={goal.id}
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    void saveGoal(goal, String(new FormData(event.currentTarget).get('value')));
-                  }}
-                >
+            {isManagingCatalogs ? (
+              <section className="mc-workbench" aria-labelledby="mc-catalog-title">
+                <div className="mc-workbench-heading">
                   <div>
-                    <strong>{goal.brandName}</strong>
-                    <span>
-                      {goal.businessName} · Meta {goal.goalType}
-                    </span>
+                    <h2 id="mc-catalog-title">Marcas y negocios</h2>
+                    <p>
+                      Los registros inactivos se conservan para no alterar el histórico de Power BI.
+                    </p>
                   </div>
-                  {capabilities.canManageGoals ? (
-                    <label>
-                      Meta
-                      <input
-                        name="value"
-                        defaultValue={goal.value}
-                        inputMode="decimal"
-                        aria-label={`Meta de ${goal.brandName}`}
-                      />
-                    </label>
-                  ) : (
-                    <output className="mc-goal-value">{goal.value}</output>
-                  )}
-                  {capabilities.canManageGoals ? (
-                    <button className="mc-primary-action" disabled={savingId === goal.id}>
-                      {savingId === goal.id ? 'Guardando…' : 'Guardar'}
-                    </button>
-                  ) : null}
-                </form>
-              ))}
-            </section>
-          ))}
-        </div>
+                </div>
+                <div className="mc-catalog-grid">
+                  <CatalogManagement
+                    title="Marcas"
+                    items={allCatalogs.brands}
+                    empresas={allCatalogs.empresas}
+                    kind="brand"
+                    action={catalogAction}
+                    onCreate={createCatalogItem}
+                  />
+                  <CatalogManagement
+                    title="Negocios"
+                    items={allCatalogs.businesses}
+                    empresas={allCatalogs.empresas}
+                    kind="business"
+                    action={catalogAction}
+                    onCreate={createCatalogItem}
+                  />
+                </div>
+              </section>
+            ) : null}
+
+            {isManagingAdvisors ? (
+              <section className="mc-workbench" aria-labelledby="mc-advisor-title">
+                <div className="mc-workbench-heading">
+                  <div>
+                    <h2 id="mc-advisor-title">Asesores</h2>
+                    <p>Los asesores inactivos dejan de estar disponibles para nuevas metas.</p>
+                  </div>
+                </div>
+                <AdvisorManagement
+                  advisors={allCatalogs.advisors}
+                  empresas={allCatalogs.empresas}
+                  action={catalogAction}
+                  onSave={saveAdvisor}
+                  onToggle={toggleAdvisorActive}
+                />
+              </section>
+            ) : null}
+
+            <AdvisorGoalsListScreen
+              year={year}
+              onYearChange={setYear}
+              canEdit={capabilities.canManageGoals}
+              onSelectAdvisor={(advisorId) =>
+                props.onNavigate(buildAdvisorDetailPath(props.application.launchPath, advisorId, year))
+              }
+            />
+          </>
+        ) : null}
+
+        {route.view === 'advisor-detail' ? (
+          <AdvisorDetailScreen
+            advisorId={route.advisorId}
+            year={route.year ?? year}
+            canEdit={capabilities.canManageGoals}
+            onNavigateYear={(newYear) => {
+              setYear(newYear);
+              props.onNavigate(
+                buildAdvisorDetailPath(props.application.launchPath, route.advisorId, newYear),
+              );
+            }}
+          />
+        ) : null}
+
+        {route.view === 'not-found' ? (
+          <section className="mc-empty">
+            <h2>No encontramos esta pantalla</h2>
+            <p>Volvé a la lista de asesores e intentá de nuevo.</p>
+          </section>
+        ) : null}
       </section>
     </main>
   );
@@ -815,64 +565,6 @@ function AdvisorManagement({
       </div>
     </>
   );
-}
-
-function mapBrandGoalToListItem(goal: {
-  id: number;
-  period: string;
-  businessId: number;
-  businessName: string;
-  brandId: number;
-  brandName: string;
-  value: string;
-  updatedAt?: string | null;
-}): Goal {
-  return {
-    id: goal.id,
-    period: goal.period,
-    businessId: goal.businessId,
-    businessName: goal.businessName,
-    brandId: goal.brandId,
-    brandName: goal.brandName,
-    salespersonCode: null,
-    goalType: 'Marca',
-    value: goal.value,
-    updatedAt: goal.updatedAt ?? null,
-  };
-}
-
-function mapAdvisorGoalToListItem(goal: {
-  id: number;
-  period: string;
-  businessId: number;
-  businessName: string;
-  brandId?: number | null;
-  brandName?: string | null;
-  advisorCode: string;
-  value: string;
-  updatedAt?: string | null;
-}): Goal {
-  const advisorCode = Number(goal.advisorCode);
-  return {
-    id: goal.id,
-    period: goal.period,
-    businessId: goal.businessId,
-    businessName: goal.businessName,
-    brandId: goal.brandId ?? null,
-    brandName: goal.brandName ?? 'No aplica',
-    salespersonCode: Number.isSafeInteger(advisorCode) ? advisorCode : null,
-    goalType: 'Vendedor',
-    value: goal.value,
-    updatedAt: goal.updatedAt ?? null,
-  };
-}
-
-function formatPeriod(period: string): string {
-  return new Intl.DateTimeFormat('es-PY', {
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(`${period}-01T00:00:00.000Z`));
 }
 
 function reportFailure(error: unknown, context: BrowserOperationFailureContext): void {
