@@ -16,12 +16,13 @@ type Catalogs = Awaited<
   ReturnType<ApplicationComponentProps['api']['applications']['listMetaCompanyCatalogs']>
 >;
 type CatalogItem = Catalogs['brands'][number];
+type Advisor = Catalogs['advisors'][number];
 type Capabilities = Awaited<
   ReturnType<ApplicationComponentProps['api']['applications']['getMetaCompanyCapabilities']>
 >;
 type CatalogKind = 'brand' | 'business';
 
-const EMPTY_CATALOGS: Catalogs = { brands: [], businesses: [] };
+const EMPTY_CATALOGS: Catalogs = { empresas: [], brands: [], businesses: [], advisors: [] };
 const NO_CAPABILITIES: Capabilities = { canManageCatalogs: false, canManageGoals: false };
 
 export function MetaCompanyApplication(props: ApplicationComponentProps): React.JSX.Element {
@@ -38,6 +39,7 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
   const [isCreatingGoal, setIsCreatingGoal] = useState(false);
   const [newGoalType, setNewGoalType] = useState<'Marca' | 'Vendedor'>('Marca');
   const [isManagingCatalogs, setIsManagingCatalogs] = useState(false);
+  const [isManagingAdvisors, setIsManagingAdvisors] = useState(false);
   const [catalogAction, setCatalogAction] = useState<string>();
 
   const loadWorkspace = async (): Promise<void> => {
@@ -93,14 +95,21 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
     setError(undefined);
     setNotice(undefined);
     try {
-      const updatedGoal = await props.api.applications.updateMetaCompanyGoal(goal.id, value);
+      const updatedGoal =
+        goal.goalType === 'Marca'
+          ? mapBrandGoalToListItem(
+              await props.api.applications.updateMetaCompanyBrandGoal(goal.id, value),
+            )
+          : mapAdvisorGoalToListItem(
+              await props.api.applications.updateMetaCompanyAdvisorGoal(goal.id, value),
+            );
       setGoals((items) => items.map((item) => (item.id === goal.id ? updatedGoal : item)));
       setNotice('Meta actualizada.');
     } catch (saveError: unknown) {
       reportFailure(saveError, {
         operation: 'meta-company.update-goal',
         method: 'PATCH',
-        route: '/api/applications/meta-company/goals/:id',
+        route: '/api/applications/meta-company/{brand,advisor}-goals/:id',
         provider: 'api',
       });
       setError('No pudimos guardar la meta. Revisá el valor e intentá nuevamente.');
@@ -112,20 +121,30 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
   const createGoal = async (form: HTMLFormElement): Promise<void> => {
     const values = new FormData(form);
     const goalType = String(values.get('goalType')) as 'Marca' | 'Vendedor';
-    const salespersonCodeText = String(values.get('salespersonCode') ?? '').trim();
-    const salespersonCode = salespersonCodeText === '' ? undefined : Number(salespersonCodeText);
+    const brandIdText = String(values.get('brandId') ?? '').trim();
     setCatalogAction('goal');
     setError(undefined);
     setNotice(undefined);
     try {
-      const createdGoal = await props.api.applications.createMetaCompanyGoal({
-        period: `${period}-01`,
-        businessId: Number(values.get('businessId')),
-        brandId: Number(values.get('brandId')),
-        goalType,
-        value: String(values.get('value')),
-        ...(goalType === 'Vendedor' && salespersonCode !== undefined ? { salespersonCode } : {}),
-      });
+      const createdGoal =
+        goalType === 'Marca'
+          ? mapBrandGoalToListItem(
+              await props.api.applications.createMetaCompanyBrandGoal({
+                period: `${period}-01`,
+                businessId: Number(values.get('businessId')),
+                brandId: Number(brandIdText),
+                value: String(values.get('value')),
+              }),
+            )
+          : mapAdvisorGoalToListItem(
+              await props.api.applications.createMetaCompanyAdvisorGoal({
+                period: `${period}-01`,
+                businessId: Number(values.get('businessId')),
+                ...(brandIdText === '' ? {} : { brandId: Number(brandIdText) }),
+                advisorId: Number(values.get('advisorId')),
+                value: String(values.get('value')),
+              }),
+            );
       setGoals((items) => [...items, createdGoal]);
       setIsCreatingGoal(false);
       setNotice('Meta creada.');
@@ -133,7 +152,7 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
       reportFailure(creationError, {
         operation: 'meta-company.create-goal',
         method: 'POST',
-        route: '/api/applications/meta-company/goals',
+        route: '/api/applications/meta-company/{brand,advisor}-goals',
         provider: 'api',
       });
       setError('No pudimos crear la meta. Verificá los datos e intentá nuevamente.');
@@ -143,15 +162,17 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
   };
 
   const createCatalogItem = async (kind: CatalogKind, form: HTMLFormElement): Promise<void> => {
-    const name = String(new FormData(form).get('name') ?? '');
+    const values = new FormData(form);
+    const name = String(values.get('name') ?? '');
+    const empresaId = Number(values.get('empresaId'));
     setCatalogAction(`${kind}-create`);
     setError(undefined);
     setNotice(undefined);
     try {
       if (kind === 'brand') {
-        await props.api.applications.createMetaCompanyBrand({ name });
+        await props.api.applications.createMetaCompanyBrand({ empresaId, name });
       } else {
-        await props.api.applications.createMetaCompanyBusiness({ name });
+        await props.api.applications.createMetaCompanyBusiness({ empresaId, name });
       }
       await loadWorkspace();
       form.reset();
@@ -172,29 +193,57 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
     }
   };
 
-  const setCatalogItemActive = async (kind: CatalogKind, item: CatalogItem): Promise<void> => {
-    setCatalogAction(`${kind}-${item.id}`);
+  const saveAdvisor = async (
+    input: {
+      empresaId: number;
+      sourceSystem: string;
+      externalCode: string;
+      displayName: string;
+      kind: 'PERSON' | 'SALES_CHANNEL';
+    },
+    editingId: number | undefined,
+  ): Promise<void> => {
+    setCatalogAction(editingId === undefined ? 'advisor-create' : `advisor-edit-${editingId}`);
     setError(undefined);
     setNotice(undefined);
     try {
-      if (kind === 'brand') {
-        await props.api.applications.setMetaCompanyBrandActive(item.id, !item.active);
+      if (editingId === undefined) {
+        await props.api.applications.createMetaCompanyAdvisor(input);
       } else {
-        await props.api.applications.setMetaCompanyBusinessActive(item.id, !item.active);
+        await props.api.applications.updateMetaCompanyAdvisor(editingId, input);
       }
       await loadWorkspace();
-      setNotice(item.active ? `${item.name} fue desactivado.` : `${item.name} fue reactivado.`);
-    } catch (statusError: unknown) {
-      reportFailure(statusError, {
-        operation: 'meta-company.update-catalog',
-        method: 'PATCH',
-        route:
-          kind === 'brand'
-            ? '/api/applications/meta-company/brands/:id/active'
-            : '/api/applications/meta-company/businesses/:id/active',
+      setNotice(editingId === undefined ? 'Asesor creado.' : 'Asesor actualizado.');
+    } catch (creationError: unknown) {
+      reportFailure(creationError, {
+        operation: 'meta-company.save-advisor',
+        method: editingId === undefined ? 'POST' : 'PATCH',
+        route: '/api/applications/meta-company/advisors',
         provider: 'api',
       });
-      setError('No pudimos actualizar el estado del catálogo. Intentá nuevamente.');
+      setError('No pudimos guardar el asesor. Revisá los datos e intentá nuevamente.');
+      throw creationError;
+    } finally {
+      setCatalogAction(undefined);
+    }
+  };
+
+  const toggleAdvisorActive = async (advisor: Advisor): Promise<void> => {
+    setCatalogAction(`advisor-${advisor.id}`);
+    setError(undefined);
+    setNotice(undefined);
+    try {
+      await props.api.applications.setMetaCompanyAdvisorActive(advisor.id, !advisor.active);
+      await loadWorkspace();
+      setNotice(advisor.active ? `${advisor.displayName} fue desactivado.` : `${advisor.displayName} fue reactivado.`);
+    } catch (statusError: unknown) {
+      reportFailure(statusError, {
+        operation: 'meta-company.update-advisor-status',
+        method: 'PATCH',
+        route: '/api/applications/meta-company/advisors/:id/active',
+        provider: 'api',
+      });
+      setError('No pudimos actualizar el estado del asesor. Intentá nuevamente.');
     } finally {
       setCatalogAction(undefined);
     }
@@ -238,6 +287,16 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                 onClick={() => setIsManagingCatalogs((visible) => !visible)}
               >
                 Gestionar marcas y negocios
+              </button>
+            ) : null}
+            {capabilities.canManageCatalogs ? (
+              <button
+                type="button"
+                className="mc-secondary-action"
+                aria-expanded={isManagingAdvisors}
+                onClick={() => setIsManagingAdvisors((visible) => !visible)}
+              >
+                Gestionar asesores
               </button>
             ) : null}
           </div>
@@ -287,7 +346,7 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
               <div>
                 <h2 id="mc-create-goal-title">Registrar meta para {formatPeriod(period)}</h2>
                 <p>
-                  Elegí el negocio y la marca. Para una meta por vendedor, indicá su código SAP.
+                  Elegí el negocio y la marca. Para una meta por vendedor, elegí el asesor.
                 </p>
               </div>
               <button
@@ -330,10 +389,17 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                 </select>
               </label>
               <label>
-                Marca
-                <select name="brandId" required defaultValue="">
-                  <option value="" disabled>
-                    Seleccioná una marca
+                Marca{' '}
+                <span>
+                  {newGoalType === 'Marca' ? 'Obligatoria' : 'Opcional para meta por vendedor'}
+                </span>
+                <select
+                  name="brandId"
+                  required={newGoalType === 'Marca'}
+                  defaultValue=""
+                >
+                  <option value="">
+                    {newGoalType === 'Marca' ? 'Seleccioná una marca' : 'No aplica'}
                   </option>
                   {catalogs.brands.map((brand) => (
                     <option key={brand.id} value={brand.id}>
@@ -343,20 +409,27 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                 </select>
               </label>
               <label>
-                Código de asesor{' '}
+                Asesor{' '}
                 <span>
                   {newGoalType === 'Vendedor'
                     ? 'Obligatorio para meta por vendedor'
                     : 'No aplica a una meta por marca'}
                 </span>
-                <input
-                  name="salespersonCode"
-                  inputMode="numeric"
-                  type="number"
-                  min="1"
+                <select
+                  name="advisorId"
                   disabled={newGoalType === 'Marca'}
                   required={newGoalType === 'Vendedor'}
-                />
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Seleccioná un asesor
+                  </option>
+                  {catalogs.advisors.map((advisor) => (
+                    <option key={advisor.id} value={advisor.id}>
+                      {advisor.displayName} ({advisor.externalCode})
+                    </option>
+                  ))}
+                </select>
               </label>
               <label>
                 Valor de meta
@@ -383,20 +456,38 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
               <CatalogManagement
                 title="Marcas"
                 items={allCatalogs.brands}
+                empresas={allCatalogs.empresas}
                 kind="brand"
                 action={catalogAction}
                 onCreate={createCatalogItem}
-                onToggle={setCatalogItemActive}
               />
               <CatalogManagement
                 title="Negocios"
                 items={allCatalogs.businesses}
+                empresas={allCatalogs.empresas}
                 kind="business"
                 action={catalogAction}
                 onCreate={createCatalogItem}
-                onToggle={setCatalogItemActive}
               />
             </div>
+          </section>
+        ) : null}
+
+        {isManagingAdvisors ? (
+          <section className="mc-workbench" aria-labelledby="mc-advisor-title">
+            <div className="mc-workbench-heading">
+              <div>
+                <h2 id="mc-advisor-title">Asesores</h2>
+                <p>Los asesores inactivos dejan de estar disponibles para nuevas metas.</p>
+              </div>
+            </div>
+            <AdvisorManagement
+              advisors={allCatalogs.advisors}
+              empresas={allCatalogs.empresas}
+              action={catalogAction}
+              onSave={saveAdvisor}
+              onToggle={toggleAdvisorActive}
+            />
           </section>
         ) : null}
 
@@ -461,19 +552,19 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
 interface CatalogManagementProps {
   title: string;
   items: CatalogItem[];
+  empresas: Catalogs['empresas'];
   kind: CatalogKind;
   action: string | undefined;
   onCreate: (kind: CatalogKind, form: HTMLFormElement) => Promise<void>;
-  onToggle: (kind: CatalogKind, item: CatalogItem) => Promise<void>;
 }
 
 function CatalogManagement({
   title,
   items,
+  empresas,
   kind,
   action,
   onCreate,
-  onToggle,
 }: CatalogManagementProps): React.JSX.Element {
   return (
     <section className="mc-catalog-section">
@@ -485,6 +576,17 @@ function CatalogManagement({
           void onCreate(kind, event.currentTarget);
         }}
       >
+        <label htmlFor={`mc-${kind}-empresa`}>Empresa</label>
+        <select id={`mc-${kind}-empresa`} name="empresaId" required defaultValue="">
+          <option value="" disabled>
+            Seleccioná una empresa
+          </option>
+          {empresas.map((empresa) => (
+            <option key={empresa.id} value={empresa.id}>
+              {empresa.name}
+            </option>
+          ))}
+        </select>
         <label htmlFor={`mc-${kind}-name`}>
           {kind === 'brand' ? 'Nueva marca' : 'Nuevo negocio'}
         </label>
@@ -502,19 +604,267 @@ function CatalogManagement({
               <strong>{item.name}</strong>
               <span>{item.active ? 'Activo' : 'Inactivo'}</span>
             </div>
-            <button
-              type="button"
-              className="mc-text-action"
-              disabled={action === `${kind}-${item.id}`}
-              onClick={() => void onToggle(kind, item)}
-            >
-              {item.active ? 'Desactivar' : 'Reactivar'}
-            </button>
           </li>
         ))}
       </ul>
     </section>
   );
+}
+
+interface AdvisorFormValues {
+  empresaId: string;
+  sourceSystem: string;
+  externalCode: string;
+  displayName: string;
+  kind: 'PERSON' | 'SALES_CHANNEL';
+}
+
+const EMPTY_ADVISOR_FORM: AdvisorFormValues = {
+  empresaId: '',
+  sourceSystem: '',
+  externalCode: '',
+  displayName: '',
+  kind: 'PERSON',
+};
+
+interface AdvisorManagementProps {
+  advisors: Advisor[];
+  empresas: Catalogs['empresas'];
+  action: string | undefined;
+  onSave: (
+    input: {
+      empresaId: number;
+      sourceSystem: string;
+      externalCode: string;
+      displayName: string;
+      kind: 'PERSON' | 'SALES_CHANNEL';
+    },
+    editingId: number | undefined,
+  ) => Promise<void>;
+  onToggle: (advisor: Advisor) => Promise<void>;
+}
+
+function AdvisorManagement({
+  advisors,
+  empresas,
+  action,
+  onSave,
+  onToggle,
+}: AdvisorManagementProps): React.JSX.Element {
+  const [form, setForm] = useState<AdvisorFormValues>(EMPTY_ADVISOR_FORM);
+  const [editingId, setEditingId] = useState<number>();
+
+  const updateForm = (field: keyof AdvisorFormValues, value: string): void => {
+    setForm((current) => ({ ...current, [field]: value }) as AdvisorFormValues);
+  };
+
+  const resetForm = (): void => {
+    setEditingId(undefined);
+    setForm(EMPTY_ADVISOR_FORM);
+  };
+
+  const beginEditing = (advisor: Advisor): void => {
+    setEditingId(advisor.id);
+    setForm({
+      empresaId: String(advisor.empresaId),
+      sourceSystem: advisor.sourceSystem,
+      externalCode: advisor.externalCode,
+      displayName: advisor.displayName,
+      kind: advisor.kind,
+    });
+  };
+
+  const isSaving =
+    action === 'advisor-create' || (editingId !== undefined && action === `advisor-edit-${editingId}`);
+
+  const submit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
+    try {
+      await onSave(
+        {
+          empresaId: Number(form.empresaId),
+          sourceSystem: form.sourceSystem,
+          externalCode: form.externalCode,
+          displayName: form.displayName,
+          kind: form.kind,
+        },
+        editingId,
+      );
+      resetForm();
+    } catch {
+      // el error ya se reporta en el estado compartido de la página
+    }
+  };
+
+  return (
+    <>
+      <form className="mc-advisor-form" onSubmit={(event) => void submit(event)}>
+        <div className="mc-workbench-heading">
+          <h3>{editingId === undefined ? 'Nuevo asesor' : 'Editar asesor'}</h3>
+          {editingId === undefined ? null : (
+            <button type="button" className="mc-text-action" onClick={resetForm}>
+              Cancelar edición
+            </button>
+          )}
+        </div>
+        <div className="mc-advisor-form-grid">
+          <label>
+            Empresa
+            <select
+              required
+              value={form.empresaId}
+              onChange={(event) => updateForm('empresaId', event.target.value)}
+            >
+              <option value="" disabled>
+                Seleccioná una empresa
+              </option>
+              {empresas.map((empresa) => (
+                <option key={empresa.id} value={empresa.id}>
+                  {empresa.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Sistema de origen
+            <input
+              required
+              placeholder="SAP_B1"
+              value={form.sourceSystem}
+              onChange={(event) => updateForm('sourceSystem', event.target.value)}
+            />
+          </label>
+          <label>
+            Código externo
+            <input
+              required
+              value={form.externalCode}
+              onChange={(event) => updateForm('externalCode', event.target.value)}
+            />
+          </label>
+          <label>
+            Nombre visible
+            <input
+              required
+              value={form.displayName}
+              onChange={(event) => updateForm('displayName', event.target.value)}
+            />
+          </label>
+          <label>
+            Tipo
+            <select
+              value={form.kind}
+              onChange={(event) => updateForm('kind', event.target.value)}
+            >
+              <option value="PERSON">Persona</option>
+              <option value="SALES_CHANNEL">Canal de venta</option>
+            </select>
+          </label>
+        </div>
+        <button className="mc-primary-action" disabled={isSaving}>
+          {isSaving ? 'Guardando…' : editingId === undefined ? 'Agregar asesor' : 'Guardar cambios'}
+        </button>
+      </form>
+      <div className="mc-advisor-table-wrapper">
+        <table className="mc-advisor-table">
+          <caption>Asesores registrados</caption>
+          <thead>
+            <tr>
+              <th scope="col">Nombre</th>
+              <th scope="col">Empresa</th>
+              <th scope="col">Sistema · Código</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {advisors.map((advisor) => (
+              <tr key={advisor.id}>
+                <td>{advisor.displayName}</td>
+                <td>{empresas.find((empresa) => empresa.id === advisor.empresaId)?.name ?? '—'}</td>
+                <td>
+                  <code>
+                    {advisor.sourceSystem} · {advisor.externalCode}
+                  </code>
+                </td>
+                <td>{advisor.kind === 'PERSON' ? 'Persona' : 'Canal de venta'}</td>
+                <td>{advisor.active ? 'Activo' : 'Inactivo'}</td>
+                <td className="mc-advisor-actions">
+                  <button
+                    type="button"
+                    className="mc-text-action"
+                    disabled={isSaving}
+                    onClick={() => beginEditing(advisor)}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    className="mc-text-action"
+                    disabled={action === `advisor-${advisor.id}`}
+                    onClick={() => void onToggle(advisor)}
+                  >
+                    {advisor.active ? 'Desactivar' : 'Reactivar'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+function mapBrandGoalToListItem(goal: {
+  id: number;
+  period: string;
+  businessId: number;
+  businessName: string;
+  brandId: number;
+  brandName: string;
+  value: string;
+  updatedAt?: string | null;
+}): Goal {
+  return {
+    id: goal.id,
+    period: goal.period,
+    businessId: goal.businessId,
+    businessName: goal.businessName,
+    brandId: goal.brandId,
+    brandName: goal.brandName,
+    salespersonCode: null,
+    goalType: 'Marca',
+    value: goal.value,
+    updatedAt: goal.updatedAt ?? null,
+  };
+}
+
+function mapAdvisorGoalToListItem(goal: {
+  id: number;
+  period: string;
+  businessId: number;
+  businessName: string;
+  brandId?: number | null;
+  brandName?: string | null;
+  advisorCode: string;
+  value: string;
+  updatedAt?: string | null;
+}): Goal {
+  const advisorCode = Number(goal.advisorCode);
+  return {
+    id: goal.id,
+    period: goal.period,
+    businessId: goal.businessId,
+    businessName: goal.businessName,
+    brandId: goal.brandId ?? null,
+    brandName: goal.brandName ?? 'No aplica',
+    salespersonCode: Number.isSafeInteger(advisorCode) ? advisorCode : null,
+    goalType: 'Vendedor',
+    value: goal.value,
+    updatedAt: goal.updatedAt ?? null,
+  };
 }
 
 function formatPeriod(period: string): string {

@@ -20,18 +20,29 @@ const session: AuthSession = {
   isPlatformAdministrator: false,
 };
 
+const empresa = { id: 1, code: 'TIMBO', name: 'Timbo', active: true };
+const brand = { id: 2, empresaId: 1, name: 'Faccini', active: true };
+const business = { id: 3, empresaId: 1, name: 'Comercial', active: true };
+const advisor = {
+  id: 4,
+  empresaId: 1,
+  sourceSystem: 'SAP_B1',
+  externalCode: '10',
+  displayName: 'Hugo Baez',
+  kind: 'PERSON' as const,
+  active: true,
+};
+
 describe('MetaCompanyApplication', () => {
-  it('muestra la creación de metas y la gestión de catálogos para administrador', async () => {
+  it('crea una meta por marca contra el endpoint de metas por marca', async () => {
     const user = userEvent.setup();
-    const createMetaCompanyGoal = vi.fn().mockResolvedValue({
+    const createMetaCompanyBrandGoal = vi.fn().mockResolvedValue({
       id: 12,
       period: '2026-09-01',
       businessId: 3,
       businessName: 'Comercial',
       brandId: 2,
       brandName: 'Faccini',
-      salespersonCode: null,
-      goalType: 'Marca',
       value: '500.00',
       updatedAt: null,
     });
@@ -39,17 +50,21 @@ describe('MetaCompanyApplication', () => {
       applications: {
         listMetaCompanyGoals: vi.fn().mockResolvedValue([]),
         listMetaCompanyCatalogs: vi.fn().mockResolvedValue({
-          brands: [{ id: 2, name: 'Faccini', active: true }],
-          businesses: [{ id: 3, name: 'Comercial', active: true }],
+          empresas: [empresa],
+          brands: [brand],
+          businesses: [business],
+          advisors: [advisor],
         }),
         listAllMetaCompanyCatalogs: vi.fn().mockResolvedValue({
-          brands: [{ id: 2, name: 'Faccini', active: true }],
-          businesses: [{ id: 3, name: 'Comercial', active: true }],
+          empresas: [empresa],
+          brands: [brand],
+          businesses: [business],
+          advisors: [advisor],
         }),
         getMetaCompanyCapabilities: vi
           .fn()
           .mockResolvedValue({ canManageCatalogs: true, canManageGoals: true }),
-        createMetaCompanyGoal,
+        createMetaCompanyBrandGoal,
       },
     } as unknown as Api;
 
@@ -69,16 +84,15 @@ describe('MetaCompanyApplication', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Nueva meta' }));
     await user.selectOptions(screen.getByLabelText('Negocio'), '3');
-    await user.selectOptions(screen.getByLabelText('Marca'), '2');
+    await user.selectOptions(screen.getByLabelText(/^Marca/), '2');
     await user.type(screen.getByLabelText('Valor de meta'), '500.00');
     await user.click(screen.getByRole('button', { name: 'Crear meta' }));
 
     await waitFor(() =>
-      expect(createMetaCompanyGoal).toHaveBeenCalledWith({
+      expect(createMetaCompanyBrandGoal).toHaveBeenCalledWith({
         period: expect.stringMatching(/^\d{4}-\d{2}-01$/u),
         businessId: 3,
         brandId: 2,
-        goalType: 'Marca',
         value: '500.00',
       }),
     );
@@ -87,5 +101,64 @@ describe('MetaCompanyApplication', () => {
     expect(await screen.findByRole('heading', { name: 'Marcas y negocios' })).toBeInTheDocument();
     expect(screen.getByLabelText('Nueva marca')).toBeInTheDocument();
     expect(screen.getByLabelText('Nuevo negocio')).toBeInTheDocument();
+  });
+
+  it('crea un asesor desde la sección de gestión de asesores', async () => {
+    const user = userEvent.setup();
+    const createMetaCompanyAdvisor = vi.fn().mockResolvedValue({ ...advisor, id: 5 });
+    const api = {
+      applications: {
+        listMetaCompanyGoals: vi.fn().mockResolvedValue([]),
+        listMetaCompanyCatalogs: vi.fn().mockResolvedValue({
+          empresas: [empresa],
+          brands: [brand],
+          businesses: [business],
+          advisors: [advisor],
+        }),
+        listAllMetaCompanyCatalogs: vi.fn().mockResolvedValue({
+          empresas: [empresa],
+          brands: [brand],
+          businesses: [business],
+          advisors: [advisor],
+        }),
+        getMetaCompanyCapabilities: vi
+          .fn()
+          .mockResolvedValue({ canManageCatalogs: true, canManageGoals: true }),
+        createMetaCompanyAdvisor,
+      },
+    } as unknown as Api;
+
+    render(
+      <MetaCompanyApplication
+        api={api}
+        application={application}
+        availableApplications={[application]}
+        session={session}
+        pathname="/apps/meta-company"
+        isLoggingOut={false}
+        logoutFailure={undefined}
+        onNavigate={vi.fn<ApplicationComponentProps['onNavigate']>()}
+        onLogout={vi.fn<ApplicationComponentProps['onLogout']>()}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Gestionar asesores' }));
+    expect(await screen.findByRole('heading', { name: 'Nuevo asesor' })).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText('Empresa'), '1');
+    await user.type(screen.getByLabelText('Sistema de origen'), 'SAP_B1');
+    await user.type(screen.getByLabelText('Código externo'), '20');
+    await user.type(screen.getByLabelText('Nombre visible'), 'Nueva Asesora');
+    await user.click(screen.getByRole('button', { name: 'Agregar asesor' }));
+
+    await waitFor(() =>
+      expect(createMetaCompanyAdvisor).toHaveBeenCalledWith({
+        empresaId: 1,
+        sourceSystem: 'SAP_B1',
+        externalCode: '20',
+        displayName: 'Nueva Asesora',
+        kind: 'PERSON',
+      }),
+    );
   });
 });

@@ -43,7 +43,7 @@ export class MetaCompanyBrandGoalResponseDto {
   @ApiProperty({ example: 1 }) brandId!: number;
   @ApiProperty({ example: 'FACCHINI' }) brandName!: string;
   @ApiProperty({ example: '38237.42' }) value!: string;
-  @ApiPropertyOptional({ example: '2026-09-01T12:00:00.000Z' }) updatedAt!: string | null;
+  @ApiPropertyOptional({ example: '2026-09-01T12:00:00.000Z', nullable: true, type: String }) updatedAt!: string | null;
 }
 
 export class MetaCompanyAdvisorGoalResponseDto {
@@ -52,13 +52,13 @@ export class MetaCompanyAdvisorGoalResponseDto {
   @ApiProperty({ example: 1 }) businessId!: number;
   @ApiProperty({ example: 'FIXIT' }) businessName!: string;
   @ApiPropertyOptional({ example: 1, nullable: true, type: Number }) brandId!: number | null;
-  @ApiPropertyOptional({ example: 'Marca de repuesto' }) brandName!: string | null;
+  @ApiPropertyOptional({ example: 'Marca de repuesto', nullable: true, type: String }) brandName!: string | null;
   @ApiProperty({ example: 1 }) advisorId!: number;
   @ApiProperty({ example: '195fix' }) advisorCode!: string;
   @ApiProperty({ example: 'FIX0ASU0JUAN FERREIRA' }) advisorName!: string;
   @ApiProperty({ example: '31708.00' }) value!: string;
-  @ApiPropertyOptional({ example: 22 }) workingDays!: number | null;
-  @ApiPropertyOptional({ example: '2026-09-01T12:00:00.000Z' }) updatedAt!: string | null;
+  @ApiPropertyOptional({ example: 22, nullable: true, type: Number }) workingDays!: number | null;
+  @ApiPropertyOptional({ example: '2026-09-01T12:00:00.000Z', nullable: true, type: String }) updatedAt!: string | null;
 }
 
 export class MetaCompanyGoalsResponseDto {
@@ -124,7 +124,7 @@ export class MetaCompanyAdvisorGoalListItemDto {
   @ApiProperty({ example: '2026-09-01' }) period!: string;
   @ApiProperty({ example: 1 }) businessId!: number;
   @ApiProperty({ example: 'Comercial' }) businessName!: string;
-  @ApiPropertyOptional({ example: 1 }) brandId!: number | null;
+  @ApiPropertyOptional({ example: 1, nullable: true, type: Number }) brandId!: number | null;
   @ApiProperty({ example: 'No aplica' }) brandName!: string;
   @ApiPropertyOptional({ example: 10, nullable: true, type: Number }) salespersonCode!: number | null;
   @ApiProperty({ enum: ['Marca', 'Vendedor'] }) goalType!: 'Marca' | 'Vendedor';

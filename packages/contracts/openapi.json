@@ -1840,7 +1840,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyBrandGoalResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1864,7 +1871,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyAdvisorGoalResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1897,7 +1911,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyBrandGoalResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1930,7 +1951,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyAdvisorGoalResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1954,7 +1982,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyEmpresaResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1978,7 +2013,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2002,7 +2044,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCompanyCatalogItemResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -3260,16 +3309,18 @@
             "example": "Comercial"
           },
           "brandId": {
-            "type": "object",
-            "example": 1
+            "type": "number",
+            "example": 1,
+            "nullable": true
           },
           "brandName": {
             "type": "string",
             "example": "No aplica"
           },
           "salespersonCode": {
-            "type": "object",
-            "example": 10
+            "type": "number",
+            "example": 10,
+            "nullable": true
           },
           "goalType": {
             "type": "string",
@@ -3283,8 +3334,9 @@
             "example": "38237.42"
           },
           "updatedAt": {
-            "type": "object",
-            "example": "2026-09-01T12:00:00.000Z"
+            "type": "string",
+            "example": "2026-09-01T12:00:00.000Z",
+            "nullable": true
           }
         },
         "required": [
@@ -3473,6 +3525,53 @@
           "value"
         ]
       },
+      "MetaCompanyBrandGoalResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "period": {
+            "type": "string",
+            "example": "2026-09-01"
+          },
+          "businessId": {
+            "type": "number",
+            "example": 1
+          },
+          "businessName": {
+            "type": "string",
+            "example": "Comercial"
+          },
+          "brandId": {
+            "type": "number",
+            "example": 1
+          },
+          "brandName": {
+            "type": "string",
+            "example": "FACCHINI"
+          },
+          "value": {
+            "type": "string",
+            "example": "38237.42"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-01T12:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "period",
+          "businessId",
+          "businessName",
+          "brandId",
+          "brandName",
+          "value"
+        ]
+      },
       "CreateMetaCompanyAdvisorGoalDto": {
         "type": "object",
         "properties": {
@@ -3505,6 +3604,73 @@
           "period",
           "businessId",
           "advisorId",
+          "value"
+        ]
+      },
+      "MetaCompanyAdvisorGoalResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "period": {
+            "type": "string",
+            "example": "2026-09-01"
+          },
+          "businessId": {
+            "type": "number",
+            "example": 1
+          },
+          "businessName": {
+            "type": "string",
+            "example": "FIXIT"
+          },
+          "brandId": {
+            "type": "number",
+            "example": 1,
+            "nullable": true
+          },
+          "brandName": {
+            "type": "string",
+            "example": "Marca de repuesto",
+            "nullable": true
+          },
+          "advisorId": {
+            "type": "number",
+            "example": 1
+          },
+          "advisorCode": {
+            "type": "string",
+            "example": "195fix"
+          },
+          "advisorName": {
+            "type": "string",
+            "example": "FIX0ASU0JUAN FERREIRA"
+          },
+          "value": {
+            "type": "string",
+            "example": "31708.00"
+          },
+          "workingDays": {
+            "type": "number",
+            "example": 22,
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-01T12:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "period",
+          "businessId",
+          "businessName",
+          "advisorId",
+          "advisorCode",
+          "advisorName",
           "value"
         ]
       },

@@ -161,20 +161,28 @@ function createApi(
       listMetaCompanyCatalogs: vi
         .fn<ApplicationsApi['listMetaCompanyCatalogs']>()
         .mockResolvedValue({
+          empresas: [],
           brands: [],
           businesses: [],
+          advisors: [],
         }),
       listAllMetaCompanyCatalogs: vi
         .fn<ApplicationsApi['listAllMetaCompanyCatalogs']>()
-        .mockResolvedValue({ brands: [], businesses: [] }),
+        .mockResolvedValue({ empresas: [], brands: [], businesses: [], advisors: [] }),
       getMetaCompanyCapabilities: vi
         .fn<ApplicationsApi['getMetaCompanyCapabilities']>()
         .mockResolvedValue({ canManageCatalogs: false, canManageGoals: false }),
-      createMetaCompanyGoal: vi
-        .fn<ApplicationsApi['createMetaCompanyGoal']>()
+      createMetaCompanyBrandGoal: vi
+        .fn<ApplicationsApi['createMetaCompanyBrandGoal']>()
         .mockResolvedValue(undefined as never),
-      updateMetaCompanyGoal: vi
-        .fn<ApplicationsApi['updateMetaCompanyGoal']>()
+      createMetaCompanyAdvisorGoal: vi
+        .fn<ApplicationsApi['createMetaCompanyAdvisorGoal']>()
+        .mockResolvedValue(undefined as never),
+      updateMetaCompanyBrandGoal: vi
+        .fn<ApplicationsApi['updateMetaCompanyBrandGoal']>()
+        .mockResolvedValue(undefined as never),
+      updateMetaCompanyAdvisorGoal: vi
+        .fn<ApplicationsApi['updateMetaCompanyAdvisorGoal']>()
         .mockResolvedValue(undefined as never),
       createMetaCompanyBrand: vi
         .fn<ApplicationsApi['createMetaCompanyBrand']>()
@@ -182,12 +190,15 @@ function createApi(
       createMetaCompanyBusiness: vi
         .fn<ApplicationsApi['createMetaCompanyBusiness']>()
         .mockResolvedValue(undefined as never),
-      setMetaCompanyBrandActive: vi
-        .fn<ApplicationsApi['setMetaCompanyBrandActive']>()
-        .mockResolvedValue(undefined),
-      setMetaCompanyBusinessActive: vi
-        .fn<ApplicationsApi['setMetaCompanyBusinessActive']>()
-        .mockResolvedValue(undefined),
+      createMetaCompanyAdvisor: vi
+        .fn<ApplicationsApi['createMetaCompanyAdvisor']>()
+        .mockResolvedValue(undefined as never),
+      updateMetaCompanyAdvisor: vi
+        .fn<ApplicationsApi['updateMetaCompanyAdvisor']>()
+        .mockResolvedValue(undefined as never),
+      setMetaCompanyAdvisorActive: vi
+        .fn<ApplicationsApi['setMetaCompanyAdvisorActive']>()
+        .mockResolvedValue(undefined as never),
       getSeguimiento5sCapabilities: vi
         .fn<ApplicationsApi['getSeguimiento5sCapabilities']>()
         .mockResolvedValue({

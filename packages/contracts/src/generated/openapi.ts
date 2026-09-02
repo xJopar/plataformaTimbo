@@ -1324,17 +1324,17 @@ export interface components {
             /** @example Comercial */
             businessName: string;
             /** @example 1 */
-            brandId?: Record<string, never>;
+            brandId?: number | null;
             /** @example No aplica */
             brandName: string;
             /** @example 10 */
-            salespersonCode?: Record<string, never>;
+            salespersonCode?: number | null;
             /** @enum {string} */
             goalType: "Marca" | "Vendedor";
             /** @example 38237.42 */
             value: string;
             /** @example 2026-09-01T12:00:00.000Z */
-            updatedAt?: Record<string, never>;
+            updatedAt?: string | null;
         };
         MetaCompanyEmpresaResponseDto: {
             /** @example 1 */
@@ -1392,6 +1392,24 @@ export interface components {
             /** @example 38237.42 */
             value: string;
         };
+        MetaCompanyBrandGoalResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example 2026-09-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example Comercial */
+            businessName: string;
+            /** @example 1 */
+            brandId: number;
+            /** @example FACCHINI */
+            brandName: string;
+            /** @example 38237.42 */
+            value: string;
+            /** @example 2026-09-01T12:00:00.000Z */
+            updatedAt?: string | null;
+        };
         CreateMetaCompanyAdvisorGoalDto: {
             /** @example 2026-09-01 */
             period: string;
@@ -1405,6 +1423,32 @@ export interface components {
             value: string;
             /** @example 22 */
             workingDays?: number;
+        };
+        MetaCompanyAdvisorGoalResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example 2026-09-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example FIXIT */
+            businessName: string;
+            /** @example 1 */
+            brandId?: number | null;
+            /** @example Marca de repuesto */
+            brandName?: string | null;
+            /** @example 1 */
+            advisorId: number;
+            /** @example 195fix */
+            advisorCode: string;
+            /** @example FIX0ASU0JUAN FERREIRA */
+            advisorName: string;
+            /** @example 31708.00 */
+            value: string;
+            /** @example 22 */
+            workingDays?: number | null;
+            /** @example 2026-09-01T12:00:00.000Z */
+            updatedAt?: string | null;
         };
         UpdateMetaCompanyGoalDto: {
             /** @example 38237.42 */
@@ -2696,7 +2740,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyBrandGoalResponseDto"];
+                };
             };
         };
     };
@@ -2717,7 +2763,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorGoalResponseDto"];
+                };
             };
         };
     };
@@ -2740,7 +2788,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyBrandGoalResponseDto"];
+                };
             };
         };
     };
@@ -2763,7 +2813,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorGoalResponseDto"];
+                };
             };
         };
     };
@@ -2784,7 +2836,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyEmpresaResponseDto"];
+                };
             };
         };
     };
@@ -2805,7 +2859,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
             };
         };
     };
@@ -2826,7 +2882,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
             };
         };
     };

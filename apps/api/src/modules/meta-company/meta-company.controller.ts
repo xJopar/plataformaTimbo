@@ -5,7 +5,7 @@ import { APPLICATION_AUTHORIZATION_SERVICE } from '../access-profiles/access-pro
 import { CsrfProtectionGuard } from '../auth/csrf-protection.guard';
 import { type AuthenticatedRequest, SessionAuthenticationGuard } from '../auth/session-authentication.guard';
 import { META_COMPANY_APPLICATION_KEY, MetaCompanyApplicationAccessGuard } from './meta-company-application-access.guard';
-import { CreateMetaCompanyAdvisorDto, CreateMetaCompanyAdvisorGoalDto, CreateMetaCompanyBrandGoalDto, CreateMetaCompanyCatalogItemDto, CreateMetaCompanyEmpresaDto, MetaCompanyAdvisorGoalListItemDto, MetaCompanyAdvisorResponseDto, MetaCompanyCapabilitiesResponseDto, MetaCompanyCatalogResponseDto, SetMetaCompanyCatalogItemActiveDto, UpdateMetaCompanyAdvisorDto, UpdateMetaCompanyGoalDto } from './dto/meta-company.dto';
+import { CreateMetaCompanyAdvisorDto, CreateMetaCompanyAdvisorGoalDto, CreateMetaCompanyBrandGoalDto, CreateMetaCompanyCatalogItemDto, CreateMetaCompanyEmpresaDto, MetaCompanyAdvisorGoalListItemDto, MetaCompanyAdvisorGoalResponseDto, MetaCompanyAdvisorResponseDto, MetaCompanyBrandGoalResponseDto, MetaCompanyCapabilitiesResponseDto, MetaCompanyCatalogItemResponseDto, MetaCompanyCatalogResponseDto, MetaCompanyEmpresaResponseDto, SetMetaCompanyCatalogItemActiveDto, UpdateMetaCompanyAdvisorDto, UpdateMetaCompanyGoalDto } from './dto/meta-company.dto';
 import { MetaCompanyCatalogManagementGuard, MetaCompanyGoalManagementGuard } from './meta-company-permission.guards';
 import { MetaCompanyService } from './meta-company.service';
 
@@ -51,25 +51,25 @@ export class MetaCompanyController {
     return { canManageCatalogs, canManageGoals };
   }
 
-  @Post('brand-goals') @UseGuards(CsrfProtectionGuard, MetaCompanyGoalManagementGuard) @ApiBody({ type: CreateMetaCompanyBrandGoalDto }) @ApiCreatedResponse()
-  public async createBrandGoal(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return this.metaCompanyService.createBrandGoal({ period: stringValue(body.period), businessId: numberValue(body.businessId), brandId: numberValue(body.brandId), value: stringValue(body.value) }, requireAuthenticatedUserId(request)); }
+  @Post('brand-goals') @UseGuards(CsrfProtectionGuard, MetaCompanyGoalManagementGuard) @ApiBody({ type: CreateMetaCompanyBrandGoalDto }) @ApiCreatedResponse({ type: MetaCompanyBrandGoalResponseDto })
+  public async createBrandGoal(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return mapBrandGoal(await this.metaCompanyService.createBrandGoal({ period: stringValue(body.period), businessId: numberValue(body.businessId), brandId: numberValue(body.brandId), value: stringValue(body.value) }, requireAuthenticatedUserId(request))); }
 
-  @Post('advisor-goals') @UseGuards(CsrfProtectionGuard, MetaCompanyGoalManagementGuard) @ApiBody({ type: CreateMetaCompanyAdvisorGoalDto }) @ApiCreatedResponse()
-  public async createAdvisorGoal(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return this.metaCompanyService.createAdvisorGoal({ period: stringValue(body.period), businessId: numberValue(body.businessId), brandId: body.brandId === undefined ? undefined : numberValue(body.brandId), advisorId: numberValue(body.advisorId), value: stringValue(body.value), workingDays: body.workingDays === undefined ? undefined : numberValue(body.workingDays) }, requireAuthenticatedUserId(request)); }
+  @Post('advisor-goals') @UseGuards(CsrfProtectionGuard, MetaCompanyGoalManagementGuard) @ApiBody({ type: CreateMetaCompanyAdvisorGoalDto }) @ApiCreatedResponse({ type: MetaCompanyAdvisorGoalResponseDto })
+  public async createAdvisorGoal(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return mapAdvisorGoal(await this.metaCompanyService.createAdvisorGoal({ period: stringValue(body.period), businessId: numberValue(body.businessId), brandId: body.brandId === undefined ? undefined : numberValue(body.brandId), advisorId: numberValue(body.advisorId), value: stringValue(body.value), workingDays: body.workingDays === undefined ? undefined : numberValue(body.workingDays) }, requireAuthenticatedUserId(request))); }
 
-  @Patch('brand-goals/:id') @UseGuards(CsrfProtectionGuard, MetaCompanyGoalManagementGuard) @ApiBody({ type: UpdateMetaCompanyGoalDto }) @ApiOkResponse()
-  public async updateBrandGoal(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return this.metaCompanyService.updateBrandGoal(Number(id), stringValue(body.value), requireAuthenticatedUserId(request)); }
+  @Patch('brand-goals/:id') @UseGuards(CsrfProtectionGuard, MetaCompanyGoalManagementGuard) @ApiBody({ type: UpdateMetaCompanyGoalDto }) @ApiOkResponse({ type: MetaCompanyBrandGoalResponseDto })
+  public async updateBrandGoal(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return mapBrandGoal(await this.metaCompanyService.updateBrandGoal(Number(id), stringValue(body.value), requireAuthenticatedUserId(request))); }
 
-  @Patch('advisor-goals/:id') @UseGuards(CsrfProtectionGuard, MetaCompanyGoalManagementGuard) @ApiBody({ type: UpdateMetaCompanyGoalDto }) @ApiOkResponse()
-  public async updateAdvisorGoal(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return this.metaCompanyService.updateAdvisorGoal(Number(id), stringValue(body.value), body.workingDays === undefined ? undefined : numberValue(body.workingDays), requireAuthenticatedUserId(request)); }
+  @Patch('advisor-goals/:id') @UseGuards(CsrfProtectionGuard, MetaCompanyGoalManagementGuard) @ApiBody({ type: UpdateMetaCompanyGoalDto }) @ApiOkResponse({ type: MetaCompanyAdvisorGoalResponseDto })
+  public async updateAdvisorGoal(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return mapAdvisorGoal(await this.metaCompanyService.updateAdvisorGoal(Number(id), stringValue(body.value), body.workingDays === undefined ? undefined : numberValue(body.workingDays), requireAuthenticatedUserId(request))); }
 
-  @Post('empresas') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyEmpresaDto }) @ApiCreatedResponse()
+  @Post('empresas') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyEmpresaDto }) @ApiCreatedResponse({ type: MetaCompanyEmpresaResponseDto })
   public async createEmpresa(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return this.metaCompanyService.createEmpresa(stringValue(body.code), stringValue(body.name), requireAuthenticatedUserId(request)); }
 
-  @Post('brands') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyCatalogItemDto }) @ApiCreatedResponse()
+  @Post('brands') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyCatalogItemDto }) @ApiCreatedResponse({ type: MetaCompanyCatalogItemResponseDto })
   public async createBrand(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return this.metaCompanyService.createBrand(numberValue(body.empresaId), stringValue(body.name), requireAuthenticatedUserId(request)); }
 
-  @Post('businesses') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyCatalogItemDto }) @ApiCreatedResponse()
+  @Post('businesses') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyCatalogItemDto }) @ApiCreatedResponse({ type: MetaCompanyCatalogItemResponseDto })
   public async createBusiness(@Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { return this.metaCompanyService.createBusiness(numberValue(body.empresaId), stringValue(body.name), requireAuthenticatedUserId(request)); }
 
   @Post('advisors') @UseGuards(CsrfProtectionGuard, MetaCompanyCatalogManagementGuard) @ApiBody({ type: CreateMetaCompanyAdvisorDto }) @ApiCreatedResponse({ type: MetaCompanyAdvisorResponseDto })
@@ -82,6 +82,11 @@ export class MetaCompanyController {
   public async setAdvisorActive(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() body: Record<string, unknown>) { return this.metaCompanyService.setAdvisorActive(Number(id), booleanValue(body.active), requireAuthenticatedUserId(request)); }
 }
 
+interface BrandGoalWithRelations { id: number; period: Date; businessId: number; brandId: number; value: { toFixed(digits: number): string }; updatedAt: Date | null; business: { name: string }; brand: { name: string } }
+interface AdvisorGoalWithRelations { id: number; period: Date; businessId: number; brandId: number | null; advisorId: number; value: { toFixed(digits: number): string }; workingDays: number | null; updatedAt: Date | null; business: { name: string }; brand: { name: string } | null; advisor: { externalCode: string; displayName: string } }
+
+function mapBrandGoal(goal: BrandGoalWithRelations): MetaCompanyBrandGoalResponseDto { return { id: goal.id, period: goal.period.toISOString().slice(0, 10), businessId: goal.businessId, businessName: goal.business.name, brandId: goal.brandId, brandName: goal.brand.name, value: goal.value.toFixed(2), updatedAt: goal.updatedAt?.toISOString() ?? null }; }
+function mapAdvisorGoal(goal: AdvisorGoalWithRelations): MetaCompanyAdvisorGoalResponseDto { return { id: goal.id, period: goal.period.toISOString().slice(0, 10), businessId: goal.businessId, businessName: goal.business.name, brandId: goal.brandId, brandName: goal.brand?.name ?? null, advisorId: goal.advisorId, advisorCode: goal.advisor.externalCode, advisorName: goal.advisor.displayName, value: goal.value.toFixed(2), workingDays: goal.workingDays, updatedAt: goal.updatedAt?.toISOString() ?? null }; }
 function stringValue(value: unknown): string { if (typeof value !== 'string') throw new BadRequestException('La solicitud es invalida.'); return value; }
 function numberValue(value: unknown): number { if (typeof value !== 'number') throw new BadRequestException('La solicitud es invalida.'); return value; }
 function booleanValue(value: unknown): boolean { if (typeof value !== 'boolean') throw new BadRequestException('La solicitud es invalida.'); return value; }

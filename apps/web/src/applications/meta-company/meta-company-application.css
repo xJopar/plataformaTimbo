@@ -205,6 +205,56 @@ button:disabled {
   font-size: 13px;
   margin-top: 3px;
 }
+.mc-advisor-form {
+  margin-top: 20px;
+}
+.mc-advisor-form label {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.mc-advisor-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.mc-advisor-form input,
+.mc-advisor-form select {
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid #94a3b8;
+  background: #fff;
+  padding: 0 10px;
+  color: #142033;
+  font: inherit;
+}
+.mc-advisor-table-wrapper {
+  margin-top: 24px;
+  overflow-x: auto;
+  border-top: 1px solid #bcc9d7;
+}
+.mc-advisor-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.mc-advisor-table caption {
+  text-align: left;
+  padding: 12px 0;
+  font-weight: 700;
+}
+.mc-advisor-table th,
+.mc-advisor-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #bcc9d7;
+  white-space: nowrap;
+}
+.mc-advisor-actions {
+  display: flex;
+  gap: 12px;
+}
 .mc-state {
   margin: 24px 0;
   color: #475569;
@@ -274,6 +324,7 @@ select:focus-visible {
   }
   .mc-create-goal-form,
   .mc-catalog-grid,
+  .mc-advisor-form-grid,
   .mc-goal {
     grid-template-columns: 1fr;
   }

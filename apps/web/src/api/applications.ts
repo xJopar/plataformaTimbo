@@ -80,6 +80,27 @@ export interface MetaCompanyAdvisorRequest {
   kind: 'PERSON' | 'SALES_CHANNEL';
 }
 
+export interface MetaCompanyCatalogItemRequest {
+  empresaId: number;
+  name: string;
+}
+
+export interface MetaCompanyBrandGoalRequest {
+  period: string;
+  businessId: number;
+  brandId: number;
+  value: string;
+}
+
+export interface MetaCompanyAdvisorGoalRequest {
+  period: string;
+  businessId: number;
+  brandId?: number;
+  advisorId: number;
+  value: string;
+  workingDays?: number;
+}
+
 export interface ApplicationsApi {
   listAuthorizedApplications(): Promise<AuthorizedApplication[]>;
   requestHelloWorldJoke(input: HelloWorldJokeRequest): Promise<HelloWorldJoke>;
@@ -96,6 +117,24 @@ export interface ApplicationsApi {
   >;
   getMetaCompanyCapabilities(): Promise<
     paths['/api/applications/meta-company/capabilities']['get']['responses'][200]['content']['application/json']
+  >;
+  createMetaCompanyBrandGoal(input: MetaCompanyBrandGoalRequest): Promise<
+    paths['/api/applications/meta-company/brand-goals']['post']['responses'][201]['content']['application/json']
+  >;
+  createMetaCompanyAdvisorGoal(input: MetaCompanyAdvisorGoalRequest): Promise<
+    paths['/api/applications/meta-company/advisor-goals']['post']['responses'][201]['content']['application/json']
+  >;
+  updateMetaCompanyBrandGoal(id: number, value: string): Promise<
+    paths['/api/applications/meta-company/brand-goals/{id}']['patch']['responses'][200]['content']['application/json']
+  >;
+  updateMetaCompanyAdvisorGoal(id: number, value: string, workingDays?: number): Promise<
+    paths['/api/applications/meta-company/advisor-goals/{id}']['patch']['responses'][200]['content']['application/json']
+  >;
+  createMetaCompanyBrand(input: MetaCompanyCatalogItemRequest): Promise<
+    paths['/api/applications/meta-company/brands']['post']['responses'][201]['content']['application/json']
+  >;
+  createMetaCompanyBusiness(input: MetaCompanyCatalogItemRequest): Promise<
+    paths['/api/applications/meta-company/businesses']['post']['responses'][201]['content']['application/json']
   >;
   createMetaCompanyAdvisor(input: MetaCompanyAdvisorRequest): Promise<
     paths['/api/applications/meta-company/advisors']['post']['responses'][201]['content']['application/json']
@@ -237,8 +276,8 @@ export function createApplicationsApi(
       if (data === undefined) throw new Error('La API respondió sin las capacidades esperadas.');
       return data;
     },
-    async createMetaCompanyGoal(input) {
-      const { data, response } = await client.POST('/api/applications/meta-company/goals', {
+    async createMetaCompanyBrandGoal(input) {
+      const { data, response } = await client.POST('/api/applications/meta-company/brand-goals', {
         body: input,
         headers: { 'x-timbo-csrf': '1' },
       });
@@ -246,12 +285,37 @@ export function createApplicationsApi(
       if (data === undefined) throw new Error('La API respondió sin la meta creada.');
       return data;
     },
-    async updateMetaCompanyGoal(id, value) {
-      const { data, response } = await client.PATCH('/api/applications/meta-company/goals/{id}', {
-        params: { path: { id: String(id) } },
-        body: { value },
+    async createMetaCompanyAdvisorGoal(input) {
+      const { data, response } = await client.POST('/api/applications/meta-company/advisor-goals', {
+        body: input,
         headers: { 'x-timbo-csrf': '1' },
       });
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin la meta creada.');
+      return data;
+    },
+    async updateMetaCompanyBrandGoal(id, value) {
+      const { data, response } = await client.PATCH(
+        '/api/applications/meta-company/brand-goals/{id}',
+        {
+          params: { path: { id: String(id) } },
+          body: { value },
+          headers: { 'x-timbo-csrf': '1' },
+        },
+      );
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin la meta actualizada.');
+      return data;
+    },
+    async updateMetaCompanyAdvisorGoal(id, value, workingDays) {
+      const { data, response } = await client.PATCH(
+        '/api/applications/meta-company/advisor-goals/{id}',
+        {
+          params: { path: { id: String(id) } },
+          body: { value, ...(workingDays === undefined ? {} : { workingDays }) },
+          headers: { 'x-timbo-csrf': '1' },
+        },
+      );
       if (!response.ok) throw createApiHttpError(response);
       if (data === undefined) throw new Error('La API respondió sin la meta actualizada.');
       return data;
@@ -274,17 +338,28 @@ export function createApplicationsApi(
       if (data === undefined) throw new Error('La API respondió sin el negocio creado.');
       return data;
     },
-    async setMetaCompanyBrandActive(id, active) {
-      const { response } = await client.PATCH('/api/applications/meta-company/brands/{id}/active', {
-        params: { path: { id: String(id) } },
-        body: { active },
+    async createMetaCompanyAdvisor(input) {
+      const { data, response } = await client.POST('/api/applications/meta-company/advisors', {
+        body: input,
         headers: { 'x-timbo-csrf': '1' },
       });
       if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin el asesor creado.');
+      return data;
     },
-    async setMetaCompanyBusinessActive(id, active) {
-      const { response } = await client.PATCH(
-        '/api/applications/meta-company/businesses/{id}/active',
+    async updateMetaCompanyAdvisor(id, input) {
+      const { data, response } = await client.PATCH('/api/applications/meta-company/advisors/{id}', {
+        params: { path: { id: String(id) } },
+        body: input,
+        headers: { 'x-timbo-csrf': '1' },
+      });
+      if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin el asesor actualizado.');
+      return data;
+    },
+    async setMetaCompanyAdvisorActive(id, active) {
+      const { data, response } = await client.PATCH(
+        '/api/applications/meta-company/advisors/{id}/active',
         {
           params: { path: { id: String(id) } },
           body: { active },
@@ -292,6 +367,8 @@ export function createApplicationsApi(
         },
       );
       if (!response.ok) throw createApiHttpError(response);
+      if (data === undefined) throw new Error('La API respondió sin el asesor actualizado.');
+      return data;
     },
     async getSeguimiento5sCapabilities(): Promise<FiveSCapabilities> {
       const { data, response } = await client
