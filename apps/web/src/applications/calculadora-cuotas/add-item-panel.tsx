@@ -113,7 +113,7 @@ export function AddItemPanel({
           className={`cc-mode-btn${mode === 'catalog' ? ' cc-mode-btn--active' : ''}`}
           onClick={() => setMode('catalog')}
         >
-          Desde lista
+          Stock
         </button>
         <button
           type="button"
@@ -122,7 +122,7 @@ export function AddItemPanel({
           className={`cc-mode-btn${mode === 'manual' ? ' cc-mode-btn--active' : ''}`}
           onClick={() => setMode('manual')}
         >
-          Precio manual
+          Manual
         </button>
       </div>
 
