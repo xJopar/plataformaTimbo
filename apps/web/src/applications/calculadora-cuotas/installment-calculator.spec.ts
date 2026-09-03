@@ -9,7 +9,14 @@ import {
 } from './installment-calculator';
 
 function item(overrides: Partial<CalculatorItem>): CalculatorItem {
-  return { id: 'item-1', source: 'manual', label: 'Unidad', priceUsd: 100_000, ...overrides };
+  return {
+    id: 'item-1',
+    source: 'manual',
+    label: 'Unidad',
+    priceUsd: 100_000,
+    quantity: 1,
+    ...overrides,
+  };
 }
 
 const BASE_INPUT: InstallmentPlanInput = {
@@ -27,6 +34,12 @@ const BASE_INPUT: InstallmentPlanInput = {
 describe('sumItemsUsd', () => {
   it('suma el precio de todos los ítems', () => {
     expect(sumItemsUsd([item({ priceUsd: 1000 }), item({ priceUsd: 500 })])).toBe(1500);
+  });
+
+  it('multiplica el precio unitario por la cantidad de cada ítem', () => {
+    expect(
+      sumItemsUsd([item({ priceUsd: 1000, quantity: 3 }), item({ priceUsd: 500, quantity: 2 })]),
+    ).toBe(4000);
   });
 
   it('devuelve 0 para una lista vacía', () => {

@@ -75,6 +75,7 @@ export function CalculadoraCuotasApplication({
           label: group.name,
           detail: `Stock ${unit.stock}`,
           priceUsd,
+          quantity: 1,
         },
       ]);
       requestAnimationFrame(() => {
@@ -107,6 +108,15 @@ export function CalculadoraCuotasApplication({
 
   const pendingRemovalItem = items.find((item) => item.id === pendingRemovalId);
   const hasItems = items.length > 0;
+  const totalQuantity = useMemo(
+    () => items.reduce((total, item) => total + item.quantity, 0),
+    [items],
+  );
+  const [screenTransitionDirection, setScreenTransitionDirection] = useState<
+    'forward' | 'backward'
+  >('forward');
+  const [shouldAnimateScreen, setShouldAnimateScreen] = useState(false);
+  const [screenTransitionKey, setScreenTransitionKey] = useState(0);
 
   function addItem(item: CalculatorItem): void {
     if (existingItemIds.has(item.id)) return;
@@ -118,9 +128,34 @@ export function CalculadoraCuotasApplication({
     setPendingRemovalId(undefined);
   }
 
-  function calculatePlan(): void {
+  function incrementItemQuantity(itemId: string): void {
+    setItems((current) =>
+      current.map((item) => (item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item)),
+    );
+  }
+
+  function decrementItemQuantity(itemId: string): void {
+    setItems((current) =>
+      current.map((item) =>
+        item.id === itemId && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item,
+      ),
+    );
+  }
+
+  function changeScreen(
+    nextScreen: WizardScreen,
+    direction: 'forward' | 'backward',
+    isPointerInitiated: boolean,
+  ): void {
+    setScreenTransitionDirection(direction);
+    setShouldAnimateScreen(isPointerInitiated);
+    setScreenTransitionKey((current) => current + 1);
+    setScreen(nextScreen);
+  }
+
+  function calculatePlan(isPointerInitiated: boolean): void {
     setCalculatedConfig(draftConfig);
-    setScreen('result');
+    changeScreen('result', 'forward', isPointerInitiated);
   }
 
   return (
@@ -148,8 +183,15 @@ export function CalculadoraCuotasApplication({
           <ol className="cc-wizard-steps">
             <li
               className={screen === 'main' ? 'cc-wizard-step--active' : 'cc-wizard-step--complete'}
+              aria-current={screen === 'main' ? 'step' : undefined}
             >
-              Unidades
+              <span className="cc-wizard-step-marker" aria-hidden="true">
+                {screen === 'main' ? '1' : '✓'}
+              </span>
+              <span>Unidades</span>
+              <span className="cc-sr-only">
+                Paso 1 de 3, {screen === 'main' ? 'actual' : 'completado'}.
+              </span>
             </li>
             <li
               className={
@@ -159,27 +201,81 @@ export function CalculadoraCuotasApplication({
                     ? 'cc-wizard-step--complete'
                     : ''
               }
+              aria-current={screen === 'config' ? 'step' : undefined}
             >
-              Configuración
+              <span className="cc-wizard-step-marker" aria-hidden="true">
+                {screen === 'result' ? '✓' : '2'}
+              </span>
+              <span>Configuración</span>
+              <span className="cc-sr-only">
+                Paso 2 de 3,{' '}
+                {screen === 'config' ? 'actual' : screen === 'result' ? 'completado' : 'pendiente'}.
+              </span>
             </li>
-            <li className={screen === 'result' ? 'cc-wizard-step--active' : ''}>Plan final</li>
+            <li
+              className={screen === 'result' ? 'cc-wizard-step--active' : ''}
+              aria-current={screen === 'result' ? 'step' : undefined}
+            >
+              <span className="cc-wizard-step-marker" aria-hidden="true">
+                3
+              </span>
+              <span>Plan final</span>
+              <span className="cc-sr-only">
+                Paso 3 de 3, {screen === 'result' ? 'actual' : 'pendiente'}.
+              </span>
+            </li>
           </ol>
 
           {screen === 'main' ? (
-            <div className="cc-wizard-screen cc-wizard-screen--main">
-              <AddItemPanel
-                vehiclesState={vehiclesState}
-                existingItemIds={existingItemIds}
-                onAddItem={addItem}
-              />
-              <AddedItemsList items={items} onRequestRemove={setPendingRemovalId} />
-              <footer className="cc-wizard-actions">
+            <div
+              key={`main-${screenTransitionKey}`}
+              className="cc-wizard-screen cc-wizard-screen--main"
+              data-animate={shouldAnimateScreen}
+              data-transition-direction={screenTransitionDirection}
+            >
+              <div className="cc-main-workspace">
+                <div className="cc-main-workspace-primary">
+                  <AddItemPanel
+                    vehiclesState={vehiclesState}
+                    existingItemIds={existingItemIds}
+                    onAddItem={addItem}
+                  />
+                  <AddedItemsList
+                    items={items}
+                    onIncrementQuantity={incrementItemQuantity}
+                    onDecrementQuantity={decrementItemQuantity}
+                    onRequestRemove={setPendingRemovalId}
+                  />
+                </div>
+                <aside className="cc-main-summary" aria-label="Resumen del cálculo">
+                  <p className="cc-main-summary-heading">Resumen del cálculo</p>
+                  <dl>
+                    <div>
+                      <dt>Unidades</dt>
+                      <dd>{totalQuantity}</dd>
+                    </div>
+                    <div>
+                      <dt>Total</dt>
+                      <dd>{formatUsd(totalPriceUsd)}</dd>
+                    </div>
+                  </dl>
+                  <button
+                    type="button"
+                    className="cc-apply-btn"
+                    disabled={!hasItems}
+                    onClick={(event) => changeScreen('config', 'forward', event.detail > 0)}
+                  >
+                    Continuar con la financiación
+                  </button>
+                </aside>
+              </div>
+              <footer className="cc-wizard-actions cc-main-mobile-actions">
                 <span className="cc-wizard-total">Total: {formatUsd(totalPriceUsd)}</span>
                 <button
                   type="button"
                   className="cc-apply-btn"
                   disabled={!hasItems}
-                  onClick={() => setScreen('config')}
+                  onClick={(event) => changeScreen('config', 'forward', event.detail > 0)}
                 >
                   Continuar con la financiación
                 </button>
@@ -188,19 +284,31 @@ export function CalculadoraCuotasApplication({
           ) : null}
 
           {screen === 'config' ? (
-            <div className="cc-wizard-screen cc-wizard-screen--config">
+            <div
+              key={`config-${screenTransitionKey}`}
+              className="cc-wizard-screen cc-wizard-screen--config"
+              data-animate={shouldAnimateScreen}
+              data-transition-direction={screenTransitionDirection}
+            >
               <FinancingConfig
                 value={draftConfig}
                 totalPriceUsd={totalPriceUsd}
                 onChange={setDraftConfig}
-                onBack={() => setScreen('main')}
+                onBack={(isPointerInitiated) =>
+                  changeScreen('main', 'backward', isPointerInitiated)
+                }
                 onCalculate={calculatePlan}
               />
             </div>
           ) : null}
 
           {screen === 'result' ? (
-            <div className="cc-wizard-screen cc-wizard-screen--result">
+            <div
+              key={`result-${screenTransitionKey}`}
+              className="cc-wizard-screen cc-wizard-screen--result"
+              data-animate={shouldAnimateScreen}
+              data-transition-direction={screenTransitionDirection}
+            >
               <InstallmentSummary
                 planResult={planResult}
                 installmentPeriodicity={calculatedConfig.installmentPeriodicity}
@@ -210,11 +318,15 @@ export function CalculadoraCuotasApplication({
                 <button
                   type="button"
                   className="cc-secondary-action"
-                  onClick={() => setScreen('main')}
+                  onClick={(event) => changeScreen('main', 'backward', event.detail > 0)}
                 >
                   Editar unidades
                 </button>
-                <button type="button" className="cc-apply-btn" onClick={() => setScreen('config')}>
+                <button
+                  type="button"
+                  className="cc-apply-btn"
+                  onClick={(event) => changeScreen('config', 'backward', event.detail > 0)}
+                >
                   Cambiar configuración
                 </button>
               </footer>

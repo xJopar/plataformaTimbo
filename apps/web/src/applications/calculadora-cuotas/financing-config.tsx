@@ -22,8 +22,8 @@ export interface FinancingConfigValue {
 interface FinancingConfigProps {
   value: FinancingConfigValue;
   totalPriceUsd: number;
-  onBack: () => void;
-  onCalculate: () => void;
+  onBack: (isPointerInitiated: boolean) => void;
+  onCalculate: (isPointerInitiated: boolean) => void;
   onChange: (value: FinancingConfigValue) => void;
 }
 
@@ -210,10 +210,18 @@ export function FinancingConfig({
       </div>
 
       <footer className="cc-wizard-actions">
-        <button type="button" className="cc-secondary-action" onClick={onBack}>
+        <button
+          type="button"
+          className="cc-secondary-action"
+          onClick={(event) => onBack(event.detail > 0)}
+        >
           Volver a unidades
         </button>
-        <button type="button" className="cc-apply-btn" onClick={onCalculate}>
+        <button
+          type="button"
+          className="cc-apply-btn"
+          onClick={(event) => onCalculate(event.detail > 0)}
+        >
           Calcular plan
         </button>
       </footer>

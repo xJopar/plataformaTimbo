@@ -21,6 +21,9 @@ no una sucesión de franjas ni tarjetas.
   se reparte a ambos extremos; en anchos angostos conserva lectura sin competir con el nombre.
 - Las secciones internas usan proximidad y reglas de 1 px. No se anidan tarjetas ni se agregan
   sombras para simular jerarquía.
+- La calculadora usa una superficie blanca continua debajo del subheader. En escritorio, la carga y
+  la lista ocupan el plano principal y el resumen permanece a la derecha como parte de la misma
+  mesa; en móvil se apilan sin perder el total ni la acción siguiente.
 
 ## Pantalla Unidades
 
@@ -36,6 +39,8 @@ no una sucesión de franjas ni tarjetas.
   un espacio vacío fijo debajo de un formulario corto.
 - Las acciones de alta y eliminación respetan el mínimo táctil de 44 px. Las unidades sin precio
   de lista no se ofrecen en las búsquedas de Stock.
+- Una fila puede cotizar varias unidades iguales. Muestra precio unitario, cantidad y subtotal; el
+  selector de cantidad no reduce de una unidad y quitar elimina la fila completa tras confirmación.
 
 ## Movimiento y accesibilidad
 
@@ -43,6 +48,11 @@ El cambio Stock/Manual por puntero usa una transición de recorte de 180 ms con 
 es direccional e interrumpible. Con teclado y con `prefers-reduced-motion: reduce`, el modo cambia
 instantáneamente. No se anima el formulario ni la lista: evita una segunda señal que competiría con
 la decisión principal.
+
+El progreso del wizard es un indicador pasivo: el paso actual usa azul operativo, los completos
+turquesa y los pendientes gris. Al avanzar o volver con puntero, sólo la pista y la nueva pantalla
+se mueven 8 px con opacidad; el teclado y la preferencia de movimiento reducido actualizan el estado
+sin movimiento.
 
 ## Candidatos para promoción
 

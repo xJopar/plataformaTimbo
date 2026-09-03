@@ -9,6 +9,7 @@ export interface CalculatorItem {
   label: string;
   detail?: string;
   priceUsd: number;
+  quantity: number;
 }
 
 export interface InstallmentPlanInput {
@@ -127,7 +128,7 @@ export function formatUsd(amount: number): string {
 }
 
 export function sumItemsUsd(items: CalculatorItem[]): number {
-  return items.reduce((total, item) => total + item.priceUsd, 0);
+  return items.reduce((total, item) => total + item.priceUsd * item.quantity, 0);
 }
 
 export function calculateInstallmentPlan(input: InstallmentPlanInput): InstallmentPlanResult {

@@ -43,6 +43,7 @@ function catalogItemFromMatch(match: CatalogMatch): CalculatorItem | undefined {
     label: match.group.name,
     detail: `Stock ${match.unit.stock}`,
     priceUsd,
+    quantity: 1,
   };
 }
 
@@ -92,6 +93,7 @@ export function AddItemPanel({
       source: 'manual',
       label: trimmedLabel,
       priceUsd: price,
+      quantity: 1,
     });
     setManualLabel('');
     setManualPrice('');
