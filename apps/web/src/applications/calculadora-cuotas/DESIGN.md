@@ -34,9 +34,8 @@ no una sucesión de franjas ni tarjetas.
 - El selector conserva un indicador azul de media anchura, revelado con `clip-path`; el texto real
   de ambos botones no se duplica ni se oculta. Las flechas cambian de pestaña y conducen al primer
   campo del modo elegido.
-- La zona que cambia de modo toma su altura natural. La estabilidad visual viene de reservar el
-  gutter del scrollbar y de desplazar resultados extensos dentro de la lista de catálogo, nunca de
-  un espacio vacío fijo debajo de un formulario corto.
+- La zona que cambia de modo toma su altura natural. Los resultados extensos se desplazan dentro de
+  la lista de catálogo, nunca se compensa su altura con un espacio vacío debajo de un formulario corto.
 - Las acciones de alta y eliminación respetan el mínimo táctil de 44 px. Las unidades sin precio
   de lista no se ofrecen en las búsquedas de Stock.
 - Una fila puede cotizar varias unidades iguales. Muestra sólo cantidad y total de línea; el
@@ -49,10 +48,10 @@ es direccional e interrumpible. Con teclado y con `prefers-reduced-motion: reduc
 instantáneamente. No se anima el formulario ni la lista: evita una segunda señal que competiría con
 la decisión principal.
 
-El progreso del wizard es un indicador pasivo: el paso actual usa azul operativo, los completos
-turquesa y los pendientes gris. Al avanzar o volver con puntero, sólo la pista y la nueva pantalla
-se mueven 8 px con opacidad; el teclado y la preferencia de movimiento reducido actualizan el estado
-sin movimiento.
+El progreso del wizard es una cápsula pasiva de tres segmentos: las tres etapas permanecen visibles,
+el paso actual usa azul operativo, los completos azul claro y los pendientes blanco. Al avanzar o
+volver con puntero, sólo la nueva pantalla se mueve 8 px con opacidad; el teclado y la preferencia
+de movimiento reducido actualizan el estado sin movimiento.
 
 ## Candidatos para promoción
 

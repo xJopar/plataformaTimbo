@@ -81,7 +81,7 @@ export function InstallmentSummary({
       ) : planResult.status === 'reinforcement-amount-negative' ? (
         <p className="cc-cuotero-error" role="alert">
           El total de cuotas regulares supera el saldo financiado. Reducí el monto de la cuota o
-          cambiá la configuración.
+          cambiá las condiciones.
         </p>
       ) : planResult.status === 'regular-installment-negative' ? (
         <p className="cc-cuotero-error" role="alert">

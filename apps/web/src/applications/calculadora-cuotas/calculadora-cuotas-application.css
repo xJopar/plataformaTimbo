@@ -64,50 +64,30 @@
 .cc-wizard-steps {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--cc-sp-2);
   margin: 0 0 var(--cc-sp-7);
   padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--cc-c-border);
+  border-radius: 999px;
   list-style: none;
 }
 
 .cc-wizard-steps li {
-  position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--cc-sp-2);
   min-width: 0;
-  padding: 0 0 var(--cc-sp-3);
+  min-height: 54px;
+  padding: var(--cc-sp-2) var(--cc-sp-3);
   color: var(--cc-c-text-disabled);
   font-size: 0.8125rem;
   font-weight: 700;
+  text-align: center;
 }
 
-.cc-wizard-steps li::after {
-  position: absolute;
-  right: calc(var(--cc-sp-2) * -1);
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  background: var(--cc-c-border);
-  content: '';
-}
-
-.cc-wizard-steps li:not(:last-child)::before {
-  position: absolute;
-  z-index: 1;
-  right: calc(var(--cc-sp-2) * -1);
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  background: var(--cc-c-focus);
-  content: '';
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.cc-wizard-steps .cc-wizard-step--complete:not(:last-child)::before {
-  transform: scaleX(1);
+.cc-wizard-steps li + li {
+  border-left: 1px solid var(--cc-c-border);
 }
 
 .cc-wizard-step-marker {
@@ -117,29 +97,32 @@
   height: 24px;
   place-items: center;
   border: 1px solid var(--cc-c-border-strong);
+  border-radius: 50%;
   color: var(--cc-c-text-disabled);
   font-size: 0.75rem;
   line-height: 1;
 }
 
 .cc-wizard-steps .cc-wizard-step--active {
-  color: var(--cc-c-brand);
-}
-
-.cc-wizard-steps .cc-wizard-step--active .cc-wizard-step-marker {
-  border-color: var(--cc-c-brand);
   background: var(--cc-c-brand);
   color: #fff;
 }
 
+.cc-wizard-steps .cc-wizard-step--active .cc-wizard-step-marker {
+  border-color: currentColor;
+  background: transparent;
+  color: #fff;
+}
+
 .cc-wizard-steps .cc-wizard-step--complete {
-  color: var(--cc-c-text-secondary);
+  background: var(--cc-c-brand-light);
+  color: var(--cc-c-text-primary);
 }
 
 .cc-wizard-steps .cc-wizard-step--complete .cc-wizard-step-marker {
-  border-color: var(--cc-c-focus);
-  background: var(--cc-c-focus);
-  color: #fff;
+  border-color: var(--cc-c-text-primary);
+  background: transparent;
+  color: var(--cc-c-text-primary);
 }
 
 .cc-wizard-screen--main {

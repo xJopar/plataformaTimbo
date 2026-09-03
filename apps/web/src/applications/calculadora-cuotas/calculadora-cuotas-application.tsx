@@ -189,9 +189,7 @@ export function CalculadoraCuotasApplication({
                 {screen === 'main' ? '1' : '✓'}
               </span>
               <span>Unidades</span>
-              <span className="cc-sr-only">
-                Paso 1 de 3, {screen === 'main' ? 'actual' : 'completado'}.
-              </span>
+              <span className="cc-sr-only">{screen === 'main' ? 'Actual.' : 'Completado.'}</span>
             </li>
             <li
               className={
@@ -206,10 +204,13 @@ export function CalculadoraCuotasApplication({
               <span className="cc-wizard-step-marker" aria-hidden="true">
                 {screen === 'result' ? '✓' : '2'}
               </span>
-              <span>Configuración</span>
+              <span>Condiciones</span>
               <span className="cc-sr-only">
-                Paso 2 de 3,{' '}
-                {screen === 'config' ? 'actual' : screen === 'result' ? 'completado' : 'pendiente'}.
+                {screen === 'config'
+                  ? 'Actual.'
+                  : screen === 'result'
+                    ? 'Completado.'
+                    : 'Pendiente.'}
               </span>
             </li>
             <li
@@ -220,9 +221,7 @@ export function CalculadoraCuotasApplication({
                 3
               </span>
               <span>Plan final</span>
-              <span className="cc-sr-only">
-                Paso 3 de 3, {screen === 'result' ? 'actual' : 'pendiente'}.
-              </span>
+              <span className="cc-sr-only">{screen === 'result' ? 'Actual.' : 'Pendiente.'}</span>
             </li>
           </ol>
 
@@ -327,7 +326,7 @@ export function CalculadoraCuotasApplication({
                   className="cc-apply-btn"
                   onClick={(event) => changeScreen('config', 'backward', event.detail > 0)}
                 >
-                  Cambiar configuración
+                  Cambiar condiciones
                 </button>
               </footer>
             </div>

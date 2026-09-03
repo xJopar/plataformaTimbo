@@ -43,7 +43,7 @@ export function FinancingConfig({
       <div className="cc-section-heading">
         <div>
           <h2 id="cc-config-title" className="cc-section-title">
-            Configurá la financiación
+            Definí las condiciones
           </h2>
           <p className="cc-section-description">
             Definí las condiciones del plan antes de calcularlo.
