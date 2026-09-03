@@ -28,7 +28,7 @@ describe('AddedItemsList', () => {
     );
 
     expect(screen.getByText('2 unidades')).toBeInTheDocument();
-    expect(screen.getByText('Subtotal')).toBeInTheDocument();
+    expect(screen.getByText('Total')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /sumar una unidad/i }));
     fireEvent.click(screen.getByRole('button', { name: /restar una unidad/i }));
     fireEvent.click(screen.getByRole('button', { name: /quitar .* del cálculo/i }));

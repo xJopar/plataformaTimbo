@@ -27,21 +27,11 @@ function AddedItemRow({
     <li className="cc-added-row">
       <div className="cc-added-row-info">
         <span className="cc-added-row-label">{item.label}</span>
-        <span className="cc-added-row-meta">
-          {item.source === 'catalog' ? 'Lista de Precios' : 'Precio manual'}
-          {item.detail === undefined ? '' : ` · ${item.detail}`}
-        </span>
       </div>
-      <dl className="cc-added-row-amounts">
-        <div>
-          <dt>Precio unitario</dt>
-          <dd>{formatPrice(item.priceUsd)}</dd>
-        </div>
-        <div>
-          <dt>Subtotal</dt>
-          <dd>{formatPrice(lineSubtotal)}</dd>
-        </div>
-      </dl>
+      <div className="cc-added-row-total">
+        <span>Total</span>
+        <strong>{formatPrice(lineSubtotal)}</strong>
+      </div>
       <div className="cc-quantity-control" aria-label={`Cantidad de ${item.label}`}>
         <button
           type="button"

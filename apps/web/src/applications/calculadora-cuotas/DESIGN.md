@@ -39,7 +39,7 @@ no una sucesión de franjas ni tarjetas.
   un espacio vacío fijo debajo de un formulario corto.
 - Las acciones de alta y eliminación respetan el mínimo táctil de 44 px. Las unidades sin precio
   de lista no se ofrecen en las búsquedas de Stock.
-- Una fila puede cotizar varias unidades iguales. Muestra precio unitario, cantidad y subtotal; el
+- Una fila puede cotizar varias unidades iguales. Muestra sólo cantidad y total de línea; el
   selector de cantidad no reduce de una unidad y quitar elimina la fila completa tras confirmación.
 
 ## Movimiento y accesibilidad
