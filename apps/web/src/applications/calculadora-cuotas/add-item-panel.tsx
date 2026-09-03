@@ -1,5 +1,6 @@
 import { Search01Icon } from '@hugeicons/core-free-icons';
 import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { flushSync } from 'react-dom';
 import type { VehicleResponse } from '../../api';
 import { AppIcon } from '../../ui/app-icon';
 import { formatPrice, parsePrice, type VehicleGroup } from '../../vehicle-catalog/vehicle-catalog';
@@ -7,6 +8,12 @@ import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-cata
 import type { CalculatorItem } from './installment-calculator';
 
 const MAX_CATALOG_RESULTS = 8;
+
+type AddItemMode = 'manual' | 'catalog';
+
+type DocumentWithViewTransition = Document & {
+  startViewTransition?: (updateCallback: () => void) => unknown;
+};
 
 interface CatalogMatch {
   unit: VehicleResponse;
@@ -54,7 +61,7 @@ export function AddItemPanel({
   existingItemIds,
   onAddItem,
 }: AddItemPanelProps): React.JSX.Element {
-  const [mode, setMode] = useState<'manual' | 'catalog'>('catalog');
+  const [mode, setMode] = useState<AddItemMode>('catalog');
   const [manualLabel, setManualLabel] = useState('');
   const [manualPrice, setManualPrice] = useState('');
   const [manualError, setManualError] = useState<string | undefined>(undefined);
@@ -99,6 +106,30 @@ export function AddItemPanel({
     catalogSearchInputRef.current?.focus();
   }
 
+  function changeMode(nextMode: AddItemMode, isPointerInitiated: boolean): void {
+    if (nextMode === mode) return;
+
+    const documentWithViewTransition = document as DocumentWithViewTransition;
+    const shouldReduceMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (
+      !isPointerInitiated ||
+      shouldReduceMotion ||
+      documentWithViewTransition.startViewTransition === undefined
+    ) {
+      setMode(nextMode);
+      return;
+    }
+
+    documentWithViewTransition.startViewTransition(() => {
+      flushSync(() => {
+        setMode(nextMode);
+      });
+    });
+  }
+
   return (
     <section className="cc-section" aria-labelledby="cc-add-title">
       <h2 id="cc-add-title" className="cc-section-title">
@@ -111,7 +142,7 @@ export function AddItemPanel({
           role="radio"
           aria-checked={mode === 'catalog'}
           className={`cc-mode-btn${mode === 'catalog' ? ' cc-mode-btn--active' : ''}`}
-          onClick={() => setMode('catalog')}
+          onClick={(event) => changeMode('catalog', event.detail > 0)}
         >
           Stock
         </button>
@@ -120,14 +151,14 @@ export function AddItemPanel({
           role="radio"
           aria-checked={mode === 'manual'}
           className={`cc-mode-btn${mode === 'manual' ? ' cc-mode-btn--active' : ''}`}
-          onClick={() => setMode('manual')}
+          onClick={(event) => changeMode('manual', event.detail > 0)}
         >
           Manual
         </button>
       </div>
 
       {mode === 'catalog' ? (
-        <div className="cc-catalog-picker">
+        <div className="cc-catalog-picker cc-mode-content">
           <div className="cc-search-bar">
             <AppIcon icon={Search01Icon} size={18} />
             <input
@@ -187,7 +218,7 @@ export function AddItemPanel({
           ) : null}
         </div>
       ) : (
-        <form className="cc-manual-form" onSubmit={submitManualEntry}>
+        <form className="cc-manual-form cc-mode-content" onSubmit={submitManualEntry}>
           <label htmlFor="cc-manual-label">Descripción</label>
           <input
             id="cc-manual-label"
