@@ -136,9 +136,8 @@ export function CalculadoraCuotasApplication({
         onNavigate={onNavigate}
         onLogout={onLogout}
       />
+      <PlatformSessionBar session={session} />
       <div className="platform-application-workspace cc-application-workspace">
-        <PlatformSessionBar session={session} />
-
         {logoutFailure === undefined ? null : (
           <p className="cc-logout-error" role="alert">
             No se pudo cerrar la sesión. Intentá nuevamente.

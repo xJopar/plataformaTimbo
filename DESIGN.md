@@ -106,11 +106,11 @@ Usar paneles planos y filas de lista/tablas para agrupar trabajo: fondo `#F7F9FB
 ### Marco de aplicación y sesión
 
 `platform-application-workspace` es el marco reutilizable para una tarea de aplicación: un área
-blanca con acento superior azul sobre el fondo gris del shell. Puede contener `PlatformSessionBar`,
-alertas y el contenido de la aplicación como una única superficie; no debe envolverse nuevamente
-en una card. `PlatformSessionBar` muestra únicamente identidad y fecha/hora, separada por una regla
-inferior compacta. En móvil conserva el orden semántico y apila sólo cuando ya no hay espacio para
-los dos datos.
+blanca con acento superior azul sobre el fondo gris del shell. Puede contener alertas y el contenido
+de la aplicación como una única superficie; no debe envolverse nuevamente en una card.
+`PlatformSessionBar` se ubica inmediatamente después de `PlatformHeader` y muestra únicamente
+identidad y fecha/hora, separada por una regla inferior compacta. En móvil conserva el orden
+semántico y apila sólo cuando ya no hay espacio para los dos datos.
 
 ### Acceso corporativo
 
