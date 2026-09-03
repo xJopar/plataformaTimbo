@@ -1,6 +1,5 @@
 import { Search01Icon } from '@hugeicons/core-free-icons';
 import { useMemo, useRef, useState, type FormEvent } from 'react';
-import { flushSync } from 'react-dom';
 import type { VehicleResponse } from '../../api';
 import { AppIcon } from '../../ui/app-icon';
 import { formatPrice, parsePrice, type VehicleGroup } from '../../vehicle-catalog/vehicle-catalog';
@@ -11,16 +10,12 @@ const MAX_CATALOG_RESULTS = 8;
 
 type AddItemMode = 'manual' | 'catalog';
 
-type DocumentWithViewTransition = Document & {
-  startViewTransition?: (updateCallback: () => void) => unknown;
-};
-
 interface CatalogMatch {
   unit: VehicleResponse;
   group: VehicleGroup;
 }
 
-function searchCatalog(vehiclesState: VehicleCatalogState, query: string): CatalogMatch[] {
+export function searchCatalog(vehiclesState: VehicleCatalogState, query: string): CatalogMatch[] {
   if (vehiclesState.status !== 'ready') return [];
   const normalizedQuery = query.trim().toLowerCase();
   if (normalizedQuery === '') return [];
@@ -28,6 +23,7 @@ function searchCatalog(vehiclesState: VehicleCatalogState, query: string): Catal
   const matches: CatalogMatch[] = [];
   for (const group of vehiclesState.groups.values()) {
     for (const unit of group.units) {
+      if (parsePrice(unit.precioLista) === null) continue;
       const haystack = `${group.marca} ${group.modelo} ${group.config} ${unit.stock}`.toLowerCase();
       if (haystack.includes(normalizedQuery)) {
         matches.push({ unit, group });
@@ -62,6 +58,7 @@ export function AddItemPanel({
   onAddItem,
 }: AddItemPanelProps): React.JSX.Element {
   const [mode, setMode] = useState<AddItemMode>('catalog');
+  const [shouldAnimateModeSwitch, setShouldAnimateModeSwitch] = useState(false);
   const [manualLabel, setManualLabel] = useState('');
   const [manualPrice, setManualPrice] = useState('');
   const [manualError, setManualError] = useState<string | undefined>(undefined);
@@ -108,26 +105,8 @@ export function AddItemPanel({
 
   function changeMode(nextMode: AddItemMode, isPointerInitiated: boolean): void {
     if (nextMode === mode) return;
-
-    const documentWithViewTransition = document as DocumentWithViewTransition;
-    const shouldReduceMotion =
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (
-      !isPointerInitiated ||
-      shouldReduceMotion ||
-      documentWithViewTransition.startViewTransition === undefined
-    ) {
-      setMode(nextMode);
-      return;
-    }
-
-    documentWithViewTransition.startViewTransition(() => {
-      flushSync(() => {
-        setMode(nextMode);
-      });
-    });
+    setShouldAnimateModeSwitch(isPointerInitiated);
+    setMode(nextMode);
   }
 
   return (
@@ -136,7 +115,25 @@ export function AddItemPanel({
         Agregar unidad
       </h2>
 
-      <div className="cc-mode-switch" role="radiogroup" aria-label="Origen del monto a agregar">
+      <div
+        className="cc-mode-switch"
+        data-animate={shouldAnimateModeSwitch ? 'true' : 'false'}
+        data-mode={mode}
+        role="radiogroup"
+        aria-label="Origen del monto a agregar"
+      >
+        <span
+          className="cc-mode-active-indicator cc-mode-active-indicator--catalog"
+          aria-hidden="true"
+        >
+          Stock
+        </span>
+        <span
+          className="cc-mode-active-indicator cc-mode-active-indicator--manual"
+          aria-hidden="true"
+        >
+          Manual
+        </span>
         <button
           type="button"
           role="radio"
@@ -157,94 +154,96 @@ export function AddItemPanel({
         </button>
       </div>
 
-      {mode === 'catalog' ? (
-        <div className="cc-catalog-picker cc-mode-content">
-          <div className="cc-search-bar">
-            <AppIcon icon={Search01Icon} size={18} />
-            <input
-              ref={catalogSearchInputRef}
-              type="search"
-              placeholder="Buscar por marca, modelo o stock"
-              aria-label="Buscar unidad en Lista de Precios"
-              value={catalogQuery}
-              onChange={(event) => setCatalogQuery(event.target.value)}
-            />
-          </div>
-
-          {vehiclesState.status === 'loading' ? (
-            <div className="cc-catalog-loading" role="status">
-              <span className="session-boot-indicator" aria-hidden="true" />
-              <span>Cargando catálogo de Lista de Precios…</span>
+      <div className="cc-mode-stage">
+        {mode === 'catalog' ? (
+          <div className="cc-catalog-picker">
+            <div className="cc-search-bar">
+              <AppIcon icon={Search01Icon} size={18} />
+              <input
+                ref={catalogSearchInputRef}
+                type="search"
+                placeholder="Buscar por marca, modelo o stock"
+                aria-label="Buscar unidad en Lista de Precios"
+                value={catalogQuery}
+                onChange={(event) => setCatalogQuery(event.target.value)}
+              />
             </div>
-          ) : null}
 
-          {vehiclesState.status === 'error' ? (
-            <p role="alert">No pudimos cargar el catálogo de Lista de Precios.</p>
-          ) : null}
+            {vehiclesState.status === 'loading' ? (
+              <div className="cc-catalog-loading" role="status">
+                <span className="session-boot-indicator" aria-hidden="true" />
+                <span>Cargando catálogo de Lista de Precios…</span>
+              </div>
+            ) : null}
 
-          {vehiclesState.status === 'ready' && catalogQuery.trim() !== '' ? (
-            catalogMatches.length === 0 ? (
-              <p className="cc-catalog-empty">Sin resultados para «{catalogQuery.trim()}».</p>
-            ) : (
-              <ul className="cc-catalog-results" aria-label="Resultados de la búsqueda">
-                {catalogMatches.map((match) => {
-                  const priceUsd = parsePrice(match.unit.precioLista);
-                  const alreadyAdded = existingItemIds.has(`catalog:${match.unit.stock}`);
-                  return (
-                    <li key={match.unit.stock} className="cc-catalog-result">
-                      <div className="cc-catalog-result-info">
-                        <span className="cc-catalog-result-name">{match.group.name}</span>
-                        <span className="cc-catalog-result-meta">
-                          Stock {match.unit.stock} · {formatPrice(priceUsd)}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        className="cc-add-btn"
-                        disabled={priceUsd === null || alreadyAdded}
-                        onClick={() => addCatalogMatch(match)}
-                      >
-                        {alreadyAdded ? 'Agregada' : 'Agregar'}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )
-          ) : null}
+            {vehiclesState.status === 'error' ? (
+              <p role="alert">No pudimos cargar el catálogo de Lista de Precios.</p>
+            ) : null}
 
-          {vehiclesState.status === 'ready' && catalogQuery.trim() === '' ? (
-            <p className="cc-catalog-hint">Escribí para buscar una unidad del catálogo.</p>
-          ) : null}
-        </div>
-      ) : (
-        <form className="cc-manual-form cc-mode-content" onSubmit={submitManualEntry}>
-          <label htmlFor="cc-manual-label">Descripción</label>
-          <input
-            id="cc-manual-label"
-            type="text"
-            placeholder="Ej.: Camión importado a pedido"
-            value={manualLabel}
-            onChange={(event) => setManualLabel(event.target.value)}
-          />
+            {vehiclesState.status === 'ready' && catalogQuery.trim() !== '' ? (
+              catalogMatches.length === 0 ? (
+                <p className="cc-catalog-empty">Sin resultados para «{catalogQuery.trim()}».</p>
+              ) : (
+                <ul className="cc-catalog-results" aria-label="Resultados de la búsqueda">
+                  {catalogMatches.map((match) => {
+                    const priceUsd = parsePrice(match.unit.precioLista);
+                    const alreadyAdded = existingItemIds.has(`catalog:${match.unit.stock}`);
+                    return (
+                      <li key={match.unit.stock} className="cc-catalog-result">
+                        <div className="cc-catalog-result-info">
+                          <span className="cc-catalog-result-name">{match.group.name}</span>
+                          <span className="cc-catalog-result-meta">
+                            Stock {match.unit.stock} · {formatPrice(priceUsd)}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="cc-add-btn"
+                          disabled={priceUsd === null || alreadyAdded}
+                          onClick={() => addCatalogMatch(match)}
+                        >
+                          {alreadyAdded ? 'Agregada' : 'Agregar'}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )
+            ) : null}
 
-          <label htmlFor="cc-manual-price">Precio (USD)</label>
-          <input
-            id="cc-manual-price"
-            type="text"
-            inputMode="decimal"
-            placeholder="Ej.: 85000"
-            value={manualPrice}
-            onChange={(event) => setManualPrice(event.target.value)}
-          />
+            {vehiclesState.status === 'ready' && catalogQuery.trim() === '' ? (
+              <p className="cc-catalog-hint">Escribí para buscar una unidad del catálogo.</p>
+            ) : null}
+          </div>
+        ) : (
+          <form className="cc-manual-form" onSubmit={submitManualEntry}>
+            <label htmlFor="cc-manual-label">Descripción</label>
+            <input
+              id="cc-manual-label"
+              type="text"
+              placeholder="Ej.: SR Granelero Librelato + 13 cubiertas"
+              value={manualLabel}
+              onChange={(event) => setManualLabel(event.target.value)}
+            />
 
-          {manualError === undefined ? null : <p role="alert">{manualError}</p>}
+            <label htmlFor="cc-manual-price">Precio (USD)</label>
+            <input
+              id="cc-manual-price"
+              type="text"
+              inputMode="decimal"
+              placeholder="Ej.: 85000"
+              value={manualPrice}
+              onChange={(event) => setManualPrice(event.target.value)}
+            />
 
-          <button type="submit" className="action-button cc-manual-submit">
-            Agregar
-          </button>
-        </form>
-      )}
+            {manualError === undefined ? null : <p role="alert">{manualError}</p>}
+
+            <button type="submit" className="action-button cc-manual-submit">
+              Agregar
+            </button>
+          </form>
+        )}
+      </div>
     </section>
   );
 }

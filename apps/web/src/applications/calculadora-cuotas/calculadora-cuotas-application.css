@@ -26,6 +26,7 @@
   --cc-sp-6: 24px;
   --cc-sp-7: 32px;
   --cc-t-fast: 120ms ease-out;
+  --cc-t-mode-switch: 180ms cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .calculadora-cuotas-shell button,
@@ -273,15 +274,18 @@
 
 /* ── Selector de modo (agregar unidad / precio manual) ── */
 .cc-mode-switch {
-  display: flex;
-  gap: 1px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-bottom: var(--cc-sp-4);
   background: var(--cc-c-border);
   border: 1px solid var(--cc-c-border);
+  isolation: isolate;
 }
 
 .cc-mode-btn {
-  flex: 1;
+  position: relative;
+  z-index: 2;
   min-height: 44px;
   padding: 0 var(--cc-sp-3);
   border: 0;
@@ -295,6 +299,10 @@
     color var(--cc-t-fast);
 }
 
+.cc-mode-btn + .cc-mode-btn {
+  border-inline-start: 1px solid var(--cc-c-border);
+}
+
 .cc-mode-btn--active {
   background: var(--cc-c-brand);
   color: #fff;
@@ -302,47 +310,71 @@
 
 .cc-mode-btn:focus-visible {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   outline: 3px solid var(--cc-c-focus);
   outline-offset: -3px;
 }
 
-.cc-mode-content {
-  view-transition-name: cc-mode-content;
+.cc-mode-active-indicator {
+  display: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  ::view-transition-old(cc-mode-content) {
-    animation: cc-mode-content-exit 120ms cubic-bezier(0.19, 1, 0.22, 1) both;
+@supports (clip-path: inset(0)) {
+  .cc-mode-switch {
+    overflow: clip;
   }
 
-  ::view-transition-new(cc-mode-content) {
-    animation: cc-mode-content-enter 180ms cubic-bezier(0.19, 1, 0.22, 1) both;
+  .cc-mode-btn,
+  .cc-mode-btn--active {
+    background: transparent;
+    color: transparent;
+    transition: none;
   }
-}
 
-@keyframes cc-mode-content-enter {
-  from {
+  .cc-mode-active-indicator {
+    position: absolute;
+    z-index: 1;
+    inset-block: 0;
+    display: grid;
+    inline-size: 50%;
+    place-items: center;
+    background: var(--cc-c-brand);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  .cc-mode-active-indicator--catalog {
+    inset-inline-start: 0;
+  }
+
+  .cc-mode-active-indicator--manual {
+    inset-inline-end: 0;
+  }
+
+  .cc-mode-switch[data-mode='catalog'] .cc-mode-active-indicator--catalog,
+  .cc-mode-switch[data-mode='manual'] .cc-mode-active-indicator--manual {
+    clip-path: inset(0);
+  }
+
+  .cc-mode-switch[data-mode='catalog'] .cc-mode-active-indicator--manual {
     clip-path: inset(0 100% 0 0);
-    opacity: 0;
   }
 
-  to {
-    clip-path: inset(0);
-    opacity: 1;
+  .cc-mode-switch[data-mode='manual'] .cc-mode-active-indicator--catalog {
+    clip-path: inset(0 0 0 100%);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cc-mode-switch[data-animate='true'] .cc-mode-active-indicator {
+      transition: clip-path var(--cc-t-mode-switch);
+    }
   }
 }
 
-@keyframes cc-mode-content-exit {
-  from {
-    clip-path: inset(0);
-    opacity: 1;
-  }
-
-  to {
-    clip-path: inset(0 0 0 100%);
-    opacity: 0;
-  }
+.cc-mode-stage {
+  min-block-size: 12.75rem;
 }
 
 /* ── Búsqueda de catálogo ── */
@@ -400,6 +432,10 @@
   list-style: none;
   border: 1px solid var(--cc-c-border);
   background: var(--cc-c-surface-alt);
+  max-block-size: min(26rem, 40dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .cc-catalog-result {
