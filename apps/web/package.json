@@ -21,7 +21,8 @@
     "openapi-fetch": "0.17.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "serve-handler": "6.1.7"
+    "serve-handler": "6.1.7",
+    "sonner": "2.0.8"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "7.0.1",

@@ -31,6 +31,24 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
+/* Sonner centraliza las notificaciones efímeras de la Web; la clase conserva la jerarquía plana
+   del App Shell aunque la librería tenga estilos propios por defecto. */
+[data-sonner-toast].platform-toast[data-styled='true'] {
+  border: 1px solid #bcc9d7;
+  border-top: 3px solid #00388a;
+  border-radius: 0;
+  background: #f7f9fb;
+  box-shadow: none;
+  color: #142033;
+  font-family: Aptos, 'Segoe UI', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+[data-sonner-toast].platform-toast[data-styled='true'][data-type='info'] {
+  border-top-color: #00a6a6;
+}
+
 .platform-shell {
   min-height: 100vh;
   background: #edf2f7;

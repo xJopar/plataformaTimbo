@@ -156,17 +156,6 @@
   padding: 0 clamp(20px, 5vw, 32px);
 }
 
-.cc-preload-notice {
-  margin: 0 0 var(--cc-sp-5);
-  padding: var(--cc-sp-3) var(--cc-sp-4);
-  border: 1px solid var(--cc-c-border);
-  border-top: 2px solid var(--cc-c-brand);
-  background: var(--cc-c-surface);
-  color: var(--cc-c-text-primary);
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
 /* ── Layout: una sola columna que fluye en mobile. Desde 1024px, grid de 2 columnas (armado |
    config+cuotero apilados). Desde 1280px — cubre el 1366px de un notebook corporativo típico ya
    descontado el scrollbar — Config y Cuotero se separan en sus propios carriles de grid en vez de

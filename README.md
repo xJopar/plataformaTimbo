@@ -42,6 +42,12 @@ para el alcance y los recorridos vigentes.
 - **Experiencia:** acceso corporativo, launcher de aplicaciones autorizadas, superficies de
   Administración, `Hello World`, `Lista de Precios`, `Calculadora de Cuotas` y `Meta Company`.
 
+## Componentes de interfaz compartidos
+
+- **Notificaciones efímeras:** la Web usa [Sonner](https://sonner.emilkowal.ski/) como mecanismo
+  único de toast. El `Toaster` se monta una vez en `apps/web/src/main.tsx`; las aplicaciones
+  internas deben invocar `toast` desde `sonner` y no implementar avisos flotantes propios.
+
 ## Documentación
 
 - [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md): alcance vigente, componentes y

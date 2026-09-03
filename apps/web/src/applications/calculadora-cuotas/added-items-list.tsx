@@ -11,8 +11,7 @@ export function AddedItemsList({ items, onRequestRemove }: AddedItemsListProps):
     <section className="cc-section" aria-label="Unidades">
       {items.length === 0 ? (
         <p className="cc-added-empty">
-          Todavía no agregaste nada. Elegí una unidad de Lista de Precios o cargá un precio manual
-          arriba para empezar el cálculo.
+          Agregá una unidad para continuar.
         </p>
       ) : (
         <>

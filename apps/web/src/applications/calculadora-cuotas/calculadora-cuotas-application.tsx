@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import type { ApplicationComponentProps } from '../application-component';
 import { PlatformHeader } from '../../layout/platform-header';
 import { PlatformSessionBar } from '../../layout/platform-session-bar';
@@ -48,7 +49,6 @@ export function CalculadoraCuotasApplication({
   const [calculatedConfig, setCalculatedConfig] = useState<FinancingConfigValue>(DEFAULT_CONFIG);
   const [screen, setScreen] = useState<WizardScreen>('main');
   const [pendingRemovalId, setPendingRemovalId] = useState<string | undefined>(undefined);
-  const [preloadNotice, setPreloadNotice] = useState<string | undefined>(undefined);
   const preloadHandled = useRef(false);
 
   const route = useMemo(
@@ -77,10 +77,14 @@ export function CalculadoraCuotasApplication({
           priceUsd,
         },
       ]);
-      setPreloadNotice(`Se agregó ${group.name} (stock ${unit.stock}) desde Lista de Precios.`);
+      requestAnimationFrame(() => {
+        toast.info(`Se agregó ${group.name} (stock ${unit.stock}) desde Lista de Precios.`);
+      });
       return;
     }
-    setPreloadNotice('No encontramos esa unidad en el catálogo actual de Lista de Precios.');
+    requestAnimationFrame(() => {
+      toast.info('No encontramos esa unidad en el catálogo actual de Lista de Precios.');
+    });
   }, [route, vehiclesState]);
 
   const existingItemIds = useMemo(() => new Set(items.map((item) => item.id)), [items]);
@@ -141,12 +145,6 @@ export function CalculadoraCuotasApplication({
       )}
 
       <div className="cc-page">
-        {preloadNotice === undefined ? null : (
-          <p className="cc-preload-notice" role="status">
-            {preloadNotice}
-          </p>
-        )}
-
         <div className="cc-wizard" aria-label="Flujo de cálculo">
           <ol className="cc-wizard-steps">
             <li
