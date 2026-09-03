@@ -57,6 +57,16 @@ button:focus-visible {
   min-height: 100vh;
   background: #edf2f7;
 }
+
+/* Superficie operativa compartida: una aplicación puede agrupar su contexto de sesión y su
+   tarea en este marco sin convertir cada bloque interno en una tarjeta. */
+.platform-application-workspace {
+  width: min(calc(100% - 40px), 1560px);
+  min-height: calc(100dvh - 96px);
+  margin: clamp(20px, 3vw, 40px) auto;
+  border-top: 3px solid #00388a;
+  background: #fff;
+}
 .top-bar {
   min-height: 56px;
   padding: 6px clamp(20px, 5vw, 72px);
@@ -282,21 +292,20 @@ button:focus-visible {
     visibility: visible;
   }
 }
-.product-name,
-.subheader p,
-.subheader time {
+.product-name {
   margin: 0;
 }
 .product-name {
   font-weight: 700;
   letter-spacing: 0.01em;
 }
-.subheader {
-  min-height: 38px;
+.platform-session-bar {
+  min-height: 52px;
   padding: 6px clamp(20px, 5vw, 72px);
   padding-inline: max(clamp(20px, 5vw, 72px), env(safe-area-inset-left))
     max(clamp(20px, 5vw, 72px), env(safe-area-inset-right));
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -305,10 +314,40 @@ button:focus-visible {
   color: #334155;
   font-size: 0.875rem;
 }
-.subheader time {
-  color: #526176;
+
+.platform-session-bar-identity,
+.platform-session-bar-time {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
 }
-/* Franja de navegación de la app, entre la barra azul y `.subheader`: sólo existe cuando la
+
+.platform-session-bar-identity strong,
+.platform-session-bar-time > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.platform-session-bar-identity strong {
+  color: #142033;
+  font-size: 0.9375rem;
+}
+
+.platform-session-bar-label {
+  color: #526176;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.platform-session-bar-time {
+  justify-items: end;
+  color: #334155;
+  text-align: right;
+}
+/* Franja de navegación de la app, entre la barra azul y `PlatformSessionBar`: sólo existe cuando la
    app pasa `breadcrumb` + `onBack` (hoy, lista-precios). Usa nombres de sección genéricos
    y cortos (p. ej. "Marcas", "Modelos") en vez del valor elegido, así nunca compite en ancho
    con el título de la barra azul ni necesita truncarse en mobile. */
@@ -1485,7 +1524,12 @@ th {
   .application-switcher span {
     display: none;
   }
-  .subheader {
+  .platform-application-workspace {
+    width: 100%;
+    min-height: calc(100dvh - 64px);
+    margin: 0;
+  }
+  .platform-session-bar {
     min-height: 0;
     padding: 6px 20px;
     padding-inline: max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-right));
@@ -1494,10 +1538,11 @@ th {
     gap: 4px 12px;
     font-size: 0.8125rem;
   }
-  .subheader time {
+  .platform-session-bar-time {
     color: #526176;
     font-size: 0.75rem;
     text-align: right;
+    max-inline-size: 44vw;
     white-space: nowrap;
   }
   .top-bar-brand,
@@ -1655,11 +1700,12 @@ th {
   }
 }
 
-@media (max-width: 360px) {
-  .subheader {
+@media (max-width: 480px) {
+  .platform-session-bar {
     grid-template-columns: 1fr;
   }
-  .subheader time {
+  .platform-session-bar-time {
+    justify-items: start;
     text-align: left;
   }
 }

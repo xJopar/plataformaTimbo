@@ -1,5 +1,5 @@
 import { Search01Icon } from '@hugeicons/core-free-icons';
-import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import type { VehicleResponse } from '../../api';
 import { AppIcon } from '../../ui/app-icon';
 import { formatPrice, parsePrice, type VehicleGroup } from '../../vehicle-catalog/vehicle-catalog';
@@ -64,6 +64,8 @@ export function AddItemPanel({
   const [manualError, setManualError] = useState<string | undefined>(undefined);
   const [catalogQuery, setCatalogQuery] = useState('');
   const catalogSearchInputRef = useRef<HTMLInputElement>(null);
+  const catalogModeButtonRef = useRef<HTMLButtonElement>(null);
+  const manualModeButtonRef = useRef<HTMLButtonElement>(null);
 
   const catalogMatches = useMemo(
     () => searchCatalog(vehiclesState, catalogQuery),
@@ -109,6 +111,33 @@ export function AddItemPanel({
     setMode(nextMode);
   }
 
+  function handleModeKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    currentMode: AddItemMode,
+  ): void {
+    const nextMode =
+      event.key === 'Home'
+        ? 'catalog'
+        : event.key === 'End'
+          ? 'manual'
+          : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+            ? currentMode === 'catalog'
+              ? 'manual'
+              : 'catalog'
+            : event.key === 'ArrowRight' || event.key === 'ArrowDown'
+              ? currentMode === 'catalog'
+                ? 'manual'
+                : 'catalog'
+              : undefined;
+
+    if (nextMode === undefined || nextMode === currentMode) return;
+    event.preventDefault();
+    changeMode(nextMode, false);
+    window.requestAnimationFrame(() => {
+      (nextMode === 'catalog' ? catalogModeButtonRef : manualModeButtonRef).current?.focus();
+    });
+  }
+
   return (
     <section className="cc-section" aria-labelledby="cc-add-title">
       <h2 id="cc-add-title" className="cc-section-title">
@@ -119,42 +148,46 @@ export function AddItemPanel({
         className="cc-mode-switch"
         data-animate={shouldAnimateModeSwitch ? 'true' : 'false'}
         data-mode={mode}
-        role="radiogroup"
+        role="tablist"
         aria-label="Origen del monto a agregar"
       >
-        <span
-          className="cc-mode-active-indicator cc-mode-active-indicator--catalog"
-          aria-hidden="true"
-        >
-          Stock
-        </span>
-        <span
-          className="cc-mode-active-indicator cc-mode-active-indicator--manual"
-          aria-hidden="true"
-        >
-          Manual
-        </span>
+        <span className="cc-mode-active-indicator" aria-hidden="true" />
         <button
           type="button"
-          role="radio"
-          aria-checked={mode === 'catalog'}
+          id="cc-mode-stock"
+          ref={catalogModeButtonRef}
+          role="tab"
+          aria-controls="cc-mode-stage"
+          aria-selected={mode === 'catalog'}
+          tabIndex={mode === 'catalog' ? 0 : -1}
           className={`cc-mode-btn${mode === 'catalog' ? ' cc-mode-btn--active' : ''}`}
           onClick={(event) => changeMode('catalog', event.detail > 0)}
+          onKeyDown={(event) => handleModeKeyDown(event, 'catalog')}
         >
           Stock
         </button>
         <button
           type="button"
-          role="radio"
-          aria-checked={mode === 'manual'}
+          id="cc-mode-manual"
+          ref={manualModeButtonRef}
+          role="tab"
+          aria-controls="cc-mode-stage"
+          aria-selected={mode === 'manual'}
+          tabIndex={mode === 'manual' ? 0 : -1}
           className={`cc-mode-btn${mode === 'manual' ? ' cc-mode-btn--active' : ''}`}
           onClick={(event) => changeMode('manual', event.detail > 0)}
+          onKeyDown={(event) => handleModeKeyDown(event, 'manual')}
         >
           Manual
         </button>
       </div>
 
-      <div className="cc-mode-stage">
+      <div
+        id="cc-mode-stage"
+        className="cc-mode-stage"
+        role="tabpanel"
+        aria-labelledby={mode === 'catalog' ? 'cc-mode-stock' : 'cc-mode-manual'}
+      >
         {mode === 'catalog' ? (
           <div className="cc-catalog-picker">
             <div className="cc-search-bar">

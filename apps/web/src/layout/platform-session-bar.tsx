@@ -3,7 +3,7 @@ import type { AuthSession } from '../api';
 
 function formatCurrentDateTime(value: Date): string {
   return new Intl.DateTimeFormat('es-PY', {
-    dateStyle: 'full',
+    dateStyle: 'medium',
     timeStyle: 'short',
   }).format(value);
 }
@@ -34,11 +34,15 @@ export function PlatformSessionBar({ session }: PlatformSessionBarProps): React.
   }, []);
 
   return (
-    <section className="subheader" aria-label="Información de sesión">
-      <p>
+    <section className="platform-session-bar" aria-label="Información de sesión">
+      <div className="platform-session-bar-identity">
+        <span className="platform-session-bar-label">Sesión activa</span>
         <strong>{employeeName}</strong>
-      </p>
-      <time dateTime={currentDateTime.toISOString()}>{formatCurrentDateTime(currentDateTime)}</time>
+      </div>
+      <time className="platform-session-bar-time" dateTime={currentDateTime.toISOString()}>
+        <span className="platform-session-bar-label">Actualizado</span>
+        <span>{formatCurrentDateTime(currentDateTime)}</span>
+      </time>
     </section>
   );
 }

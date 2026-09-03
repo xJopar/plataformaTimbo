@@ -35,14 +35,9 @@
   font: inherit;
 }
 
-/* El título y la descripción de la app ya viven en el header (breadcrumb) y en el home — esta
-   página arranca directo en la primera tarea, sin repetirlos.
-   1040px es el piso de lectura cómoda (ver DESIGN.md); crece con el viewport hasta 1560px en vez
-   de quedar fijo, así un monitor de oficina no deja el contenido nadando en aire muerto a los
-   costados — el 88vw evita que se sienta borde a borde en anchos intermedios. */
+/* El marco compartido contiene sesión y tarea; esta página sólo establece la respiración interna
+   de la calculadora, para que el patrón pueda migrar sin copiar sus medidas a otras apps. */
 .cc-page {
-  max-width: clamp(1040px, 88vw, 1560px);
-  margin: 0 auto;
   padding: clamp(20px, 4vw, 40px) clamp(20px, 5vw, 32px) 40px;
 }
 
@@ -81,9 +76,7 @@
 }
 
 .cc-wizard-screen--main {
-  padding: var(--cc-sp-5);
-  border-top: 3px solid var(--cc-c-brand);
-  background: var(--cc-c-surface-alt);
+  padding: 0;
 }
 
 .cc-wizard-screen--main > .cc-section:first-child {
@@ -152,9 +145,13 @@
 }
 
 .cc-logout-error {
-  max-width: clamp(1040px, 88vw, 1560px);
-  margin: var(--cc-sp-2) auto 0;
-  padding: 0 clamp(20px, 5vw, 32px);
+  margin: 0;
+  padding: var(--cc-sp-3) clamp(20px, 5vw, 32px);
+  border-bottom: 1px solid var(--cc-c-error-border);
+  background: var(--cc-c-error-surface);
+  color: var(--cc-c-error-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 
 /* ── Layout: una sola columna que fluye en mobile. Desde 1024px, grid de 2 columnas (armado |
@@ -278,14 +275,15 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-bottom: var(--cc-sp-4);
-  background: var(--cc-c-border);
+  overflow: clip;
+  background: var(--cc-c-surface-alt);
   border: 1px solid var(--cc-c-border);
   isolation: isolate;
 }
 
 .cc-mode-btn {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   min-height: 44px;
   padding: 0 var(--cc-sp-3);
   border: 0;
@@ -320,50 +318,27 @@
 }
 
 @supports (clip-path: inset(0)) {
-  .cc-mode-switch {
-    overflow: clip;
+  .cc-mode-active-indicator {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    display: block;
+    background: var(--cc-c-brand);
+    clip-path: inset(0 50% 0 0);
+    pointer-events: none;
+  }
+
+  .cc-mode-switch[data-mode='manual'] .cc-mode-active-indicator {
+    clip-path: inset(0 0 0 50%);
   }
 
   .cc-mode-btn,
   .cc-mode-btn--active {
     background: transparent;
-    color: transparent;
-    transition: none;
   }
 
-  .cc-mode-active-indicator {
-    position: absolute;
-    z-index: 1;
-    inset-block: 0;
-    display: grid;
-    inline-size: 50%;
-    place-items: center;
-    background: var(--cc-c-brand);
+  .cc-mode-btn--active {
     color: #fff;
-    font-size: 0.875rem;
-    font-weight: 700;
-    pointer-events: none;
-  }
-
-  .cc-mode-active-indicator--catalog {
-    inset-inline-start: 0;
-  }
-
-  .cc-mode-active-indicator--manual {
-    inset-inline-end: 0;
-  }
-
-  .cc-mode-switch[data-mode='catalog'] .cc-mode-active-indicator--catalog,
-  .cc-mode-switch[data-mode='manual'] .cc-mode-active-indicator--manual {
-    clip-path: inset(0);
-  }
-
-  .cc-mode-switch[data-mode='catalog'] .cc-mode-active-indicator--manual {
-    clip-path: inset(0 100% 0 0);
-  }
-
-  .cc-mode-switch[data-mode='manual'] .cc-mode-active-indicator--catalog {
-    clip-path: inset(0 0 0 100%);
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -374,7 +349,7 @@
 }
 
 .cc-mode-stage {
-  min-block-size: 12.75rem;
+  min-width: 0;
 }
 
 /* ── Búsqueda de catálogo ── */
@@ -471,7 +446,7 @@
 
 .cc-add-btn {
   flex-shrink: 0;
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 var(--cc-sp-3);
   border: 1px solid var(--cc-c-brand);
   background: var(--cc-c-surface-alt);
@@ -587,7 +562,7 @@
 
 .cc-remove-btn {
   flex-shrink: 0;
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 var(--cc-sp-3);
   border: 1px solid var(--cc-c-error-border);
   background: var(--cc-c-error-surface);

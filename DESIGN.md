@@ -59,6 +59,10 @@ Este documento registra lo implementado; no declara un rediseño total. Las regl
 
 Rutas propietarias: `apps/web/src/app.css` (sistema compartido), `apps/web/src/auth/access-shell.tsx` y `apps/web/src/auth/access-shell.css` (acceso), `apps/web/assets/brand/README.md` (procedencia y derivados de marca), y `apps/web/public/marca/` (wordmark y fotografía).
 
+Una aplicación puede tener un `DESIGN.md` local cuando sus decisiones de tarea todavía no son
+reglas universales. Ese documento hereda este sistema y explicita qué patrones son candidatos a
+promoción; no introduce una identidad visual paralela.
+
 ## Colors
 
 - **Azul de marca** `#1F245C`: identidad del acceso, acción principal y fondo/velo de la fotografía. Es el color dominante del wordmark proporcionado.
@@ -99,11 +103,20 @@ Acciones principales azul operativo, texto blanco y altura mínima de 44 px; acc
 
 Usar paneles planos y filas de lista/tablas para agrupar trabajo: fondo `#F7F9FB` o blanco, reglas `#BCC9D7` y acento superior cuando identifica una sección. No convertir agrupaciones rutinarias en una grilla de cards genéricas.
 
+### Marco de aplicación y sesión
+
+`platform-application-workspace` es el marco reutilizable para una tarea de aplicación: un área
+blanca con acento superior azul sobre el fondo gris del shell. Puede contener `PlatformSessionBar`,
+alertas y el contenido de la aplicación como una única superficie; no debe envolverse nuevamente
+en una card. `PlatformSessionBar` muestra estado de sesión, identidad y fecha/hora con jerarquía de
+etiqueta y dato, separada por una regla inferior. En móvil conserva el orden semántico y apila sólo
+cuando ya no hay espacio para los dos grupos.
+
 ### Acceso corporativo
 
 La jerarquía se mantiene estable en todos los estados: marca, título, detalle, señal de estado o error y acción recuperable. `checking` muestra el indicador y “Validando sesión segura”; `signed-out` ofrece Google; `rejected` conserva la misma acción y presenta alerta; `technical-failure` presenta alerta y “Reintentar”. La acción primaria mide 54 px, usa `#1F245C`, cambia discretamente a `#313B85` en hover y conserva foco turquesa.
 
-Hay dos animaciones autorizadas en el acceso: el giro del indicador de comprobación (800 ms) y la revelación del wordmark sobre la foto (aparece, se sostiene y se desvanece en 4.5 s, una sola vez al cargar). La Calculadora de Cuotas usa además una transición breve de recorte (`clip-path`) sobre el indicador activo al alternar por puntero entre Stock y Manual: comunica el cambio de origen sin encadenar una segunda animación del formulario. La zona de entrada conserva una altura mínima, el viewport reserva el espacio del scrollbar y los resultados del catálogo se desplazan dentro de su lista cuando exceden su alto disponible, para que el cambio de modo no desplace la composición. Con `prefers-reduced-motion: reduce`, el giro se reemplaza por un indicador estático de marca, el wordmark queda fijo en pantalla y la calculadora cambia de modo de forma instantánea; el resto del App Shell también desactiva transiciones y animaciones.
+Hay dos animaciones autorizadas en el acceso: el giro del indicador de comprobación (800 ms) y la revelación del wordmark sobre la foto (aparece, se sostiene y se desvanece en 4.5 s, una sola vez al cargar). Cada aplicación documenta las excepciones de movimiento de su tarea en su diseño local. Con `prefers-reduced-motion: reduce`, el giro se reemplaza por un indicador estático de marca, el wordmark queda fijo en pantalla y el resto del App Shell desactiva transiciones y animaciones.
 
 ## Do's and Don'ts
 
