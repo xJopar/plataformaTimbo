@@ -825,21 +825,6 @@
   color: var(--cc-c-text-secondary);
 }
 
-/* Dos grupos de campos apilados en un solo flujo vertical, no una grilla 2×2: a 300-380px de
-   ancho (la columna de config vive en un sidebar, no a lo ancho de la página) dos campos lado a
-   lado no dejan espacio real — el segmentado de "Plazo" (36/48/60 meses) o el de "Entrega inicial"
-   (Porcentaje/Monto manual) terminaban recortados. Apilar todo verticalmente también resuelve de
-   raíz la altura dispareja entre campos cortos y largos: en flujo vertical no hay estiramiento de
-   grid que igualar. "Plazo y entrega" / "Cuotas y refuerzos": `<fieldset>`/`<legend>` reales que
-   agrupan controles de formulario relacionados, nombrados por lo que contienen (no por una
-   categoría abstracta que ya repite "condiciones" del título de la sección). Separación por
-   padding-top + border-top en el sibling (no `gap` en el contenedor): mismo patrón que
-   `.cc-section + .cc-section` más abajo, para no duplicar el espaciado entre los dos mecanismos. */
-.cc-config-grid {
-  display: flex;
-  flex-direction: column;
-}
-
 .cc-field-group {
   margin: 0;
   padding: 0;
@@ -871,38 +856,6 @@
 .cc-field-hint {
   color: var(--cc-c-text-disabled);
   font-size: 0.75rem;
-}
-
-.cc-segmented {
-  display: flex;
-  gap: 1px;
-  background: var(--cc-c-border);
-  border: 1px solid var(--cc-c-border);
-}
-
-.cc-segmented-btn {
-  flex: 1;
-  min-height: 44px;
-  border: 0;
-  background: var(--cc-c-surface-alt);
-  color: var(--cc-c-text-primary);
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background var(--cc-t-fast),
-    color var(--cc-t-fast);
-}
-
-.cc-segmented-btn--active {
-  background: var(--cc-c-brand);
-  color: #fff;
-}
-
-.cc-segmented-btn:focus-visible {
-  position: relative;
-  z-index: 1;
-  outline: 3px solid var(--cc-c-focus);
-  outline-offset: -3px;
 }
 
 .cc-inline-input {
@@ -1335,5 +1288,189 @@
   .cc-section.cc-cuotero .cc-section-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+/* Condiciones comparte el lienzo blanco del wizard: la regla organiza el trabajo sin crear otra
+   tarjeta dentro de la aplicación. */
+.cc-section.cc-config {
+  padding: 0;
+  border-top: 0;
+  background: transparent;
+}
+
+.cc-config-layout {
+  display: grid;
+  grid-template-areas:
+    'summary'
+    'controls';
+  gap: var(--cc-sp-6);
+}
+
+.cc-config-summary {
+  grid-area: summary;
+  display: grid;
+  gap: var(--cc-sp-4);
+  padding-bottom: var(--cc-sp-5);
+  border-bottom: 1px solid var(--cc-c-border);
+}
+
+.cc-config-summary-heading {
+  margin: 0;
+  color: var(--cc-c-text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.cc-config-summary dl {
+  display: grid;
+  gap: var(--cc-sp-3);
+  margin: 0;
+}
+
+.cc-config-summary dl div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+}
+
+.cc-config-summary dt {
+  color: var(--cc-c-text-secondary);
+  font-size: 0.875rem;
+}
+
+.cc-config-summary dd {
+  margin: 0;
+  color: var(--cc-c-text-primary);
+  font-family: var(--cc-font-mono);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.cc-config-summary-total dd,
+.cc-config-summary-balance dd {
+  color: var(--cc-c-brand);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.cc-config-summary-balance {
+  padding-top: var(--cc-sp-3);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-config-controls {
+  grid-area: controls;
+  width: 100%;
+  max-width: 760px;
+}
+
+.cc-down-payment {
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 var(--cc-sp-5);
+  border: 0;
+  border-bottom: 1px solid var(--cc-c-border);
+}
+
+.cc-down-payment legend {
+  padding: 0;
+  color: var(--cc-c-text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.cc-down-payment-overview {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+  margin-top: var(--cc-sp-2);
+}
+
+.cc-down-payment-overview p {
+  margin: 0;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.875rem;
+}
+
+.cc-down-payment-percent {
+  color: var(--cc-c-brand);
+  font-family: var(--cc-font-mono);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.cc-down-payment-slider {
+  width: 100%;
+  min-height: 44px;
+  margin: var(--cc-sp-2) 0 0;
+  accent-color: var(--cc-c-brand);
+  cursor: pointer;
+}
+
+.cc-down-payment-slider:focus-visible {
+  outline: 3px solid var(--cc-c-focus);
+  outline-offset: 2px;
+}
+
+.cc-down-payment-slider-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.cc-down-payment-amount {
+  margin-top: var(--cc-sp-4);
+}
+
+.cc-down-payment-amount .cc-inline-input {
+  max-width: 320px;
+}
+
+.cc-down-payment-amount input {
+  font-family: var(--cc-font-mono);
+}
+
+.cc-config-settings {
+  display: grid;
+  gap: var(--cc-sp-5);
+  padding-top: var(--cc-sp-5);
+}
+
+.cc-config-settings .cc-field-group + .cc-field-group {
+  padding-top: var(--cc-sp-5);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+@media (min-width: 720px) {
+  .cc-config-settings .cc-field-group:first-child {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--cc-sp-4);
+  }
+}
+
+@media (min-width: 1024px) {
+  .cc-config-layout {
+    grid-template-columns: minmax(0, 760px) minmax(250px, 1fr);
+    grid-template-areas: 'controls summary';
+    align-items: start;
+    gap: var(--cc-sp-7);
+  }
+
+  .cc-config-summary {
+    position: sticky;
+    top: var(--cc-sp-5);
+    padding: 0 0 0 var(--cc-sp-5);
+    border-top: 0;
+    border-bottom: 0;
+    border-left: 1px solid var(--cc-c-border);
   }
 }

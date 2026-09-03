@@ -292,6 +292,7 @@ export function CalculadoraCuotasApplication({
               <FinancingConfig
                 value={draftConfig}
                 totalPriceUsd={totalPriceUsd}
+                totalQuantity={totalQuantity}
                 onChange={setDraftConfig}
                 onBack={(isPointerInitiated) =>
                   changeScreen('main', 'backward', isPointerInitiated)
