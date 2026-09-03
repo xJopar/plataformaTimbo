@@ -15,10 +15,8 @@ no una sucesión de franjas ni tarjetas.
 
 ## Superficie de trabajo
 
-- La Calculadora vive dentro de `platform-application-workspace`: un marco blanco, con acento
-  superior azul, sobre el fondo gris del App Shell.
 - `PlatformHeader` y `PlatformSessionBar` forman el contexto compartido y consecutivo de la
-  plataforma. El marco comienza después de ese subheader y reúne alertas y tarea.
+  plataforma. La tarea de la calculadora comienza después de ese subheader.
 - `PlatformSessionBar` comunica sólo identidad y fecha/hora en una línea compacta. En escritorio
   se reparte a ambos extremos; en anchos angostos conserva lectura sin competir con el nombre.
 - Las secciones internas usan proximidad y reglas de 1 px. No se anidan tarjetas ni se agregan
@@ -48,6 +46,5 @@ la decisión principal.
 
 ## Candidatos para promoción
 
-`platform-application-workspace` y la nueva estructura de `PlatformSessionBar` son patrones
-compartidos. Se adoptan gradualmente en otras aplicaciones cuando su contenido también requiera un
-contexto de sesión unido a una tarea principal.
+La estructura de `PlatformSessionBar` es un patrón compartido. El marco y la composición de la
+tarea se decidirán por separado antes de promoverlos a otras aplicaciones.

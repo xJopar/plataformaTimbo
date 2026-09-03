@@ -103,14 +103,12 @@ Acciones principales azul operativo, texto blanco y altura mínima de 44 px; acc
 
 Usar paneles planos y filas de lista/tablas para agrupar trabajo: fondo `#F7F9FB` o blanco, reglas `#BCC9D7` y acento superior cuando identifica una sección. No convertir agrupaciones rutinarias en una grilla de cards genéricas.
 
-### Marco de aplicación y sesión
+### Contexto de aplicación y sesión
 
-`platform-application-workspace` es el marco reutilizable para una tarea de aplicación: un área
-blanca con acento superior azul sobre el fondo gris del shell. Puede contener alertas y el contenido
-de la aplicación como una única superficie; no debe envolverse nuevamente en una card.
 `PlatformSessionBar` se ubica inmediatamente después de `PlatformHeader` y muestra únicamente
-identidad y fecha/hora, separada por una regla inferior compacta. En móvil conserva el orden
-semántico y apila sólo cuando ya no hay espacio para los dos datos.
+identidad y fecha/hora, separada por una regla inferior compacta. Este bloque es compartido entre
+aplicaciones; el diseño de la tarea que sigue pertenece a cada superficie. En móvil conserva el
+orden semántico y apila sólo cuando ya no hay espacio para los dos datos.
 
 ### Acceso corporativo
 

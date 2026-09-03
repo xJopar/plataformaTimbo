@@ -58,15 +58,6 @@ button:focus-visible {
   background: #edf2f7;
 }
 
-/* Superficie operativa compartida: una aplicación puede agrupar su contexto de sesión y su
-   tarea en este marco sin convertir cada bloque interno en una tarjeta. */
-.platform-application-workspace {
-  width: min(calc(100% - 40px), 1560px);
-  min-height: calc(100dvh - 96px);
-  margin: clamp(20px, 3vw, 40px) auto;
-  border-top: 3px solid #00388a;
-  background: #fff;
-}
 .top-bar {
   min-height: 56px;
   padding: 6px clamp(20px, 5vw, 72px);
@@ -1508,11 +1499,6 @@ th {
   }
   .application-switcher span {
     display: none;
-  }
-  .platform-application-workspace {
-    width: 100%;
-    min-height: calc(100dvh - 64px);
-    margin: 0;
   }
   .platform-session-bar {
     min-height: 0;

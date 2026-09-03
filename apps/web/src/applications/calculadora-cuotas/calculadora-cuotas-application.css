@@ -35,9 +35,11 @@
   font: inherit;
 }
 
-/* El marco compartido contiene sesión y tarea; esta página sólo establece la respiración interna
-   de la calculadora, para que el patrón pueda migrar sin copiar sus medidas a otras apps. */
+/* La navegación y la sesión son compartidas; la calculadora sólo establece la respiración de su
+   contenido y conserva el ancho de lectura de su tarea. */
 .cc-page {
+  max-width: clamp(1040px, 88vw, 1560px);
+  margin: 0 auto;
   padding: clamp(20px, 4vw, 40px) clamp(20px, 5vw, 32px) 40px;
 }
 
@@ -145,13 +147,9 @@
 }
 
 .cc-logout-error {
-  margin: 0;
-  padding: var(--cc-sp-3) clamp(20px, 5vw, 32px);
-  border-bottom: 1px solid var(--cc-c-error-border);
-  background: var(--cc-c-error-surface);
-  color: var(--cc-c-error-ink);
-  font-size: 0.875rem;
-  font-weight: 700;
+  max-width: clamp(1040px, 88vw, 1560px);
+  margin: var(--cc-sp-2) auto 0;
+  padding: 0 clamp(20px, 5vw, 32px);
 }
 
 /* ── Layout: una sola columna que fluye en mobile. Desde 1024px, grid de 2 columnas (armado |
