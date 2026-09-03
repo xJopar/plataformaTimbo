@@ -83,7 +83,7 @@ button:focus-visible {
   min-height: 64px;
 }
 .top-bar--application {
-  min-height: 64px;
+  min-height: 70px;
   grid-template-columns: auto minmax(0, 1fr) auto;
 }
 /* Posiciones explícitas (columna Y fila) para los 4 hijos de `.top-bar--application`: la fila 2
@@ -112,7 +112,9 @@ button:focus-visible {
   color: #fff;
   text-decoration: none;
 }
-.top-bar-brand img,
+.top-bar-brand img {
+  width: 190px;
+}
 .session-boot-header img {
   width: 138px;
   height: auto;
@@ -300,12 +302,11 @@ button:focus-visible {
   letter-spacing: 0.01em;
 }
 .platform-session-bar {
-  min-height: 52px;
-  padding: 6px clamp(20px, 5vw, 72px);
+  min-height: 30px;
+  padding: 4px clamp(20px, 5vw, 72px);
   padding-inline: max(clamp(20px, 5vw, 72px), env(safe-area-inset-left))
     max(clamp(20px, 5vw, 72px), env(safe-area-inset-right));
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -315,37 +316,21 @@ button:focus-visible {
   font-size: 0.875rem;
 }
 
-.platform-session-bar-identity,
-.platform-session-bar-time {
+.platform-session-bar-identity {
   min-width: 0;
-  display: grid;
-  gap: 1px;
-}
-
-.platform-session-bar-identity strong,
-.platform-session-bar-time > span:last-child {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.platform-session-bar-identity strong {
   color: #142033;
-  font-size: 0.9375rem;
-}
-
-.platform-session-bar-label {
-  color: #526176;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.8125rem;
 }
 
 .platform-session-bar-time {
-  justify-items: end;
+  flex: 0 0 auto;
   color: #334155;
+  font-size: 0.8125rem;
   text-align: right;
+  white-space: nowrap;
 }
 /* Franja de navegación de la app, entre la barra azul y `PlatformSessionBar`: sólo existe cuando la
    app pasa `breadcrumb` + `onBack` (hoy, lista-precios). Usa nombres de sección genéricos
@@ -1531,25 +1516,23 @@ th {
   }
   .platform-session-bar {
     min-height: 0;
-    padding: 6px 20px;
+    padding: 4px 20px;
     padding-inline: max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-right));
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 4px 12px;
+    gap: 12px;
     font-size: 0.8125rem;
   }
   .platform-session-bar-time {
     color: #526176;
     font-size: 0.75rem;
-    text-align: right;
     max-inline-size: 44vw;
-    white-space: nowrap;
   }
   .top-bar-brand,
   .session-boot-header {
     gap: 8px;
   }
-  .top-bar-brand img,
+  .top-bar-brand img {
+    width: 140px;
+  }
   .session-boot-header img {
     width: 120px;
   }
@@ -1702,10 +1685,11 @@ th {
 
 @media (max-width: 480px) {
   .platform-session-bar {
-    grid-template-columns: 1fr;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
   }
   .platform-session-bar-time {
-    justify-items: start;
     text-align: left;
   }
 }

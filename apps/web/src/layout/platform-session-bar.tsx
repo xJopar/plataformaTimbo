@@ -35,13 +35,9 @@ export function PlatformSessionBar({ session }: PlatformSessionBarProps): React.
 
   return (
     <section className="platform-session-bar" aria-label="Información de sesión">
-      <div className="platform-session-bar-identity">
-        <span className="platform-session-bar-label">Sesión activa</span>
-        <strong>{employeeName}</strong>
-      </div>
+      <strong className="platform-session-bar-identity">{employeeName}</strong>
       <time className="platform-session-bar-time" dateTime={currentDateTime.toISOString()}>
-        <span className="platform-session-bar-label">Actualizado</span>
-        <span>{formatCurrentDateTime(currentDateTime)}</span>
+        {formatCurrentDateTime(currentDateTime)}
       </time>
     </section>
   );

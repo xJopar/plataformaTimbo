@@ -19,9 +19,8 @@ no una sucesión de franjas ni tarjetas.
   superior azul, sobre el fondo gris del App Shell.
 - El marco reúne contexto de sesión, alertas y tarea. La sesión no queda como una franja separada
   entre la navegación global y el contenido.
-- `PlatformSessionBar` comunica «Sesión activa», la identidad y la hora de actualización en dos
-  niveles tipográficos. En escritorio se reparte a ambos extremos; en anchos angostos conserva
-  lectura sin competir con el nombre.
+- `PlatformSessionBar` comunica sólo identidad y fecha/hora en una línea compacta. En escritorio
+  se reparte a ambos extremos; en anchos angostos conserva lectura sin competir con el nombre.
 - Las secciones internas usan proximidad y reglas de 1 px. No se anidan tarjetas ni se agregan
   sombras para simular jerarquía.
 
