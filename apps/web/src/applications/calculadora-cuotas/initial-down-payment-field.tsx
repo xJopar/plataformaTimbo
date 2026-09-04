@@ -175,7 +175,9 @@ export function InitialDownPaymentField({
               }}
               onBlur={commitPercent}
             />
-            <span aria-hidden="true">%</span>
+            <span aria-hidden="true" style={{ marginLeft: '3px' }}>
+              %
+            </span>
           </span>
         </label>
       </div>
