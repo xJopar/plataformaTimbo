@@ -365,47 +365,89 @@
 }
 
 .cc-calculation-mode-options {
-  display: grid;
-  gap: var(--cc-sp-3);
+  position: relative;
+  min-height: 320px;
   margin-top: var(--cc-sp-5);
+  overflow: clip;
+  border: 2px solid var(--cc-c-brand);
+  background: var(--cc-c-brand-light);
+  isolation: isolate;
 }
 
 .cc-calculation-mode-option {
-  display: grid;
-  gap: var(--cc-sp-2);
-  width: 100%;
-  min-height: 112px;
-  padding: var(--cc-sp-5);
-  border: 1px solid var(--cc-c-border);
-  background: var(--cc-c-surface);
-  color: var(--cc-c-text-primary);
-  text-align: left;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  border: 0;
+  font: inherit;
   cursor: pointer;
   transition:
-    border-color 160ms cubic-bezier(0.23, 1, 0.32, 1),
-    background 160ms cubic-bezier(0.23, 1, 0.32, 1),
-    transform 120ms ease-out;
+    background-color 160ms cubic-bezier(0.19, 1, 0.22, 1),
+    color 160ms cubic-bezier(0.19, 1, 0.22, 1),
+    box-shadow 160ms cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.cc-calculation-mode-option--standard {
+  z-index: 1;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: clamp(24px, 5vw, 40px);
+  background: #d8e6f3;
+  color: var(--cc-c-brand-dark);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  text-align: left;
+}
+
+.cc-calculation-mode-option--target {
+  z-index: 2;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: clamp(24px, 5vw, 40px);
+  background: var(--cc-c-brand);
+  color: #fff;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  text-align: right;
+}
+
+.cc-calculation-mode-option-copy {
+  display: grid;
+  gap: var(--cc-sp-2);
+  max-width: min(46%, 290px);
 }
 
 .cc-calculation-mode-option strong {
-  font-size: 1.125rem;
+  font-size: clamp(1.375rem, 3vw, 1.875rem);
   font-weight: 800;
+  letter-spacing: -0.025em;
 }
 
-.cc-calculation-mode-option span {
-  max-width: 56ch;
-  color: var(--cc-c-text-secondary);
+.cc-calculation-mode-option-copy > span {
+  color: currentColor;
   font-size: 0.9375rem;
   line-height: 1.45;
 }
 
 .cc-calculation-mode-option--selected {
-  border-color: var(--cc-c-brand);
-  background: #e7eff8;
+  box-shadow: inset 0 0 0 4px var(--cc-c-focus);
 }
 
-.cc-calculation-mode-option--selected strong {
-  color: var(--cc-c-brand);
+.cc-calculation-mode-option--standard.cc-calculation-mode-option--selected {
+  background: var(--cc-c-brand);
+  color: #fff;
+}
+
+.cc-calculation-mode-option--target.cc-calculation-mode-option--selected {
+  background: var(--cc-c-brand-dark);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cc-calculation-mode-option--standard:hover {
+    background: #c3d9ed;
+  }
+
+  .cc-calculation-mode-option--target:hover {
+    background: var(--cc-c-brand-dark);
+  }
 }
 
 .cc-calculation-mode-option:focus-visible,
@@ -420,6 +462,11 @@
 .cc-secondary-action:active,
 .cc-change-mode:active {
   transform: scale(0.98);
+}
+
+.cc-calculation-mode-option:active {
+  box-shadow: inset 0 0 0 5px var(--cc-c-focus);
+  transform: none;
 }
 
 .cc-config-heading {

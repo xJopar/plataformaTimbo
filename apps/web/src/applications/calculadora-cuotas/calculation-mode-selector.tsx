@@ -24,26 +24,30 @@ export function CalculationModeSelector({
           aria-pressed={selectedMode === 'standard'}
           className={
             selectedMode === 'standard'
-              ? 'cc-calculation-mode-option cc-calculation-mode-option--selected'
-              : 'cc-calculation-mode-option'
+              ? 'cc-calculation-mode-option cc-calculation-mode-option--standard cc-calculation-mode-option--selected'
+              : 'cc-calculation-mode-option cc-calculation-mode-option--standard'
           }
           onClick={() => onSelect('standard')}
         >
-          <strong>Normal</strong>
-          <span>Configurá plazo, periodicidad, refuerzos y entrega inicial.</span>
+          <span className="cc-calculation-mode-option-copy">
+            <strong>Normal</strong>
+            <span>Configurá plazo, periodicidad, refuerzos y entrega inicial.</span>
+          </span>
         </button>
         <button
           type="button"
           aria-pressed={selectedMode === 'target-installment'}
           className={
             selectedMode === 'target-installment'
-              ? 'cc-calculation-mode-option cc-calculation-mode-option--selected'
-              : 'cc-calculation-mode-option'
+              ? 'cc-calculation-mode-option cc-calculation-mode-option--target cc-calculation-mode-option--selected'
+              : 'cc-calculation-mode-option cc-calculation-mode-option--target'
           }
           onClick={() => onSelect('target-installment')}
         >
-          <strong>Cuota objetivo</strong>
-          <span>Partí del importe que el cliente desea pagar por cuota.</span>
+          <span className="cc-calculation-mode-option-copy">
+            <strong>Cuota objetivo</strong>
+            <span>Partí del importe que el cliente desea pagar por cuota.</span>
+          </span>
         </button>
       </div>
       <footer className="cc-wizard-actions">
