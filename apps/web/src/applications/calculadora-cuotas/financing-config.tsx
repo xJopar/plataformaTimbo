@@ -260,12 +260,13 @@ export function FinancingConfig({
               </div>
             </fieldset>
           ) : (
-            <fieldset className="cc-field-group cc-reinforcements-disclosure">
-              <legend>Refuerzos</legend>
-              <div className="cc-reinforcements-toggle">
-                <span>
-                  <strong>Agregar refuerzos</strong>
-                  <small>Pagos extraordinarios durante el plan.</small>
+            <fieldset
+              className="cc-field-group cc-reinforcements-disclosure"
+              aria-labelledby="cc-reinforcements-title"
+            >
+              <div className="cc-reinforcements-heading">
+                <span id="cc-reinforcements-title" className="cc-reinforcements-title">
+                  Refuerzos
                 </span>
                 <ReinforcementSwitch
                   checked={value.reinforcementsEnabled}

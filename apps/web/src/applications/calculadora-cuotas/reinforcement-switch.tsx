@@ -16,7 +16,7 @@ export function ReinforcementSwitch({
     <StyledWrapper>
       <label className="toggle-container">
         <input
-          aria-label="Agregar refuerzos"
+          aria-label={checked ? 'Desactivar refuerzos' : 'Activar refuerzos'}
           checked={checked}
           className="toggle-input"
           role="switch"
