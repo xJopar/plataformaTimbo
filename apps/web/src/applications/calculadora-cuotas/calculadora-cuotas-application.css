@@ -17,6 +17,7 @@
   --cc-c-error-surface: #fff7f4;
   --cc-c-error-border: #e8b5a4;
   --cc-c-focus: #2d6099;
+  --cc-c-focus-ring: rgb(11 79 156 / 18%);
   --cc-font-mono: 'SF Mono', 'Fira Code', 'Roboto Mono', monospace;
   --cc-sp-1: 4px;
   --cc-sp-2: 8px;
@@ -492,8 +493,7 @@
   outline-offset: 6px;
 }
 
-.cc-change-mode:focus-visible,
-.cc-input-with-suffix:focus-within {
+.cc-change-mode:focus-visible {
   outline: 2px solid var(--cc-c-focus);
   outline-offset: 3px;
 }
@@ -637,6 +637,21 @@
 
 .cc-field--important .cc-input-with-suffix {
   border-color: var(--cc-c-brand);
+}
+
+.cc-field > input:focus-visible,
+.cc-field > select:focus-visible,
+.cc-input-with-suffix:focus-within,
+.cc-search-bar:focus-within {
+  border-color: var(--cc-c-brand);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--cc-c-focus-ring);
+}
+
+.cc-input-with-suffix input:focus-visible,
+.cc-search-bar input:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .cc-input-error {

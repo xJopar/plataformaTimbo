@@ -315,11 +315,16 @@ button:disabled {
 }
 
 button:focus-visible,
-input:focus-visible,
-select:focus-visible,
 summary:focus-visible {
-  outline: 3px solid #00a6a6;
+  outline: 2px solid var(--platform-focus-color);
   outline-offset: 2px;
+}
+
+input:focus-visible,
+select:focus-visible {
+  border-color: var(--platform-focus-color);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--platform-focus-ring);
 }
 @media (max-width: 760px) {
   .mc-page {

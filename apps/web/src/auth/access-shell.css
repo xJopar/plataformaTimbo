@@ -119,8 +119,8 @@
 }
 
 .access-primary-action:focus-visible {
-  outline: 3px solid #00a6a6;
-  outline-offset: 3px;
+  outline: 2px solid var(--platform-focus-color);
+  outline-offset: 2px;
 }
 
 .access-google-mark {
