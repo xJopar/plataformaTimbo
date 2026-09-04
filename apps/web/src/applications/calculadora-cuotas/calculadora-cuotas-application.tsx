@@ -57,7 +57,6 @@ export function CalculadoraCuotasApplication({
     CalculationMode | undefined
   >(undefined);
   const [hasChosenCalculationMode, setHasChosenCalculationMode] = useState(false);
-  const [returnsToConditions, setReturnsToConditions] = useState(false);
   const [pendingCalculationMode, setPendingCalculationMode] = useState<CalculationMode | undefined>(
     undefined,
   );
@@ -152,7 +151,6 @@ export function CalculadoraCuotasApplication({
   }
 
   function openModeSelection(isPointerInitiated: boolean, fromConditions: boolean): void {
-    setReturnsToConditions(fromConditions);
     setSelectedCalculationMode(fromConditions ? draftConfig.calculationMode : undefined);
     changeScreen('mode', fromConditions ? 'backward' : 'forward', isPointerInitiated);
   }
@@ -175,7 +173,6 @@ export function CalculadoraCuotasApplication({
     };
     setDraftConfig(nextConfig);
     setHasChosenCalculationMode(true);
-    setReturnsToConditions(false);
     changeScreen('config', 'forward', isPointerInitiated);
   }
 
@@ -309,11 +306,7 @@ export function CalculadoraCuotasApplication({
                 selectedMode={selectedCalculationMode}
                 onSelect={setSelectedCalculationMode}
                 onBack={(isPointerInitiated) =>
-                  changeScreen(
-                    returnsToConditions ? 'config' : 'main',
-                    'backward',
-                    isPointerInitiated,
-                  )
+                  changeScreen('main', 'backward', isPointerInitiated)
                 }
                 onContinue={continueModeSelection}
               />
