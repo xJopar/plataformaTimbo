@@ -14,7 +14,7 @@ export function ReinforcementSwitch({
 
   return (
     <StyledWrapper>
-      <div className="toggle-container">
+      <label className="toggle-container">
         <input
           aria-label="Agregar refuerzos"
           checked={checked}
@@ -73,7 +73,7 @@ export function ReinforcementSwitch({
             />
           </filter>
         </svg>
-      </div>
+      </label>
     </StyledWrapper>
   );
 }
@@ -81,43 +81,41 @@ export function ReinforcementSwitch({
 const StyledWrapper = styled.span`
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
 
   .toggle-container {
     --active-color: var(--cc-c-brand, #00388a);
     --inactive-color: #b9c5d4;
-    position: relative;
-    aspect-ratio: 292 / 142;
-    height: 2.125rem;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5.5rem;
+    height: 2.75rem;
+    cursor: pointer;
     touch-action: manipulation;
   }
 
   .toggle-input {
-    appearance: none;
-    margin: 0;
     position: absolute;
-    z-index: 1;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-  }
-
-  .toggle-input:focus-visible {
-    outline: 2px solid var(--cc-c-brand, #00388a);
-    outline-offset: 4px;
-    border-radius: 999px;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
   }
 
   .toggle {
     display: block;
-    width: 100%;
-    height: 100%;
+    width: 4.375rem;
+    height: 2.125rem;
     overflow: visible;
+    pointer-events: none;
     transition: transform 120ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
-  .toggle-input:active + .toggle {
+  .toggle-container:active .toggle {
     transform: scale(0.97);
   }
 
@@ -188,8 +186,17 @@ const StyledWrapper = styled.span`
     transition-duration: 0ms;
   }
 
+  .toggle-input:focus-visible + .toggle .toggle-background {
+    stroke: #102a4c;
+    stroke-width: 4;
+  }
+
+  .toggle-input:checked:focus-visible + .toggle .toggle-background {
+    stroke: #fff;
+  }
+
   @media (hover: hover) and (pointer: fine) {
-    .toggle-input:hover + .toggle {
+    .toggle-container:hover .toggle {
       transform: scale(1.02);
     }
   }
