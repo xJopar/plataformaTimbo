@@ -124,10 +124,11 @@ function leastCommonMultiple(first: number, second: number): number {
 }
 
 export function formatUsd(amount: number): string {
-  return `${amount.toLocaleString('es-PY', {
+  const formattedAmount = amount.toLocaleString('es-PY', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })} USD`;
+  });
+  return `${formattedAmount.endsWith(',00') ? formattedAmount.slice(0, -3) : formattedAmount} USD`;
 }
 
 export function sumItemsUsd(items: CalculatorItem[]): number {

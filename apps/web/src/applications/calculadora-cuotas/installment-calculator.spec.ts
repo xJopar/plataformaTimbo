@@ -70,7 +70,11 @@ describe('getAnnualRatePercent', () => {
 });
 
 describe('formatUsd', () => {
-  it('muestra siempre dos decimales y el sufijo USD', () => {
+  it('oculta los decimales cuando el importe no los tiene', () => {
+    expect(formatUsd(1234567)).toBe('1.234.567 USD');
+  });
+
+  it('conserva los decimales significativos y el sufijo USD', () => {
     expect(formatUsd(1234567.8)).toBe('1.234.567,80 USD');
   });
 });
