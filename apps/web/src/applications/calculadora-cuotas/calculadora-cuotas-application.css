@@ -16,7 +16,7 @@
   --cc-c-error-ink: #8c2f16;
   --cc-c-error-surface: #fff7f4;
   --cc-c-error-border: #e8b5a4;
-  --cc-c-focus: #00a6a6;
+  --cc-c-focus: #2d6099;
   --cc-font-mono: 'SF Mono', 'Fira Code', 'Roboto Mono', monospace;
   --cc-sp-1: 4px;
   --cc-sp-2: 8px;
@@ -210,8 +210,8 @@
 
 .cc-secondary-action:focus-visible,
 .cc-wizard-actions .cc-apply-btn:focus-visible {
-  outline: 3px solid var(--cc-c-focus);
-  outline-offset: 2px;
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 3px;
 }
 
 .cc-section-description {
@@ -395,7 +395,7 @@
   transform-origin: center;
   will-change: clip-path, transform;
   transition:
-    clip-path 350ms cubic-bezier(0.65, 0, 0.35, 1),
+    clip-path 280ms cubic-bezier(0.65, 0, 0.35, 1),
     opacity 190ms ease,
     background-color 190ms ease,
     transform 140ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -494,8 +494,8 @@
 
 .cc-change-mode:focus-visible,
 .cc-input-with-suffix:focus-within {
-  outline: 3px solid var(--cc-c-focus);
-  outline-offset: 2px;
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 3px;
 }
 
 .cc-apply-btn:active,
@@ -909,8 +909,8 @@
 .cc-mode-btn:focus-visible {
   position: relative;
   z-index: 3;
-  outline: 3px solid var(--cc-c-focus);
-  outline-offset: -3px;
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: -2px;
 }
 
 .cc-mode-active-indicator {
@@ -1198,8 +1198,8 @@
 .cc-quantity-button:focus-visible {
   position: relative;
   z-index: 1;
-  outline: 3px solid var(--cc-c-focus);
-  outline-offset: -3px;
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: -2px;
 }
 
 .cc-quantity-value {
@@ -1230,8 +1230,8 @@
 }
 
 .cc-remove-btn:focus-visible {
-  outline: 3px solid var(--cc-c-focus);
-  outline-offset: 2px;
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 3px;
 }
 
 /* ── Diálogo de confirmación de borrado ── */
@@ -1299,8 +1299,8 @@
 
 .cc-dialog-confirm:focus-visible,
 .cc-dialog .text-button:focus-visible {
-  outline: 3px solid var(--cc-c-focus);
-  outline-offset: 2px;
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 3px;
 }
 
 /* ── Financiación ── */
@@ -1466,8 +1466,8 @@
 }
 
 .cc-cuotero:focus-visible {
-  outline: 3px solid var(--cc-c-focus);
-  outline-offset: -3px;
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: -2px;
 }
 
 .cc-download-image-btn {
@@ -1494,8 +1494,8 @@
 }
 
 .cc-download-image-btn:focus-visible {
-  outline: 3px solid var(--cc-c-focus);
-  outline-offset: 2px;
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 3px;
 }
 
 .cc-download-image-btn:disabled {
@@ -1930,8 +1930,8 @@
 }
 
 .cc-down-payment-slider:focus-visible {
-  outline: 3px solid var(--cc-c-focus);
-  outline-offset: 2px;
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 3px;
 }
 
 .cc-down-payment-slider-scale {
