@@ -2047,7 +2047,8 @@
 }
 
 .cc-down-payment-readout input:focus-visible {
-  border-bottom-color: var(--cc-c-focus);
+  outline: none;
+  border-bottom-color: var(--cc-c-brand);
 }
 
 .cc-down-payment-slider-control {
@@ -2121,9 +2122,22 @@
   background: var(--cc-c-brand);
 }
 
+.cc-down-payment-slider:focus-visible {
+  outline: none;
+}
+
 .cc-down-payment-slider-control:focus-within {
-  outline: 3px solid var(--cc-c-focus);
-  outline-offset: 2px;
+  outline: none;
+}
+
+.cc-down-payment-slider:focus-visible::-webkit-slider-thumb {
+  border-color: var(--cc-c-brand-dark);
+  background: var(--cc-c-surface-alt);
+}
+
+.cc-down-payment-slider:focus-visible::-moz-range-thumb {
+  border-color: var(--cc-c-brand-dark);
+  background: var(--cc-c-surface-alt);
 }
 
 .cc-down-payment-slider-scale {
