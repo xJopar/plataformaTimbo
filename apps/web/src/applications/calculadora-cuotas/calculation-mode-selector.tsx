@@ -24,31 +24,42 @@ export function CalculationModeSelector({
         role="group"
         aria-label="Modalidad de cálculo"
       >
-        <div className="cc-calculation-mode-surface" aria-hidden="true" />
+        <div className="cc-calculation-mode-list" aria-hidden="true">
+          <div className="cc-calculation-mode-copy cc-calculation-mode-copy--standard">
+            <strong>Normal</strong>
+            <span>Configurá plazo, periodicidad, refuerzos y entrega inicial.</span>
+          </div>
+          <div className="cc-calculation-mode-copy cc-calculation-mode-copy--target">
+            <strong>Cuota objetivo</strong>
+            <span>Partí del importe que el cliente desea pagar por cuota.</span>
+          </div>
+        </div>
+        <div className="cc-calculation-mode-surface" aria-hidden="true">
+          <div className="cc-calculation-mode-copy cc-calculation-mode-copy--standard">
+            <strong>Normal</strong>
+            <span>Configurá plazo, periodicidad, refuerzos y entrega inicial.</span>
+          </div>
+          <div className="cc-calculation-mode-copy cc-calculation-mode-copy--target">
+            <strong>Cuota objetivo</strong>
+            <span>Partí del importe que el cliente desea pagar por cuota.</span>
+          </div>
+        </div>
         <button
           type="button"
+          aria-label="Normal"
           aria-pressed={selectedMode === 'standard'}
           className="cc-calculation-mode-option cc-calculation-mode-option--standard"
           data-selected={selectedMode === 'standard'}
           onClick={() => onSelect('standard')}
-        >
-          <span className="cc-calculation-mode-option-copy">
-            <strong>Normal</strong>
-            <span>Configurá plazo, periodicidad, refuerzos y entrega inicial.</span>
-          </span>
-        </button>
+        />
         <button
           type="button"
+          aria-label="Cuota objetivo"
           aria-pressed={selectedMode === 'target-installment'}
           className="cc-calculation-mode-option cc-calculation-mode-option--target"
           data-selected={selectedMode === 'target-installment'}
           onClick={() => onSelect('target-installment')}
-        >
-          <span className="cc-calculation-mode-option-copy">
-            <strong>Cuota objetivo</strong>
-            <span>Partí del importe que el cliente desea pagar por cuota.</span>
-          </span>
-        </button>
+        />
       </div>
       <footer className="cc-wizard-actions">
         <button
