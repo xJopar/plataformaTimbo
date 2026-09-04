@@ -56,9 +56,14 @@ export function InitialDownPaymentField({
       ? value.downPaymentManualUsd
       : roundUsd((totalPriceUsd * value.downPaymentPercent) / MAX_PERCENTAGE);
   const downPaymentPercent =
-    totalPriceUsd > 0 ? (downPaymentUsd / totalPriceUsd) * MAX_PERCENTAGE : 0;
+    value.downPaymentMode === 'percent'
+      ? value.downPaymentPercent
+      : totalPriceUsd > 0
+        ? (downPaymentUsd / totalPriceUsd) * MAX_PERCENTAGE
+        : 0;
   const sliderStyle = {
     '--cc-down-payment-progress': downPaymentPercent / MAX_PERCENTAGE,
+    '--cc-down-payment-tooltip-position': `${downPaymentPercent}%`,
   } as CSSProperties;
   const [percentInput, setPercentInput] = useState(formatEditable(downPaymentPercent));
   const [amountInput, setAmountInput] = useState(formatEditable(downPaymentUsd));
@@ -183,6 +188,9 @@ export function InitialDownPaymentField({
       </div>
       <div className="cc-down-payment-slider-control" style={sliderStyle}>
         <span className="cc-down-payment-slider-track" aria-hidden="true" />
+        <span className="cc-down-payment-slider-tooltip" aria-hidden="true">
+          {formatEditable(downPaymentPercent)} %
+        </span>
         <input
           className="cc-down-payment-slider"
           type="range"

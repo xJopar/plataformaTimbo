@@ -78,6 +78,23 @@ describe('FinancingConfig', () => {
     });
   });
 
+  it('conserva el porcentaje decimal al editarlo', () => {
+    const onChange = vi.fn();
+    renderConfig(DEFAULT_VALUE, onChange);
+
+    fireEvent.focus(screen.getByLabelText('Porcentaje'));
+    fireEvent.change(screen.getByLabelText('Porcentaje'), { target: { value: '20,3' } });
+    fireEvent.blur(screen.getByLabelText('Porcentaje'));
+
+    expect(screen.getByLabelText('Porcentaje')).toHaveValue('20,3');
+    expect(onChange).toHaveBeenLastCalledWith({
+      ...DEFAULT_VALUE,
+      downPaymentMode: 'percent',
+      downPaymentPercent: 20.3,
+      downPaymentManualUsd: 20_300,
+    });
+  });
+
   it('revela los campos de refuerzos al aceptarlos en modalidad normal', () => {
     renderConfig({ ...DEFAULT_VALUE, reinforcementsEnabled: true });
     expect(screen.getByLabelText('Periodicidad de refuerzos')).toBeInTheDocument();
