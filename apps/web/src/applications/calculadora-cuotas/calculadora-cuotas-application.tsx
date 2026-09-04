@@ -25,7 +25,7 @@ import { parseCalculadoraCuotasRoute } from './calculadora-cuotas-routes';
 const DEFAULT_CONFIG: FinancingConfigValue = {
   calculationMode: 'standard',
   downPaymentMode: 'percent',
-  downPaymentPercent: 0,
+  downPaymentPercent: 20,
   downPaymentManualUsd: 0,
   termMonths: 36,
   installmentPeriodicity: 'mensual',

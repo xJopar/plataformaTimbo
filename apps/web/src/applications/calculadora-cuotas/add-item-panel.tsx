@@ -10,6 +10,26 @@ const MAX_CATALOG_RESULTS = 8;
 
 type AddItemMode = 'manual' | 'catalog';
 
+function formatManualPrice(value: string): string {
+  const allowed = value.replace(/[^\d.,]/g, '');
+  const commaPosition = allowed.lastIndexOf(',');
+  const dotPosition = allowed.lastIndexOf('.');
+  const separatorPosition = Math.max(commaPosition, dotPosition);
+  const hasDecimal = separatorPosition >= 0 && allowed.length - separatorPosition - 1 <= 2;
+  const integerDigits = (hasDecimal ? allowed.slice(0, separatorPosition) : allowed).replace(
+    /\D/g,
+    '',
+  );
+  const decimalDigits = hasDecimal
+    ? allowed
+        .slice(separatorPosition + 1)
+        .replace(/\D/g, '')
+        .slice(0, 2)
+    : '';
+  const integer = integerDigits === '' ? '' : Number(integerDigits).toLocaleString('es-PY');
+  return hasDecimal ? `${integer},${decimalDigits}` : integer;
+}
+
 interface CatalogMatch {
   unit: VehicleResponse;
   group: VehicleGroup;
@@ -76,13 +96,13 @@ export function AddItemPanel({
   function submitManualEntry(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     const trimmedLabel = manualLabel.trim();
-    const price = Number(manualPrice.replace(',', '.'));
+    const price = parsePrice(manualPrice);
 
     if (trimmedLabel === '') {
       setManualError('Ingresá una descripción para identificar este monto en la lista.');
       return;
     }
-    if (!Number.isFinite(price) || price <= 0) {
+    if (price === null || price <= 0) {
       setManualError('Ingresá un precio en dólares mayor a cero.');
       return;
     }
@@ -268,7 +288,7 @@ export function AddItemPanel({
               inputMode="decimal"
               placeholder="Ej.: 85000"
               value={manualPrice}
-              onChange={(event) => setManualPrice(event.target.value)}
+              onChange={(event) => setManualPrice(formatManualPrice(event.target.value))}
             />
 
             {manualError === undefined ? null : <p role="alert">{manualError}</p>}
