@@ -22,4 +22,30 @@ describe('CalculationModeSelector', () => {
     expect(onSelect).toHaveBeenNthCalledWith(1, 'standard');
     expect(onSelect).toHaveBeenNthCalledWith(2, 'target-installment');
   });
+
+  it('mantiene una única superficie de selección al cambiar de modalidad', () => {
+    const { rerender } = render(
+      <CalculationModeSelector
+        selectedMode="standard"
+        onSelect={vi.fn()}
+        onBack={vi.fn()}
+        onContinue={vi.fn()}
+      />,
+    );
+
+    const selector = screen.getByRole('group', { name: 'Modalidad de cálculo' });
+    expect(selector).toHaveAttribute('data-selected-mode', 'standard');
+    expect(selector.querySelectorAll('.cc-calculation-mode-surface')).toHaveLength(1);
+
+    rerender(
+      <CalculationModeSelector
+        selectedMode="target-installment"
+        onSelect={vi.fn()}
+        onBack={vi.fn()}
+        onContinue={vi.fn()}
+      />,
+    );
+
+    expect(selector).toHaveAttribute('data-selected-mode', 'target-installment');
+  });
 });

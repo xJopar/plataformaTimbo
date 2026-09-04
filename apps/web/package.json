@@ -22,7 +22,8 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "serve-handler": "6.1.7",
-    "sonner": "2.0.8"
+    "sonner": "2.0.8",
+    "styled-components": "6.1.19"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "7.0.1",

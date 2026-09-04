@@ -18,15 +18,18 @@ export function CalculationModeSelector({
       <h2 id="cc-mode-selection-title" className="cc-section-title">
         ¿Cómo querés calcular el plan?
       </h2>
-      <div className="cc-calculation-mode-options" role="group" aria-label="Modalidad de cálculo">
+      <div
+        className="cc-calculation-mode-options"
+        data-selected-mode={selectedMode ?? 'none'}
+        role="group"
+        aria-label="Modalidad de cálculo"
+      >
+        <div className="cc-calculation-mode-surface" aria-hidden="true" />
         <button
           type="button"
           aria-pressed={selectedMode === 'standard'}
-          className={
-            selectedMode === 'standard'
-              ? 'cc-calculation-mode-option cc-calculation-mode-option--standard cc-calculation-mode-option--selected'
-              : 'cc-calculation-mode-option cc-calculation-mode-option--standard'
-          }
+          className="cc-calculation-mode-option cc-calculation-mode-option--standard"
+          data-selected={selectedMode === 'standard'}
           onClick={() => onSelect('standard')}
         >
           <span className="cc-calculation-mode-option-copy">
@@ -37,11 +40,8 @@ export function CalculationModeSelector({
         <button
           type="button"
           aria-pressed={selectedMode === 'target-installment'}
-          className={
-            selectedMode === 'target-installment'
-              ? 'cc-calculation-mode-option cc-calculation-mode-option--target cc-calculation-mode-option--selected'
-              : 'cc-calculation-mode-option cc-calculation-mode-option--target'
-          }
+          className="cc-calculation-mode-option cc-calculation-mode-option--target"
+          data-selected={selectedMode === 'target-installment'}
           onClick={() => onSelect('target-installment')}
         >
           <span className="cc-calculation-mode-option-copy">

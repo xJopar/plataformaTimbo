@@ -369,9 +369,35 @@
   min-height: 320px;
   margin-top: var(--cc-sp-5);
   overflow: clip;
-  border: 2px solid var(--cc-c-brand);
-  background: var(--cc-c-brand-light);
+  border: 2px solid #0b3d91;
+  background: #e8eff7;
   isolation: isolate;
+}
+
+.cc-calculation-mode-surface {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: #0b3d91;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1);
+  transform-origin: center;
+  transition:
+    clip-path 350ms cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 190ms ease,
+    background-color 190ms ease,
+    transform 140ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.cc-calculation-mode-options[data-selected-mode='standard'] .cc-calculation-mode-surface,
+.cc-calculation-mode-options[data-selected-mode='target-installment'] .cc-calculation-mode-surface {
+  opacity: 1;
+}
+
+.cc-calculation-mode-options[data-selected-mode='target-installment'] .cc-calculation-mode-surface {
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
 }
 
 .cc-calculation-mode-option {
@@ -379,12 +405,11 @@
   inset: 0;
   display: flex;
   border: 0;
+  background: transparent;
+  color: #102a4c;
   font: inherit;
   cursor: pointer;
-  transition:
-    background-color 160ms cubic-bezier(0.19, 1, 0.22, 1),
-    color 160ms cubic-bezier(0.19, 1, 0.22, 1),
-    box-shadow 160ms cubic-bezier(0.19, 1, 0.22, 1);
+  transition: color 190ms ease;
 }
 
 .cc-calculation-mode-option--standard {
@@ -392,19 +417,15 @@
   align-items: flex-start;
   justify-content: flex-start;
   padding: clamp(24px, 5vw, 40px);
-  background: #d8e6f3;
-  color: var(--cc-c-brand-dark);
   clip-path: polygon(0 0, 100% 0, 0 100%);
   text-align: left;
 }
 
 .cc-calculation-mode-option--target {
-  z-index: 2;
+  z-index: 1;
   align-items: flex-end;
   justify-content: flex-end;
   padding: clamp(24px, 5vw, 40px);
-  background: var(--cc-c-brand);
-  color: #fff;
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
   text-align: right;
 }
@@ -416,57 +437,68 @@
 }
 
 .cc-calculation-mode-option strong {
+  display: block;
   font-size: clamp(1.375rem, 3vw, 1.875rem);
   font-weight: 800;
   letter-spacing: -0.025em;
+  transform: scale(1);
+  transform-origin: center;
+  transition: transform 190ms ease;
 }
 
 .cc-calculation-mode-option-copy > span {
-  color: currentColor;
+  color: #425b76;
   font-size: 0.9375rem;
   line-height: 1.45;
+  opacity: 1;
+  transition:
+    color 190ms ease,
+    opacity 190ms ease;
 }
 
-.cc-calculation-mode-option--selected {
-  box-shadow: inset 0 0 0 4px var(--cc-c-focus);
-}
-
-.cc-calculation-mode-option--standard.cc-calculation-mode-option--selected {
-  background: var(--cc-c-brand);
+.cc-calculation-mode-option[data-selected='true'] {
   color: #fff;
 }
 
-.cc-calculation-mode-option--target.cc-calculation-mode-option--selected {
-  background: var(--cc-c-brand-dark);
+.cc-calculation-mode-option[data-selected='true'] strong {
+  transform: scale(1.015);
+}
+
+.cc-calculation-mode-option[data-selected='true'] .cc-calculation-mode-option-copy > span {
+  color: #fff;
+  opacity: 0.88;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .cc-calculation-mode-option--standard:hover {
-    background: #c3d9ed;
-  }
-
-  .cc-calculation-mode-option--target:hover {
-    background: var(--cc-c-brand-dark);
+  .cc-calculation-mode-options:has(.cc-calculation-mode-option[data-selected='true']:hover)
+    .cc-calculation-mode-surface {
+    background: #0a3883;
   }
 }
 
-.cc-calculation-mode-option:focus-visible,
+.cc-calculation-mode-option:focus-visible {
+  outline: 0;
+}
+
+.cc-calculation-mode-option:focus-visible .cc-calculation-mode-option-copy {
+  outline: 2px solid currentColor;
+  outline-offset: 6px;
+}
+
 .cc-change-mode:focus-visible,
 .cc-input-with-suffix:focus-within {
   outline: 3px solid var(--cc-c-focus);
   outline-offset: 2px;
 }
 
-.cc-calculation-mode-option:active,
 .cc-apply-btn:active,
 .cc-secondary-action:active,
 .cc-change-mode:active {
   transform: scale(0.98);
 }
 
-.cc-calculation-mode-option:active {
-  box-shadow: inset 0 0 0 5px var(--cc-c-focus);
-  transform: none;
+.cc-calculation-mode-options:has(.cc-calculation-mode-option:active) .cc-calculation-mode-surface {
+  transform: scale(0.995);
 }
 
 .cc-config-heading {
@@ -619,7 +651,6 @@
   min-height: 52px;
   margin-top: var(--cc-sp-4);
   padding: var(--cc-sp-3) 0;
-  cursor: pointer;
 }
 
 .cc-reinforcements-toggle span {
@@ -634,12 +665,6 @@
 .cc-reinforcements-toggle small {
   color: var(--cc-c-text-secondary);
   font-size: 0.8125rem;
-}
-
-.cc-reinforcements-toggle input {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--cc-c-brand);
 }
 
 .cc-reinforcements-fields {
@@ -750,7 +775,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .cc-wizard-screen[data-animate='true'][data-transition-direction],
+  .cc-calculation-mode-surface,
   .cc-calculation-mode-option,
+  .cc-calculation-mode-option strong,
+  .cc-calculation-mode-option-copy > span,
   .cc-apply-btn,
   .cc-secondary-action,
   .cc-change-mode {

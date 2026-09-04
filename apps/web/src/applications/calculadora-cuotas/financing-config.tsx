@@ -8,6 +8,7 @@ import {
   type DownPaymentMode,
 } from './installment-calculator';
 import { InitialDownPaymentField } from './initial-down-payment-field';
+import { ReinforcementSwitch } from './reinforcement-switch';
 
 const PERIODICITY_OPTIONS: CuotaPeriodicity[] = ['mensual', 'semestral', 'anual'];
 const REINFORCEMENT_PERIODICITY_OPTIONS: CuotaPeriodicity[] = ['semestral', 'anual'];
@@ -261,20 +262,18 @@ export function FinancingConfig({
           ) : (
             <fieldset className="cc-field-group cc-reinforcements-disclosure">
               <legend>Refuerzos</legend>
-              <label className="cc-reinforcements-toggle" htmlFor="cc-reinforcements-enabled">
+              <div className="cc-reinforcements-toggle">
                 <span>
                   <strong>Agregar refuerzos</strong>
                   <small>Pagos extraordinarios durante el plan.</small>
                 </span>
-                <input
-                  id="cc-reinforcements-enabled"
-                  type="checkbox"
+                <ReinforcementSwitch
                   checked={value.reinforcementsEnabled}
-                  onChange={(event) =>
-                    onChange({ ...value, reinforcementsEnabled: event.target.checked })
+                  onChange={(reinforcementsEnabled) =>
+                    onChange({ ...value, reinforcementsEnabled })
                   }
                 />
-              </label>
+              </div>
               {value.reinforcementsEnabled ? (
                 <div className="cc-config-inline-fields cc-reinforcements-fields">
                   <div className="cc-field">

@@ -84,6 +84,15 @@ describe('FinancingConfig', () => {
     expect(screen.getByLabelText('Monto de cada refuerzo')).toBeInTheDocument();
   });
 
+  it('activa los refuerzos con el switch moderno', () => {
+    const onChange = vi.fn();
+    renderConfig(DEFAULT_VALUE, onChange);
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Agregar refuerzos' }));
+
+    expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_VALUE, reinforcementsEnabled: true });
+  });
+
   it('muestra cuota objetivo y refuerzos obligatorios en la modalidad correspondiente', () => {
     renderConfig({
       ...DEFAULT_VALUE,
@@ -91,7 +100,7 @@ describe('FinancingConfig', () => {
       reinforcementsEnabled: true,
     });
     expect(screen.getByLabelText('Monto de cuota objetivo')).toBeInTheDocument();
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('switch', { name: 'Agregar refuerzos' })).not.toBeInTheDocument();
   });
 
   it('bloquea el cálculo cuando falta el monto de un refuerzo normal', () => {
