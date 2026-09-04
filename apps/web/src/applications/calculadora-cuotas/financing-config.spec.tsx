@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { FinancingConfig, type FinancingConfigValue } from './financing-config';
 
 const DEFAULT_VALUE: FinancingConfigValue = {
+  calculationMode: 'standard',
   downPaymentMode: 'percent',
   downPaymentPercent: 20,
   downPaymentManualUsd: 0,
@@ -10,139 +11,80 @@ const DEFAULT_VALUE: FinancingConfigValue = {
   installmentPeriodicity: 'mensual',
   reinforcementsEnabled: false,
   reinforcementPeriodicity: 'semestral',
+  reinforcementAmountUsd: 0,
   desiredRegularInstallmentAmountUsd: 0,
 };
 
 function renderConfig(
   value: FinancingConfigValue = DEFAULT_VALUE,
-  totalPriceUsd = 100_000,
   onChange = vi.fn(),
+  onCalculate = vi.fn(),
 ) {
   return render(
     <FinancingConfig
       value={value}
-      totalPriceUsd={totalPriceUsd}
+      totalPriceUsd={100_000}
       totalQuantity={2}
       onBack={vi.fn()}
-      onCalculate={vi.fn()}
+      onChangeMode={vi.fn()}
+      onCalculate={onCalculate}
       onChange={onChange}
     />,
   );
 }
 
 describe('FinancingConfig', () => {
-  it('muestra el slider, el importe y el resumen con formato es-PY', () => {
-    renderConfig(DEFAULT_VALUE, 1_234_567.89);
-
-    expect(screen.getByRole('slider', { name: /porcentaje de entrega inicial/i })).toHaveValue(
-      '20.00',
-    );
-    expect(screen.getByLabelText(/monto de entrega/i)).toHaveValue('246.913,58 USD');
-    expect(screen.getByText('987.654,31 USD')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+  it('presenta Condiciones con plazo y periodicidad en el primer bloque', () => {
+    renderConfig();
+    expect(screen.getByRole('heading', { name: 'Condiciones' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Plazo en meses')).toHaveValue('36');
+    expect(screen.getByLabelText('Periodicidad')).toHaveValue('mensual');
   });
 
-  it('sincroniza el importe cuando cambia el slider y conserva el origen porcentual', () => {
+  it('permite vaciar el plazo sin restablecerlo a uno mientras se escribe', () => {
     const onChange = vi.fn();
-    renderConfig(DEFAULT_VALUE, 100_000, onChange);
-
-    fireEvent.change(screen.getByRole('slider', { name: /porcentaje de entrega inicial/i }), {
-      target: { value: '25.5' },
-    });
-
-    expect(onChange).toHaveBeenLastCalledWith({
-      ...DEFAULT_VALUE,
-      downPaymentMode: 'percent',
-      downPaymentPercent: 25.5,
-      downPaymentManualUsd: 25_500,
-    });
+    renderConfig(DEFAULT_VALUE, onChange);
+    fireEvent.change(screen.getByLabelText('Plazo en meses'), { target: { value: '' } });
+    expect(screen.getByLabelText('Plazo en meses')).toHaveValue('');
+    expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('acepta centavos y agrupadores paraguayos, sincronizando el porcentaje manual', () => {
+  it('sincroniza porcentaje y monto de entrega sin incluir el sufijo en el campo editable', () => {
     const onChange = vi.fn();
-    renderConfig(DEFAULT_VALUE, 100_000, onChange);
-
-    fireEvent.change(screen.getByLabelText(/monto de entrega/i), {
-      target: { value: '1.234,56 USD' },
-    });
-
+    renderConfig(DEFAULT_VALUE, onChange);
+    fireEvent.change(screen.getByLabelText('Monto'), { target: { value: '12.500' } });
+    expect(screen.getByLabelText('Monto')).toHaveValue('12.500');
     expect(onChange).toHaveBeenLastCalledWith({
       ...DEFAULT_VALUE,
       downPaymentMode: 'manual',
-      downPaymentManualUsd: 1234.56,
-      downPaymentPercent: 1.23456,
+      downPaymentManualUsd: 12_500,
+      downPaymentPercent: 12.5,
     });
   });
 
-  it('limita la entrega a cero y al precio total frente a valores inválidos', () => {
-    const onChange = vi.fn();
-    const { rerender } = renderConfig(DEFAULT_VALUE, 100_000, onChange);
-
-    fireEvent.change(screen.getByLabelText(/monto de entrega/i), {
-      target: { value: '250.000,01' },
-    });
-
-    expect(onChange).toHaveBeenLastCalledWith({
-      ...DEFAULT_VALUE,
-      downPaymentMode: 'manual',
-      downPaymentManualUsd: 100_000,
-      downPaymentPercent: 100,
-    });
-
-    rerender(
-      <FinancingConfig
-        value={{ ...DEFAULT_VALUE, downPaymentMode: 'manual', downPaymentManualUsd: 100_000 }}
-        totalPriceUsd={100_000}
-        totalQuantity={2}
-        onBack={vi.fn()}
-        onCalculate={vi.fn()}
-        onChange={onChange}
-      />,
-    );
-    fireEvent.change(screen.getByLabelText(/monto de entrega/i), {
-      target: { value: 'sin importe' },
-    });
-
-    expect(onChange).toHaveBeenLastCalledWith({
-      ...DEFAULT_VALUE,
-      downPaymentMode: 'manual',
-      downPaymentManualUsd: 0,
-      downPaymentPercent: 0,
-    });
+  it('revela los campos de refuerzos al aceptarlos en modalidad normal', () => {
+    renderConfig({ ...DEFAULT_VALUE, reinforcementsEnabled: true });
+    expect(screen.getByLabelText('Periodicidad de refuerzos')).toBeInTheDocument();
+    expect(screen.getByLabelText('Monto de cada refuerzo')).toBeInTheDocument();
   });
 
-  it('conserva el último origen al actualizar el precio total', () => {
-    const { rerender } = renderConfig(DEFAULT_VALUE, 100_000);
+  it('muestra cuota objetivo y refuerzos obligatorios en la modalidad correspondiente', () => {
+    renderConfig({
+      ...DEFAULT_VALUE,
+      calculationMode: 'target-installment',
+      reinforcementsEnabled: true,
+    });
+    expect(screen.getByLabelText('Monto de cuota objetivo')).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  });
 
-    rerender(
-      <FinancingConfig
-        value={DEFAULT_VALUE}
-        totalPriceUsd={200_000}
-        totalQuantity={2}
-        onBack={vi.fn()}
-        onCalculate={vi.fn()}
-        onChange={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByLabelText(/monto de entrega/i)).toHaveValue('40.000,00 USD');
-
-    rerender(
-      <FinancingConfig
-        value={{
-          ...DEFAULT_VALUE,
-          downPaymentMode: 'manual',
-          downPaymentPercent: 20,
-          downPaymentManualUsd: 20_000,
-        }}
-        totalPriceUsd={200_000}
-        totalQuantity={2}
-        onBack={vi.fn()}
-        onCalculate={vi.fn()}
-        onChange={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByLabelText(/monto de entrega/i)).toHaveValue('20.000,00 USD');
+  it('bloquea el cálculo cuando falta el monto de un refuerzo normal', () => {
+    const onCalculate = vi.fn();
+    renderConfig({ ...DEFAULT_VALUE, reinforcementsEnabled: true }, vi.fn(), onCalculate);
+    fireEvent.click(screen.getByRole('button', { name: 'Calcular plan' }));
+    expect(onCalculate).not.toHaveBeenCalled();
+    expect(
+      screen.getByText('Ingresá el monto de cada refuerzo para continuar.'),
+    ).toBeInTheDocument();
   });
 });

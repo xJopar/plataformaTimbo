@@ -21,6 +21,7 @@ function item(overrides: Partial<CalculatorItem>): CalculatorItem {
 
 const BASE_INPUT: InstallmentPlanInput = {
   items: [],
+  calculationMode: 'standard',
   downPaymentMode: 'percent',
   downPaymentPercent: 20,
   downPaymentManualUsd: 0,
@@ -28,6 +29,7 @@ const BASE_INPUT: InstallmentPlanInput = {
   installmentPeriodicity: 'mensual',
   reinforcementsEnabled: false,
   reinforcementPeriodicity: 'semestral',
+  reinforcementAmountUsd: 0,
   desiredRegularInstallmentAmountUsd: 0,
 };
 
@@ -122,6 +124,7 @@ describe('calculateInstallmentPlan', () => {
       downPaymentPercent: 20,
       termMonths: 36,
       reinforcementsEnabled: true,
+      calculationMode: 'target-installment',
       reinforcementPeriodicity: 'semestral',
       desiredRegularInstallmentAmountUsd: 1000,
     });
@@ -142,6 +145,7 @@ describe('calculateInstallmentPlan', () => {
       ...BASE_INPUT,
       items: [item({ priceUsd: 100_000 })],
       reinforcementsEnabled: true,
+      calculationMode: 'target-installment',
     });
 
     expect(result).toEqual({ status: 'reinforcement-installment-required' });
@@ -153,6 +157,7 @@ describe('calculateInstallmentPlan', () => {
       items: [item({ priceUsd: 100_000 })],
       termMonths: 3,
       reinforcementsEnabled: true,
+      calculationMode: 'target-installment',
       reinforcementPeriodicity: 'semestral',
       desiredRegularInstallmentAmountUsd: 1_000,
     });
@@ -165,6 +170,7 @@ describe('calculateInstallmentPlan', () => {
       ...BASE_INPUT,
       items: [item({ priceUsd: 100_000 })],
       reinforcementsEnabled: true,
+      calculationMode: 'target-installment',
       desiredRegularInstallmentAmountUsd: 10_000,
     });
 
@@ -181,5 +187,24 @@ describe('calculateInstallmentPlan', () => {
     expect(result.status).toBe('ok');
     if (result.status !== 'ok') return;
     expect(result.plan.regularInstallmentCount).toBe(1);
+  });
+
+  it('descuenta los refuerzos definidos en modalidad normal antes de calcular la cuota regular', () => {
+    const result = calculateInstallmentPlan({
+      ...BASE_INPUT,
+      items: [item({ priceUsd: 100_000 })],
+      downPaymentPercent: 20,
+      termMonths: 36,
+      reinforcementsEnabled: true,
+      reinforcementPeriodicity: 'semestral',
+      reinforcementAmountUsd: 2_000,
+    });
+
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.plan.reinforcementCount).toBe(6);
+    expect(result.plan.reinforcementAmountUsd).toBe(2_000);
+    expect(result.plan.regularInstallmentCount).toBe(30);
+    expect(result.plan.regularInstallmentAmountUsd).toBeCloseTo((104_000 - 12_000) / 30, 6);
   });
 });

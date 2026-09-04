@@ -4,6 +4,7 @@ import { AppIcon } from '../../ui/app-icon';
 import {
   formatUsd,
   PERIODICITY_ADJECTIVE_PLURAL,
+  type CalculationMode,
   type CuotaPeriodicity,
   type InstallmentPlanResult,
 } from './installment-calculator';
@@ -13,12 +14,14 @@ interface InstallmentSummaryProps {
   planResult: InstallmentPlanResult;
   installmentPeriodicity: CuotaPeriodicity;
   reinforcementPeriodicity: CuotaPeriodicity;
+  calculationMode: CalculationMode;
 }
 
 export function InstallmentSummary({
   planResult,
   installmentPeriodicity,
   reinforcementPeriodicity,
+  calculationMode,
 }: InstallmentSummaryProps): React.JSX.Element {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadFailure, setDownloadFailure] = useState<string | undefined>(undefined);
@@ -75,13 +78,15 @@ export function InstallmentSummary({
         </p>
       ) : planResult.status === 'reinforcement-installment-required' ? (
         <p className="cc-cuotero-error" role="alert">
-          Indicá el monto que el cliente quiere pagar en cada cuota regular para calcular los
-          refuerzos.
+          {calculationMode === 'standard'
+            ? 'Indicá el monto de cada refuerzo para calcular las cuotas regulares.'
+            : 'Indicá el monto que el cliente quiere pagar en cada cuota regular para calcular los refuerzos.'}
         </p>
       ) : planResult.status === 'reinforcement-amount-negative' ? (
         <p className="cc-cuotero-error" role="alert">
-          El total de cuotas regulares supera el saldo financiado. Reducí el monto de la cuota o
-          cambiá las condiciones.
+          {calculationMode === 'standard'
+            ? 'El total de refuerzos supera el saldo financiado. Reducí su monto o cambiá las condiciones.'
+            : 'El total de cuotas regulares supera el saldo financiado. Reducí el monto de la cuota o cambiá las condiciones.'}
         </p>
       ) : planResult.status === 'regular-installment-negative' ? (
         <p className="cc-cuotero-error" role="alert">

@@ -13,6 +13,12 @@ La persona carga una o más unidades, define la financiación y lee un plan. Cad
 wizard debe responder una sola pregunta y la composición debe parecer una mesa de trabajo continua,
 no una sucesión de franjas ni tarjetas.
 
+El wizard separa las decisiones en `Unidades → Modalidad → Condiciones → Plan final`. La modalidad
+se elige explícitamente antes de editar condiciones: `Normal` permite agregar refuerzos con monto y
+periodicidad, mientras que `Cuota objetivo` usa el importe de cuota para calcular los refuerzos.
+Al cambiar una modalidad ya configurada se conserva la entrega inicial y se confirma el reinicio de
+las demás condiciones.
+
 ## Superficie de trabajo
 
 - `PlatformHeader` y `PlatformSessionBar` forman el contexto compartido y consecutivo de la
@@ -24,4 +30,6 @@ no una sucesión de franjas ni tarjetas.
 - La calculadora usa una superficie blanca continua debajo del subheader. En escritorio, la carga y
   la lista ocupan el plano principal y el resumen permanece a la derecha como parte de la misma
   mesa; en móvil se apilan sin perder el total ni la acción siguiente.
-
+- Los campos monetarios y porcentuales conservan el valor editable libre de sufijos: `USD` y `%`
+  son referencias visuales externas. El formato acompaña la escritura y la validación se informa
+  junto al campo y mediante una notificación breve cuando bloquea la acción.

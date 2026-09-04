@@ -8,6 +8,8 @@ import { parsePrice } from '../../vehicle-catalog/vehicle-catalog';
 import './calculadora-cuotas-application.css';
 import { AddItemPanel } from './add-item-panel';
 import { AddedItemsList } from './added-items-list';
+import { CalculationModeSelector } from './calculation-mode-selector';
+import { ConfirmCalculationModeDialog } from './confirm-calculation-mode-dialog';
 import { ConfirmRemoveDialog } from './confirm-remove-dialog';
 import { FinancingConfig, type FinancingConfigValue } from './financing-config';
 import { InstallmentSummary } from './installment-summary';
@@ -15,22 +17,25 @@ import {
   calculateInstallmentPlan,
   formatUsd,
   sumItemsUsd,
+  type CalculationMode,
   type CalculatorItem,
 } from './installment-calculator';
 import { parseCalculadoraCuotasRoute } from './calculadora-cuotas-routes';
 
 const DEFAULT_CONFIG: FinancingConfigValue = {
+  calculationMode: 'standard',
   downPaymentMode: 'percent',
-  downPaymentPercent: 20,
+  downPaymentPercent: 0,
   downPaymentManualUsd: 0,
   termMonths: 36,
   installmentPeriodicity: 'mensual',
   reinforcementsEnabled: false,
   reinforcementPeriodicity: 'semestral',
+  reinforcementAmountUsd: 0,
   desiredRegularInstallmentAmountUsd: 0,
 };
 
-type WizardScreen = 'main' | 'config' | 'result';
+type WizardScreen = 'main' | 'mode' | 'config' | 'result';
 
 export function CalculadoraCuotasApplication({
   api,
@@ -48,8 +53,21 @@ export function CalculadoraCuotasApplication({
   const [draftConfig, setDraftConfig] = useState<FinancingConfigValue>(DEFAULT_CONFIG);
   const [calculatedConfig, setCalculatedConfig] = useState<FinancingConfigValue>(DEFAULT_CONFIG);
   const [screen, setScreen] = useState<WizardScreen>('main');
+  const [selectedCalculationMode, setSelectedCalculationMode] = useState<
+    CalculationMode | undefined
+  >(undefined);
+  const [hasChosenCalculationMode, setHasChosenCalculationMode] = useState(false);
+  const [returnsToConditions, setReturnsToConditions] = useState(false);
+  const [pendingCalculationMode, setPendingCalculationMode] = useState<CalculationMode | undefined>(
+    undefined,
+  );
   const [pendingRemovalId, setPendingRemovalId] = useState<string | undefined>(undefined);
   const preloadHandled = useRef(false);
+  const [screenTransitionDirection, setScreenTransitionDirection] = useState<
+    'forward' | 'backward'
+  >('forward');
+  const [shouldAnimateScreen, setShouldAnimateScreen] = useState(false);
+  const [screenTransitionKey, setScreenTransitionKey] = useState(0);
 
   const route = useMemo(
     () => parseCalculadoraCuotasRoute(pathname, application.launchPath),
@@ -57,11 +75,9 @@ export function CalculadoraCuotasApplication({
   );
 
   useEffect(() => {
-    if (route.view !== 'from-stock' || preloadHandled.current || vehiclesState.status !== 'ready') {
+    if (route.view !== 'from-stock' || preloadHandled.current || vehiclesState.status !== 'ready')
       return;
-    }
     preloadHandled.current = true;
-
     for (const group of vehiclesState.groups.values()) {
       const unit = group.units.find((candidate) => candidate.stock === route.stock);
       if (unit === undefined) continue;
@@ -78,45 +94,38 @@ export function CalculadoraCuotasApplication({
           quantity: 1,
         },
       ]);
-      requestAnimationFrame(() => {
-        toast.info(`Se agregó ${group.name} (stock ${unit.stock}) desde Lista de Precios.`);
-      });
+      requestAnimationFrame(() =>
+        toast.info(`Se agregó ${group.name} (stock ${unit.stock}) desde Lista de Precios.`),
+      );
       return;
     }
-    requestAnimationFrame(() => {
-      toast.info('No encontramos esa unidad en el catálogo actual de Lista de Precios.');
-    });
+    requestAnimationFrame(() =>
+      toast.info('No encontramos esa unidad en el catálogo actual de Lista de Precios.'),
+    );
   }, [route, vehiclesState]);
 
   const existingItemIds = useMemo(() => new Set(items.map((item) => item.id)), [items]);
   const totalPriceUsd = useMemo(() => sumItemsUsd(items), [items]);
-  const planResult = useMemo(
-    () =>
-      calculateInstallmentPlan({
-        items,
-        downPaymentMode: calculatedConfig.downPaymentMode,
-        downPaymentPercent: calculatedConfig.downPaymentPercent,
-        downPaymentManualUsd: calculatedConfig.downPaymentManualUsd,
-        termMonths: calculatedConfig.termMonths,
-        installmentPeriodicity: calculatedConfig.installmentPeriodicity,
-        reinforcementsEnabled: calculatedConfig.reinforcementsEnabled,
-        reinforcementPeriodicity: calculatedConfig.reinforcementPeriodicity,
-        desiredRegularInstallmentAmountUsd: calculatedConfig.desiredRegularInstallmentAmountUsd,
-      }),
-    [items, calculatedConfig],
-  );
-
-  const pendingRemovalItem = items.find((item) => item.id === pendingRemovalId);
-  const hasItems = items.length > 0;
   const totalQuantity = useMemo(
     () => items.reduce((total, item) => total + item.quantity, 0),
     [items],
   );
-  const [screenTransitionDirection, setScreenTransitionDirection] = useState<
-    'forward' | 'backward'
-  >('forward');
-  const [shouldAnimateScreen, setShouldAnimateScreen] = useState(false);
-  const [screenTransitionKey, setScreenTransitionKey] = useState(0);
+  const planResult = useMemo(
+    () => calculateInstallmentPlan({ items, ...calculatedConfig }),
+    [items, calculatedConfig],
+  );
+  const pendingRemovalItem = items.find((item) => item.id === pendingRemovalId);
+
+  function changeScreen(
+    nextScreen: WizardScreen,
+    direction: 'forward' | 'backward',
+    isPointerInitiated: boolean,
+  ): void {
+    setScreenTransitionDirection(direction);
+    setShouldAnimateScreen(isPointerInitiated);
+    setScreenTransitionKey((current) => current + 1);
+    setScreen(nextScreen);
+  }
 
   function addItem(item: CalculatorItem): void {
     if (existingItemIds.has(item.id)) return;
@@ -142,21 +151,51 @@ export function CalculadoraCuotasApplication({
     );
   }
 
-  function changeScreen(
-    nextScreen: WizardScreen,
-    direction: 'forward' | 'backward',
-    isPointerInitiated: boolean,
-  ): void {
-    setScreenTransitionDirection(direction);
-    setShouldAnimateScreen(isPointerInitiated);
-    setScreenTransitionKey((current) => current + 1);
-    setScreen(nextScreen);
+  function openModeSelection(isPointerInitiated: boolean, fromConditions: boolean): void {
+    setReturnsToConditions(fromConditions);
+    setSelectedCalculationMode(fromConditions ? draftConfig.calculationMode : undefined);
+    changeScreen('mode', fromConditions ? 'backward' : 'forward', isPointerInitiated);
   }
 
-  function calculatePlan(isPointerInitiated: boolean): void {
-    setCalculatedConfig(draftConfig);
+  function applyCalculationMode(mode: CalculationMode, isPointerInitiated: boolean): void {
+    if (mode === draftConfig.calculationMode && hasChosenCalculationMode) {
+      changeScreen('config', 'forward', isPointerInitiated);
+      return;
+    }
+    const downPayment = {
+      downPaymentMode: draftConfig.downPaymentMode,
+      downPaymentPercent: draftConfig.downPaymentPercent,
+      downPaymentManualUsd: draftConfig.downPaymentManualUsd,
+    };
+    const nextConfig: FinancingConfigValue = {
+      ...DEFAULT_CONFIG,
+      ...downPayment,
+      calculationMode: mode,
+      reinforcementsEnabled: mode === 'target-installment',
+    };
+    setDraftConfig(nextConfig);
+    setHasChosenCalculationMode(true);
+    setReturnsToConditions(false);
+    changeScreen('config', 'forward', isPointerInitiated);
+  }
+
+  function continueModeSelection(isPointerInitiated: boolean): void {
+    if (selectedCalculationMode === undefined) return;
+    if (hasChosenCalculationMode && selectedCalculationMode !== draftConfig.calculationMode) {
+      setPendingCalculationMode(selectedCalculationMode);
+      return;
+    }
+    applyCalculationMode(selectedCalculationMode, isPointerInitiated);
+  }
+
+  function calculatePlan(nextConfig: FinancingConfigValue, isPointerInitiated: boolean): void {
+    setDraftConfig(nextConfig);
+    setCalculatedConfig(nextConfig);
     changeScreen('result', 'forward', isPointerInitiated);
   }
+
+  const activeStep = screen === 'main' ? 1 : screen === 'mode' ? 2 : screen === 'config' ? 3 : 4;
+  const stepLabels = ['Unidades', 'Modalidad', 'Condiciones', 'Plan final'];
 
   return (
     <main className="platform-shell calculadora-cuotas-shell">
@@ -179,50 +218,38 @@ export function CalculadoraCuotasApplication({
       )}
 
       <div className="cc-page">
-        <div className="cc-wizard" aria-label="Flujo de cálculo">
-          <ol className="cc-wizard-steps">
-            <li
-              className={screen === 'main' ? 'cc-wizard-step--active' : 'cc-wizard-step--complete'}
-              aria-current={screen === 'main' ? 'step' : undefined}
-            >
-              <span className="cc-wizard-step-marker" aria-hidden="true">
-                {screen === 'main' ? '1' : '✓'}
-              </span>
-              <span>Unidades</span>
-              <span className="cc-sr-only">{screen === 'main' ? 'Actual.' : 'Completado.'}</span>
-            </li>
-            <li
-              className={
-                screen === 'config'
-                  ? 'cc-wizard-step--active'
-                  : screen === 'result'
-                    ? 'cc-wizard-step--complete'
-                    : ''
-              }
-              aria-current={screen === 'config' ? 'step' : undefined}
-            >
-              <span className="cc-wizard-step-marker" aria-hidden="true">
-                {screen === 'result' ? '✓' : '2'}
-              </span>
-              <span>Condiciones</span>
-              <span className="cc-sr-only">
-                {screen === 'config'
-                  ? 'Actual.'
-                  : screen === 'result'
-                    ? 'Completado.'
-                    : 'Pendiente.'}
-              </span>
-            </li>
-            <li
-              className={screen === 'result' ? 'cc-wizard-step--active' : ''}
-              aria-current={screen === 'result' ? 'step' : undefined}
-            >
-              <span className="cc-wizard-step-marker" aria-hidden="true">
-                3
-              </span>
-              <span>Plan final</span>
-              <span className="cc-sr-only">{screen === 'result' ? 'Actual.' : 'Pendiente.'}</span>
-            </li>
+        <div className="cc-wizard">
+          <ol className="cc-wizard-steps" aria-label="Flujo de cálculo">
+            {stepLabels.map((label, index) => {
+              const step = index + 1;
+              const status =
+                step === activeStep ? 'active' : step < activeStep ? 'complete' : 'pending';
+              return (
+                <li
+                  key={label}
+                  className={
+                    status === 'active'
+                      ? 'cc-wizard-step--active'
+                      : status === 'complete'
+                        ? 'cc-wizard-step--complete'
+                        : undefined
+                  }
+                  aria-current={status === 'active' ? 'step' : undefined}
+                >
+                  <span className="cc-wizard-step-marker" aria-hidden="true">
+                    {status === 'complete' ? '✓' : step}
+                  </span>
+                  <span>{label}</span>
+                  <span className="cc-sr-only">
+                    {status === 'active'
+                      ? 'Actual.'
+                      : status === 'complete'
+                        ? 'Completado.'
+                        : 'Pendiente.'}
+                  </span>
+                </li>
+              );
+            })}
           </ol>
 
           {screen === 'main' ? (
@@ -261,24 +288,35 @@ export function CalculadoraCuotasApplication({
                   <button
                     type="button"
                     className="cc-apply-btn"
-                    disabled={!hasItems}
-                    onClick={(event) => changeScreen('config', 'forward', event.detail > 0)}
+                    disabled={items.length === 0}
+                    onClick={(event) => openModeSelection(event.detail > 0, false)}
                   >
-                    Continuar con la financiación
+                    Continuar con financiación
                   </button>
                 </aside>
               </div>
-              <footer className="cc-wizard-actions cc-main-mobile-actions">
-                <span className="cc-wizard-total">Total: {formatUsd(totalPriceUsd)}</span>
-                <button
-                  type="button"
-                  className="cc-apply-btn"
-                  disabled={!hasItems}
-                  onClick={(event) => changeScreen('config', 'forward', event.detail > 0)}
-                >
-                  Continuar con la financiación
-                </button>
-              </footer>
+            </div>
+          ) : null}
+
+          {screen === 'mode' ? (
+            <div
+              key={`mode-${screenTransitionKey}`}
+              className="cc-wizard-screen"
+              data-animate={shouldAnimateScreen}
+              data-transition-direction={screenTransitionDirection}
+            >
+              <CalculationModeSelector
+                selectedMode={selectedCalculationMode}
+                onSelect={setSelectedCalculationMode}
+                onBack={(isPointerInitiated) =>
+                  changeScreen(
+                    returnsToConditions ? 'config' : 'main',
+                    'backward',
+                    isPointerInitiated,
+                  )
+                }
+                onContinue={continueModeSelection}
+              />
             </div>
           ) : null}
 
@@ -294,9 +332,8 @@ export function CalculadoraCuotasApplication({
                 totalPriceUsd={totalPriceUsd}
                 totalQuantity={totalQuantity}
                 onChange={setDraftConfig}
-                onBack={(isPointerInitiated) =>
-                  changeScreen('main', 'backward', isPointerInitiated)
-                }
+                onBack={(isPointerInitiated) => openModeSelection(isPointerInitiated, true)}
+                onChangeMode={(isPointerInitiated) => openModeSelection(isPointerInitiated, true)}
                 onCalculate={calculatePlan}
               />
             </div>
@@ -313,6 +350,7 @@ export function CalculadoraCuotasApplication({
                 planResult={planResult}
                 installmentPeriodicity={calculatedConfig.installmentPeriodicity}
                 reinforcementPeriodicity={calculatedConfig.reinforcementPeriodicity}
+                calculationMode={calculatedConfig.calculationMode}
               />
               <footer className="cc-wizard-actions">
                 <button
@@ -339,6 +377,15 @@ export function CalculadoraCuotasApplication({
         item={pendingRemovalItem}
         onCancel={() => setPendingRemovalId(undefined)}
         onConfirm={confirmRemoval}
+      />
+      <ConfirmCalculationModeDialog
+        mode={pendingCalculationMode}
+        onCancel={() => setPendingCalculationMode(undefined)}
+        onConfirm={() => {
+          if (pendingCalculationMode !== undefined)
+            applyCalculationMode(pendingCalculationMode, true);
+          setPendingCalculationMode(undefined);
+        }}
       />
     </main>
   );

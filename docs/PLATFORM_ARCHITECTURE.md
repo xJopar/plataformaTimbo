@@ -26,7 +26,8 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
   variantes y detalle de vehículos.
 - aplicación `Calculadora de Cuotas` en `/apps/calculadora-cuotas`, para armar planes de
   financiación en un flujo guiado desde unidades del catálogo o montos manuales, calcular cuotas
-  regulares y refuerzos, y descargar el cuotero como PNG.
+  regulares con refuerzos opcionales o partir de una cuota objetivo, y descargar el cuotero como
+  PNG.
 - aplicación `Meta Company` en `/apps/meta-company`, para administrar metas comerciales,
   marcas y negocios que consume Power BI.
 

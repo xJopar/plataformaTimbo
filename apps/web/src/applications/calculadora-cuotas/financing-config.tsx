@@ -1,15 +1,19 @@
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import {
   formatUsd,
   PERIODICITY_LABELS,
+  type CalculationMode,
   type CuotaPeriodicity,
   type DownPaymentMode,
 } from './installment-calculator';
+import { InitialDownPaymentField } from './initial-down-payment-field';
 
 const PERIODICITY_OPTIONS: CuotaPeriodicity[] = ['mensual', 'semestral', 'anual'];
 const REINFORCEMENT_PERIODICITY_OPTIONS: CuotaPeriodicity[] = ['semestral', 'anual'];
-const MAX_PERCENTAGE = 100;
 
 export interface FinancingConfigValue {
+  calculationMode: CalculationMode;
   downPaymentMode: DownPaymentMode;
   downPaymentPercent: number;
   downPaymentManualUsd: number;
@@ -17,6 +21,7 @@ export interface FinancingConfigValue {
   installmentPeriodicity: CuotaPeriodicity;
   reinforcementsEnabled: boolean;
   reinforcementPeriodicity: CuotaPeriodicity;
+  reinforcementAmountUsd: number;
   desiredRegularInstallmentAmountUsd: number;
 }
 
@@ -25,63 +30,41 @@ interface FinancingConfigProps {
   totalPriceUsd: number;
   totalQuantity: number;
   onBack: (isPointerInitiated: boolean) => void;
-  onCalculate: (isPointerInitiated: boolean) => void;
+  onChangeMode: (isPointerInitiated: boolean) => void;
+  onCalculate: (nextValue: FinancingConfigValue, isPointerInitiated: boolean) => void;
   onChange: (value: FinancingConfigValue) => void;
 }
 
-function positiveInteger(value: string): number {
-  return Math.max(1, Math.floor(Number(value) || 1));
+function parseDecimal(value: string): number | undefined {
+  const normalized = value.trim().replace(/\./g, '').replace(',', '.');
+  if (normalized === '') return undefined;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function clampDownPayment(value: number, totalPriceUsd: number): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.min(Math.max(value, 0), totalPriceUsd);
+function formatEditableUsd(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '';
+  return value.toLocaleString('es-PY', { maximumFractionDigits: 2 });
 }
 
-function roundUsd(amount: number): number {
-  return Math.round((amount + Number.EPSILON) * 100) / 100;
-}
-
-function getDownPaymentUsd(value: FinancingConfigValue, totalPriceUsd: number): number {
-  const rawAmount =
-    value.downPaymentMode === 'manual'
-      ? value.downPaymentManualUsd
-      : (totalPriceUsd * value.downPaymentPercent) / MAX_PERCENTAGE;
-
-  return roundUsd(clampDownPayment(rawAmount, totalPriceUsd));
-}
-
-function getDownPaymentPercent(downPaymentUsd: number, totalPriceUsd: number): number {
-  if (totalPriceUsd <= 0) return 0;
-  return (downPaymentUsd / totalPriceUsd) * MAX_PERCENTAGE;
-}
-
-function formatPercent(percent: number): string {
-  return `${percent.toLocaleString('es-PY', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}%`;
-}
-
-function parseUsdInput(value: string): number {
-  const acceptedCharacters = value.replace(/[^\d.,]/g, '');
-  const decimalSeparatorIndex = acceptedCharacters.indexOf(',');
-  const integerPart = (
-    decimalSeparatorIndex === -1
-      ? acceptedCharacters
-      : acceptedCharacters.slice(0, decimalSeparatorIndex)
-  ).replace(/\D/g, '');
-  const decimalPart =
-    decimalSeparatorIndex === -1
-      ? ''
-      : acceptedCharacters
-          .slice(decimalSeparatorIndex + 1)
-          .replace(/\D/g, '')
-          .slice(0, 2);
-  const normalizedValue = decimalPart === '' ? integerPart : `${integerPart || '0'}.${decimalPart}`;
-  const parsedValue = Number(normalizedValue || 0);
-
-  return Number.isFinite(parsedValue) ? parsedValue : 0;
+function formatWhileTyping(value: string): string {
+  const allowed = value.replace(/[^\d.,]/g, '');
+  const commaPosition = allowed.lastIndexOf(',');
+  const dotPosition = allowed.lastIndexOf('.');
+  const separatorPosition = Math.max(commaPosition, dotPosition);
+  const hasDecimal = separatorPosition >= 0 && allowed.length - separatorPosition - 1 <= 2;
+  const integerDigits = (hasDecimal ? allowed.slice(0, separatorPosition) : allowed).replace(
+    /\D/g,
+    '',
+  );
+  const decimalDigits = hasDecimal
+    ? allowed
+        .slice(separatorPosition + 1)
+        .replace(/\D/g, '')
+        .slice(0, 2)
+    : '';
+  const integer = integerDigits === '' ? '' : Number(integerDigits).toLocaleString('es-PY');
+  return hasDecimal ? `${integer},${decimalDigits}` : integer;
 }
 
 export function FinancingConfig({
@@ -89,149 +72,124 @@ export function FinancingConfig({
   totalPriceUsd,
   totalQuantity,
   onBack,
+  onChangeMode,
   onCalculate,
   onChange,
 }: FinancingConfigProps): React.JSX.Element {
   const normalizedTotalPriceUsd = Number.isFinite(totalPriceUsd) ? Math.max(0, totalPriceUsd) : 0;
-  const downPaymentUsd = getDownPaymentUsd(value, normalizedTotalPriceUsd);
-  const downPaymentPercent = getDownPaymentPercent(downPaymentUsd, normalizedTotalPriceUsd);
-  const financedBalanceUsd = normalizedTotalPriceUsd - downPaymentUsd;
+  const downPaymentUsd =
+    value.downPaymentMode === 'manual'
+      ? value.downPaymentManualUsd
+      : (normalizedTotalPriceUsd * value.downPaymentPercent) / 100;
+  const normalizedDownPaymentUsd = Math.min(Math.max(downPaymentUsd, 0), normalizedTotalPriceUsd);
+  const financedBalanceUsd = normalizedTotalPriceUsd - normalizedDownPaymentUsd;
+  const [termInput, setTermInput] = useState(String(value.termMonths));
+  const [reinforcementAmountInput, setReinforcementAmountInput] = useState(
+    formatEditableUsd(value.reinforcementAmountUsd),
+  );
+  const [targetInstallmentInput, setTargetInstallmentInput] = useState(
+    formatEditableUsd(value.desiredRegularInstallmentAmountUsd),
+  );
+  const [fieldError, setFieldError] = useState<string | undefined>(undefined);
 
-  function changeDownPaymentPercent(nextPercent: number): void {
-    const normalizedPercent = Number.isFinite(nextPercent)
-      ? Math.min(Math.max(nextPercent, 0), MAX_PERCENTAGE)
-      : 0;
-    const nextDownPaymentUsd = roundUsd(
-      (normalizedTotalPriceUsd * normalizedPercent) / MAX_PERCENTAGE,
-    );
+  useEffect(() => setTermInput(String(value.termMonths)), [value.termMonths]);
+  useEffect(
+    () => setReinforcementAmountInput(formatEditableUsd(value.reinforcementAmountUsd)),
+    [value.reinforcementAmountUsd],
+  );
+  useEffect(
+    () => setTargetInstallmentInput(formatEditableUsd(value.desiredRegularInstallmentAmountUsd)),
+    [value.desiredRegularInstallmentAmountUsd],
+  );
 
-    onChange({
-      ...value,
-      downPaymentMode: 'percent',
-      downPaymentPercent: normalizedPercent,
-      downPaymentManualUsd: nextDownPaymentUsd,
-    });
+  function updateTerm(nextInput: string): void {
+    const formatted = nextInput.replace(/\D/g, '');
+    setTermInput(formatted);
+    const parsed = Number(formatted);
+    if (Number.isInteger(parsed) && parsed > 0) onChange({ ...value, termMonths: parsed });
   }
 
-  function changeDownPaymentManualUsd(inputValue: string): void {
-    const nextDownPaymentUsd = roundUsd(
-      clampDownPayment(parseUsdInput(inputValue), normalizedTotalPriceUsd),
-    );
-
-    onChange({
-      ...value,
-      downPaymentMode: 'manual',
-      downPaymentManualUsd: nextDownPaymentUsd,
-      downPaymentPercent: getDownPaymentPercent(nextDownPaymentUsd, normalizedTotalPriceUsd),
-    });
+  function updateMoney(
+    nextInput: string,
+    update: (amount: number) => FinancingConfigValue,
+    setInput: (input: string) => void,
+  ): void {
+    const formatted = formatWhileTyping(nextInput);
+    setInput(formatted);
+    const parsed = parseDecimal(formatted);
+    if (parsed !== undefined && parsed >= 0) onChange(update(parsed));
   }
+
+  function reportInvalidField(message: string): void {
+    setFieldError(message);
+    toast.error(message);
+  }
+
+  function handleCalculate(event: React.MouseEvent<HTMLButtonElement>): void {
+    const termMonths = Number(termInput);
+    if (!Number.isInteger(termMonths) || termMonths < 1) {
+      reportInvalidField('Ingresá un plazo de al menos un mes.');
+      return;
+    }
+
+    const reinforcementAmountUsd = parseDecimal(reinforcementAmountInput) ?? 0;
+    const desiredRegularInstallmentAmountUsd = parseDecimal(targetInstallmentInput) ?? 0;
+    if (
+      value.calculationMode === 'standard' &&
+      value.reinforcementsEnabled &&
+      reinforcementAmountUsd <= 0
+    ) {
+      reportInvalidField('Ingresá el monto de cada refuerzo para continuar.');
+      return;
+    }
+    if (value.calculationMode === 'target-installment' && desiredRegularInstallmentAmountUsd <= 0) {
+      reportInvalidField('Ingresá el monto de cuota objetivo para continuar.');
+      return;
+    }
+
+    setFieldError(undefined);
+    onCalculate(
+      { ...value, termMonths, reinforcementAmountUsd, desiredRegularInstallmentAmountUsd },
+      event.detail > 0,
+    );
+  }
+
+  const isTargetInstallment = value.calculationMode === 'target-installment';
 
   return (
     <section className="cc-section cc-config" aria-labelledby="cc-config-title">
-      <div className="cc-section-heading">
-        <div>
-          <h2 id="cc-config-title" className="cc-section-title">
-            Definí las condiciones
-          </h2>
-          <p className="cc-section-description">
-            Ajustá la entrega y las condiciones del plan antes de calcularlo.
-          </p>
-        </div>
+      <div className="cc-config-heading">
+        <h2 id="cc-config-title" className="cc-section-title">
+          Condiciones
+        </h2>
+        <button
+          type="button"
+          className="cc-change-mode"
+          onClick={(event) => onChangeMode(event.detail > 0)}
+        >
+          Cambiar modalidad
+        </button>
       </div>
 
       <div className="cc-config-layout">
-        <aside className="cc-config-summary" aria-label="Resumen de la financiación">
-          <p className="cc-config-summary-heading">Resumen</p>
-          <dl>
-            <div>
-              <dt>Unidades</dt>
-              <dd>{totalQuantity}</dd>
-            </div>
-            <div className="cc-config-summary-total">
-              <dt>Precio total</dt>
-              <dd>{formatUsd(normalizedTotalPriceUsd)}</dd>
-            </div>
-            <div>
-              <dt>Entrega inicial</dt>
-              <dd>{formatUsd(downPaymentUsd)}</dd>
-            </div>
-            <div className="cc-config-summary-balance">
-              <dt>Saldo a financiar</dt>
-              <dd>{formatUsd(financedBalanceUsd)}</dd>
-            </div>
-          </dl>
-        </aside>
-
         <div className="cc-config-controls">
-          <fieldset className="cc-down-payment">
-            <legend>Entrega inicial</legend>
-            <div className="cc-down-payment-overview">
-              <p>Porcentaje de entrega</p>
-              <output className="cc-down-payment-percent">
-                {formatPercent(downPaymentPercent)}
-              </output>
-            </div>
-            <label className="cc-sr-only" htmlFor="cc-down-payment-percent">
-              Porcentaje de entrega inicial
-            </label>
-            <input
-              id="cc-down-payment-percent"
-              className="cc-down-payment-slider"
-              type="range"
-              min={0}
-              max={MAX_PERCENTAGE}
-              step={0.01}
-              value={downPaymentPercent.toFixed(2)}
-              aria-valuetext={`${formatPercent(downPaymentPercent)} · ${formatUsd(downPaymentUsd)}`}
-              onChange={(event) => changeDownPaymentPercent(Number(event.target.value))}
-            />
-            <div className="cc-down-payment-slider-scale" aria-hidden="true">
-              <span>0 %</span>
-              <span>100 %</span>
-            </div>
-            <div className="cc-field cc-down-payment-amount">
-              <label htmlFor="cc-down-payment-manual">Monto de entrega</label>
-              <div className="cc-inline-input">
-                <input
-                  id="cc-down-payment-manual"
-                  aria-describedby="cc-down-payment-hint"
-                  type="text"
-                  inputMode="decimal"
-                  value={formatUsd(downPaymentUsd)}
-                  onChange={(event) => changeDownPaymentManualUsd(event.target.value)}
-                />
-              </div>
-              <p id="cc-down-payment-hint" className="cc-field-hint">
-                Ingresá un importe con hasta dos decimales.
-              </p>
-            </div>
-            <output className="cc-sr-only" aria-live="polite" aria-atomic="true">
-              Entrega inicial actualizada: {formatPercent(downPaymentPercent)},{' '}
-              {formatUsd(downPaymentUsd)}. Saldo a financiar: {formatUsd(financedBalanceUsd)}.
-            </output>
-          </fieldset>
-
-          <div className="cc-config-settings">
-            <div className="cc-field-group">
+          <fieldset className="cc-field-group cc-payment-conditions">
+            <legend>Pago regular</legend>
+            <div className="cc-config-inline-fields">
               <div className="cc-field">
                 <label htmlFor="cc-term-months">Plazo en meses</label>
-                <div className="cc-inline-input">
-                  <input
-                    id="cc-term-months"
-                    type="number"
-                    min={1}
-                    step={1}
-                    value={value.termMonths}
-                    onChange={(event) =>
-                      onChange({ ...value, termMonths: positiveInteger(event.target.value) })
-                    }
-                  />
-                  <span aria-hidden="true">meses</span>
-                </div>
+                <input
+                  id="cc-term-months"
+                  className={fieldError?.includes('plazo') ? 'cc-input-error' : undefined}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  value={termInput}
+                  onChange={(event) => updateTerm(event.target.value)}
+                />
               </div>
-
               <div className="cc-field">
-                <label htmlFor="cc-installment-periodicity">Frecuencia de pago</label>
+                <label htmlFor="cc-installment-periodicity">Periodicidad</label>
                 <select
                   id="cc-installment-periodicity"
                   value={value.installmentPeriodicity}
@@ -250,49 +208,77 @@ export function FinancingConfig({
                 </select>
               </div>
             </div>
+          </fieldset>
 
-            <div className="cc-field-group cc-field-group--reinforcements">
-              <div className="cc-field">
-                <label className="cc-checkbox-field" htmlFor="cc-reinforcements-enabled">
-                  <input
-                    id="cc-reinforcements-enabled"
-                    type="checkbox"
-                    checked={value.reinforcementsEnabled}
+          {isTargetInstallment ? (
+            <fieldset className="cc-field-group">
+              <legend>Refuerzos</legend>
+              <div className="cc-config-inline-fields">
+                <div className="cc-field">
+                  <label htmlFor="cc-reinforcement-periodicity">Periodicidad de refuerzos</label>
+                  <select
+                    id="cc-reinforcement-periodicity"
+                    value={value.reinforcementPeriodicity}
                     onChange={(event) =>
-                      onChange({ ...value, reinforcementsEnabled: event.target.checked })
+                      onChange({
+                        ...value,
+                        reinforcementPeriodicity: event.target.value as CuotaPeriodicity,
+                      })
                     }
-                  />
-                  Calcular con refuerzos
-                </label>
-              </div>
-              {value.reinforcementsEnabled ? (
-                <>
-                  <div className="cc-field">
-                    <label htmlFor="cc-desired-regular-installment">
-                      Monto de cada cuota regular
-                    </label>
-                    <div className="cc-inline-input">
-                      <input
-                        id="cc-desired-regular-installment"
-                        type="number"
-                        min={0}
-                        step={0.01}
-                        value={value.desiredRegularInstallmentAmountUsd}
-                        onChange={(event) =>
-                          onChange({
-                            ...value,
-                            desiredRegularInstallmentAmountUsd: Math.max(
-                              0,
-                              Number(event.target.value),
-                            ),
-                          })
-                        }
-                      />
-                      <span aria-hidden="true">USD</span>
-                    </div>
+                  >
+                    {REINFORCEMENT_PERIODICITY_OPTIONS.map((periodicity) => (
+                      <option key={periodicity} value={periodicity}>
+                        {PERIODICITY_LABELS[periodicity]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="cc-field cc-field--important">
+                  <label htmlFor="cc-desired-regular-installment">Monto de cuota objetivo</label>
+                  <div className="cc-input-with-suffix">
+                    <input
+                      id="cc-desired-regular-installment"
+                      className={
+                        fieldError?.includes('cuota objetivo') ? 'cc-input-error' : undefined
+                      }
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      value={targetInstallmentInput}
+                      onChange={(event) =>
+                        updateMoney(
+                          event.target.value,
+                          (amount) => ({ ...value, desiredRegularInstallmentAmountUsd: amount }),
+                          setTargetInstallmentInput,
+                        )
+                      }
+                    />
+                    <span aria-hidden="true">USD</span>
                   </div>
+                </div>
+              </div>
+            </fieldset>
+          ) : (
+            <fieldset className="cc-field-group cc-reinforcements-disclosure">
+              <legend>Refuerzos</legend>
+              <label className="cc-reinforcements-toggle" htmlFor="cc-reinforcements-enabled">
+                <span>
+                  <strong>Agregar refuerzos</strong>
+                  <small>Pagos extraordinarios durante el plan.</small>
+                </span>
+                <input
+                  id="cc-reinforcements-enabled"
+                  type="checkbox"
+                  checked={value.reinforcementsEnabled}
+                  onChange={(event) =>
+                    onChange({ ...value, reinforcementsEnabled: event.target.checked })
+                  }
+                />
+              </label>
+              {value.reinforcementsEnabled ? (
+                <div className="cc-config-inline-fields cc-reinforcements-fields">
                   <div className="cc-field">
-                    <label htmlFor="cc-reinforcement-periodicity">Frecuencia de refuerzos</label>
+                    <label htmlFor="cc-reinforcement-periodicity">Periodicidad de refuerzos</label>
                     <select
                       id="cc-reinforcement-periodicity"
                       value={value.reinforcementPeriodicity}
@@ -310,11 +296,67 @@ export function FinancingConfig({
                       ))}
                     </select>
                   </div>
-                </>
+                  <div className="cc-field">
+                    <label htmlFor="cc-reinforcement-amount">Monto de cada refuerzo</label>
+                    <div className="cc-input-with-suffix">
+                      <input
+                        id="cc-reinforcement-amount"
+                        className={
+                          fieldError?.includes('cada refuerzo') ? 'cc-input-error' : undefined
+                        }
+                        type="text"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        value={reinforcementAmountInput}
+                        onChange={(event) =>
+                          updateMoney(
+                            event.target.value,
+                            (amount) => ({ ...value, reinforcementAmountUsd: amount }),
+                            setReinforcementAmountInput,
+                          )
+                        }
+                      />
+                      <span aria-hidden="true">USD</span>
+                    </div>
+                  </div>
+                </div>
               ) : null}
-            </div>
-          </div>
+            </fieldset>
+          )}
+
+          <InitialDownPaymentField
+            value={value}
+            totalPriceUsd={normalizedTotalPriceUsd}
+            onChange={onChange}
+          />
+          {fieldError === undefined ? null : (
+            <p className="cc-field-error" role="alert">
+              {fieldError}
+            </p>
+          )}
         </div>
+
+        <aside className="cc-config-summary" aria-label="Resumen de la financiación">
+          <p className="cc-config-summary-heading">Resumen de financiación</p>
+          <dl>
+            <div>
+              <dt>Unidades</dt>
+              <dd>{totalQuantity}</dd>
+            </div>
+            <div>
+              <dt>Precio total</dt>
+              <dd>{formatUsd(normalizedTotalPriceUsd)}</dd>
+            </div>
+            <div>
+              <dt>Entrega inicial</dt>
+              <dd>{formatUsd(normalizedDownPaymentUsd)}</dd>
+            </div>
+            <div className="cc-config-summary-balance">
+              <dt>Saldo a financiar</dt>
+              <dd>{formatUsd(financedBalanceUsd)}</dd>
+            </div>
+          </dl>
+        </aside>
       </div>
 
       <footer className="cc-wizard-actions">
@@ -323,13 +365,9 @@ export function FinancingConfig({
           className="cc-secondary-action"
           onClick={(event) => onBack(event.detail > 0)}
         >
-          Volver a unidades
+          Volver a modalidad
         </button>
-        <button
-          type="button"
-          className="cc-apply-btn"
-          onClick={(event) => onCalculate(event.detail > 0)}
-        >
+        <button type="button" className="cc-apply-btn" onClick={handleCalculate}>
           Calcular plan
         </button>
       </footer>

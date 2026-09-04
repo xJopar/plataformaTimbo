@@ -2,6 +2,7 @@
 
 export type CuotaPeriodicity = 'mensual' | 'semestral' | 'anual';
 export type DownPaymentMode = 'percent' | 'manual';
+export type CalculationMode = 'standard' | 'target-installment';
 
 export interface CalculatorItem {
   id: string;
@@ -14,6 +15,7 @@ export interface CalculatorItem {
 
 export interface InstallmentPlanInput {
   items: CalculatorItem[];
+  calculationMode: CalculationMode;
   downPaymentMode: DownPaymentMode;
   downPaymentPercent: number;
   downPaymentManualUsd: number;
@@ -21,6 +23,7 @@ export interface InstallmentPlanInput {
   installmentPeriodicity: CuotaPeriodicity;
   reinforcementsEnabled: boolean;
   reinforcementPeriodicity: CuotaPeriodicity;
+  reinforcementAmountUsd: number;
   desiredRegularInstallmentAmountUsd: number;
 }
 
@@ -183,6 +186,37 @@ export function calculateInstallmentPlan(input: InstallmentPlanInput): Installme
         regularInstallmentAmountUsd,
         reinforcementCount: 0,
         reinforcementAmountUsd: 0,
+      },
+    };
+  }
+
+  if (input.calculationMode === 'standard') {
+    if (input.reinforcementAmountUsd <= 0) {
+      return { status: 'reinforcement-installment-required' };
+    }
+
+    const totalReinforcementsUsd = reinforcementCount * input.reinforcementAmountUsd;
+    const regularInstallmentPoolUsd = saldoAFinanciarUsd - totalReinforcementsUsd;
+    if (regularInstallmentPoolUsd <= 0) return { status: 'reinforcement-amount-negative' };
+
+    const regularInstallmentAmountUsd = regularInstallmentPoolUsd / regularInstallmentCount;
+    if (regularInstallmentAmountUsd <= 0) return { status: 'regular-installment-negative' };
+
+    return {
+      status: 'ok',
+      plan: {
+        totalPriceUsd,
+        downPaymentUsd,
+        downPaymentPercent,
+        annualRatePercent,
+        financedPrincipalUsd,
+        interestTotalUsd,
+        saldoAFinanciarUsd,
+        totalPagarUsd: downPaymentUsd + saldoAFinanciarUsd,
+        regularInstallmentCount,
+        regularInstallmentAmountUsd,
+        reinforcementCount,
+        reinforcementAmountUsd: input.reinforcementAmountUsd,
       },
     };
   }
