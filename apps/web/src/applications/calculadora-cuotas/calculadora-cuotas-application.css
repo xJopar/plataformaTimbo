@@ -1955,3 +1955,191 @@
     border-left: 1px solid var(--cc-c-border);
   }
 }
+
+/* Entrega inicial prioriza las cifras sobre los controles para leer y ajustar la financiación de un vistazo. */
+.cc-down-payment {
+  min-width: 0;
+  margin: 0;
+  padding: var(--cc-sp-5) 0;
+  border: 0;
+  border-top: 1px solid var(--cc-c-border);
+  border-bottom: 1px solid var(--cc-c-border);
+}
+
+.cc-down-payment legend {
+  padding: 0;
+  color: var(--cc-c-text-primary);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.cc-down-payment-values {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--cc-sp-4);
+  margin-top: var(--cc-sp-5);
+}
+
+.cc-down-payment-value {
+  display: grid;
+  min-width: 0;
+  gap: var(--cc-sp-1);
+  color: var(--cc-c-text-primary);
+  cursor: text;
+}
+
+.cc-down-payment-value--percent {
+  justify-items: end;
+  text-align: right;
+}
+
+.cc-down-payment-value-label {
+  color: var(--cc-c-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.cc-down-payment-readout {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  color: var(--cc-c-brand);
+  font-family: var(--cc-font-mono);
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.cc-down-payment-value--percent .cc-down-payment-readout {
+  justify-content: flex-end;
+}
+
+.cc-down-payment-readout input {
+  min-width: 0;
+  padding: 0 0 3px;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  transition: border-color 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.cc-down-payment-value--amount .cc-down-payment-readout input {
+  width: min(100%, 13ch);
+}
+
+.cc-down-payment-value--percent .cc-down-payment-readout input {
+  width: 3.5ch;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cc-down-payment-readout input:hover {
+    border-bottom-color: var(--cc-c-border-strong);
+  }
+}
+
+.cc-down-payment-readout input:focus-visible {
+  border-bottom-color: var(--cc-c-focus);
+}
+
+.cc-down-payment-slider-control {
+  position: relative;
+  display: grid;
+  align-items: center;
+  height: 44px;
+  margin-top: var(--cc-sp-5);
+}
+
+.cc-down-payment-slider-track,
+.cc-down-payment-slider-track::after {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 2px;
+  transform: translateY(-50%);
+}
+
+.cc-down-payment-slider-track {
+  background: var(--cc-c-border-strong);
+}
+
+.cc-down-payment-slider-track::after {
+  content: '';
+  background: var(--cc-c-brand);
+  transform: translateY(-50%) scaleX(var(--cc-down-payment-progress));
+  transform-origin: left center;
+  transition: transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.cc-down-payment-slider {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  appearance: none;
+  outline: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.cc-down-payment-slider::-webkit-slider-runnable-track {
+  height: 2px;
+  background: transparent;
+}
+
+.cc-down-payment-slider::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  border: 2px solid var(--cc-c-surface-alt);
+  border-radius: 50%;
+  appearance: none;
+  background: var(--cc-c-brand);
+}
+
+.cc-down-payment-slider::-moz-range-track,
+.cc-down-payment-slider::-moz-range-progress {
+  height: 2px;
+  background: transparent;
+}
+
+.cc-down-payment-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--cc-c-surface-alt);
+  border-radius: 50%;
+  background: var(--cc-c-brand);
+}
+
+.cc-down-payment-slider-control:focus-within {
+  outline: 3px solid var(--cc-c-focus);
+  outline-offset: 2px;
+}
+
+.cc-down-payment-slider-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+@media (max-width: 479px) {
+  .cc-down-payment-values {
+    gap: var(--cc-sp-3);
+  }
+
+  .cc-down-payment-readout {
+    font-size: clamp(1.5rem, 9vw, 2rem);
+  }
+}

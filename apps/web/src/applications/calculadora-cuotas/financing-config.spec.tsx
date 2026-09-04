@@ -62,6 +62,22 @@ describe('FinancingConfig', () => {
     });
   });
 
+  it('sincroniza el deslizador con el porcentaje y el monto de entrega', () => {
+    const onChange = vi.fn();
+    renderConfig(DEFAULT_VALUE, onChange);
+
+    fireEvent.change(screen.getByLabelText('Porcentaje de entrega inicial'), {
+      target: { value: '25' },
+    });
+
+    expect(onChange).toHaveBeenLastCalledWith({
+      ...DEFAULT_VALUE,
+      downPaymentMode: 'percent',
+      downPaymentPercent: 25,
+      downPaymentManualUsd: 25_000,
+    });
+  });
+
   it('revela los campos de refuerzos al aceptarlos en modalidad normal', () => {
     renderConfig({ ...DEFAULT_VALUE, reinforcementsEnabled: true });
     expect(screen.getByLabelText('Periodicidad de refuerzos')).toBeInTheDocument();

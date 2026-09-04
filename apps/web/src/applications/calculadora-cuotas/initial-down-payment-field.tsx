@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { toast } from 'sonner';
 import type { FinancingConfigValue } from './financing-config';
 
@@ -57,6 +57,9 @@ export function InitialDownPaymentField({
       : roundUsd((totalPriceUsd * value.downPaymentPercent) / MAX_PERCENTAGE);
   const downPaymentPercent =
     totalPriceUsd > 0 ? (downPaymentUsd / totalPriceUsd) * MAX_PERCENTAGE : 0;
+  const sliderStyle = {
+    '--cc-down-payment-progress': downPaymentPercent / MAX_PERCENTAGE,
+  } as CSSProperties;
   const [percentInput, setPercentInput] = useState(formatEditable(downPaymentPercent));
   const [amountInput, setAmountInput] = useState(formatEditable(downPaymentUsd));
   const [error, setError] = useState<string | undefined>(undefined);
@@ -119,35 +122,16 @@ export function InitialDownPaymentField({
   return (
     <fieldset className="cc-down-payment">
       <legend>Entrega inicial</legend>
-      <div className="cc-down-payment-inputs">
-        <div className="cc-field">
-          <label htmlFor="cc-down-payment-percent">Porcentaje</label>
-          <div className="cc-input-with-suffix">
-            <input
-              id="cc-down-payment-percent"
-              type="text"
-              inputMode="decimal"
-              autoComplete="off"
-              value={percentInput}
-              onFocus={() => {
-                isEditingPercent.current = true;
-              }}
-              onChange={(event) => {
-                const next = formatWhileTyping(event.target.value);
-                setPercentInput(next);
-                const parsed = parseDecimal(next);
-                if (parsed !== undefined) setPercent(parsed);
-              }}
-              onBlur={commitPercent}
-            />
-            <span aria-hidden="true">%</span>
-          </div>
-        </div>
-        <div className="cc-field">
-          <label htmlFor="cc-down-payment-manual">Monto</label>
-          <div className="cc-input-with-suffix">
+      <div className="cc-down-payment-values">
+        <label
+          className="cc-down-payment-value cc-down-payment-value--amount"
+          htmlFor="cc-down-payment-manual"
+        >
+          <span className="cc-down-payment-value-label">Monto</span>
+          <span className="cc-down-payment-readout">
             <input
               id="cc-down-payment-manual"
+              aria-label="Monto"
               aria-describedby={error === undefined ? undefined : 'cc-down-payment-error'}
               type="text"
               inputMode="decimal"
@@ -165,24 +149,54 @@ export function InitialDownPaymentField({
               onBlur={commitAmount}
             />
             <span aria-hidden="true">USD</span>
-          </div>
-        </div>
+          </span>
+        </label>
+        <label
+          className="cc-down-payment-value cc-down-payment-value--percent"
+          htmlFor="cc-down-payment-percent"
+        >
+          <span className="cc-down-payment-value-label">Porcentaje</span>
+          <span className="cc-down-payment-readout">
+            <input
+              id="cc-down-payment-percent"
+              aria-label="Porcentaje"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              value={percentInput}
+              onFocus={() => {
+                isEditingPercent.current = true;
+              }}
+              onChange={(event) => {
+                const next = formatWhileTyping(event.target.value);
+                setPercentInput(next);
+                const parsed = parseDecimal(next);
+                if (parsed !== undefined) setPercent(parsed);
+              }}
+              onBlur={commitPercent}
+            />
+            <span aria-hidden="true">%</span>
+          </span>
+        </label>
       </div>
-      <input
-        className="cc-down-payment-slider"
-        type="range"
-        min={0}
-        max={MAX_PERCENTAGE}
-        step={0.01}
-        value={downPaymentPercent}
-        aria-label="Porcentaje de entrega inicial"
-        onChange={(event) => {
-          isEditingPercent.current = false;
-          isEditingAmount.current = false;
-          setError(undefined);
-          setPercent(Number(event.target.value));
-        }}
-      />
+      <div className="cc-down-payment-slider-control" style={sliderStyle}>
+        <span className="cc-down-payment-slider-track" aria-hidden="true" />
+        <input
+          className="cc-down-payment-slider"
+          type="range"
+          min={0}
+          max={MAX_PERCENTAGE}
+          step={0.01}
+          value={downPaymentPercent}
+          aria-label="Porcentaje de entrega inicial"
+          onChange={(event) => {
+            isEditingPercent.current = false;
+            isEditingAmount.current = false;
+            setError(undefined);
+            setPercent(Number(event.target.value));
+          }}
+        />
+      </div>
       <div className="cc-down-payment-slider-scale" aria-hidden="true">
         <span>0 %</span>
         <span>100 %</span>
