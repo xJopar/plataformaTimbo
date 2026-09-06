@@ -932,15 +932,16 @@
   .cc-mode-active-indicator {
     position: absolute;
     z-index: 0;
-    inset: 0;
+    inset: 1px;
     display: block;
     background: var(--cc-c-brand);
-    clip-path: inset(0 50% 0 0 round 9px 0 0 9px);
+    border-radius: 9px;
+    clip-path: inset(0 50% 0 0);
     pointer-events: none;
   }
 
   .cc-mode-switch[data-mode='manual'] .cc-mode-active-indicator {
-    clip-path: inset(0 0 0 50% round 0 9px 9px 0);
+    clip-path: inset(0 0 0 50%);
   }
 
   .cc-mode-btn,
