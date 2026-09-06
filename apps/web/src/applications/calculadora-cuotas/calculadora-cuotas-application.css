@@ -286,7 +286,17 @@
 }
 
 .cc-main-workspace-primary {
+  display: grid;
+  gap: var(--cc-sp-6);
   min-width: 0;
+}
+
+/* El armado de unidades separa la carga y la revisión en superficies equivalentes. */
+.cc-main-workspace-primary > .cc-section {
+  padding: var(--cc-sp-5);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface);
+  box-shadow: 0 6px 16px rgb(20 32 51 / 8%);
 }
 
 .cc-main-summary {
