@@ -265,10 +265,6 @@ export function AddItemPanel({
                 </ul>
               )
             ) : null}
-
-            {vehiclesState.status === 'ready' && catalogQuery.trim() === '' ? (
-              <p className="cc-catalog-hint">Escribí para buscar una unidad del catálogo.</p>
-            ) : null}
           </div>
         ) : (
           <form className="cc-manual-form" onSubmit={submitManualEntry}>

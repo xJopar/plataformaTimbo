@@ -287,16 +287,21 @@
 
 .cc-main-workspace-primary {
   display: grid;
-  gap: var(--cc-sp-6);
   min-width: 0;
-}
-
-/* El armado de unidades separa la carga y la revisión en superficies equivalentes. */
-.cc-main-workspace-primary > .cc-section {
   padding: var(--cc-sp-5);
   border: 1px solid var(--cc-c-border);
   background: var(--cc-c-surface);
   box-shadow: 0 6px 16px rgb(20 32 51 / 8%);
+}
+
+/* La carga y la revisión comparten contexto; la línea conserva su separación operativa. */
+.cc-main-workspace-primary > .cc-section {
+  padding: 0;
+}
+
+.cc-main-workspace-primary > .cc-section + .cc-section {
+  padding-top: var(--cc-sp-5);
+  border-top: 1px solid var(--cc-c-border);
 }
 
 .cc-main-summary {
@@ -998,8 +1003,7 @@
   border-width: 2px;
 }
 
-.cc-catalog-empty,
-.cc-catalog-hint {
+.cc-catalog-empty {
   margin: var(--cc-sp-4) 0 0;
   color: var(--cc-c-text-secondary);
   font-size: 0.875rem;
