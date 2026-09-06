@@ -169,11 +169,9 @@ export function AddItemPanel({
       <div
         className="cc-mode-switch"
         data-animate={shouldAnimateModeSwitch ? 'true' : 'false'}
-        data-mode={mode}
         role="tablist"
         aria-label="Origen del monto a agregar"
       >
-        <span className="cc-mode-active-indicator" aria-hidden="true" />
         <button
           type="button"
           id="cc-mode-stock"

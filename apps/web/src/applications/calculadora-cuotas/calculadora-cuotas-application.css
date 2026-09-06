@@ -29,7 +29,6 @@
   --cc-content-max: 1100px;
   --cc-page-gutter: clamp(20px, 3vw, 32px);
   --cc-t-fast: 120ms ease-out;
-  --cc-t-mode-switch: 180ms cubic-bezier(0.19, 1, 0.22, 1);
   min-height: 100%;
   background: var(--cc-c-surface-alt);
 }
@@ -903,9 +902,6 @@
   font-weight: 700;
   font-size: 0.875rem;
   cursor: pointer;
-  transition:
-    background var(--cc-t-fast),
-    color var(--cc-t-fast);
 }
 
 .cc-mode-btn + .cc-mode-btn {
@@ -924,39 +920,11 @@
   outline-offset: -2px;
 }
 
-.cc-mode-active-indicator {
-  display: none;
-}
-
-@supports (clip-path: inset(0)) {
-  .cc-mode-active-indicator {
-    position: absolute;
-    z-index: 0;
-    inset: 1px;
-    display: block;
-    background: var(--cc-c-brand);
-    border-radius: 9px;
-    clip-path: inset(0 50% 0 0);
-    pointer-events: none;
-  }
-
-  .cc-mode-switch[data-mode='manual'] .cc-mode-active-indicator {
-    clip-path: inset(0 0 0 50%);
-  }
-
-  .cc-mode-btn,
-  .cc-mode-btn--active {
-    background: transparent;
-  }
-
-  .cc-mode-btn--active {
-    color: #fff;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .cc-mode-switch[data-animate='true'] .cc-mode-active-indicator {
-      transition: clip-path var(--cc-t-mode-switch);
-    }
+@media (prefers-reduced-motion: no-preference) {
+  .cc-mode-switch[data-animate='true'] .cc-mode-btn {
+    transition:
+      background-color 160ms cubic-bezier(0.23, 1, 0.32, 1),
+      color 120ms ease-out;
   }
 }
 
