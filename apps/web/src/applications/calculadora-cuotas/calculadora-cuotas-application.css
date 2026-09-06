@@ -886,7 +886,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-bottom: var(--cc-sp-4);
-  overflow: clip;
+  overflow: hidden;
   background: var(--cc-c-surface-alt);
   border: 1px solid var(--cc-c-border);
   isolation: isolate;
@@ -935,12 +935,12 @@
     inset: 0;
     display: block;
     background: var(--cc-c-brand);
-    clip-path: inset(0 50% 0 0);
+    clip-path: inset(0 50% 0 0 round 9px 0 0 9px);
     pointer-events: none;
   }
 
   .cc-mode-switch[data-mode='manual'] .cc-mode-active-indicator {
-    clip-path: inset(0 0 0 50%);
+    clip-path: inset(0 0 0 50% round 0 9px 9px 0);
   }
 
   .cc-mode-btn,
