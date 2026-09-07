@@ -1688,6 +1688,34 @@
         ]
       }
     },
+    "/api/applications/lista-precios/equipment-rentals": {
+      "get": {
+        "operationId": "listListaPreciosEquipmentRentals",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EquipmentRentalResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Zoho Analytics no está disponible."
+          }
+        },
+        "summary": "Obtiene las tarifas de alquiler de maquinarias desde Zoho Analytics.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
     "/api/applications/lista-precios/usage-events": {
       "post": {
         "operationId": "recordListaPreciosUsageEvent",
@@ -3490,6 +3518,25 @@
           "aproxLlegada",
           "disponible1",
           "stock"
+        ]
+      },
+      "EquipmentRentalResponseDto": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "capacity": {
+            "type": "string"
+          },
+          "tariff": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "capacity",
+          "tariff"
         ]
       },
       "ListaPreciosUsageEventRequestDto": {

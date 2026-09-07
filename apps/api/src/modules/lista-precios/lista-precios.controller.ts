@@ -24,6 +24,10 @@ import {
 import { CsrfProtectionGuard } from '../auth/csrf-protection.guard';
 import { UsageEventsService } from '../usage-events/usage-events.service';
 import { ListaPreciosUsageEventRequestDto } from './dto/lista-precios-usage-event-request.dto';
+import {
+  EquipmentRentalResponseDto,
+  toEquipmentRentalResponse,
+} from './dto/equipment-rental-response.dto';
 import { toVehicleResponse, VehicleResponseDto } from './dto/vehicle-response.dto';
 import { ListaPreciosApplicationAccessGuard } from './lista-precios-application-access.guard';
 import { ListaPreciosProviderUnavailableError } from './lista-precios.errors';
@@ -65,6 +69,31 @@ export class ListaPreciosController {
           {
             code: 'LISTA_PRECIOS_UNAVAILABLE',
             message: 'No pudimos obtener el catálogo de vehículos. Intentá nuevamente.',
+          },
+          { cause: error },
+        );
+      }
+      throw error;
+    }
+  }
+
+  @Get('equipment-rentals')
+  @ApiOperation({
+    operationId: 'listListaPreciosEquipmentRentals',
+    summary: 'Obtiene las tarifas de alquiler de maquinarias desde Zoho Analytics.',
+  })
+  @ApiOkResponse({ type: EquipmentRentalResponseDto, isArray: true })
+  @ApiBadGatewayResponse({ description: 'Zoho Analytics no está disponible.' })
+  public async getEquipmentRentals(): Promise<EquipmentRentalResponseDto[]> {
+    try {
+      const rows = await this.listaPreciosService.getEquipmentRentals();
+      return rows.map(toEquipmentRentalResponse);
+    } catch (error) {
+      if (error instanceof ListaPreciosProviderUnavailableError) {
+        throw new BadGatewayException(
+          {
+            code: 'LISTA_PRECIOS_UNAVAILABLE',
+            message: 'No pudimos obtener las tarifas de alquiler. Intentá nuevamente.',
           },
           { cause: error },
         );

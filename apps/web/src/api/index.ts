@@ -40,6 +40,7 @@ export { ApiHttpError, createApiHttpError, type HealthResponse, type SystemApi }
 export { ApplicationsApiUnavailableError } from './applications';
 export {
   type ApplicationsApi,
+  type EquipmentRentalResponse,
   type AuthorizedApplication,
   type CreateFiveSIndicatorRequest,
   type FiveSCapabilities,

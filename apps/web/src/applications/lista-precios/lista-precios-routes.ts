@@ -1,5 +1,6 @@
 export type ListaPreciosRoute =
   | { view: 'home' }
+  | { view: 'equipment-rentals' }
   | { view: 'brand'; brand: string }
   | { view: 'suspensions'; brand: string; modelo: string }
   | { view: 'variants'; brand: string; modelo: string; suspension?: string }
@@ -36,6 +37,10 @@ export function parseListaPreciosRoute(pathname: string, launchPath: string): Li
     .split('/')
     .filter((segment) => segment.length > 0)
     .map(decodeURIComponent);
+
+  if (segments[0] === 'equipment-rentals' && segments.length === 1) {
+    return { view: 'equipment-rentals' };
+  }
 
   if (segments[0] === 'marca' && segments.length === 2 && segments[1] !== undefined) {
     return { view: 'brand', brand: segments[1] };
@@ -81,6 +86,10 @@ export function buildBrandPath(launchPath: string, brand: string): string {
   return `${launchPath}/marca/${encodeURIComponent(brand)}`;
 }
 
+export function buildEquipmentRentalsPath(launchPath: string): string {
+  return `${launchPath}/equipment-rentals`;
+}
+
 export function buildVariantsPath(launchPath: string, brand: string, modelo: string): string {
   return `${launchPath}/marca/${encodeURIComponent(brand)}/${encodeURIComponent(modelo)}`;
 }
@@ -108,6 +117,7 @@ export function buildDetailPath(launchPath: string, modelKey: string): string {
 export function getParentPath(route: ListaPreciosRoute, launchPath: string): string {
   switch (route.view) {
     case 'brand':
+    case 'equipment-rentals':
       return buildHomePath(launchPath);
     case 'suspensions':
       return buildBrandPath(launchPath, route.brand);

@@ -11,6 +11,7 @@ export type BrowserOperation =
   | 'hello-world.request-joke'
   | 'hello-world.translate-joke'
   | 'lista-precios.record-usage-event'
+  | 'lista-precios.load-equipment-rentals'
   | 'meta-company.load-data'
   | 'meta-company.save-empresa'
   | 'meta-company.update-empresa-status'

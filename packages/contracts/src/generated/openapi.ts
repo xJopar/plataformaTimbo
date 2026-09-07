@@ -605,6 +605,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications/lista-precios/equipment-rentals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene las tarifas de alquiler de maquinarias desde Zoho Analytics. */
+        get: operations["listListaPreciosEquipmentRentals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/applications/lista-precios/usage-events": {
         parameters: {
             query?: never;
@@ -1388,6 +1405,11 @@ export interface components {
             aproxLlegada: string;
             disponible1: string;
             stock: string;
+        };
+        EquipmentRentalResponseDto: {
+            description: string;
+            capacity: string;
+            tariff: string;
         };
         ListaPreciosUsageEventRequestDto: {
             /**
@@ -2712,6 +2734,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VehicleResponseDto"][];
+                };
+            };
+            /** @description Zoho Analytics no está disponible. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listListaPreciosEquipmentRentals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentRentalResponseDto"][];
                 };
             };
             /** @description Zoho Analytics no está disponible. */

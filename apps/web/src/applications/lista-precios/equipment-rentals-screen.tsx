@@ -1,0 +1,132 @@
+import type { EquipmentRentalResponse } from '../../api';
+import { Loader } from './loader';
+import type { EquipmentRentalsState } from './use-equipment-rentals';
+
+export const EQUIPMENT_RENTAL_CATEGORIES = [
+  { label: 'Pala cargadora', matches: ['pala cargadora'] },
+  { label: 'Motoniveladora', matches: ['motoniveladora'] },
+  { label: 'Excavadora', matches: ['excavadora'] },
+  { label: 'Compactador', matches: ['compactador'] },
+  { label: 'Espaciadora', matches: ['espaciadora', 'espacidora'] },
+  { label: 'Bomba de concreto', matches: ['bomba de concreto'] },
+] as const;
+
+export interface EquipmentRentalGroup {
+  label: string;
+  rentals: EquipmentRentalResponse[];
+}
+
+function normalizeDescription(description: string): string {
+  return description
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLocaleLowerCase('es-PY');
+}
+
+export function groupEquipmentRentals(rentals: EquipmentRentalResponse[]): EquipmentRentalGroup[] {
+  const categorized = EQUIPMENT_RENTAL_CATEGORIES.map((category) => ({
+    label: category.label,
+    rentals: [] as EquipmentRentalResponse[],
+  }));
+  const uncategorized: EquipmentRentalResponse[] = [];
+
+  for (const rental of rentals) {
+    const description = normalizeDescription(rental.description);
+    const categoryIndex = EQUIPMENT_RENTAL_CATEGORIES.findIndex((category) =>
+      category.matches.some((match) => description.includes(match)),
+    );
+    if (categoryIndex === -1) {
+      uncategorized.push(rental);
+      continue;
+    }
+    categorized[categoryIndex]?.rentals.push(rental);
+  }
+
+  return [
+    ...categorized.filter((category) => category.rentals.length > 0),
+    ...(uncategorized.length > 0 ? [{ label: 'Otros equipos', rentals: uncategorized }] : []),
+  ];
+}
+
+interface EquipmentRentalsScreenProps {
+  state: EquipmentRentalsState;
+  onRetry: () => void;
+}
+
+export function EquipmentRentalsScreen({
+  state,
+  onRetry,
+}: EquipmentRentalsScreenProps): React.JSX.Element {
+  if (state.status === 'loading') {
+    return (
+      <div className="lp-page lp-equipment-rentals-page">
+        <div className="lp-loader-full" role="status" aria-live="polite">
+          <Loader />
+          <span className="lp-loader-full-label">Cargando tarifas de alquiler...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.status === 'error') {
+    return (
+      <div className="lp-page lp-equipment-rentals-page">
+        <div className="lp-state-box">
+          <span className="lp-state-box-title">Error al cargar tarifas</span>
+          <p className="lp-state-box-desc">
+            No pudimos obtener las tarifas de alquiler. Intentá nuevamente.
+          </p>
+          <button className="lp-cta-btn" type="button" onClick={onRetry}>
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const groups = groupEquipmentRentals(state.rentals);
+  if (groups.length === 0) {
+    return (
+      <div className="lp-page lp-equipment-rentals-page">
+        <div className="lp-state-box">
+          <span className="lp-state-box-title">Sin tarifas disponibles</span>
+          <p className="lp-state-box-desc">No se encontraron equipos de alquiler en el catálogo.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="lp-page lp-equipment-rentals-page">
+      <div className="lp-equipment-rentals-intro">
+        <h1>Alquiler de maquinarias</h1>
+        <p>Tarifas vigentes por equipo.</p>
+      </div>
+      {groups.map((group) => (
+        <section className="lp-equipment-rental-group" key={group.label}>
+          <h2>{group.label}</h2>
+          <div className="lp-equipment-rental-table-wrap">
+            <table className="lp-equipment-rental-table">
+              <thead>
+                <tr>
+                  <th scope="col">Descripción del equipo</th>
+                  <th scope="col">Capacidad</th>
+                  <th scope="col">Tarifa</th>
+                </tr>
+              </thead>
+              <tbody>
+                {group.rentals.map((rental, index) => (
+                  <tr key={`${rental.description}-${rental.capacity}-${index}`}>
+                    <td>{rental.description || '—'}</td>
+                    <td>{rental.capacity || '—'}</td>
+                    <td>{rental.tariff || 'A consultar'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}

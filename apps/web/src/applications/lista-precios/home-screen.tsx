@@ -5,12 +5,14 @@ interface HomeScreenProps {
   vehiclesState: VehicleCatalogState;
   onRetry: () => void;
   onSelectBrand: (brand: string) => void;
+  onSelectEquipmentRentals: () => void;
 }
 
 export function HomeScreen({
   vehiclesState,
   onRetry,
   onSelectBrand,
+  onSelectEquipmentRentals,
 }: HomeScreenProps): React.JSX.Element {
   return (
     <div className="lp-page lp-page--home">
@@ -40,26 +42,39 @@ export function HomeScreen({
         </div>
       ) : null}
 
-      {vehiclesState.status === 'ready' && vehiclesState.brands.length > 0 ? (
+      {vehiclesState.status !== 'loading' ? (
         <div className="lp-brand-grid">
-          {vehiclesState.brands.map((brand) => (
-            <button
-              type="button"
-              key={brand.marca}
-              className={`lp-brand-card${brand.isOtros ? ' lp-brand-card--full' : ''}`}
-              onClick={() => onSelectBrand(brand.marca)}
-            >
-              <span className="lp-brand-card-name">{brand.marca}</span>
-              <span className="lp-brand-card-meta">
-                {brand.modelCount} modelo{brand.modelCount !== 1 ? 's' : ''}
-              </span>
-              <span className="lp-brand-card-count">
-                <span className="lp-brand-card-count-badge">
-                  {brand.unitCount} {brand.unitCount !== 1 ? 'unidades' : 'unidad'}
-                </span>
-              </span>
-            </button>
-          ))}
+          <button
+            type="button"
+            className="lp-brand-card lp-brand-card--equipment-rentals"
+            onClick={onSelectEquipmentRentals}
+          >
+            <span className="lp-brand-card-name">Alquiler de maquinarias</span>
+            <span className="lp-brand-card-meta">Tarifas por equipo</span>
+            <span className="lp-brand-card-count">
+              <span className="lp-brand-card-count-badge">Ver tarifas</span>
+            </span>
+          </button>
+          {vehiclesState.status === 'ready'
+            ? vehiclesState.brands.map((brand) => (
+                <button
+                  type="button"
+                  key={brand.marca}
+                  className={`lp-brand-card${brand.isOtros ? ' lp-brand-card--full' : ''}`}
+                  onClick={() => onSelectBrand(brand.marca)}
+                >
+                  <span className="lp-brand-card-name">{brand.marca}</span>
+                  <span className="lp-brand-card-meta">
+                    {brand.modelCount} modelo{brand.modelCount !== 1 ? 's' : ''}
+                  </span>
+                  <span className="lp-brand-card-count">
+                    <span className="lp-brand-card-count-badge">
+                      {brand.unitCount} {brand.unitCount !== 1 ? 'unidades' : 'unidad'}
+                    </span>
+                  </span>
+                </button>
+              ))
+            : null}
         </div>
       ) : null}
     </div>

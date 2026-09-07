@@ -10,7 +10,8 @@ const PROVIDER_TIMEOUT_MILLISECONDS = 15_000;
 type FetchImplementation = typeof fetch;
 
 /** Fila cruda de la vista de Zoho Analytics: nombres de columna ya normalizados. */
-export type ZohoVehicleRow = Record<string, string>;
+export type ZohoAnalyticsRow = Record<string, string>;
+export type ZohoVehicleRow = ZohoAnalyticsRow;
 
 const COLUMN_NAME_MAP: Record<string, string> = {
   'Aprox. Llegada': 'aproxLlegada',
@@ -51,6 +52,9 @@ const COLUMN_NAME_MAP: Record<string, string> = {
   Laterales: 'laterales',
   'Dias Transcurridos': 'diasTranscurridos',
   Ubicacion1: 'ubicacion1',
+  'Descripción del Equipo': 'description',
+  Capacidad: 'capacity',
+  'Nueva Tarifa (+5 USD / +37.500 Gs.)': 'tariff',
 };
 
 /**
@@ -103,7 +107,7 @@ function parseCsv(text: string): string[][] {
   return rows;
 }
 
-function toVehicleRows(csvText: string): ZohoVehicleRow[] {
+function toRows(csvText: string): ZohoAnalyticsRow[] {
   const allRows = parseCsv(csvText);
   if (allRows.length < 2) {
     return [];
@@ -117,7 +121,7 @@ function toVehicleRows(csvText: string): ZohoVehicleRow[] {
   const headers = headerRow.map((column) => COLUMN_NAME_MAP[column] ?? column);
 
   return dataRows.map((row) => {
-    const vehicleRow: ZohoVehicleRow = {};
+    const vehicleRow: ZohoAnalyticsRow = {};
     headers.forEach((header, index) => {
       vehicleRow[header] = (row[index] ?? '').trim();
     });
@@ -136,15 +140,23 @@ export class ListaPreciosService {
 
   public async getVehicles(): Promise<ZohoVehicleRow[]> {
     const config = resolveZohoAnalyticsConfig();
+    return this.getRows(config, config.viewId);
+  }
 
+  public async getEquipmentRentals(): Promise<ZohoAnalyticsRow[]> {
+    const config = resolveZohoAnalyticsConfig();
+    return this.getRows(config, config.equipmentRentalViewId);
+  }
+
+  private async getRows(config: ZohoAnalyticsConfig, viewId: string): Promise<ZohoAnalyticsRow[]> {
     if (this.accessToken === '') {
       await this.refreshAccessToken(config);
     }
 
-    let response = await this.fetchVehiclesView(config);
+    let response = await this.fetchView(config, viewId);
     if (response.status === 401) {
       await this.refreshAccessToken(config);
-      response = await this.fetchVehiclesView(config);
+      response = await this.fetchView(config, viewId);
     }
 
     const csvText = await response.text();
@@ -154,11 +166,11 @@ export class ListaPreciosService {
       );
     }
 
-    return toVehicleRows(csvText);
+    return toRows(csvText);
   }
 
-  private async fetchVehiclesView(config: ZohoAnalyticsConfig): Promise<Response> {
-    const url = `${ZOHO_ANALYTICS_API_BASE}/restapi/v2/workspaces/${config.workspaceId}/views/${config.viewId}/data`;
+  private async fetchView(config: ZohoAnalyticsConfig, viewId: string): Promise<Response> {
+    const url = `${ZOHO_ANALYTICS_API_BASE}/restapi/v2/workspaces/${config.workspaceId}/views/${viewId}/data`;
     try {
       return await this.fetchImplementation(url, {
         headers: {

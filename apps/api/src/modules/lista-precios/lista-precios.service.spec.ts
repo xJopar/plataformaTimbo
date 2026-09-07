@@ -4,6 +4,8 @@ import { ListaPreciosService } from './lista-precios.service';
 const ZOHO_OAUTH_TOKEN_ENDPOINT = 'https://accounts.zoho.com/oauth/v2/token';
 const ZOHO_VIEW_ENDPOINT =
   'https://analyticsapi.zoho.com/restapi/v2/workspaces/2400409000000791460/views/2400409000025208315/data';
+const ZOHO_EQUIPMENT_RENTAL_VIEW_ENDPOINT =
+  'https://analyticsapi.zoho.com/restapi/v2/workspaces/2400409000000791460/views/2400409000048195020/data';
 
 const SAMPLE_CSV = 'Marca,Modelo,Stock\r\nSinotruk,Howo,ST-001\r\n';
 
@@ -23,6 +25,7 @@ describe('ListaPreciosService', () => {
     ZOHO_ORG_ID: process.env.ZOHO_ORG_ID,
     ZOHO_WORKSPACE_ID: process.env.ZOHO_WORKSPACE_ID,
     ZOHO_VIEW_ID: process.env.ZOHO_VIEW_ID,
+    ZOHO_EQUIPMENT_RENTAL_VIEW_ID: process.env.ZOHO_EQUIPMENT_RENTAL_VIEW_ID,
     ZOHO_CLIENT_ID: process.env.ZOHO_CLIENT_ID,
     ZOHO_CLIENT_SECRET: process.env.ZOHO_CLIENT_SECRET,
     ZOHO_REFRESH_TOKEN: process.env.ZOHO_REFRESH_TOKEN,
@@ -32,6 +35,7 @@ describe('ListaPreciosService', () => {
     process.env.ZOHO_ORG_ID = '748410058';
     process.env.ZOHO_WORKSPACE_ID = '2400409000000791460';
     process.env.ZOHO_VIEW_ID = '2400409000025208315';
+    process.env.ZOHO_EQUIPMENT_RENTAL_VIEW_ID = '2400409000048195020';
     process.env.ZOHO_CLIENT_ID = 'test-client-id';
     process.env.ZOHO_CLIENT_SECRET = 'test-client-secret';
     process.env.ZOHO_REFRESH_TOKEN = 'test-refresh-token';
@@ -89,6 +93,24 @@ describe('ListaPreciosService', () => {
     expect(secondViewRequestInit?.headers).toEqual(
       expect.objectContaining({ Authorization: 'Zoho-oauthtoken renewed-token' }),
     );
+  });
+
+  it('consulta y normaliza las tres columnas de tarifas de alquiler', async () => {
+    const fetchImplementation = createFetchMock();
+    fetchImplementation
+      .mockResolvedValueOnce(jsonResponse({ access_token: 'fresh-token' }))
+      .mockResolvedValueOnce(
+        textResponse(
+          'Descripción del Equipo,Capacidad,Nueva Tarifa (+5 USD / +37.500 Gs.)\r\nPala Cargadora SYL956H,3 M3,Gs. 269.500\r\n',
+        ),
+      );
+
+    const service = new ListaPreciosService(fetchImplementation);
+
+    await expect(service.getEquipmentRentals()).resolves.toEqual([
+      { description: 'Pala Cargadora SYL956H', capacity: '3 M3', tariff: 'Gs. 269.500' },
+    ]);
+    expect(fetchImplementation.mock.calls[1]?.[0]).toBe(ZOHO_EQUIPMENT_RENTAL_VIEW_ENDPOINT);
   });
 
   it('no reintenta y falla explícitamente ante un error distinto de 401', async () => {

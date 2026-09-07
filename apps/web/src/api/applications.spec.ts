@@ -192,6 +192,32 @@ describe('createApplicationsApi', () => {
     ).rejects.toMatchObject({ status: 502, requestId: 'request-vehicles-502' });
   });
 
+  it('consulta las tarifas de alquiler de maquinarias incluyendo credenciales', async () => {
+    const rentals = [
+      { description: 'Pala Cargadora SYL956H', capacity: '3 M3', tariff: 'Gs. 269.500' },
+    ];
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify(rentals), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    await expect(
+      createApplicationsApi(
+        'http://localhost:3000',
+        fetchImplementation,
+      ).listListaPreciosEquipmentRentals(),
+    ).resolves.toEqual(rentals);
+    const request = fetchImplementation.mock.calls[0]?.[0];
+    expect(request).toMatchObject({ credentials: 'include', method: 'GET' });
+    expect(request).toBeInstanceOf(Request);
+    if (!(request instanceof Request)) {
+      throw new Error('El cliente OpenAPI no construyó la petición esperada.');
+    }
+    expect(request.url).toContain('/api/applications/lista-precios/equipment-rentals');
+  });
+
   it('tipa una falla de red al consultar el catálogo de Lista de Precios', async () => {
     const networkError = new TypeError('Failed to fetch');
     const fetchImplementation = vi.fn<typeof fetch>().mockRejectedValue(networkError);

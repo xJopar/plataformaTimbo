@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildBrandPath,
   buildDetailPath,
+  buildEquipmentRentalsPath,
   buildHomePath,
   buildSuspensionVariantsPath,
   buildVariantsPath,
@@ -20,6 +21,12 @@ describe('parseListaPreciosRoute', () => {
     expect(parseListaPreciosRoute(`${LAUNCH_PATH}/marca/Scania`, LAUNCH_PATH)).toEqual({
       view: 'brand',
       brand: 'Scania',
+    });
+  });
+
+  it('reconoce las tarifas de alquiler de maquinarias', () => {
+    expect(parseListaPreciosRoute(`${LAUNCH_PATH}/equipment-rentals`, LAUNCH_PATH)).toEqual({
+      view: 'equipment-rentals',
     });
   });
 
@@ -90,6 +97,7 @@ describe('builders de ruta', () => {
   it('siempre incluyen el launchPath como prefijo y codifican los segmentos', () => {
     expect(buildHomePath(LAUNCH_PATH)).toBe(LAUNCH_PATH);
     expect(buildBrandPath(LAUNCH_PATH, 'Scania')).toBe(`${LAUNCH_PATH}/marca/Scania`);
+    expect(buildEquipmentRentalsPath(LAUNCH_PATH)).toBe(`${LAUNCH_PATH}/equipment-rentals`);
     expect(buildVariantsPath(LAUNCH_PATH, 'Scania', 'R')).toBe(`${LAUNCH_PATH}/marca/Scania/R`);
     expect(buildSuspensionVariantsPath(LAUNCH_PATH, 'SINOTRUK', 'HOWO NX', 'Neumática')).toBe(
       `${LAUNCH_PATH}/marca/SINOTRUK/HOWO%20NX/Neum%C3%A1tica`,
@@ -111,6 +119,10 @@ describe('builders de ruta', () => {
 describe('getParentPath', () => {
   it('sube de brand a home', () => {
     expect(getParentPath({ view: 'brand', brand: 'Scania' }, LAUNCH_PATH)).toBe(LAUNCH_PATH);
+  });
+
+  it('vuelve a home desde las tarifas de alquiler', () => {
+    expect(getParentPath({ view: 'equipment-rentals' }, LAUNCH_PATH)).toBe(LAUNCH_PATH);
   });
 
   it('sube de variants a su brand', () => {

@@ -23,7 +23,7 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
 - aplicación `Hello World` en `/apps/hello-world` como comprobación del App Shell y de una
   integración externa sin clave de API;
 - aplicación `Lista de Precios` en `/apps/lista-precios`, con rutas internas para marcas, modelos,
-  variantes y detalle de vehículos.
+  variantes, detalle de vehículos y tarifas de alquiler de maquinarias.
 - aplicación `Calculadora de Cuotas` en `/apps/calculadora-cuotas`, para armar planes de
   financiación en un flujo guiado desde unidades del catálogo o montos manuales, calcular cuotas
   regulares con refuerzos opcionales o partir de una cuota objetivo, y descargar el cuotero como
@@ -49,8 +49,8 @@ API NestJS y única propietaria de PostgreSQL y Prisma. Sus módulos vigentes so
 - `health`: disponibilidad de la API;
 - `auth`: OAuth con Google, cookie de sesión, logout, CSRF y traducción de errores públicos;
 - `hello-world`: endpoint funcional protegido y obtención de chistes desde icanhazdadjoke;
-- `lista-precios`: catálogo protegido de vehículos desde Zoho Analytics y eventos de uso del
-  recorrido comercial;
+- `lista-precios`: catálogos protegidos de vehículos y tarifas de alquiler de maquinarias desde
+  Zoho Analytics, además de eventos de uso del recorrido comercial;
 - `meta-company`: metas comerciales y catálogos de marcas y negocios en un proveedor aislado;
 - `users`: preautorización, consulta y cambios administrativos de usuarios;
 - `access-profiles`: perfil de sistema `PLATFORM_ADMIN` y autorización funcional por aplicación;

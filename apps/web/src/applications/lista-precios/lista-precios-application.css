@@ -165,6 +165,14 @@
 .lp-brand-card--full {
   grid-column: 1 / -1;
 }
+.lp-brand-card--equipment-rentals {
+  grid-column: 1 / -1;
+  min-height: 112px;
+  background: var(--lp-c-brand-light);
+}
+.lp-brand-card--equipment-rentals .lp-brand-card-count-badge {
+  background: var(--lp-c-surface);
+}
 .lp-brand-card-name {
   font-size: 16px;
   font-weight: 700;
@@ -190,6 +198,95 @@
   color: var(--lp-c-brand-text);
   background: var(--lp-c-brand-light);
   padding: 2px 6px;
+}
+
+/* ── Tarifas de alquiler de maquinarias ── */
+.lp-equipment-rentals-page {
+  padding-bottom: var(--lp-sp-6);
+}
+.lp-equipment-rentals-intro {
+  padding: var(--lp-sp-6) var(--lp-sp-4) var(--lp-sp-5);
+  background: var(--lp-c-surface);
+  border-bottom: 1px solid var(--lp-c-border);
+}
+.lp-equipment-rentals-intro h1,
+.lp-equipment-rentals-intro p,
+.lp-equipment-rental-group h2 {
+  margin: 0;
+}
+.lp-equipment-rentals-intro h1 {
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+  color: var(--lp-c-text-primary);
+}
+.lp-equipment-rentals-intro p {
+  margin-top: var(--lp-sp-1);
+  color: var(--lp-c-text-secondary);
+  font-size: 13px;
+}
+.lp-equipment-rental-group {
+  margin-top: var(--lp-sp-5);
+}
+.lp-equipment-rental-group h2 {
+  padding: 0 var(--lp-sp-4) var(--lp-sp-2);
+  color: var(--lp-c-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.lp-equipment-rental-table-wrap {
+  overflow-x: auto;
+  border-top: 1px solid var(--lp-c-border);
+  border-bottom: 1px solid var(--lp-c-border);
+  background: var(--lp-c-surface);
+}
+.lp-equipment-rental-table {
+  width: 100%;
+  min-width: 420px;
+  border-collapse: collapse;
+  color: var(--lp-c-text-primary);
+  font-size: 12px;
+}
+.lp-equipment-rental-table th,
+.lp-equipment-rental-table td {
+  padding: var(--lp-sp-3) var(--lp-sp-4);
+  text-align: left;
+  vertical-align: top;
+}
+.lp-equipment-rental-table th {
+  background: var(--lp-c-surface-alt);
+  color: var(--lp-c-text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.lp-equipment-rental-table td {
+  border-top: 1px solid var(--lp-c-border);
+  line-height: 1.35;
+}
+.lp-equipment-rental-table th:first-child,
+.lp-equipment-rental-table td:first-child {
+  width: 48%;
+}
+.lp-equipment-rental-table th:nth-child(2),
+.lp-equipment-rental-table td:nth-child(2) {
+  width: 20%;
+}
+.lp-equipment-rental-table th:last-child,
+.lp-equipment-rental-table td:last-child {
+  width: 32%;
+  font-family: var(--lp-font-mono);
+  font-weight: 700;
+  color: var(--lp-c-brand);
+  white-space: nowrap;
+}
+.lp-brand-card:focus-visible,
+.lp-equipment-rental-table-wrap:focus-visible {
+  outline: 3px solid rgb(11 79 156 / 36%);
+  outline-offset: -3px;
 }
 
 /* ── Lista de modelos/variantes ── */

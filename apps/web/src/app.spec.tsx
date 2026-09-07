@@ -154,6 +154,9 @@ function createApi(
       listListaPreciosVehicles: vi
         .fn<ApplicationsApi['listListaPreciosVehicles']>()
         .mockResolvedValue([]),
+      listListaPreciosEquipmentRentals: vi
+        .fn<ApplicationsApi['listListaPreciosEquipmentRentals']>()
+        .mockResolvedValue([]),
       recordListaPreciosUsageEvent: vi
         .fn<ApplicationsApi['recordListaPreciosUsageEvent']>()
         .mockResolvedValue(undefined),

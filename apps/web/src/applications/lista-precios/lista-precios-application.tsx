@@ -4,11 +4,13 @@ import { PlatformHeader } from '../../layout/platform-header';
 import { PlatformSessionBar } from '../../layout/platform-session-bar';
 import { BrandScreen } from './brand-screen';
 import { DetailScreen } from './detail-screen';
+import { EquipmentRentalsScreen } from './equipment-rentals-screen';
 import { HomeScreen } from './home-screen';
 import './lista-precios-application.css';
 import {
   buildBrandPath,
   buildDetailPath,
+  buildEquipmentRentalsPath,
   buildSuspensionVariantsPath,
   buildVariantsPath,
   getParentPath,
@@ -22,6 +24,7 @@ import {
 import { useListaPreciosUsageEvents } from './use-lista-precios-usage-events';
 import { VariantsScreen } from './variants-screen';
 import { SuspensionsScreen } from './suspensions-screen';
+import { useEquipmentRentals } from './use-equipment-rentals';
 
 const DEFAULT_WHATSAPP_NUMBER = '595976511016';
 const DEFAULT_WHATSAPP_MESSAGE_TEMPLATE = 'Hola, ¿está disponible el modelo: {modelo}?';
@@ -34,6 +37,8 @@ function computeBreadcrumb(
   switch (route.view) {
     case 'home':
       return undefined;
+    case 'equipment-rentals':
+      return 'Alquiler de maquinarias';
     case 'brand':
       return route.brand;
     case 'suspensions':
@@ -61,6 +66,8 @@ function computeBackLabel(
   switch (route.view) {
     case 'home':
       return undefined;
+    case 'equipment-rentals':
+      return 'Inicio';
     case 'brand':
       return 'Marcas';
     case 'suspensions':
@@ -96,6 +103,10 @@ export function ListaPreciosApplication({
   const route = useMemo(
     () => parseListaPreciosRoute(pathname, application.launchPath),
     [pathname, application.launchPath],
+  );
+  const { state: equipmentRentalsState, reload: reloadEquipmentRentals } = useEquipmentRentals(
+    api,
+    route.view === 'equipment-rentals',
   );
   const { recordConsultationStarted } = useListaPreciosUsageEvents(api, route, vehiclesState);
 
@@ -148,6 +159,14 @@ export function ListaPreciosApplication({
           vehiclesState={vehiclesState}
           onRetry={() => void reload()}
           onSelectBrand={(brand) => navigateWithinApp(buildBrandPath(launchPath, brand))}
+          onSelectEquipmentRentals={() => navigateWithinApp(buildEquipmentRentalsPath(launchPath))}
+        />
+      ) : null}
+
+      {route.view === 'equipment-rentals' ? (
+        <EquipmentRentalsScreen
+          state={equipmentRentalsState}
+          onRetry={() => void reloadEquipmentRentals()}
         />
       ) : null}
 

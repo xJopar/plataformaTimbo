@@ -6,7 +6,7 @@ import { ListaPreciosProviderUnavailableError } from './lista-precios.errors';
 import { ListaPreciosService } from './lista-precios.service';
 
 describe('ListaPreciosController', () => {
-  const listaPreciosService = { getVehicles: jest.fn() };
+  const listaPreciosService = { getVehicles: jest.fn(), getEquipmentRentals: jest.fn() };
   const usageEventsService = { append: jest.fn() };
   const controller = new ListaPreciosController(
     listaPreciosService as unknown as ListaPreciosService,
@@ -22,8 +22,19 @@ describe('ListaPreciosController', () => {
 
   beforeEach(() => {
     listaPreciosService.getVehicles.mockReset();
+    listaPreciosService.getEquipmentRentals.mockReset();
     usageEventsService.append.mockReset();
     usageEventsService.append.mockResolvedValue({ status: 'recorded' });
+  });
+
+  it('devuelve las tres columnas públicas de las tarifas de alquiler', async () => {
+    listaPreciosService.getEquipmentRentals.mockResolvedValue([
+      { description: 'Pala Cargadora SYL956H', capacity: '3 M3', tariff: 'Gs. 269.500' },
+    ]);
+
+    await expect(controller.getEquipmentRentals()).resolves.toEqual([
+      { description: 'Pala Cargadora SYL956H', capacity: '3 M3', tariff: 'Gs. 269.500' },
+    ]);
   });
 
   it('devuelve el catálogo de vehículos mapeado a la respuesta pública', async () => {
