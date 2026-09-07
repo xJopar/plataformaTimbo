@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-07T09:15:00-03:00",
+  "title": "Sistema de diseño: Plataforma Timbo",
+  "extensions": {
+    "colorMeta": {
+      "operational-blue": {
+        "role": "primary",
+        "displayName": "Azul operativo",
+        "canonical": "#00388a",
+        "tonalRamp": [
+          "#001a42",
+          "#002a6b",
+          "#00388a",
+          "#0a4b9f",
+          "#3671b9",
+          "#78a9d4",
+          "#b8d3e8",
+          "#eaf3fa"
+        ]
+      },
+      "cool-background": {
+        "role": "neutral",
+        "displayName": "Fondo frío",
+        "canonical": "#edf2f7",
+        "tonalRamp": [
+          "#142033",
+          "#334155",
+          "#64748b",
+          "#94a3b8",
+          "#bcc9d7",
+          "#d7e0e9",
+          "#edf2f7",
+          "#ffffff"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "displayName": "Cuerpo operativo",
+        "purpose": "Contenido de interfaz que debe leerse con rapidez y estabilidad."
+      },
+      "title": {
+        "displayName": "Título de decisión",
+        "purpose": "Nombre de la tarea o sección que lidera la lectura."
+      },
+      "label": {
+        "displayName": "Etiqueta de control",
+        "purpose": "Contexto breve para campos y acciones."
+      }
+    },
+    "shadows": [
+      {
+        "name": "elevación con propósito",
+        "value": "Uso puntual, no token global obligatorio.",
+        "purpose": "Sólo para superposiciones, estados transitorios o prioridad real."
+      }
+    ],
+    "motion": [
+      {
+        "name": "respuesta rápida",
+        "value": "120ms ease-out",
+        "purpose": "Transiciones breves de estado cuando una aplicación las necesita."
+      }
+    ],
+    "breakpoints": [
+      { "name": "compacto", "value": "640px" },
+      { "name": "intermedio", "value": "920px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Acción principal",
+      "kind": "button",
+      "refersTo": "action-primary",
+      "description": "Acción que completa o avanza una tarea.",
+      "html": "<button class=\"ds-action-primary\">Guardar cambios</button>",
+      "css": ".ds-action-primary { min-height: 44px; padding: 0 20px; border: 1px solid #00388a; border-radius: 0; background: #00388a; color: #ffffff; font: 700 1rem Aptos, 'Segoe UI', sans-serif; cursor: pointer; } .ds-action-primary:hover { background: #0a4b9f; } .ds-action-primary:focus-visible { outline: 2px solid #0b4f9c; outline-offset: 2px; }"
+    },
+    {
+      "name": "Acción secundaria",
+      "kind": "button",
+      "refersTo": "action-secondary",
+      "description": "Acción disponible sin competir con la principal.",
+      "html": "<button class=\"ds-action-secondary\">Cancelar</button>",
+      "css": ".ds-action-secondary { min-height: 44px; padding: 0 12px; border: 1px solid currentColor; border-radius: 0; background: transparent; color: #00388a; font: 700 1rem Aptos, 'Segoe UI', sans-serif; cursor: pointer; } .ds-action-secondary:hover { color: #142033; } .ds-action-secondary:focus-visible { outline: 2px solid #0b4f9c; outline-offset: 2px; }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "text-input",
+      "description": "Campo editable con límite claro y foco visible.",
+      "html": "<label class=\"ds-field\">Nombre<input class=\"ds-input\" value=\"Ejemplo\" /></label>",
+      "css": ".ds-field { display: grid; gap: 8px; color: #334155; font: 700 0.875rem Aptos, 'Segoe UI', sans-serif; } .ds-input { min-height: 44px; padding: 0 10px; border: 1px solid #94a3b8; border-radius: 0; background: #ffffff; color: #142033; font: 1rem Aptos, 'Segoe UI', sans-serif; caret-color: #00388a; } .ds-input:focus-visible { border-color: #0b4f9c; outline: none; box-shadow: 0 0 0 3px rgb(11 79 156 / 18%); }"
+    },
+    {
+      "name": "Navegación de plataforma",
+      "kind": "nav",
+      "refersTo": "platform-header",
+      "description": "Contexto estable para identidad y navegación interna.",
+      "html": "<nav class=\"ds-platform-nav\"><strong>Timbo</strong><span>Aplicación</span><button>Menú</button></nav>",
+      "css": ".ds-platform-nav { min-height: 56px; padding: 6px 20px; display: flex; align-items: center; gap: 16px; background: #00388a; color: #ffffff; font: 700 0.875rem Aptos, 'Segoe UI', sans-serif; } .ds-platform-nav span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-platform-nav button { min-height: 44px; padding: 0 12px; border: 1px solid transparent; border-radius: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; } .ds-platform-nav button:hover { border-color: rgb(255 255 255 / 72%); background: rgb(255 255 255 / 10%); } .ds-platform-nav button:focus-visible { outline: 2px solid #0b4f9c; outline-offset: 2px; }"
+    },
+    {
+      "name": "Aviso de estado",
+      "kind": "custom",
+      "refersTo": "status-notice",
+      "description": "Resultado breve y claro que acompaña una operación.",
+      "html": "<p class=\"ds-notice\">Los cambios se guardaron correctamente.</p>",
+      "css": ".ds-notice { margin: 0; padding: 16px; border: 1px solid #7ab7bd; border-radius: 0; background: #dcecf0; color: #163c50; font: 700 0.875rem/1.5 Aptos, 'Segoe UI', sans-serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Operación corporativa clara",
+    "overview": "Plataforma Timbo es una superficie interna moderna y serena: hace visibles las decisiones, conserva el contexto de trabajo y evita que el ornamento compita con una tarea operativa. El sistema busca proporción antes que repetición mecánica; los patrones compartidos son un punto de partida, no una plantilla que sustituya el juicio de layout.",
+    "keyCharacteristics": [
+      "Claro y moderno, con énfasis visual reservado para acciones y estado.",
+      "Proporcionado: la proximidad expresa relación y los espacios mayores separan decisiones.",
+      "Operativo: controles, foco y adaptación priorizan completar la tarea."
+    ],
+    "rules": [
+      {
+        "name": "La regla del acento reservado",
+        "body": "El azul operativo señala acción, selección o contexto; no se usa como decoración repartida por toda la pantalla.",
+        "section": "colors"
+      },
+      {
+        "name": "La regla de la proporción intencional",
+        "body": "Identificar recorrido, grupos y separación antes de elegir el menor cambio de layout que exprese esa jerarquía.",
+        "section": "layout"
+      },
+      {
+        "name": "La regla de profundidad con propósito",
+        "body": "Una sombra debe explicar por qué un elemento emerge sobre otro, no reemplazar agrupación, orden o espacio.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Usar los tokens compartidos para identidad, foco, controles y accesibilidad cuando correspondan.",
+      "Evaluar lectura, agrupación, ritmo, densidad y adaptación antes de modificar un layout.",
+      "Documentar en la aplicación las decisiones de flujo, composición o dominio que no sean reutilizables."
+    ],
+    "donts": [
+      "Tratar este documento como una plantilla rígida para cada pantalla o flujo.",
+      "Promover al sistema compartido un wizard, panel, resumen o espaciado que pertenezca a una sola aplicación.",
+      "Usar sombras, radios o contenedores extra para ocultar una jerarquía o agrupación mal resuelta."
+    ]
+  }
+}

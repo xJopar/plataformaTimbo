@@ -38,6 +38,14 @@ Ver `docs/CODING_CONVENTIONS.md` para el detalle completo. Resumen operativo:
 - Un cambio administrativo que exige auditoría escribe el evento en la misma transacción Prisma. Un productor de uso define un catálogo concreto y respeta los resultados `recorded`, `duplicate` y `failed`.
 - Si cambia una capacidad vigente o un contrato durable, actualizar en el mismo incremento el README y la documentación propietaria. No documentar planes futuros como funcionalidad ya disponible.
 
+### Diseño de interfaz y layout
+
+- El `DESIGN.md` de la raíz define la dirección visual inicial y los patrones compartidos del App Shell; se usa como punto de partida, no como una plantilla rígida para cada pantalla o flujo.
+- Los tokens del frontmatter de `DESIGN.md` son normativos sólo cuando representan valores realmente compartidos. No se promueven al sistema valores de una sola aplicación por conveniencia.
+- Las decisiones de flujo, composición, layout, dominio o componentes propios viven en el `DESIGN.md` de la aplicación correspondiente. Un wizard, resumen, panel o espaciado local no se vuelve regla global sin evidencia de reutilización.
+- Ante un ajuste de layout, evaluar primero recorrido de lectura, agrupación, ritmo espacial, densidad y adaptación responsive. Elegir el menor cambio que aclare esas relaciones; no aplicar márgenes o contenedores por inercia.
+- Se permite apartarse de un patrón compartido cuando la tarea lo justifica. Documentar el motivo en la superficie propietaria y promover la decisión al `DESIGN.md` raíz sólo cuando demuestre utilidad en más de una superficie.
+
 ### Persistencia con ciclos de vida distintos
 
 - Una base temporal, un proveedor externo o una futura migración de fuente no se agrega al Prisma principal por conveniencia. Si su ciclo de vida difiere de `DATABASE_URL`, debe tener cliente, esquema, migraciones, variable server-only y pre-deploy propios; el Prisma central conserva identidad, acceso, auditoría y catálogo. Confirmar explícitamente el destino de cada migración antes de desplegar.
