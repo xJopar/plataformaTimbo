@@ -1970,6 +1970,12 @@
   font-weight: 800;
 }
 
+/* Un importe es un valor puntual: en escritorio conserva la huella de un control monetario,
+   sin extenderse como una fila de datos. En pantallas angostas usa el ancho disponible. */
+.cc-target-installment-field {
+  inline-size: min(100%, 20rem);
+}
+
 .cc-down-payment {
   min-width: 0;
   margin: 0;

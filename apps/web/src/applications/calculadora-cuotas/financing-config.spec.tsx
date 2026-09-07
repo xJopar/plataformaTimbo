@@ -117,13 +117,27 @@ describe('FinancingConfig', () => {
     });
     const targetInstallmentGroup = screen.getByRole('group', { name: 'Monto de cuota objetivo' });
     expect(targetInstallmentGroup).toBeInTheDocument();
-    expect(within(targetInstallmentGroup).getByLabelText('Monto')).toBeInTheDocument();
+    expect(
+      within(targetInstallmentGroup).getByLabelText('Monto de cuota objetivo'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Refuerzos' })).toBeInTheDocument();
     expect(
       Array.from(container.querySelectorAll('.cc-config-controls > fieldset legend')).map(
         (legend) => legend.textContent,
       ),
     ).toEqual(['Monto de cuota objetivo', 'Refuerzos', 'Entrega inicial']);
+    expect(
+      Array.from(
+        container.querySelectorAll('.cc-config-controls input, .cc-config-controls select'),
+      )
+        .slice(0, 4)
+        .map((control) => control.id),
+    ).toEqual([
+      'cc-desired-regular-installment',
+      'cc-term-months',
+      'cc-installment-periodicity',
+      'cc-reinforcement-periodicity',
+    ]);
     expect(screen.queryByRole('switch', { name: 'Activar refuerzos' })).not.toBeInTheDocument();
   });
 
