@@ -58,7 +58,7 @@ describe('CalculadoraCuotasApplication', () => {
     expect(screen.getByLabelText('Porcentaje')).toHaveValue('20');
     await user.click(screen.getByRole('button', { name: 'Calcular plan' }));
     await user.click(screen.getByRole('button', { name: 'Cambiar condiciones' }));
-    await user.click(screen.getByRole('button', { name: 'Cambiar modalidad' }));
+    await user.click(screen.getByRole('button', { name: 'Volver a modalidad' }));
     await user.click(screen.getByRole('button', { name: 'Volver a unidades' }));
 
     expect(screen.getByRole('heading', { name: 'Agregar unidad' })).toBeInTheDocument();

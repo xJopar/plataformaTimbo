@@ -66,7 +66,7 @@
 
 .cc-wizard-steps {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 0 0 var(--cc-sp-6);
   padding: 0;
   overflow: hidden;
@@ -87,6 +87,15 @@
   font-size: 0.8125rem;
   font-weight: 700;
   text-align: center;
+}
+
+.cc-wizard-step-label {
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.cc-wizard-mobile-step {
+  display: none;
 }
 
 .cc-wizard-steps li + li {
@@ -276,12 +285,6 @@
     position: sticky;
     top: var(--cc-sp-5);
   }
-}
-
-/* Refinamiento del wizard: cada área tiene una responsabilidad clara y sólo el resumen recibe
-   una superficie propia, para conservar la mesa de trabajo continua definida por la aplicación. */
-.cc-wizard-steps {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .cc-main-workspace-primary {
@@ -735,6 +738,10 @@
     flex-basis: 20px;
     width: 20px;
     height: 20px;
+  }
+
+  .cc-wizard-step-label {
+    overflow-wrap: anywhere;
   }
 
   .cc-config-heading,
@@ -1723,12 +1730,16 @@
 
 @media (max-width: 640px) {
   .cc-wizard-steps {
-    gap: var(--cc-sp-1);
+    gap: 0;
     margin-bottom: var(--cc-sp-5);
   }
 
   .cc-wizard-steps li {
     font-size: 0.75rem;
+  }
+
+  .cc-wizard-steps .cc-wizard-step--active {
+    border-left-color: var(--cc-c-brand);
   }
 
   .cc-wizard-step-marker {
@@ -1790,6 +1801,72 @@
   .cc-section.cc-cuotero .cc-section-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .cc-main-workspace-primary,
+  .cc-main-summary,
+  .cc-config-summary {
+    padding: var(--cc-sp-4);
+  }
+
+  .cc-calculation-mode-options {
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+  }
+
+  .cc-catalog-result-name,
+  .cc-catalog-result-meta {
+    overflow-wrap: anywhere;
+  }
+
+  .cc-download-image-btn {
+    min-height: 56px;
+  }
+
+  .cc-download-image-btn span {
+    text-wrap: balance;
+  }
+
+  .cc-dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .cc-dialog-actions .text-button,
+  .cc-dialog-confirm {
+    width: 100%;
+  }
+}
+
+@media (max-width: 440px) {
+  .cc-wizard-steps {
+    margin-bottom: var(--cc-sp-2);
+  }
+
+  .cc-wizard-steps li {
+    min-height: 50px;
+    padding: var(--cc-sp-2);
+  }
+
+  .cc-wizard-step-label {
+    display: none;
+  }
+
+  .cc-wizard-mobile-step {
+    display: block;
+    margin: 0 0 var(--cc-sp-5);
+    color: var(--cc-c-text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .cc-cuotero-row {
+    display: grid;
+    gap: var(--cc-sp-1);
+  }
+
+  .cc-cuotero-row dd {
+    justify-self: start;
   }
 }
 
@@ -2264,5 +2341,60 @@
 
   .cc-down-payment-readout {
     font-size: clamp(1.5rem, 9vw, 2rem);
+  }
+}
+
+/* En un teléfono, el resumen sigue apareciendo antes de los controles pero se lee en un vistazo;
+   las cifras de entrega conservan sus dos referencias sin invadirse. */
+@media (max-width: 640px) {
+  .cc-config-layout {
+    gap: var(--cc-sp-5);
+  }
+
+  .cc-config-summary {
+    gap: var(--cc-sp-3);
+    padding: var(--cc-sp-4);
+  }
+
+  .cc-config-summary dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--cc-sp-4);
+    row-gap: var(--cc-sp-3);
+  }
+
+  .cc-config-summary dl div {
+    display: grid;
+    gap: var(--cc-sp-1);
+  }
+
+  .cc-config-summary dd {
+    text-align: left;
+  }
+
+  .cc-config-summary-balance {
+    grid-column: 1 / -1;
+  }
+
+  .cc-down-payment-values {
+    gap: var(--cc-sp-3);
+  }
+
+  .cc-down-payment-readout {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+  }
+
+  .cc-down-payment-value--percent .cc-down-payment-readout {
+    font-size: clamp(1.75rem, 6.5vw, 2.25rem);
+  }
+}
+
+@media (max-width: 359px) {
+  .cc-down-payment-values,
+  .cc-config-summary dl {
+    grid-template-columns: 1fr;
+  }
+
+  .cc-config-summary-balance {
+    grid-column: auto;
   }
 }

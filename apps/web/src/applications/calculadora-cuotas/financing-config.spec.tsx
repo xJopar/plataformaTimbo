@@ -104,7 +104,7 @@ describe('FinancingConfig', () => {
     const onChange = vi.fn();
     renderConfig(DEFAULT_VALUE, onChange);
 
-    fireEvent.click(screen.getByRole('switch', { name: 'Agregar refuerzos' }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Activar refuerzos' }));
 
     expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_VALUE, reinforcementsEnabled: true });
   });
@@ -116,7 +116,7 @@ describe('FinancingConfig', () => {
       reinforcementsEnabled: true,
     });
     expect(screen.getByLabelText('Monto de cuota objetivo')).toBeInTheDocument();
-    expect(screen.queryByRole('switch', { name: 'Agregar refuerzos' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('switch', { name: 'Activar refuerzos' })).not.toBeInTheDocument();
   });
 
   it('bloquea el cálculo cuando falta el monto de un refuerzo normal', () => {

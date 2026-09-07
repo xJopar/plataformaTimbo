@@ -236,7 +236,7 @@ export function CalculadoraCuotasApplication({
                   <span className="cc-wizard-step-marker" aria-hidden="true">
                     {status === 'complete' ? '✓' : step}
                   </span>
-                  <span>{label}</span>
+                  <span className="cc-wizard-step-label">{label}</span>
                   <span className="cc-sr-only">
                     {status === 'active'
                       ? 'Actual.'
@@ -248,6 +248,9 @@ export function CalculadoraCuotasApplication({
               );
             })}
           </ol>
+          <p className="cc-wizard-mobile-step" aria-hidden="true">
+            Paso {activeStep} de {stepLabels.length} · {stepLabels[activeStep - 1]}
+          </p>
 
           {screen === 'main' ? (
             <div
