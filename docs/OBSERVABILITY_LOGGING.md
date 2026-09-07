@@ -230,10 +230,12 @@ operación completa.
 ### Proveedor externo de Meta Company
 
 Durante desarrollo, Meta Company usa `DATABASE_META_EXAMPLE_URL` como proveedor temporal de
-metas, marcas y negocios. Esa base representa el futuro Service Layer: no contiene `audit_events`
-ni duplicados de la auditoría del App Shell. Después de que el proveedor confirma una creación,
-edición, desactivación o reactivación, `MetaCompanyService` abre una transacción en la base central
-e invoca `AuditEventsService` con uno de los eventos `meta-company.*`.
+metas, marcas y negocios. Antes de crear o editar un asesor, consulta Service Layer para validar
+el `SlpCode` de SAP; esa consulta no produce auditoría ni evento de uso. La URL, credenciales y
+tokens de Service Layer son server-only y no se incluyen en diagnósticos. Después de que el
+proveedor temporal confirma una creación, edición, desactivación o reactivación,
+`MetaCompanyService` abre una transacción en la base central e invoca `AuditEventsService` con
+uno de los eventos `meta-company.*`.
 
 La auditoría sólo conserva el actor, el recurso (`commercial_goal`, `commercial_brand` o
 `commercial_business`) y su identificador. No registra nombres de catálogo, valor de meta ni

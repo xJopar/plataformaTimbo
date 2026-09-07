@@ -36,9 +36,10 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
 acotados, no clics ni contenido de catálogo completo.
 `Calculadora de Cuotas` compone un plan localmente a partir de los datos que el usuario agregó; la
 descarga PNG se genera en el navegador y no envía ni persiste el contenido del cuotero.
-`Meta Company` usa de forma temporal un proveedor PostgreSQL separado de la base central; la API
-mantiene las reglas de acceso y las auditorías administrativas en la plataforma, para que el
-proveedor pueda sustituirse posteriormente por Service Layer.
+`Meta Company` usa de forma temporal un proveedor PostgreSQL separado de la base central. La API
+valida altas y ediciones de asesores contra SAP mediante Service Layer y mantiene las reglas de
+acceso y las auditorías administrativas en la plataforma; los demás datos comerciales se
+sustituirán gradualmente por ese proveedor.
 
 ## Componentes del workspace
 

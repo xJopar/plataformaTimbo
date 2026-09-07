@@ -23,8 +23,8 @@ modalidad normal, definiendo refuerzos opcionales, o desde una cuota objetivo; l
 cuotero calculado como imagen PNG, con la entrega inicial y las cuotas del plan.
 `Meta Company` en `/apps/meta-company` administra las metas comerciales que consume Power BI. Sus
 perfiles permiten editar metas y, para administradores, crear y activar o desactivar marcas y
-negocios. La aplicación usa temporalmente un proveedor PostgreSQL aislado; sus auditorías se
-conservan en la base central de la plataforma.
+negocios. La aplicación usa temporalmente un proveedor PostgreSQL aislado y valida los asesores
+contra SAP mediante Service Layer; sus auditorías se conservan en la base central de la plataforma.
 Administración permite asignar aplicaciones a empleados y gestionar sus perfiles y permisos
 funcionales. El Home autenticado presenta solamente las aplicaciones activas asignadas al usuario
 y abre sus rutas internas. Consultar [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md)

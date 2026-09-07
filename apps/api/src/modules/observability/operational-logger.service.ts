@@ -66,7 +66,7 @@ export class OperationalLoggerService {
       requestId: fields.requestId,
       method: fields.method,
       route: fields.route,
-      ...buildErrorDiagnosticFields(error, process.env.DATABASE_URL),
+      ...buildErrorDiagnosticFields(error, process.env.DATABASE_URL, serviceLayerRedactionValues()),
     });
   }
 
@@ -91,5 +91,19 @@ export class OperationalLoggerService {
     } else {
       console.log(serializedPayload);
     }
+  }
+}
+
+function serviceLayerRedactionValues(): string[] {
+  const baseUrl = process.env.META_COMPANY_SERVICE_LAYER_BASE_URL;
+  if (baseUrl === undefined || baseUrl.trim() === '') {
+    return [];
+  }
+
+  try {
+    const parsedUrl = new URL(baseUrl);
+    return [baseUrl, parsedUrl.origin, parsedUrl.host, parsedUrl.hostname];
+  } catch {
+    return [baseUrl];
   }
 }
