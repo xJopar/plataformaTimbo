@@ -10,6 +10,7 @@ export type ListaPreciosRoute =
 
 const HOWO_NX_BRAND = 'SINOTRUK';
 const HOWO_NX_MODEL = 'HOWO NX';
+const EQUIPMENT_RENTALS_PATH_SEGMENT = 'alquiler-hora';
 
 export function isHowoNxModel(brand: string, modelo: string): boolean {
   return (
@@ -39,10 +40,14 @@ export function parseListaPreciosRoute(pathname: string, launchPath: string): Li
     .filter((segment) => segment.length > 0)
     .map(decodeURIComponent);
 
-  if (segments[0] === 'equipment-rentals' && segments.length === 1) {
+  if (segments[0] === EQUIPMENT_RENTALS_PATH_SEGMENT && segments.length === 1) {
     return { view: 'equipment-rentals' };
   }
-  if (segments[0] === 'equipment-rentals' && segments.length === 2 && segments[1] !== undefined) {
+  if (
+    segments[0] === EQUIPMENT_RENTALS_PATH_SEGMENT &&
+    segments.length === 2 &&
+    segments[1] !== undefined
+  ) {
     return { view: 'equipment-rentals-category', category: segments[1] };
   }
 
@@ -91,7 +96,7 @@ export function buildBrandPath(launchPath: string, brand: string): string {
 }
 
 export function buildEquipmentRentalsPath(launchPath: string): string {
-  return `${launchPath}/equipment-rentals`;
+  return `${launchPath}/${EQUIPMENT_RENTALS_PATH_SEGMENT}`;
 }
 
 export function buildEquipmentRentalCategoryPath(launchPath: string, category: string): string {

@@ -66,7 +66,11 @@ export function HomeScreen({
             </button>
           ))}
           {equipmentRentalsState.status === 'ready' ? (
-            <button type="button" className="lp-brand-card" onClick={onSelectEquipmentRentals}>
+            <button
+              type="button"
+              className="lp-brand-card lp-brand-card--full"
+              onClick={onSelectEquipmentRentals}
+            >
               <span className="lp-brand-card-name">Alquiler de maquinarias</span>
               <span className="lp-brand-card-meta">
                 {equipmentRentalsState.rentals.length} modelo

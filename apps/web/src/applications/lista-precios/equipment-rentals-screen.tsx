@@ -7,7 +7,11 @@ export const EQUIPMENT_RENTAL_CATEGORIES = [
   { label: 'Motoniveladora', matches: ['motoniveladora'] },
   { label: 'Excavadora', matches: ['excavadora'] },
   { label: 'Compactador', matches: ['compactador'] },
-  { label: 'Espaciadora', matches: ['espaciadora', 'espacidora'] },
+  {
+    label: 'Esparcidora de asfalto',
+    matches: ['esparcidora de asfalto', 'espacidora de asfalto'],
+  },
+  { label: 'Retropala', matches: ['retropala'] },
   { label: 'Bomba de concreto', matches: ['bomba de concreto'] },
 ] as const;
 
@@ -144,15 +148,15 @@ export function EquipmentRentalsScreen({
             <tr>
               <th scope="col">Descripción del equipo</th>
               <th scope="col">Capacidad</th>
-              <th scope="col">Tarifa</th>
+              <th scope="col">Tarifa hora</th>
             </tr>
           </thead>
           <tbody>
             {selectedGroup.rentals.map((rental, index) => (
               <tr key={`${rental.description}-${rental.capacity}-${index}`}>
-                <td>{rental.description || '—'}</td>
-                <td>{rental.capacity || '—'}</td>
-                <td>{rental.tariff || 'A consultar'}</td>
+                <td data-label="Equipo">{rental.description || '—'}</td>
+                <td data-label="Capacidad">{rental.capacity || '—'}</td>
+                <td data-label="Tarifa hora">{rental.tariff || 'A consultar'}</td>
               </tr>
             ))}
           </tbody>

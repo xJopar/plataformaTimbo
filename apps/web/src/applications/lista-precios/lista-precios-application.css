@@ -204,26 +204,23 @@
   padding-bottom: var(--lp-sp-6);
 }
 .lp-equipment-rental-table-wrap {
-  overflow-x: auto;
-  border-top: 1px solid var(--lp-c-border);
   border-bottom: 1px solid var(--lp-c-border);
   background: var(--lp-c-surface);
 }
 .lp-equipment-rental-table {
   width: 100%;
-  min-width: 420px;
   border-collapse: collapse;
   color: var(--lp-c-text-primary);
-  font-size: 12px;
+  font-size: 13px;
 }
 .lp-equipment-rental-table th,
 .lp-equipment-rental-table td {
-  padding: var(--lp-sp-3) var(--lp-sp-4);
+  padding: var(--lp-sp-4);
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
 }
 .lp-equipment-rental-table th {
-  background: var(--lp-c-surface-alt);
+  border-bottom: 1px solid var(--lp-c-border-strong);
   color: var(--lp-c-text-secondary);
   font-size: 10px;
   font-weight: 700;
@@ -232,7 +229,7 @@
 }
 .lp-equipment-rental-table td {
   border-top: 1px solid var(--lp-c-border);
-  line-height: 1.35;
+  line-height: 1.4;
 }
 .lp-equipment-rental-table th:first-child,
 .lp-equipment-rental-table td:first-child {
@@ -244,7 +241,7 @@
 }
 .lp-equipment-rental-table th:last-child,
 .lp-equipment-rental-table td:last-child {
-  width: 32%;
+  width: 28%;
   font-family: var(--lp-font-mono);
   font-weight: 700;
   color: var(--lp-c-brand);
@@ -254,6 +251,78 @@
 .lp-equipment-rental-table-wrap:focus-visible {
   outline: 3px solid rgb(11 79 156 / 36%);
   outline-offset: -3px;
+}
+
+@media (max-width: 767px) {
+  .lp-equipment-rental-table-wrap {
+    background: transparent;
+    border-bottom: 0;
+  }
+  .lp-equipment-rental-table,
+  .lp-equipment-rental-table tbody,
+  .lp-equipment-rental-table tr,
+  .lp-equipment-rental-table td {
+    display: block;
+    width: 100%;
+  }
+  .lp-equipment-rental-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .lp-equipment-rental-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--lp-sp-3);
+    padding: var(--lp-sp-4);
+    background: var(--lp-c-surface);
+    border-bottom: 1px solid var(--lp-c-border);
+  }
+  .lp-equipment-rental-table td {
+    padding: 0;
+    border: 0;
+  }
+  .lp-equipment-rental-table td:first-child {
+    grid-column: 1 / -1;
+    color: var(--lp-c-text-primary);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .lp-equipment-rental-table td:nth-child(2),
+  .lp-equipment-rental-table td:last-child {
+    width: auto;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: normal;
+  }
+  .lp-equipment-rental-table td:last-child {
+    text-align: right;
+    color: var(--lp-c-brand);
+    font-family: var(--lp-font-mono);
+    font-weight: 700;
+  }
+  .lp-equipment-rental-table td:nth-child(2)::before,
+  .lp-equipment-rental-table td:last-child::before {
+    display: block;
+    margin-bottom: var(--lp-sp-1);
+    color: var(--lp-c-text-secondary);
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .lp-equipment-rental-table td:nth-child(2)::before {
+    content: 'Capacidad';
+  }
+  .lp-equipment-rental-table td:last-child::before {
+    content: 'Tarifa hora';
+  }
 }
 
 /* ── Lista de modelos/variantes ── */

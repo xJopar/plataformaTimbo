@@ -26,14 +26,14 @@ describe('parseListaPreciosRoute', () => {
   });
 
   it('reconoce las tarifas de alquiler de maquinarias', () => {
-    expect(parseListaPreciosRoute(`${LAUNCH_PATH}/equipment-rentals`, LAUNCH_PATH)).toEqual({
+    expect(parseListaPreciosRoute(`${LAUNCH_PATH}/alquiler-hora`, LAUNCH_PATH)).toEqual({
       view: 'equipment-rentals',
     });
   });
 
   it('reconoce una categoría de alquiler de maquinarias', () => {
     expect(
-      parseListaPreciosRoute(`${LAUNCH_PATH}/equipment-rentals/Pala%20cargadora`, LAUNCH_PATH),
+      parseListaPreciosRoute(`${LAUNCH_PATH}/alquiler-hora/Pala%20cargadora`, LAUNCH_PATH),
     ).toEqual({ view: 'equipment-rentals-category', category: 'Pala cargadora' });
   });
 
@@ -104,9 +104,9 @@ describe('builders de ruta', () => {
   it('siempre incluyen el launchPath como prefijo y codifican los segmentos', () => {
     expect(buildHomePath(LAUNCH_PATH)).toBe(LAUNCH_PATH);
     expect(buildBrandPath(LAUNCH_PATH, 'Scania')).toBe(`${LAUNCH_PATH}/marca/Scania`);
-    expect(buildEquipmentRentalsPath(LAUNCH_PATH)).toBe(`${LAUNCH_PATH}/equipment-rentals`);
+    expect(buildEquipmentRentalsPath(LAUNCH_PATH)).toBe(`${LAUNCH_PATH}/alquiler-hora`);
     expect(buildEquipmentRentalCategoryPath(LAUNCH_PATH, 'Pala cargadora')).toBe(
-      `${LAUNCH_PATH}/equipment-rentals/Pala%20cargadora`,
+      `${LAUNCH_PATH}/alquiler-hora/Pala%20cargadora`,
     );
     expect(buildVariantsPath(LAUNCH_PATH, 'Scania', 'R')).toBe(`${LAUNCH_PATH}/marca/Scania/R`);
     expect(buildSuspensionVariantsPath(LAUNCH_PATH, 'SINOTRUK', 'HOWO NX', 'Neumática')).toBe(
