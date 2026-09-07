@@ -31,7 +31,6 @@ interface FinancingConfigProps {
   totalPriceUsd: number;
   totalQuantity: number;
   onBack: (isPointerInitiated: boolean) => void;
-  onChangeMode: (isPointerInitiated: boolean) => void;
   onCalculate: (nextValue: FinancingConfigValue, isPointerInitiated: boolean) => void;
   onChange: (value: FinancingConfigValue) => void;
 }
@@ -73,7 +72,6 @@ export function FinancingConfig({
   totalPriceUsd,
   totalQuantity,
   onBack,
-  onChangeMode,
   onCalculate,
   onChange,
 }: FinancingConfigProps): React.JSX.Element {
@@ -163,13 +161,6 @@ export function FinancingConfig({
         <h2 id="cc-config-title" className="cc-section-title">
           Condiciones
         </h2>
-        <button
-          type="button"
-          className="cc-change-mode"
-          onClick={(event) => onChangeMode(event.detail > 0)}
-        >
-          Cambiar modalidad
-        </button>
       </div>
 
       <div className="cc-config-layout">

@@ -26,7 +26,6 @@ function renderConfig(
       totalPriceUsd={100_000}
       totalQuantity={2}
       onBack={vi.fn()}
-      onChangeMode={vi.fn()}
       onCalculate={onCalculate}
       onChange={onChange}
     />,

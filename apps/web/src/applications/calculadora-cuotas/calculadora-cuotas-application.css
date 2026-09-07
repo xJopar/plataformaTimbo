@@ -507,14 +507,8 @@
   outline-offset: 6px;
 }
 
-.cc-change-mode:focus-visible {
-  outline: 2px solid var(--cc-c-focus);
-  outline-offset: 3px;
-}
-
 .cc-apply-btn:active,
-.cc-secondary-action:active,
-.cc-change-mode:active {
+.cc-secondary-action:active {
   transform: scale(0.98);
 }
 
@@ -535,26 +529,6 @@
   font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 800;
   letter-spacing: -0.025em;
-}
-
-.cc-change-mode {
-  min-height: 40px;
-  padding: 0 var(--cc-sp-3);
-  border: 1px solid var(--cc-c-border-strong);
-  background: transparent;
-  color: var(--cc-c-text-primary);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    border-color 120ms ease-out,
-    color 120ms ease-out,
-    transform 120ms ease-out;
-}
-
-.cc-change-mode:hover {
-  border-color: var(--cc-c-brand);
-  color: var(--cc-c-brand);
 }
 
 .cc-config-layout {
@@ -787,8 +761,7 @@
   .cc-calculation-mode-option strong,
   .cc-calculation-mode-option-copy > span,
   .cc-apply-btn,
-  .cc-secondary-action,
-  .cc-change-mode {
+  .cc-secondary-action {
     animation: none;
     transition-duration: 0ms;
   }

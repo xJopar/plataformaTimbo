@@ -326,7 +326,6 @@ export function CalculadoraCuotasApplication({
                 totalQuantity={totalQuantity}
                 onChange={setDraftConfig}
                 onBack={(isPointerInitiated) => openModeSelection(isPointerInitiated, true)}
-                onChangeMode={(isPointerInitiated) => openModeSelection(isPointerInitiated, true)}
                 onCalculate={calculatePlan}
               />
             </div>
