@@ -1,8 +1,9 @@
 import { StrictMode } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { App } from './app';
+import { HomeLauncher } from './home/home-launcher';
 import {
   ApiHttpError,
   type AdministrationApi,
@@ -299,6 +300,48 @@ describe('App', () => {
       await screen.findByRole('heading', { name: 'Sin aplicaciones asignadas' }),
     ).toBeInTheDocument();
     expect(document.querySelector('[data-layout="application-launcher-grid"]')).toBeInTheDocument();
+  });
+
+  it('conserva el valor saliente durante los 460 ms de su transición', async () => {
+    vi.useFakeTimers();
+    let unmount: (() => void) | undefined;
+
+    try {
+      await act(async () => {
+        ({ unmount } = render(
+          <HomeLauncher
+            api={createApi()}
+            session={session}
+            isLoggingOut={false}
+            logoutFailure={undefined}
+            onNavigate={vi.fn()}
+            onLogout={vi.fn()}
+            onSessionExpired={vi.fn()}
+          />,
+        ));
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(5_600);
+      });
+
+      const getOutgoingValue = () => document.querySelector('.company-value-copy--outgoing');
+      expect(getOutgoingValue()).toHaveTextContent('Proactividad y liderar con el ejemplo');
+
+      act(() => {
+        vi.advanceTimersByTime(459);
+      });
+      expect(getOutgoingValue()).toHaveTextContent('Proactividad y liderar con el ejemplo');
+
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(getOutgoingValue()).not.toBeInTheDocument();
+    } finally {
+      unmount?.();
+      vi.clearAllTimers();
+      vi.useRealTimers();
+    }
   });
 
   it('mantiene una superficie neutral mientras verifica una sesión existente', () => {

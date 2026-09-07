@@ -21,7 +21,8 @@ const COMPANY_VALUES = [
 
 const COMPANY_VALUE_ROTATION_INTERVAL_MS = 5_600;
 const COMPANY_VALUE_TRANSITION_DURATION_MS = 560;
-const COMPANY_VALUE_EXIT_DURATION_MS = 360;
+const COMPANY_VALUE_EXIT_DURATION_MS = 460;
+const COMPANY_VALUE_FRAME_DELAY_MS = 80;
 const COMPANY_VALUE_FRAME_INLINE_PADDING_PX = 36;
 const COMPANY_VALUE_FRAME_BLOCK_PADDING_PX = 18;
 
@@ -108,8 +109,10 @@ function CompanyValueMessage({ valueIndex }: { valueIndex: number }): React.JSX.
             { transform: 'translate(-50%, -50%) scale(1)' },
           ],
           {
+            delay: COMPANY_VALUE_FRAME_DELAY_MS,
             duration: COMPANY_VALUE_TRANSITION_DURATION_MS,
             easing: 'cubic-bezier(0.34, 1.22, 0.64, 1)',
+            fill: 'backwards',
           },
         );
       }
