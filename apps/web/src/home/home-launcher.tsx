@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Api, AuthSession } from '../api';
 import { useAuthorizedApplications } from '../applications/use-authorized-applications';
 import { PlatformHeader } from '../layout/platform-header';
@@ -21,6 +21,9 @@ const COMPANY_VALUES = [
 
 const COMPANY_VALUE_ROTATION_INTERVAL_MS = 5_600;
 const COMPANY_VALUE_TRANSITION_DURATION_MS = 560;
+const COMPANY_VALUE_EXIT_DURATION_MS = 360;
+const COMPANY_VALUE_FRAME_INLINE_PADDING_PX = 36;
+const COMPANY_VALUE_FRAME_BLOCK_PADDING_PX = 18;
 
 interface HomeLauncherProps {
   api: Api;
@@ -34,86 +37,123 @@ interface HomeLauncherProps {
 
 type CompanyValue = (typeof COMPANY_VALUES)[number];
 
+function getCompanyValue(index: number): CompanyValue {
+  return (
+    COMPANY_VALUES[(index + COMPANY_VALUES.length) % COMPANY_VALUES.length] ?? COMPANY_VALUES[0]
+  );
+}
+
 function CompanyValueMessage({ valueIndex }: { valueIndex: number }): React.JSX.Element {
-  const [displayedValueIndex, setDisplayedValueIndex] = useState(valueIndex);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const displayedValueIndexRef = useRef(valueIndex);
+  const [visibleValueIndex, setVisibleValueIndex] = useState(valueIndex);
+  const [outgoingValue, setOutgoingValue] = useState<CompanyValue | undefined>(undefined);
+  const visibleValueIndexRef = useRef(valueIndex);
+  const activeValueRef = useRef<HTMLSpanElement>(null);
+  const frameRef = useRef<HTMLSpanElement>(null);
+  const previousFrameSizeRef = useRef<{ blockSize: number; inlineSize: number } | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
-    const previousValueIndex = displayedValueIndexRef.current;
+    const previousValueIndex = visibleValueIndexRef.current;
     if (valueIndex === previousValueIndex) {
       return;
     }
 
-    setIsTransitioning(true);
+    setOutgoingValue(getCompanyValue(previousValueIndex));
+    setVisibleValueIndex(valueIndex);
+    visibleValueIndexRef.current = valueIndex;
 
     const transitionTimeout = window.setTimeout(() => {
-      setDisplayedValueIndex(valueIndex);
-      displayedValueIndexRef.current = valueIndex;
-      setIsTransitioning(false);
-    }, COMPANY_VALUE_TRANSITION_DURATION_MS);
+      setOutgoingValue(undefined);
+    }, COMPANY_VALUE_EXIT_DURATION_MS);
 
     return () => {
       window.clearTimeout(transitionTimeout);
     };
   }, [valueIndex]);
 
-  const getValue = (index: number): CompanyValue =>
-    COMPANY_VALUES[(index + COMPANY_VALUES.length) % COMPANY_VALUES.length] ?? COMPANY_VALUES[0];
-  const visibleValues = isTransitioning
-    ? [
-        getValue(displayedValueIndex - 1),
-        getValue(displayedValueIndex),
-        getValue(displayedValueIndex + 1),
-        getValue(displayedValueIndex + 2),
-      ]
-    : [
-        getValue(displayedValueIndex - 1),
-        getValue(displayedValueIndex),
-        getValue(displayedValueIndex + 1),
-      ];
-  const activeValuePosition = isTransitioning ? 2 : 1;
-  const activeValue = getValue(valueIndex);
+  useLayoutEffect(() => {
+    const activeValueElement = activeValueRef.current;
+    const frameElement = frameRef.current;
+    if (!activeValueElement || !frameElement) {
+      return;
+    }
+
+    const resizeFrame = () => {
+      const valueBounds = activeValueElement.getBoundingClientRect();
+      if (valueBounds.width === 0 || valueBounds.height === 0) {
+        return;
+      }
+
+      const nextFrameSize = {
+        inlineSize: valueBounds.width + COMPANY_VALUE_FRAME_INLINE_PADDING_PX,
+        blockSize: valueBounds.height + COMPANY_VALUE_FRAME_BLOCK_PADDING_PX,
+      };
+      const previousFrameSize = previousFrameSizeRef.current;
+
+      frameElement.style.inlineSize = `${nextFrameSize.inlineSize}px`;
+      frameElement.style.blockSize = `${nextFrameSize.blockSize}px`;
+
+      if (
+        previousFrameSize !== undefined &&
+        typeof frameElement.animate === 'function' &&
+        !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      ) {
+        frameElement.getAnimations().forEach((animation) => animation.cancel());
+        frameElement.animate(
+          [
+            {
+              transform: `translate(-50%, -50%) scale(${previousFrameSize.inlineSize / nextFrameSize.inlineSize}, ${previousFrameSize.blockSize / nextFrameSize.blockSize})`,
+            },
+            { transform: 'translate(-50%, -50%) scale(1)' },
+          ],
+          {
+            duration: COMPANY_VALUE_TRANSITION_DURATION_MS,
+            easing: 'cubic-bezier(0.34, 1.22, 0.64, 1)',
+          },
+        );
+      }
+
+      previousFrameSizeRef.current = nextFrameSize;
+    };
+
+    resizeFrame();
+    const resizeObserver =
+      typeof ResizeObserver === 'function' ? new ResizeObserver(resizeFrame) : undefined;
+    resizeObserver?.observe(activeValueElement);
+    window.addEventListener('resize', resizeFrame);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', resizeFrame);
+    };
+  }, [visibleValueIndex]);
+
+  const activeValue = getCompanyValue(visibleValueIndex);
 
   return (
     <div className="company-value">
-      <div className="company-value-loop" aria-hidden="true">
-        <div
-          className={`company-value-track${isTransitioning ? ' company-value-track--advancing' : ''}`}
+      <div className="company-value-stage" aria-hidden="true">
+        {outgoingValue === undefined ? null : (
+          <span className="company-value-copy company-value-copy--outgoing">
+            {outgoingValue.title}
+          </span>
+        )}
+        <span
+          className={`company-value-copy${
+            outgoingValue === undefined ? '' : ' company-value-copy--incoming'
+          }`}
+          key={activeValue.title}
+          ref={activeValueRef}
         >
-          {visibleValues.map((companyValue, index) => (
-            <span
-              className={`company-value-loop-item${
-                index === activeValuePosition ? ' company-value-loop-item--active' : ''
-              }${isTransitioning && index === 1 ? ' company-value-loop-item--outgoing' : ''}`}
-              key={`${companyValue.title}-${index}`}
-            >
-              <span className="company-value-loop-label">
-                {index === activeValuePosition ? (
-                  <>
-                    <span
-                      aria-hidden="true"
-                      className="company-value-corner company-value-corner--top-left"
-                    />
-                    <span
-                      aria-hidden="true"
-                      className="company-value-corner company-value-corner--top-right"
-                    />
-                    <span
-                      aria-hidden="true"
-                      className="company-value-corner company-value-corner--bottom-left"
-                    />
-                    <span
-                      aria-hidden="true"
-                      className="company-value-corner company-value-corner--bottom-right"
-                    />
-                  </>
-                ) : null}
-                {companyValue.title}
-              </span>
-            </span>
-          ))}
-        </div>
+          {activeValue.title}
+        </span>
+        <span className="company-value-frame" ref={frameRef}>
+          <span className="company-value-corner company-value-corner--top-left" />
+          <span className="company-value-corner company-value-corner--top-right" />
+          <span className="company-value-corner company-value-corner--bottom-left" />
+          <span className="company-value-corner company-value-corner--bottom-right" />
+        </span>
       </div>
       <p aria-label={activeValue.title} aria-live="polite" className="visually-hidden">
         {activeValue.title}
@@ -201,21 +241,21 @@ export function HomeLauncher({
         data-layout="application-launcher-grid"
       >
         <div className="launcher-heading">
-          <div>
-            <h1 className="visually-hidden" id="home-title">
-              Plataforma Timbo
-            </h1>
-            <CompanyValueMessage valueIndex={companyValueIndex} />
-          </div>
-          {state.status === 'ready' && state.applications.length > 0 ? (
+          <h1 className="visually-hidden" id="home-title">
+            Plataforma Timbo
+          </h1>
+          <CompanyValueMessage valueIndex={companyValueIndex} />
+        </div>
+        {state.status === 'ready' && state.applications.length > 0 ? (
+          <div className="launcher-meta-row">
             <p className="launcher-count" aria-live="polite">
               {state.applications.length}{' '}
               {state.applications.length === 1
                 ? 'aplicación disponible'
                 : 'aplicaciones disponibles'}
             </p>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
         {logoutFailure === undefined ? null : <p role="alert">{logoutFailure.message}</p>}
         {state.status === 'loading' ? (
           <div className="launcher-state" role="status">
