@@ -174,8 +174,7 @@ export function FinancingConfig({
 
       <div className="cc-config-layout">
         <div className="cc-config-controls">
-          <fieldset className="cc-field-group cc-payment-conditions">
-            <legend>Pago regular</legend>
+          <div className="cc-field-group cc-payment-conditions">
             <div className="cc-config-inline-fields">
               <div className="cc-field">
                 <label htmlFor="cc-term-months">Plazo en meses</label>
@@ -209,7 +208,7 @@ export function FinancingConfig({
                 </select>
               </div>
             </div>
-          </fieldset>
+          </div>
 
           {isTargetInstallment ? (
             <fieldset className="cc-field-group">

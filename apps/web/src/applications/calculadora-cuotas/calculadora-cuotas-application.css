@@ -532,7 +532,7 @@
 
 .cc-config-heading .cc-section-title {
   margin: 0;
-  font-size: clamp(1.5rem, 2vw, 1.75rem);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 800;
   letter-spacing: -0.025em;
 }
@@ -1819,12 +1819,15 @@
   }
 }
 
-/* Condiciones comparte el lienzo blanco del wizard: la regla organiza el trabajo sin crear otra
-   tarjeta dentro de la aplicación. */
+/* Condiciones retoma la superficie de carga de unidades; los grupos internos se separan por
+   ritmo espacial para que ambas modalidades conserven la misma lectura. */
 .cc-section.cc-config {
-  padding: 0;
-  border-top: 0;
-  background: transparent;
+  display: grid;
+  min-width: 0;
+  padding: var(--cc-sp-5);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface);
+  box-shadow: 0 6px 16px rgb(20 32 51 / 8%);
 }
 
 .cc-config-layout {
@@ -1891,8 +1894,28 @@
 
 .cc-config-controls {
   grid-area: controls;
+  display: grid;
+  gap: var(--cc-sp-6);
   width: 100%;
   max-width: 760px;
+}
+
+.cc-config-controls > .cc-field-group,
+.cc-config-controls > .cc-down-payment {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.cc-config-controls > .cc-down-payment {
+  padding-bottom: 0;
+}
+
+.cc-config-controls .cc-field-group legend,
+.cc-config-controls .cc-down-payment legend,
+.cc-reinforcements-title {
+  font-size: 1.25rem;
+  font-weight: 800;
 }
 
 .cc-down-payment {
