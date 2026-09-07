@@ -10,6 +10,7 @@ import './lista-precios-application.css';
 import {
   buildBrandPath,
   buildDetailPath,
+  buildEquipmentRentalCategoryPath,
   buildEquipmentRentalsPath,
   buildSuspensionVariantsPath,
   buildVariantsPath,
@@ -39,6 +40,8 @@ function computeBreadcrumb(
       return undefined;
     case 'equipment-rentals':
       return 'Alquiler de maquinarias';
+    case 'equipment-rentals-category':
+      return `Alquiler de maquinarias · ${route.category}`;
     case 'brand':
       return route.brand;
     case 'suspensions':
@@ -68,6 +71,8 @@ function computeBackLabel(
       return undefined;
     case 'equipment-rentals':
       return 'Inicio';
+    case 'equipment-rentals-category':
+      return 'Alquiler de maquinarias';
     case 'brand':
       return 'Marcas';
     case 'suspensions':
@@ -106,7 +111,9 @@ export function ListaPreciosApplication({
   );
   const { state: equipmentRentalsState, reload: reloadEquipmentRentals } = useEquipmentRentals(
     api,
-    route.view === 'equipment-rentals',
+    route.view === 'home' ||
+      route.view === 'equipment-rentals' ||
+      route.view === 'equipment-rentals-category',
   );
   const { recordConsultationStarted } = useListaPreciosUsageEvents(api, route, vehiclesState);
 
@@ -157,16 +164,21 @@ export function ListaPreciosApplication({
       {route.view === 'home' ? (
         <HomeScreen
           vehiclesState={vehiclesState}
+          equipmentRentalsState={equipmentRentalsState}
           onRetry={() => void reload()}
           onSelectBrand={(brand) => navigateWithinApp(buildBrandPath(launchPath, brand))}
           onSelectEquipmentRentals={() => navigateWithinApp(buildEquipmentRentalsPath(launchPath))}
         />
       ) : null}
 
-      {route.view === 'equipment-rentals' ? (
+      {route.view === 'equipment-rentals' || route.view === 'equipment-rentals-category' ? (
         <EquipmentRentalsScreen
           state={equipmentRentalsState}
           onRetry={() => void reloadEquipmentRentals()}
+          category={route.view === 'equipment-rentals-category' ? route.category : undefined}
+          onSelectCategory={(category) =>
+            navigateWithinApp(buildEquipmentRentalCategoryPath(launchPath, category))
+          }
         />
       ) : null}
 

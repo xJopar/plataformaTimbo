@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildBrandPath,
   buildDetailPath,
+  buildEquipmentRentalCategoryPath,
   buildEquipmentRentalsPath,
   buildHomePath,
   buildSuspensionVariantsPath,
@@ -28,6 +29,12 @@ describe('parseListaPreciosRoute', () => {
     expect(parseListaPreciosRoute(`${LAUNCH_PATH}/equipment-rentals`, LAUNCH_PATH)).toEqual({
       view: 'equipment-rentals',
     });
+  });
+
+  it('reconoce una categoría de alquiler de maquinarias', () => {
+    expect(
+      parseListaPreciosRoute(`${LAUNCH_PATH}/equipment-rentals/Pala%20cargadora`, LAUNCH_PATH),
+    ).toEqual({ view: 'equipment-rentals-category', category: 'Pala cargadora' });
   });
 
   it('reconoce marca + modelo (variantes)', () => {
@@ -98,6 +105,9 @@ describe('builders de ruta', () => {
     expect(buildHomePath(LAUNCH_PATH)).toBe(LAUNCH_PATH);
     expect(buildBrandPath(LAUNCH_PATH, 'Scania')).toBe(`${LAUNCH_PATH}/marca/Scania`);
     expect(buildEquipmentRentalsPath(LAUNCH_PATH)).toBe(`${LAUNCH_PATH}/equipment-rentals`);
+    expect(buildEquipmentRentalCategoryPath(LAUNCH_PATH, 'Pala cargadora')).toBe(
+      `${LAUNCH_PATH}/equipment-rentals/Pala%20cargadora`,
+    );
     expect(buildVariantsPath(LAUNCH_PATH, 'Scania', 'R')).toBe(`${LAUNCH_PATH}/marca/Scania/R`);
     expect(buildSuspensionVariantsPath(LAUNCH_PATH, 'SINOTRUK', 'HOWO NX', 'Neumática')).toBe(
       `${LAUNCH_PATH}/marca/SINOTRUK/HOWO%20NX/Neum%C3%A1tica`,
@@ -123,6 +133,15 @@ describe('getParentPath', () => {
 
   it('vuelve a home desde las tarifas de alquiler', () => {
     expect(getParentPath({ view: 'equipment-rentals' }, LAUNCH_PATH)).toBe(LAUNCH_PATH);
+  });
+
+  it('vuelve a las categorías desde la tabla de alquiler', () => {
+    expect(
+      getParentPath(
+        { view: 'equipment-rentals-category', category: 'Pala cargadora' },
+        LAUNCH_PATH,
+      ),
+    ).toBe(buildEquipmentRentalsPath(LAUNCH_PATH));
   });
 
   it('sube de variants a su brand', () => {

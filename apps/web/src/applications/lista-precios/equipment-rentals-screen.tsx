@@ -51,11 +51,15 @@ export function groupEquipmentRentals(rentals: EquipmentRentalResponse[]): Equip
 interface EquipmentRentalsScreenProps {
   state: EquipmentRentalsState;
   onRetry: () => void;
+  category?: string;
+  onSelectCategory: (category: string) => void;
 }
 
 export function EquipmentRentalsScreen({
   state,
   onRetry,
+  category,
+  onSelectCategory,
 }: EquipmentRentalsScreenProps): React.JSX.Element {
   if (state.status === 'loading') {
     return (
@@ -96,37 +100,64 @@ export function EquipmentRentalsScreen({
     );
   }
 
+  if (category === undefined) {
+    return (
+      <div className="lp-page lp-page--home">
+        <div className="lp-brand-grid">
+          {groups.map((group) => (
+            <button
+              className="lp-brand-card"
+              key={group.label}
+              type="button"
+              onClick={() => onSelectCategory(group.label)}
+            >
+              <span className="lp-brand-card-name">{group.label}</span>
+              <span className="lp-brand-card-meta">
+                {group.rentals.length} modelo{group.rentals.length !== 1 ? 's' : ''}
+              </span>
+              <span className="lp-brand-card-count">
+                <span className="lp-brand-card-count-link">Ver tarifas</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const selectedGroup = groups.find((group) => group.label === category);
+  if (selectedGroup === undefined) {
+    return (
+      <div className="lp-page lp-equipment-rentals-page">
+        <div className="lp-state-box">
+          <span className="lp-state-box-title">Categoría no encontrada</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="lp-page lp-equipment-rentals-page">
-      <div className="lp-equipment-rentals-intro">
-        <h1>Alquiler de maquinarias</h1>
-        <p>Tarifas vigentes por equipo.</p>
+      <div className="lp-equipment-rental-table-wrap">
+        <table className="lp-equipment-rental-table">
+          <thead>
+            <tr>
+              <th scope="col">Descripción del equipo</th>
+              <th scope="col">Capacidad</th>
+              <th scope="col">Tarifa</th>
+            </tr>
+          </thead>
+          <tbody>
+            {selectedGroup.rentals.map((rental, index) => (
+              <tr key={`${rental.description}-${rental.capacity}-${index}`}>
+                <td>{rental.description || '—'}</td>
+                <td>{rental.capacity || '—'}</td>
+                <td>{rental.tariff || 'A consultar'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      {groups.map((group) => (
-        <section className="lp-equipment-rental-group" key={group.label}>
-          <h2>{group.label}</h2>
-          <div className="lp-equipment-rental-table-wrap">
-            <table className="lp-equipment-rental-table">
-              <thead>
-                <tr>
-                  <th scope="col">Descripción del equipo</th>
-                  <th scope="col">Capacidad</th>
-                  <th scope="col">Tarifa</th>
-                </tr>
-              </thead>
-              <tbody>
-                {group.rentals.map((rental, index) => (
-                  <tr key={`${rental.description}-${rental.capacity}-${index}`}>
-                    <td>{rental.description || '—'}</td>
-                    <td>{rental.capacity || '—'}</td>
-                    <td>{rental.tariff || 'A consultar'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ))}
     </div>
   );
 }

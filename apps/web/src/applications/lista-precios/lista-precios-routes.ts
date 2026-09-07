@@ -1,6 +1,7 @@
 export type ListaPreciosRoute =
   | { view: 'home' }
   | { view: 'equipment-rentals' }
+  | { view: 'equipment-rentals-category'; category: string }
   | { view: 'brand'; brand: string }
   | { view: 'suspensions'; brand: string; modelo: string }
   | { view: 'variants'; brand: string; modelo: string; suspension?: string }
@@ -40,6 +41,9 @@ export function parseListaPreciosRoute(pathname: string, launchPath: string): Li
 
   if (segments[0] === 'equipment-rentals' && segments.length === 1) {
     return { view: 'equipment-rentals' };
+  }
+  if (segments[0] === 'equipment-rentals' && segments.length === 2 && segments[1] !== undefined) {
+    return { view: 'equipment-rentals-category', category: segments[1] };
   }
 
   if (segments[0] === 'marca' && segments.length === 2 && segments[1] !== undefined) {
@@ -90,6 +94,10 @@ export function buildEquipmentRentalsPath(launchPath: string): string {
   return `${launchPath}/equipment-rentals`;
 }
 
+export function buildEquipmentRentalCategoryPath(launchPath: string, category: string): string {
+  return `${buildEquipmentRentalsPath(launchPath)}/${encodeURIComponent(category)}`;
+}
+
 export function buildVariantsPath(launchPath: string, brand: string, modelo: string): string {
   return `${launchPath}/marca/${encodeURIComponent(brand)}/${encodeURIComponent(modelo)}`;
 }
@@ -119,6 +127,8 @@ export function getParentPath(route: ListaPreciosRoute, launchPath: string): str
     case 'brand':
     case 'equipment-rentals':
       return buildHomePath(launchPath);
+    case 'equipment-rentals-category':
+      return buildEquipmentRentalsPath(launchPath);
     case 'suspensions':
       return buildBrandPath(launchPath, route.brand);
     case 'variants':

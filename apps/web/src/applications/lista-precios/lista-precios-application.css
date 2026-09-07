@@ -165,14 +165,6 @@
 .lp-brand-card--full {
   grid-column: 1 / -1;
 }
-.lp-brand-card--equipment-rentals {
-  grid-column: 1 / -1;
-  min-height: 112px;
-  background: var(--lp-c-brand-light);
-}
-.lp-brand-card--equipment-rentals .lp-brand-card-count-badge {
-  background: var(--lp-c-surface);
-}
 .lp-brand-card-name {
   font-size: 16px;
   font-weight: 700;
@@ -199,42 +191,17 @@
   background: var(--lp-c-brand-light);
   padding: 2px 6px;
 }
+.lp-brand-card-count-link {
+  color: var(--lp-c-brand-text);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
 
 /* ── Tarifas de alquiler de maquinarias ── */
 .lp-equipment-rentals-page {
   padding-bottom: var(--lp-sp-6);
-}
-.lp-equipment-rentals-intro {
-  padding: var(--lp-sp-6) var(--lp-sp-4) var(--lp-sp-5);
-  background: var(--lp-c-surface);
-  border-bottom: 1px solid var(--lp-c-border);
-}
-.lp-equipment-rentals-intro h1,
-.lp-equipment-rentals-intro p,
-.lp-equipment-rental-group h2 {
-  margin: 0;
-}
-.lp-equipment-rentals-intro h1 {
-  font-size: 20px;
-  line-height: 1.2;
-  letter-spacing: -0.4px;
-  color: var(--lp-c-text-primary);
-}
-.lp-equipment-rentals-intro p {
-  margin-top: var(--lp-sp-1);
-  color: var(--lp-c-text-secondary);
-  font-size: 13px;
-}
-.lp-equipment-rental-group {
-  margin-top: var(--lp-sp-5);
-}
-.lp-equipment-rental-group h2 {
-  padding: 0 var(--lp-sp-4) var(--lp-sp-2);
-  color: var(--lp-c-text-secondary);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 .lp-equipment-rental-table-wrap {
   overflow-x: auto;
