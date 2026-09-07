@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { FinancingConfig, type FinancingConfigValue } from './financing-config';
 
@@ -109,13 +109,21 @@ describe('FinancingConfig', () => {
     expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_VALUE, reinforcementsEnabled: true });
   });
 
-  it('muestra cuota objetivo y refuerzos obligatorios en la modalidad correspondiente', () => {
-    renderConfig({
+  it('muestra la cuota objetivo como subtítulo antes de los refuerzos obligatorios', () => {
+    const { container } = renderConfig({
       ...DEFAULT_VALUE,
       calculationMode: 'target-installment',
       reinforcementsEnabled: true,
     });
-    expect(screen.getByLabelText('Monto de cuota objetivo')).toBeInTheDocument();
+    const targetInstallmentGroup = screen.getByRole('group', { name: 'Monto de cuota objetivo' });
+    expect(targetInstallmentGroup).toBeInTheDocument();
+    expect(within(targetInstallmentGroup).getByLabelText('Monto')).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Refuerzos' })).toBeInTheDocument();
+    expect(
+      Array.from(container.querySelectorAll('.cc-config-controls > fieldset legend')).map(
+        (legend) => legend.textContent,
+      ),
+    ).toEqual(['Monto de cuota objetivo', 'Refuerzos', 'Entrega inicial']);
     expect(screen.queryByRole('switch', { name: 'Activar refuerzos' })).not.toBeInTheDocument();
   });
 

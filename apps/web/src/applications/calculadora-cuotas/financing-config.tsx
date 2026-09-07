@@ -202,30 +202,11 @@ export function FinancingConfig({
           </div>
 
           {isTargetInstallment ? (
-            <fieldset className="cc-field-group">
-              <legend>Refuerzos</legend>
-              <div className="cc-config-inline-fields">
-                <div className="cc-field">
-                  <label htmlFor="cc-reinforcement-periodicity">Periodicidad de refuerzos</label>
-                  <select
-                    id="cc-reinforcement-periodicity"
-                    value={value.reinforcementPeriodicity}
-                    onChange={(event) =>
-                      onChange({
-                        ...value,
-                        reinforcementPeriodicity: event.target.value as CuotaPeriodicity,
-                      })
-                    }
-                  >
-                    {REINFORCEMENT_PERIODICITY_OPTIONS.map((periodicity) => (
-                      <option key={periodicity} value={periodicity}>
-                        {PERIODICITY_LABELS[periodicity]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <>
+              <fieldset className="cc-field-group">
+                <legend>Monto de cuota objetivo</legend>
                 <div className="cc-field cc-field--important">
-                  <label htmlFor="cc-desired-regular-installment">Monto de cuota objetivo</label>
+                  <label htmlFor="cc-desired-regular-installment">Monto</label>
                   <div className="cc-input-with-suffix">
                     <input
                       id="cc-desired-regular-installment"
@@ -247,8 +228,33 @@ export function FinancingConfig({
                     <span aria-hidden="true">USD</span>
                   </div>
                 </div>
-              </div>
-            </fieldset>
+              </fieldset>
+
+              <fieldset className="cc-field-group">
+                <legend>Refuerzos</legend>
+                <div className="cc-config-inline-fields">
+                  <div className="cc-field">
+                    <label htmlFor="cc-reinforcement-periodicity">Periodicidad de refuerzos</label>
+                    <select
+                      id="cc-reinforcement-periodicity"
+                      value={value.reinforcementPeriodicity}
+                      onChange={(event) =>
+                        onChange({
+                          ...value,
+                          reinforcementPeriodicity: event.target.value as CuotaPeriodicity,
+                        })
+                      }
+                    >
+                      {REINFORCEMENT_PERIODICITY_OPTIONS.map((periodicity) => (
+                        <option key={periodicity} value={periodicity}>
+                          {PERIODICITY_LABELS[periodicity]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </fieldset>
+            </>
           ) : (
             <fieldset
               className="cc-field-group cc-reinforcements-disclosure"
