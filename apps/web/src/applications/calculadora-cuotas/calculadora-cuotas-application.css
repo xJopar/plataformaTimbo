@@ -1454,13 +1454,14 @@
   cursor: default;
 }
 
-/* Configuración y Cuotero son superficies hermanas. El acento y el blanco facilitan escanear
-   ambos bloques sin anidar tarjetas ni competir con el resultado. */
-.cc-section.cc-config,
+/* El plan final retoma la superficie del wizard, con más elevación para señalar el cierre. */
 .cc-section.cc-cuotero {
+  display: grid;
+  min-width: 0;
   padding: var(--cc-sp-5);
-  border-top: 3px solid var(--cc-c-brand);
-  background: var(--cc-c-surface-alt);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface);
+  box-shadow: 0 12px 28px rgb(20 32 51 / 14%);
 }
 
 .cc-section.cc-config .cc-section-heading,
@@ -1469,7 +1470,7 @@
 }
 
 .cc-section.cc-cuotero .cc-section-heading {
-  margin-top: var(--cc-sp-2);
+  margin-top: 0;
 }
 
 .cc-section.cc-config .cc-section-heading,

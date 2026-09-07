@@ -235,7 +235,7 @@ export async function downloadInstallmentSummaryImage({
   setFont(context, 20, 700);
   context.fillStyle = '#ffffff';
   context.textAlign = 'right';
-  context.fillText('RECIBO DE CUOTAS', IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, 61);
+  context.fillText('PLAN DE PAGO', IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, 61);
   context.textAlign = 'left';
 
   let y = HEADER_HEIGHT + 48;
