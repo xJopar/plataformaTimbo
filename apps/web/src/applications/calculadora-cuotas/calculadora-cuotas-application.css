@@ -1974,6 +1974,15 @@
    sin extenderse como una fila de datos. En pantallas angostas usa el ancho disponible. */
 .cc-target-installment-field {
   inline-size: min(100%, 20rem);
+  margin-top: var(--cc-sp-1);
+}
+
+/* El importe acompaña a su título, mientras que el plazo inicia el siguiente ajuste sin crear
+   una pausa visual excesiva entre ambas decisiones. */
+.cc-field-group:has(.cc-target-installment-field)
+  + .cc-payment-conditions
+  .cc-config-inline-fields {
+  margin-top: 0;
 }
 
 .cc-down-payment {
