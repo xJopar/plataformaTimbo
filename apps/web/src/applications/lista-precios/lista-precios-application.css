@@ -274,9 +274,10 @@
     white-space: nowrap;
   }
   .lp-equipment-rental-table tr {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--lp-sp-3);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--lp-sp-4);
     padding: var(--lp-sp-4);
     background: var(--lp-c-surface);
     border-bottom: 1px solid var(--lp-c-border);
@@ -286,7 +287,6 @@
     border: 0;
   }
   .lp-equipment-rental-table td:first-child {
-    grid-column: 1 / -1;
     color: var(--lp-c-text-primary);
     font-size: 15px;
     font-weight: 700;
@@ -294,14 +294,14 @@
   }
   .lp-equipment-rental-table td:nth-child(2),
   .lp-equipment-rental-table td:last-child {
-    width: auto;
+    width: 100%;
     font-family: inherit;
     font-size: 13px;
     font-weight: 500;
     white-space: normal;
   }
   .lp-equipment-rental-table td:last-child {
-    text-align: right;
+    text-align: left;
     color: var(--lp-c-brand);
     font-family: var(--lp-font-mono);
     font-weight: 700;
@@ -322,6 +322,7 @@
   }
   .lp-equipment-rental-table td:last-child::before {
     content: 'Tarifa hora';
+    color: var(--lp-c-brand-text);
   }
 }
 
