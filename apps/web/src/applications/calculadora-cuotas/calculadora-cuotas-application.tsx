@@ -340,6 +340,7 @@ export function CalculadoraCuotasApplication({
               data-transition-direction={screenTransitionDirection}
             >
               <InstallmentSummary
+                items={items}
                 planResult={planResult}
                 installmentPeriodicity={calculatedConfig.installmentPeriodicity}
                 reinforcementPeriodicity={calculatedConfig.reinforcementPeriodicity}

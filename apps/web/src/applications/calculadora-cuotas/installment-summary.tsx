@@ -5,12 +5,14 @@ import {
   formatUsd,
   PERIODICITY_ADJECTIVE_PLURAL,
   type CalculationMode,
+  type CalculatorItem,
   type CuotaPeriodicity,
   type InstallmentPlanResult,
 } from './installment-calculator';
 import { downloadInstallmentSummaryImage } from './installment-summary-image';
 
 interface InstallmentSummaryProps {
+  items: readonly CalculatorItem[];
   planResult: InstallmentPlanResult;
   installmentPeriodicity: CuotaPeriodicity;
   reinforcementPeriodicity: CuotaPeriodicity;
@@ -18,6 +20,7 @@ interface InstallmentSummaryProps {
 }
 
 export function InstallmentSummary({
+  items,
   planResult,
   installmentPeriodicity,
   reinforcementPeriodicity,
@@ -32,6 +35,7 @@ export function InstallmentSummary({
     setDownloadFailure(undefined);
     try {
       await downloadInstallmentSummaryImage({
+        items,
         plan: planResult.plan,
         installmentPeriodicity,
         reinforcementPeriodicity,
