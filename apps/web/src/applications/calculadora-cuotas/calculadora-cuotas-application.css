@@ -1842,8 +1842,9 @@
   grid-area: summary;
   display: grid;
   gap: var(--cc-sp-4);
-  padding-bottom: var(--cc-sp-5);
-  border-bottom: 1px solid var(--cc-c-border);
+  padding: var(--cc-sp-5);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface);
 }
 
 .cc-config-summary-heading {
@@ -2019,10 +2020,8 @@
   .cc-config-summary {
     position: sticky;
     top: var(--cc-sp-5);
-    padding: 0 0 0 var(--cc-sp-5);
-    border-top: 0;
-    border-bottom: 0;
-    border-left: 1px solid var(--cc-c-border);
+    padding: var(--cc-sp-5);
+    border: 1px solid var(--cc-c-border);
   }
 }
 
