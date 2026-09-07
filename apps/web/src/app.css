@@ -430,7 +430,6 @@ h1 {
 }
 .company-value-track {
   display: block;
-  will-change: transform;
 }
 .company-value-track--advancing {
   animation: company-value-advance 560ms cubic-bezier(0.34, 1.42, 0.64, 1) both;
@@ -439,16 +438,15 @@ h1 {
   position: relative;
   block-size: var(--company-value-row-height);
   display: block;
-  overflow: hidden;
+  overflow: visible;
   color: #64748b;
-  font-weight: 700;
-  opacity: 0.46;
+  font-weight: 600;
+  opacity: 0.4;
   text-overflow: ellipsis;
   transform: scale(0.96);
   transition:
     color 180ms ease,
     filter 180ms ease,
-    font-weight 180ms ease,
     opacity 180ms ease,
     transform 180ms ease;
   white-space: nowrap;
@@ -458,35 +456,56 @@ h1 {
   position: relative;
   display: inline-block;
   max-inline-size: calc(100% - 32px);
+  padding-inline: 2px;
 }
 .company-value-loop-item--active {
   color: #142033;
-  font-weight: 800;
+  font-weight: 750;
   opacity: 1;
   transform: scale(1);
 }
 .company-value-loop-item--outgoing {
-  opacity: 0.56;
+  color: #334155;
+  font-weight: 650;
+  opacity: 0.58;
 }
-.company-value-loop-item--active .company-value-loop-label::before,
-.company-value-loop-item--active .company-value-loop-label::after {
+.company-value-corner {
   position: absolute;
-  inset-block-start: calc(50% - 0.42em);
-  inline-size: 10px;
-  block-size: 0.84em;
-  content: '';
+  inline-size: 13px;
+  block-size: 13px;
+  border-color: #006cff;
+  border-style: solid;
+  border-width: 0;
   opacity: 0;
-  animation: company-value-corners-enter 560ms cubic-bezier(0.34, 1.42, 0.64, 1) both;
+  animation: company-value-corner-enter 560ms cubic-bezier(0.34, 1.42, 0.64, 1) both;
 }
-.company-value-loop-item--active .company-value-loop-label::before {
-  inset-inline-start: -18px;
-  border-block: 2px solid #006cff;
-  border-inline-start: 2px solid #006cff;
+.company-value-corner--top-left {
+  inset-block-start: -8px;
+  inset-inline-start: -12px;
+  border-block-start-width: 2px;
+  border-inline-start-width: 2px;
+  animation-delay: 0ms;
 }
-.company-value-loop-item--active .company-value-loop-label::after {
-  inset-inline-end: -18px;
-  border-block: 2px solid #006cff;
-  border-inline-end: 2px solid #006cff;
+.company-value-corner--top-right {
+  inset-block-start: -8px;
+  inset-inline-end: -12px;
+  border-block-start-width: 2px;
+  border-inline-end-width: 2px;
+  animation-delay: 24ms;
+}
+.company-value-corner--bottom-left {
+  inset-block-end: -8px;
+  inset-inline-start: -12px;
+  border-block-end-width: 2px;
+  border-inline-start-width: 2px;
+  animation-delay: 42ms;
+}
+.company-value-corner--bottom-right {
+  inset-block-end: -8px;
+  inset-inline-end: -12px;
+  border-block-end-width: 2px;
+  border-inline-end-width: 2px;
+  animation-delay: 66ms;
 }
 @keyframes company-value-advance {
   to {
@@ -501,7 +520,7 @@ h1 {
     transform: translateY(calc(-2 * var(--company-value-row-height)));
   }
 }
-@keyframes company-value-corners-enter {
+@keyframes company-value-corner-enter {
   0% {
     opacity: 0;
     scale: 0.72;
@@ -1725,11 +1744,6 @@ th {
     font-weight: 800;
     opacity: 1;
     transform: scale(1);
-  }
-  .company-value-loop-item--active .company-value-loop-label::before,
-  .company-value-loop-item--active .company-value-loop-label::after {
-    inset-block: 0;
-    block-size: auto;
   }
   .launcher-state {
     min-height: 300px;

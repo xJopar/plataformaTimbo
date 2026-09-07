@@ -88,7 +88,29 @@ function CompanyValueMessage({ valueIndex }: { valueIndex: number }): React.JSX.
               }${isTransitioning && index === 1 ? ' company-value-loop-item--outgoing' : ''}`}
               key={`${companyValue.title}-${index}`}
             >
-              <span className="company-value-loop-label">{companyValue.title}</span>
+              <span className="company-value-loop-label">
+                {index === activeValuePosition ? (
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="company-value-corner company-value-corner--top-left"
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="company-value-corner company-value-corner--top-right"
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="company-value-corner company-value-corner--bottom-left"
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="company-value-corner company-value-corner--bottom-right"
+                    />
+                  </>
+                ) : null}
+                {companyValue.title}
+              </span>
             </span>
           ))}
         </div>
