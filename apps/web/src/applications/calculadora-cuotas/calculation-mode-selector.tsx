@@ -26,35 +26,39 @@ export function CalculationModeSelector({
       >
         <div className="cc-calculation-mode-list" aria-hidden="true">
           <div className="cc-calculation-mode-copy cc-calculation-mode-copy--standard">
-            <strong>Normal</strong>
-            <span>Configurá plazo, periodicidad, refuerzos y entrega inicial.</span>
+            <strong>Configurar plan</strong>
+            <span>Elegí plazo, entrega y refuerzos.</span>
           </div>
+
           <div className="cc-calculation-mode-copy cc-calculation-mode-copy--target">
-            <strong>Cuota objetivo</strong>
-            <span>Partí del importe que el cliente desea pagar por cuota.</span>
+            <strong>Elegir cuota</strong>
+            <span>Ingresá cuánto quiere pagar por cuota.</span>
           </div>
         </div>
         <div className="cc-calculation-mode-surface" aria-hidden="true">
           <div className="cc-calculation-mode-copy cc-calculation-mode-copy--standard">
-            <strong>Normal</strong>
-            <span>Configurá plazo, periodicidad, refuerzos y entrega inicial.</span>
+            <strong>Configurar plan</strong>
+            <span>Elegí plazo, entrega y refuerzos.</span>
           </div>
+
           <div className="cc-calculation-mode-copy cc-calculation-mode-copy--target">
-            <strong>Cuota objetivo</strong>
-            <span>Partí del importe que el cliente desea pagar por cuota.</span>
+            <strong>Elegir cuota</strong>
+            <span>Ingresá cuánto quiere pagar por cuota.</span>
           </div>
         </div>
+
         <button
           type="button"
-          aria-label="Normal"
+          aria-label="Configurar plan"
           aria-pressed={selectedMode === 'standard'}
           className="cc-calculation-mode-option cc-calculation-mode-option--standard"
           data-selected={selectedMode === 'standard'}
           onClick={() => onSelect('standard')}
         />
+
         <button
           type="button"
-          aria-label="Cuota objetivo"
+          aria-label="Elegir cuota"
           aria-pressed={selectedMode === 'target-installment'}
           className="cc-calculation-mode-option cc-calculation-mode-option--target"
           data-selected={selectedMode === 'target-installment'}
