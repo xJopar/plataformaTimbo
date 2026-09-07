@@ -415,23 +415,16 @@ h1 {
   color: #475569;
   line-height: 1.6;
 }
-.company-value-kicker {
-  margin-bottom: 6px !important;
-  color: #00388a !important;
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
 .company-value {
   max-width: 72rem;
+  text-align: center;
 }
 .company-value-loop {
   position: relative;
-  --company-value-row-height: 2.05rem;
+  --company-value-row-height: 1.85rem;
   block-size: calc(var(--company-value-row-height) * 3);
   overflow: hidden;
-  font-size: clamp(1.25rem, 2.65vw, 2rem);
+  font-size: clamp(1.05rem, 2.1vw, 1.6rem);
   letter-spacing: -0.03em;
   line-height: var(--company-value-row-height) !important;
 }
@@ -486,18 +479,26 @@ h1 {
   animation: company-value-corners-enter 560ms cubic-bezier(0.34, 1.42, 0.64, 1) both;
 }
 .company-value-loop-item--active .company-value-loop-label::before {
-  inset-inline-end: calc(100% + 8px);
+  inset-inline-start: -18px;
   border-block: 2px solid #006cff;
   border-inline-start: 2px solid #006cff;
 }
 .company-value-loop-item--active .company-value-loop-label::after {
-  inset-inline-start: calc(100% + 8px);
+  inset-inline-end: -18px;
   border-block: 2px solid #006cff;
   border-inline-end: 2px solid #006cff;
 }
 @keyframes company-value-advance {
   to {
     transform: translateY(calc(-1 * var(--company-value-row-height)));
+  }
+}
+@keyframes company-value-advance-mobile {
+  from {
+    transform: translateY(calc(-1 * var(--company-value-row-height)));
+  }
+  to {
+    transform: translateY(calc(-2 * var(--company-value-row-height)));
   }
 }
 @keyframes company-value-corners-enter {
@@ -1695,9 +1696,16 @@ th {
     padding-bottom: 0;
   }
   .company-value-loop {
-    --company-value-row-height: 3rem;
-    font-size: clamp(1.1rem, 5vw, 1.35rem);
+    --company-value-row-height: 4rem;
+    block-size: var(--company-value-row-height);
+    font-size: clamp(1rem, 4.8vw, 1.25rem);
     line-height: 1.25 !important;
+  }
+  .company-value-track {
+    transform: translateY(calc(-1 * var(--company-value-row-height)));
+  }
+  .company-value-track--advancing {
+    animation-name: company-value-advance-mobile;
   }
   .company-value-loop-item {
     display: grid;
@@ -1706,6 +1714,17 @@ th {
     overflow: visible;
     text-overflow: clip;
     white-space: normal;
+  }
+  .company-value-loop-item:not(.company-value-loop-item--active):not(
+      .company-value-loop-item--outgoing
+    ) {
+    visibility: hidden;
+  }
+  .company-value-loop-item--outgoing {
+    color: #142033;
+    font-weight: 800;
+    opacity: 1;
+    transform: scale(1);
   }
   .company-value-loop-item--active .company-value-loop-label::before,
   .company-value-loop-item--active .company-value-loop-label::after {
@@ -1820,6 +1839,6 @@ th {
   }
   .company-value-track--advancing {
     animation: none;
-    transform: translateY(calc(-1 * var(--company-value-row-height)));
+    transform: translateY(calc(-2 * var(--company-value-row-height)));
   }
 }

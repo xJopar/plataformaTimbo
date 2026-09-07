@@ -183,7 +183,6 @@ export function HomeLauncher({
             <h1 className="visually-hidden" id="home-title">
               Plataforma Timbo
             </h1>
-            <p className="company-value-kicker">Valores que nos mueven</p>
             <CompanyValueMessage valueIndex={companyValueIndex} />
           </div>
           {state.status === 'ready' && state.applications.length > 0 ? (
