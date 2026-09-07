@@ -1,17 +1,30 @@
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Api, AuthSession } from '../api';
 import { useAuthorizedApplications } from '../applications/use-authorized-applications';
 import { PlatformHeader } from '../layout/platform-header';
 import { PlatformSessionBar } from '../layout/platform-session-bar';
 
 const COMPANY_VALUES = [
-  'La pasión por el cliente guía cada solución que ponemos en tus manos.',
-  'Actuamos con proactividad y lideramos con el ejemplo, todos los días.',
-  'Elegimos la evolución continua para aprender, mejorar y avanzar juntos.',
-  'Cuidamos a las personas y al medio ambiente en cada decisión que tomamos.',
+  {
+    title: 'Pasión por el cliente',
+    description: 'Cada solución empieza por las personas que la usan.',
+  },
+  {
+    title: 'Proactividad que lidera',
+    description: 'Actuamos con iniciativa y damos el ejemplo todos los días.',
+  },
+  {
+    title: 'Evolución continua',
+    description: 'Aprendemos, mejoramos y avanzamos juntos.',
+  },
+  {
+    title: 'Cuidamos lo que importa',
+    description: 'Las personas y el medio ambiente guían cada decisión.',
+  },
 ] as const;
 
-const COMPANY_VALUE_ROTATION_INTERVAL_MS = 15_000;
+const COMPANY_VALUE_ROTATION_INTERVAL_MS = 6_400;
+const COMPANY_VALUE_TRANSITION_DURATION_MS = 480;
 
 interface HomeLauncherProps {
   api: Api;
@@ -23,57 +36,53 @@ interface HomeLauncherProps {
   onSessionExpired: () => void;
 }
 
-const WORD_REVEAL_DURATION_MS = 480;
-const WORD_REVEAL_STAGGER_MS = 38;
+type CompanyValue = (typeof COMPANY_VALUES)[number];
 
-function CompanyValueMessage({ value }: { value: string }): React.JSX.Element {
-  const containerRef = useRef<HTMLParagraphElement>(null);
-  const words = useMemo(() => value.split(' '), [value]);
+function CompanyValueMessage({ value }: { value: CompanyValue }): React.JSX.Element {
+  const [visibleValue, setVisibleValue] = useState(value);
+  const [outgoingValue, setOutgoingValue] = useState<CompanyValue | undefined>(undefined);
+  const visibleValueRef = useRef(value);
 
-  useLayoutEffect(() => {
-    const container = containerRef.current;
-    if (
-      !container ||
-      typeof Element.prototype.animate !== 'function' ||
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    ) {
+  useEffect(() => {
+    const previousValue = visibleValueRef.current;
+    if (value === previousValue) {
       return;
     }
 
-    const animations = Array.from(container.querySelectorAll<HTMLElement>('[data-word]')).map(
-      (wordElement, index) =>
-        wordElement.animate(
-          [
-            { opacity: 0, transform: 'translateY(10px)' },
-            { opacity: 1, transform: 'translateY(0)' },
-          ],
-          {
-            duration: WORD_REVEAL_DURATION_MS,
-            delay: index * WORD_REVEAL_STAGGER_MS,
-            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            fill: 'backwards',
-          },
-        ),
-    );
+    setOutgoingValue(previousValue);
+    setVisibleValue(value);
+    visibleValueRef.current = value;
+
+    const transitionTimeout = window.setTimeout(() => {
+      setOutgoingValue(undefined);
+    }, COMPANY_VALUE_TRANSITION_DURATION_MS);
 
     return () => {
-      animations.forEach((animation) => animation.cancel());
+      window.clearTimeout(transitionTimeout);
     };
   }, [value]);
 
   return (
-    <p className="company-value" ref={containerRef} aria-label={value}>
-      <span aria-hidden="true">
-        {words.map((word, index) => (
-          <Fragment key={index}>
-            <span className="company-value-word" data-word>
-              {word}
-            </span>
-            {index < words.length - 1 ? ' ' : ''}
-          </Fragment>
-        ))}
-      </span>
-    </p>
+    <div className="company-value">
+      <p className="company-value-loop" aria-hidden="true">
+        {outgoingValue === undefined ? null : (
+          <span className="company-value-loop-item company-value-loop-item--outgoing">
+            {outgoingValue.title}
+          </span>
+        )}
+        <span className="company-value-loop-item" key={visibleValue.title}>
+          {visibleValue.title}
+        </span>
+      </p>
+      <p className="company-value-detail">{visibleValue.description}</p>
+      <p
+        aria-label={`${visibleValue.title}. ${visibleValue.description}`}
+        aria-live="polite"
+        className="visually-hidden"
+      >
+        {visibleValue.title}. {visibleValue.description}
+      </p>
+    </div>
   );
 }
 
@@ -157,7 +166,10 @@ export function HomeLauncher({
       >
         <div className="launcher-heading">
           <div>
-            <h1 id="home-title">Apps</h1>
+            <h1 className="visually-hidden" id="home-title">
+              Plataforma Timbo
+            </h1>
+            <p className="company-value-kicker">Valores que nos mueven</p>
             <CompanyValueMessage value={COMPANY_VALUES[companyValueIndex] ?? COMPANY_VALUES[0]} />
           </div>
           {state.status === 'ready' && state.applications.length > 0 ? (
