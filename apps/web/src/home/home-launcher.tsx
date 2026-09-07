@@ -6,25 +6,21 @@ import { PlatformSessionBar } from '../layout/platform-session-bar';
 
 const COMPANY_VALUES = [
   {
-    title: 'Pasión por el cliente',
-    description: 'Cada solución empieza por las personas que la usan.',
+    title: 'Proactividad y liderar con el ejemplo',
   },
   {
-    title: 'Proactividad que lidera',
-    description: 'Actuamos con iniciativa y damos el ejemplo todos los días.',
+    title: 'Pasión por el cliente',
+  },
+  {
+    title: 'Respeto por las personas y el medio ambiente',
   },
   {
     title: 'Evolución continua',
-    description: 'Aprendemos, mejoramos y avanzamos juntos.',
-  },
-  {
-    title: 'Cuidamos lo que importa',
-    description: 'Las personas y el medio ambiente guían cada decisión.',
   },
 ] as const;
 
-const COMPANY_VALUE_ROTATION_INTERVAL_MS = 6_400;
-const COMPANY_VALUE_TRANSITION_DURATION_MS = 480;
+const COMPANY_VALUE_ROTATION_INTERVAL_MS = 5_600;
+const COMPANY_VALUE_TRANSITION_DURATION_MS = 560;
 
 interface HomeLauncherProps {
   api: Api;
@@ -38,49 +34,67 @@ interface HomeLauncherProps {
 
 type CompanyValue = (typeof COMPANY_VALUES)[number];
 
-function CompanyValueMessage({ value }: { value: CompanyValue }): React.JSX.Element {
-  const [visibleValue, setVisibleValue] = useState(value);
-  const [outgoingValue, setOutgoingValue] = useState<CompanyValue | undefined>(undefined);
-  const visibleValueRef = useRef(value);
+function CompanyValueMessage({ valueIndex }: { valueIndex: number }): React.JSX.Element {
+  const [displayedValueIndex, setDisplayedValueIndex] = useState(valueIndex);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const displayedValueIndexRef = useRef(valueIndex);
 
   useEffect(() => {
-    const previousValue = visibleValueRef.current;
-    if (value === previousValue) {
+    const previousValueIndex = displayedValueIndexRef.current;
+    if (valueIndex === previousValueIndex) {
       return;
     }
 
-    setOutgoingValue(previousValue);
-    setVisibleValue(value);
-    visibleValueRef.current = value;
+    setIsTransitioning(true);
 
     const transitionTimeout = window.setTimeout(() => {
-      setOutgoingValue(undefined);
+      setDisplayedValueIndex(valueIndex);
+      displayedValueIndexRef.current = valueIndex;
+      setIsTransitioning(false);
     }, COMPANY_VALUE_TRANSITION_DURATION_MS);
 
     return () => {
       window.clearTimeout(transitionTimeout);
     };
-  }, [value]);
+  }, [valueIndex]);
+
+  const getValue = (index: number): CompanyValue =>
+    COMPANY_VALUES[(index + COMPANY_VALUES.length) % COMPANY_VALUES.length] ?? COMPANY_VALUES[0];
+  const visibleValues = isTransitioning
+    ? [
+        getValue(displayedValueIndex - 1),
+        getValue(displayedValueIndex),
+        getValue(displayedValueIndex + 1),
+        getValue(displayedValueIndex + 2),
+      ]
+    : [
+        getValue(displayedValueIndex - 1),
+        getValue(displayedValueIndex),
+        getValue(displayedValueIndex + 1),
+      ];
+  const activeValuePosition = isTransitioning ? 2 : 1;
+  const activeValue = getValue(valueIndex);
 
   return (
     <div className="company-value">
-      <p className="company-value-loop" aria-hidden="true">
-        {outgoingValue === undefined ? null : (
-          <span className="company-value-loop-item company-value-loop-item--outgoing">
-            {outgoingValue.title}
-          </span>
-        )}
-        <span className="company-value-loop-item" key={visibleValue.title}>
-          {visibleValue.title}
-        </span>
-      </p>
-      <p className="company-value-detail">{visibleValue.description}</p>
-      <p
-        aria-label={`${visibleValue.title}. ${visibleValue.description}`}
-        aria-live="polite"
-        className="visually-hidden"
-      >
-        {visibleValue.title}. {visibleValue.description}
+      <div className="company-value-loop" aria-hidden="true">
+        <div
+          className={`company-value-track${isTransitioning ? ' company-value-track--advancing' : ''}`}
+        >
+          {visibleValues.map((companyValue, index) => (
+            <span
+              className={`company-value-loop-item${
+                index === activeValuePosition ? ' company-value-loop-item--active' : ''
+              }${isTransitioning && index === 1 ? ' company-value-loop-item--outgoing' : ''}`}
+              key={`${companyValue.title}-${index}`}
+            >
+              <span className="company-value-loop-label">{companyValue.title}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+      <p aria-label={activeValue.title} aria-live="polite" className="visually-hidden">
+        {activeValue.title}
       </p>
     </div>
   );
@@ -170,7 +184,7 @@ export function HomeLauncher({
               Plataforma Timbo
             </h1>
             <p className="company-value-kicker">Valores que nos mueven</p>
-            <CompanyValueMessage value={COMPANY_VALUES[companyValueIndex] ?? COMPANY_VALUES[0]} />
+            <CompanyValueMessage valueIndex={companyValueIndex} />
           </div>
           {state.status === 'ready' && state.applications.length > 0 ? (
             <p className="launcher-count" aria-live="polite">

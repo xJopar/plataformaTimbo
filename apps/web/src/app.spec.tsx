@@ -291,11 +291,7 @@ describe('App', () => {
 
     expect(await screen.findByRole('heading', { name: 'Plataforma Timbo' })).toBeInTheDocument();
     expect(screen.getByText('Persona Timbo')).toBeInTheDocument();
-    expect(
-      screen.getByLabelText(
-        'Pasión por el cliente. Cada solución empieza por las personas que la usan.',
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Proactividad y liderar con el ejemplo')).toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: 'Administración de plataforma' }),
     ).not.toBeInTheDocument();
