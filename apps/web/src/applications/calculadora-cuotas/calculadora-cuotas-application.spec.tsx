@@ -53,7 +53,7 @@ describe('CalculadoraCuotasApplication', () => {
     expect(screen.getByLabelText('Precio (USD)')).toHaveValue('100.000');
     await user.click(screen.getByRole('button', { name: 'Agregar' }));
     await user.click(screen.getByRole('button', { name: 'Continuar con financiación' }));
-    await user.click(screen.getByRole('button', { name: /^Normal/ }));
+    await user.click(screen.getByRole('button', { name: 'Configurar plan' }));
     await user.click(screen.getByRole('button', { name: 'Continuar con condiciones' }));
     expect(screen.getByLabelText('Porcentaje')).toHaveValue('20');
     await user.click(screen.getByRole('button', { name: 'Calcular plan' }));

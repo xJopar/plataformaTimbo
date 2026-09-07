@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import {
+  calculateInstallmentPlan,
   formatUsd,
   PERIODICITY_LABELS,
   type CalculationMode,
+  type CalculatorItem,
   type CuotaPeriodicity,
   type DownPaymentMode,
+  type InstallmentPlanResult,
 } from './installment-calculator';
 import { InitialDownPaymentField } from './initial-down-payment-field';
 import { ReinforcementSwitch } from './reinforcement-switch';
@@ -27,12 +30,71 @@ export interface FinancingConfigValue {
 }
 
 interface FinancingConfigProps {
+  items: CalculatorItem[];
   value: FinancingConfigValue;
   totalPriceUsd: number;
   totalQuantity: number;
   onBack: (isPointerInitiated: boolean) => void;
   onCalculate: (nextValue: FinancingConfigValue, isPointerInitiated: boolean) => void;
   onChange: (value: FinancingConfigValue) => void;
+}
+
+type InvalidField =
+  | 'downPayment'
+  | 'reinforcementAmount'
+  | 'reinforcementPeriodicity'
+  | 'targetInstallment'
+  | 'termMonths';
+
+interface CalculationError {
+  fields: readonly InvalidField[];
+  message: string;
+}
+
+function getCalculationError(
+  result: Exclude<InstallmentPlanResult, { status: 'ok' }>,
+  calculationMode: CalculationMode,
+): CalculationError {
+  switch (result.status) {
+    case 'empty':
+      return {
+        fields: [],
+        message: 'Agregá al menos una unidad o un precio manual antes de calcular.',
+      };
+    case 'invalid-term-reinforcement-combination':
+      return {
+        fields: ['termMonths', 'reinforcementPeriodicity'],
+        message:
+          'Esa combinación de plazo y frecuencia de refuerzos no deja cuotas regulares disponibles. Cambiá el plazo o la frecuencia de refuerzos.',
+      };
+    case 'reinforcement-installment-required':
+      return calculationMode === 'standard'
+        ? {
+            fields: ['reinforcementAmount'],
+            message: 'Ingresá el monto de cada refuerzo para continuar.',
+          }
+        : {
+            fields: ['targetInstallment'],
+            message: 'Ingresá el monto de cuota objetivo para continuar.',
+          };
+    case 'reinforcement-amount-negative':
+      return calculationMode === 'standard'
+        ? {
+            fields: ['reinforcementAmount'],
+            message:
+              'El total de refuerzos supera el saldo financiado. Reducí su monto o cambiá las condiciones.',
+          }
+        : {
+            fields: ['targetInstallment'],
+            message:
+              'El total de cuotas regulares supera el saldo financiado. Reducí el monto de la cuota o cambiá las condiciones.',
+          };
+    case 'regular-installment-negative':
+      return {
+        fields: ['downPayment'],
+        message: 'No queda saldo para distribuir en cuotas. Revisá la entrega inicial y el plazo.',
+      };
+  }
 }
 
 function parseDecimal(value: string): number | undefined {
@@ -68,6 +130,7 @@ function formatWhileTyping(value: string): string {
 }
 
 export function FinancingConfig({
+  items,
   value,
   totalPriceUsd,
   totalQuantity,
@@ -89,7 +152,7 @@ export function FinancingConfig({
   const [targetInstallmentInput, setTargetInstallmentInput] = useState(
     formatEditableUsd(value.desiredRegularInstallmentAmountUsd),
   );
-  const [fieldError, setFieldError] = useState<string | undefined>(undefined);
+  const [calculationError, setCalculationError] = useState<CalculationError | undefined>(undefined);
 
   useEffect(() => setTermInput(String(value.termMonths)), [value.termMonths]);
   useEffect(
@@ -102,6 +165,7 @@ export function FinancingConfig({
   );
 
   function updateTerm(nextInput: string): void {
+    setCalculationError(undefined);
     const formatted = nextInput.replace(/\D/g, '');
     setTermInput(formatted);
     const parsed = Number(formatted);
@@ -113,21 +177,28 @@ export function FinancingConfig({
     update: (amount: number) => FinancingConfigValue,
     setInput: (input: string) => void,
   ): void {
+    setCalculationError(undefined);
     const formatted = formatWhileTyping(nextInput);
     setInput(formatted);
     const parsed = parseDecimal(formatted);
     if (parsed !== undefined && parsed >= 0) onChange(update(parsed));
   }
 
-  function reportInvalidField(message: string): void {
-    setFieldError(message);
+  function reportCalculationError(error: CalculationError): void {
+    setCalculationError(error);
+    toast.error(error.message);
+  }
+
+  function reportInvalidField(message: string, fields: readonly InvalidField[]): void {
+    const error = { message, fields };
+    setCalculationError(error);
     toast.error(message);
   }
 
   function handleCalculate(event: React.MouseEvent<HTMLButtonElement>): void {
     const termMonths = Number(termInput);
     if (!Number.isInteger(termMonths) || termMonths < 1) {
-      reportInvalidField('Ingresá un plazo de al menos un mes.');
+      reportInvalidField('Ingresá un plazo de al menos un mes.', ['termMonths']);
       return;
     }
 
@@ -138,19 +209,32 @@ export function FinancingConfig({
       value.reinforcementsEnabled &&
       reinforcementAmountUsd <= 0
     ) {
-      reportInvalidField('Ingresá el monto de cada refuerzo para continuar.');
+      reportInvalidField('Ingresá el monto de cada refuerzo para continuar.', [
+        'reinforcementAmount',
+      ]);
       return;
     }
     if (value.calculationMode === 'target-installment' && desiredRegularInstallmentAmountUsd <= 0) {
-      reportInvalidField('Ingresá el monto de cuota objetivo para continuar.');
+      reportInvalidField('Ingresá el monto de cuota objetivo para continuar.', [
+        'targetInstallment',
+      ]);
       return;
     }
 
-    setFieldError(undefined);
-    onCalculate(
-      { ...value, termMonths, reinforcementAmountUsd, desiredRegularInstallmentAmountUsd },
-      event.detail > 0,
-    );
+    const nextValue = {
+      ...value,
+      termMonths,
+      reinforcementAmountUsd,
+      desiredRegularInstallmentAmountUsd,
+    };
+    const result = calculateInstallmentPlan({ items, ...nextValue });
+    if (result.status !== 'ok') {
+      reportCalculationError(getCalculationError(result, value.calculationMode));
+      return;
+    }
+
+    setCalculationError(undefined);
+    onCalculate(nextValue, event.detail > 0);
   }
 
   const isTargetInstallment = value.calculationMode === 'target-installment';
@@ -169,12 +253,23 @@ export function FinancingConfig({
             <fieldset className="cc-field-group">
               <legend>Monto de cuota objetivo</legend>
               <div className="cc-field cc-field--important cc-target-installment-field">
-                <div className="cc-input-with-suffix">
+                <div
+                  className={
+                    calculationError?.fields.includes('targetInstallment')
+                      ? 'cc-input-with-suffix cc-input-error'
+                      : 'cc-input-with-suffix'
+                  }
+                >
                   <input
                     id="cc-desired-regular-installment"
                     aria-label="Monto de cuota objetivo"
                     className={
-                      fieldError?.includes('cuota objetivo') ? 'cc-input-error' : undefined
+                      calculationError?.fields.includes('targetInstallment')
+                        ? 'cc-input-error'
+                        : undefined
+                    }
+                    aria-invalid={
+                      calculationError?.fields.includes('targetInstallment') || undefined
                     }
                     type="text"
                     inputMode="decimal"
@@ -200,7 +295,10 @@ export function FinancingConfig({
                 <label htmlFor="cc-term-months">Plazo en meses</label>
                 <input
                   id="cc-term-months"
-                  className={fieldError?.includes('plazo') ? 'cc-input-error' : undefined}
+                  className={
+                    calculationError?.fields.includes('termMonths') ? 'cc-input-error' : undefined
+                  }
+                  aria-invalid={calculationError?.fields.includes('termMonths') || undefined}
                   type="text"
                   inputMode="numeric"
                   autoComplete="off"
@@ -212,13 +310,18 @@ export function FinancingConfig({
                 <label htmlFor="cc-installment-periodicity">Periodicidad</label>
                 <select
                   id="cc-installment-periodicity"
+                  className={
+                    calculationError?.fields.includes('termMonths') ? 'cc-input-error' : undefined
+                  }
+                  aria-invalid={calculationError?.fields.includes('termMonths') || undefined}
                   value={value.installmentPeriodicity}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    setCalculationError(undefined);
                     onChange({
                       ...value,
                       installmentPeriodicity: event.target.value as CuotaPeriodicity,
-                    })
-                  }
+                    });
+                  }}
                 >
                   {PERIODICITY_OPTIONS.map((periodicity) => (
                     <option key={periodicity} value={periodicity}>
@@ -238,13 +341,22 @@ export function FinancingConfig({
                   <label htmlFor="cc-reinforcement-periodicity">Periodicidad de refuerzos</label>
                   <select
                     id="cc-reinforcement-periodicity"
+                    className={
+                      calculationError?.fields.includes('reinforcementPeriodicity')
+                        ? 'cc-input-error'
+                        : undefined
+                    }
+                    aria-invalid={
+                      calculationError?.fields.includes('reinforcementPeriodicity') || undefined
+                    }
                     value={value.reinforcementPeriodicity}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      setCalculationError(undefined);
                       onChange({
                         ...value,
                         reinforcementPeriodicity: event.target.value as CuotaPeriodicity,
-                      })
-                    }
+                      });
+                    }}
                   >
                     {REINFORCEMENT_PERIODICITY_OPTIONS.map((periodicity) => (
                       <option key={periodicity} value={periodicity}>
@@ -266,9 +378,10 @@ export function FinancingConfig({
                 </span>
                 <ReinforcementSwitch
                   checked={value.reinforcementsEnabled}
-                  onChange={(reinforcementsEnabled) =>
-                    onChange({ ...value, reinforcementsEnabled })
-                  }
+                  onChange={(reinforcementsEnabled) => {
+                    setCalculationError(undefined);
+                    onChange({ ...value, reinforcementsEnabled });
+                  }}
                 />
               </div>
               {value.reinforcementsEnabled ? (
@@ -277,13 +390,22 @@ export function FinancingConfig({
                     <label htmlFor="cc-reinforcement-periodicity">Periodicidad de refuerzos</label>
                     <select
                       id="cc-reinforcement-periodicity"
+                      className={
+                        calculationError?.fields.includes('reinforcementPeriodicity')
+                          ? 'cc-input-error'
+                          : undefined
+                      }
+                      aria-invalid={
+                        calculationError?.fields.includes('reinforcementPeriodicity') || undefined
+                      }
                       value={value.reinforcementPeriodicity}
-                      onChange={(event) =>
+                      onChange={(event) => {
+                        setCalculationError(undefined);
                         onChange({
                           ...value,
                           reinforcementPeriodicity: event.target.value as CuotaPeriodicity,
-                        })
-                      }
+                        });
+                      }}
                     >
                       {REINFORCEMENT_PERIODICITY_OPTIONS.map((periodicity) => (
                         <option key={periodicity} value={periodicity}>
@@ -294,11 +416,22 @@ export function FinancingConfig({
                   </div>
                   <div className="cc-field">
                     <label htmlFor="cc-reinforcement-amount">Monto de cada refuerzo</label>
-                    <div className="cc-input-with-suffix">
+                    <div
+                      className={
+                        calculationError?.fields.includes('reinforcementAmount')
+                          ? 'cc-input-with-suffix cc-input-error'
+                          : 'cc-input-with-suffix'
+                      }
+                    >
                       <input
                         id="cc-reinforcement-amount"
                         className={
-                          fieldError?.includes('cada refuerzo') ? 'cc-input-error' : undefined
+                          calculationError?.fields.includes('reinforcementAmount')
+                            ? 'cc-input-error'
+                            : undefined
+                        }
+                        aria-invalid={
+                          calculationError?.fields.includes('reinforcementAmount') || undefined
                         }
                         type="text"
                         inputMode="decimal"
@@ -324,10 +457,12 @@ export function FinancingConfig({
             value={value}
             totalPriceUsd={normalizedTotalPriceUsd}
             onChange={onChange}
+            hasCalculationError={calculationError?.fields.includes('downPayment') === true}
+            onEdit={() => setCalculationError(undefined)}
           />
-          {fieldError === undefined ? null : (
+          {calculationError === undefined ? null : (
             <p className="cc-field-error" role="alert">
-              {fieldError}
+              {calculationError.message}
             </p>
           )}
         </div>

@@ -324,6 +324,7 @@ export function CalculadoraCuotasApplication({
               data-transition-direction={screenTransitionDirection}
             >
               <FinancingConfig
+                items={items}
                 value={draftConfig}
                 totalPriceUsd={totalPriceUsd}
                 totalQuantity={totalQuantity}
@@ -351,14 +352,14 @@ export function CalculadoraCuotasApplication({
               <footer className="cc-wizard-actions">
                 <button
                   type="button"
-                  className="cc-secondary-action"
+                  className="cc-revisit-action"
                   onClick={(event) => changeScreen('main', 'backward', event.detail > 0)}
                 >
                   Editar unidades
                 </button>
                 <button
                   type="button"
-                  className="cc-apply-btn"
+                  className="cc-revisit-action"
                   onClick={(event) => changeScreen('config', 'backward', event.detail > 0)}
                 >
                   Cambiar condiciones

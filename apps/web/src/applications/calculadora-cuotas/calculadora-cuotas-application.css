@@ -16,6 +16,9 @@
   --cc-c-error-ink: #8c2f16;
   --cc-c-error-surface: #fff7f4;
   --cc-c-error-border: #e8b5a4;
+  --cc-c-revisit-surface: #f4e5b9;
+  --cc-c-revisit-ink: #5d4210;
+  --cc-c-revisit-border: #c99d37;
   --cc-c-focus: #2d6099;
   --cc-c-focus-ring: rgb(11 79 156 / 18%);
   --cc-font-mono: 'SF Mono', 'Fira Code', 'Roboto Mono', monospace;
@@ -217,7 +220,27 @@
   color: var(--cc-c-brand);
 }
 
+.cc-revisit-action {
+  min-height: 44px;
+  padding: 0 var(--cc-sp-4);
+  border: 1px solid var(--cc-c-revisit-border);
+  background: var(--cc-c-revisit-surface);
+  color: var(--cc-c-revisit-ink);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background var(--cc-t-fast),
+    border-color var(--cc-t-fast),
+    transform var(--cc-t-fast);
+}
+
+.cc-revisit-action:hover {
+  border-color: var(--cc-c-revisit-ink);
+  background: #efdba4;
+}
+
 .cc-secondary-action:focus-visible,
+.cc-revisit-action:focus-visible,
 .cc-wizard-actions .cc-apply-btn:focus-visible {
   outline: 2px solid var(--cc-c-focus);
   outline-offset: 3px;
@@ -511,7 +534,8 @@
 }
 
 .cc-apply-btn:active,
-.cc-secondary-action:active {
+.cc-secondary-action:active,
+.cc-revisit-action:active {
   transform: scale(0.98);
 }
 
@@ -649,6 +673,12 @@
   border-color: var(--cc-c-error-ink) !important;
 }
 
+.cc-down-payment[data-calculation-error='true'] .cc-down-payment-readout,
+.cc-down-payment[data-calculation-error='true'] .cc-down-payment-slider {
+  border-color: var(--cc-c-error-ink);
+  box-shadow: 0 0 0 3px rgb(140 47 22 / 12%);
+}
+
 .cc-field-error {
   margin: var(--cc-sp-3) 0 0;
   color: var(--cc-c-error-ink);
@@ -756,7 +786,8 @@
   }
 
   .cc-wizard-actions .cc-apply-btn,
-  .cc-secondary-action {
+  .cc-secondary-action,
+  .cc-revisit-action {
     width: 100%;
   }
 }
@@ -768,7 +799,8 @@
   .cc-calculation-mode-option strong,
   .cc-calculation-mode-option-copy > span,
   .cc-apply-btn,
-  .cc-secondary-action {
+  .cc-secondary-action,
+  .cc-revisit-action {
     animation: none;
     transition-duration: 0ms;
   }
@@ -1761,7 +1793,8 @@
   }
 
   .cc-wizard-actions .cc-apply-btn,
-  .cc-secondary-action {
+  .cc-secondary-action,
+  .cc-revisit-action {
     width: 100%;
   }
 

@@ -5,9 +5,11 @@ import type { FinancingConfigValue } from './financing-config';
 const MAX_PERCENTAGE = 100;
 
 interface InitialDownPaymentFieldProps {
+  hasCalculationError: boolean;
   value: FinancingConfigValue;
   totalPriceUsd: number;
   onChange: (nextValue: FinancingConfigValue) => void;
+  onEdit: () => void;
 }
 
 function formatEditable(value: number): string {
@@ -47,9 +49,11 @@ function roundUsd(amount: number): number {
 }
 
 export function InitialDownPaymentField({
+  hasCalculationError,
   value,
   totalPriceUsd,
   onChange,
+  onEdit,
 }: InitialDownPaymentFieldProps): React.JSX.Element {
   const downPaymentUsd =
     value.downPaymentMode === 'manual'
@@ -77,6 +81,7 @@ export function InitialDownPaymentField({
   }, [downPaymentPercent, downPaymentUsd]);
 
   function setPercent(nextPercent: number): void {
+    onEdit();
     const normalizedPercent = Math.min(Math.max(nextPercent, 0), MAX_PERCENTAGE);
     onChange({
       ...value,
@@ -87,6 +92,7 @@ export function InitialDownPaymentField({
   }
 
   function setAmount(nextAmount: number): void {
+    onEdit();
     const normalizedAmount = Math.min(Math.max(nextAmount, 0), totalPriceUsd);
     onChange({
       ...value,
@@ -125,7 +131,7 @@ export function InitialDownPaymentField({
   }
 
   return (
-    <fieldset className="cc-down-payment">
+    <fieldset className="cc-down-payment" data-calculation-error={hasCalculationError || undefined}>
       <legend>Entrega inicial</legend>
       <div className="cc-down-payment-values">
         <label
@@ -138,6 +144,7 @@ export function InitialDownPaymentField({
               id="cc-down-payment-manual"
               aria-label="Monto"
               aria-describedby={error === undefined ? undefined : 'cc-down-payment-error'}
+              aria-invalid={hasCalculationError || undefined}
               type="text"
               inputMode="decimal"
               autoComplete="off"
@@ -165,6 +172,7 @@ export function InitialDownPaymentField({
             <input
               id="cc-down-payment-percent"
               aria-label="Porcentaje"
+              aria-invalid={hasCalculationError || undefined}
               type="text"
               inputMode="decimal"
               autoComplete="off"
@@ -199,6 +207,7 @@ export function InitialDownPaymentField({
           step={0.01}
           value={downPaymentPercent}
           aria-label="Porcentaje de entrega inicial"
+          aria-invalid={hasCalculationError || undefined}
           onChange={(event) => {
             isEditingPercent.current = false;
             isEditingAmount.current = false;

@@ -1,6 +1,17 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { FinancingConfig, type FinancingConfigValue } from './financing-config';
+import type { CalculatorItem } from './installment-calculator';
+
+const ITEMS: CalculatorItem[] = [
+  {
+    id: 'manual:unit',
+    source: 'manual',
+    label: 'Unidad',
+    priceUsd: 100_000,
+    quantity: 1,
+  },
+];
 
 const DEFAULT_VALUE: FinancingConfigValue = {
   calculationMode: 'standard',
@@ -22,6 +33,7 @@ function renderConfig(
 ) {
   return render(
     <FinancingConfig
+      items={ITEMS}
       value={value}
       totalPriceUsd={100_000}
       totalQuantity={2}
@@ -149,5 +161,49 @@ describe('FinancingConfig', () => {
     expect(
       screen.getByText('Ingresá el monto de cada refuerzo para continuar.'),
     ).toBeInTheDocument();
+  });
+
+  it('mantiene las condiciones abiertas y marca plazo y frecuencia cuando no quedan cuotas regulares', () => {
+    const onCalculate = vi.fn();
+    renderConfig(
+      {
+        ...DEFAULT_VALUE,
+        calculationMode: 'target-installment',
+        reinforcementsEnabled: true,
+        termMonths: 6,
+        installmentPeriodicity: 'semestral',
+        reinforcementPeriodicity: 'semestral',
+        desiredRegularInstallmentAmountUsd: 1_000,
+      },
+      vi.fn(),
+      onCalculate,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Calcular plan' }));
+
+    expect(onCalculate).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Plazo en meses')).toHaveClass('cc-input-error');
+    expect(screen.getByLabelText('Periodicidad de refuerzos')).toHaveClass('cc-input-error');
+    expect(screen.getByText(/no deja cuotas regulares disponibles/i)).toBeInTheDocument();
+  });
+
+  it('marca la cuota objetivo cuando supera el saldo financiado', () => {
+    const onCalculate = vi.fn();
+    renderConfig(
+      {
+        ...DEFAULT_VALUE,
+        calculationMode: 'target-installment',
+        reinforcementsEnabled: true,
+        desiredRegularInstallmentAmountUsd: 10_000,
+      },
+      vi.fn(),
+      onCalculate,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Calcular plan' }));
+
+    expect(onCalculate).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Monto de cuota objetivo')).toHaveClass('cc-input-error');
+    expect(screen.getByText(/supera el saldo financiado/i)).toBeInTheDocument();
   });
 });

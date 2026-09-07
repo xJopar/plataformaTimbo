@@ -16,8 +16,8 @@ describe('CalculationModeSelector', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: /^Normal/ }));
-    await user.click(screen.getByRole('button', { name: /^Cuota objetivo/ }));
+    await user.click(screen.getByRole('button', { name: 'Configurar plan' }));
+    await user.click(screen.getByRole('button', { name: 'Elegir cuota' }));
 
     expect(onSelect).toHaveBeenNthCalledWith(1, 'standard');
     expect(onSelect).toHaveBeenNthCalledWith(2, 'target-installment');
