@@ -125,7 +125,10 @@ function getReceiptHeight(items: ReceiptItem[], hasReinforcements: boolean): num
     0,
   );
   const reinforcementHeight = hasReinforcements ? 152 : 0;
-  return HEADER_HEIGHT + 48 + 34 + itemsHeight + 72 + 126 + reinforcementHeight + 48;
+  const downPaymentHeight = 152;
+  return (
+    HEADER_HEIGHT + 48 + 34 + itemsHeight + 72 + downPaymentHeight + 126 + reinforcementHeight + 48
+  );
 }
 
 function drawReceiptItems(
@@ -246,6 +249,16 @@ export async function downloadInstallmentSummaryImage({
   y = drawInstallment(
     context,
     y + 72,
+    'ENTREGA INICIAL',
+    'Entrega inicial acordada',
+    formatUsd(plan.downPaymentUsd),
+    false,
+  );
+
+  drawRule(context, y + 12);
+  y = drawInstallment(
+    context,
+    y + 48,
     'CUOTA REGULAR',
     `${String(plan.regularInstallmentCount)} cuotas ${PERIODICITY_ADJECTIVE_PLURAL[installmentPeriodicity]}`,
     formatUsd(plan.regularInstallmentAmountUsd),

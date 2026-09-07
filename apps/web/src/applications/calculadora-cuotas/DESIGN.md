@@ -33,3 +33,5 @@ las demás condiciones.
 - Los campos monetarios y porcentuales conservan el valor editable libre de sufijos: `USD` y `%`
   son referencias visuales externas. El formato acompaña la escritura y la validación se informa
   junto al campo y mediante una notificación breve cuando bloquea la acción.
+- El cuotero descargable conserva el mismo orden de lectura que el plan: unidades, entrega inicial,
+  cuotas regulares y refuerzos. La entrega se expresa como importe, sin repetir su porcentaje.
