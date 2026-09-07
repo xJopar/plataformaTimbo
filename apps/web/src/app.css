@@ -59,6 +59,12 @@ button:focus-visible {
   min-height: 100vh;
   background: #edf2f7;
 }
+.platform-shell[data-visual-contract='launcher-aplicaciones-autorizadas'] {
+  background:
+    radial-gradient(at 15% 10%, rgb(0 75 160 / 14%), transparent 40%),
+    radial-gradient(at 85% 5%, rgb(110 125 190 / 11%), transparent 38%),
+    radial-gradient(at 70% 90%, rgb(70 145 175 / 8%), transparent 45%), #f3f6fa;
+}
 
 .top-bar {
   min-height: 56px;
