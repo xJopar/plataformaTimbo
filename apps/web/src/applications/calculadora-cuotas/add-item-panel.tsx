@@ -133,6 +133,10 @@ export function AddItemPanel({
     setMode(nextMode);
   }
 
+  function prepareModeSwitchAnimation(): void {
+    setShouldAnimateModeSwitch(true);
+  }
+
   function handleModeKeyDown(
     event: KeyboardEvent<HTMLButtonElement>,
     currentMode: AddItemMode,
@@ -181,6 +185,7 @@ export function AddItemPanel({
           aria-selected={mode === 'catalog'}
           tabIndex={mode === 'catalog' ? 0 : -1}
           className={`cc-mode-btn${mode === 'catalog' ? ' cc-mode-btn--active' : ''}`}
+          onPointerDown={prepareModeSwitchAnimation}
           onClick={(event) => changeMode('catalog', event.detail > 0)}
           onKeyDown={(event) => handleModeKeyDown(event, 'catalog')}
         >
@@ -195,6 +200,7 @@ export function AddItemPanel({
           aria-selected={mode === 'manual'}
           tabIndex={mode === 'manual' ? 0 : -1}
           className={`cc-mode-btn${mode === 'manual' ? ' cc-mode-btn--active' : ''}`}
+          onPointerDown={prepareModeSwitchAnimation}
           onClick={(event) => changeMode('manual', event.detail > 0)}
           onKeyDown={(event) => handleModeKeyDown(event, 'manual')}
         >
