@@ -205,10 +205,27 @@ button:focus-visible {
 }
 .top-bar-brand img {
   width: 190px;
-  transition: opacity 0.15s ease;
+  transform-origin: left center;
+  transition: filter 150ms ease, transform 150ms ease;
 }
-.top-bar-brand:hover img {
-  opacity: 0.82;
+@media (hover: hover) and (pointer: fine) {
+  .top-bar-brand:hover img {
+    filter: brightness(1.15);
+    transform: scale(1.03);
+  }
+}
+.top-bar-brand:active img {
+  transition: transform 100ms ease-out;
+  transform: scale(0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+  .top-bar-brand img {
+    transition: filter 150ms ease;
+  }
+  .top-bar-brand:hover img,
+  .top-bar-brand:active img {
+    transform: none;
+  }
 }
 
 .application-context {
