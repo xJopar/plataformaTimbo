@@ -119,7 +119,7 @@ button:focus-visible {
   animation-direction: alternate;
 }
 .aurora-background-layer--1 .aurora-background-orb {
-  background: radial-gradient(circle, rgb(0 75 160 / 16%) 0%, transparent 66%);
+  background: radial-gradient(circle, rgb(220 38 38 / 32%) 0%, transparent 66%);
   animation-name: aurora-breathe-primary;
   animation-delay: -4s;
 }
@@ -135,10 +135,10 @@ button:focus-visible {
 }
 @keyframes aurora-breathe-primary {
   from {
-    transform: translate3d(-1.5%, -1%, 0) scale(0.98);
+    transform: translate3d(-4%, -3%, 0) scale(0.94);
   }
   to {
-    transform: translate3d(2%, 1.5%, 0) scale(1.04);
+    transform: translate3d(5%, 4%, 0) scale(1.1);
   }
 }
 @keyframes aurora-breathe-secondary {
