@@ -4,6 +4,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   NotFoundException,
   Param,
@@ -38,9 +39,6 @@ import { ListaPreciosApplicationAccessGuard } from './lista-precios-application-
 import { ListaPreciosProviderUnavailableError } from './lista-precios.errors';
 import { ListaPreciosService } from './lista-precios.service';
 import { VehicleImagesService } from './vehicle-images.service';
-
-/** 7 días frescos + 1 día de gracia para revalidar en segundo plano sin bloquear al usuario. */
-const IMAGE_CACHE_CONTROL = 'public, max-age=604800, stale-while-revalidate=86400';
 import {
   LISTA_PRECIOS_BRAND_MAX_LENGTH,
   LISTA_PRECIOS_MODEL_MAX_LENGTH,
@@ -51,6 +49,15 @@ import {
 } from './lista-precios-usage-events';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+
+/** 7 días frescos + 1 día de gracia para revalidar en segundo plano sin bloquear al usuario. */
+const IMAGE_CACHE_CONTROL = 'public, max-age=604800, stale-while-revalidate=86400';
+/**
+ * Precio/disponibilidad sí cambian, pero un caché cortito evita el re-fetch redundante cuando
+ * se salta entre Lista de Precios y Calculadora de Cuotas (piden el mismo catálogo). `private`
+ * porque el dato viaja detrás de la sesión — cada navegador lo cachea solo para su usuario.
+ */
+const VEHICLES_CACHE_CONTROL = 'private, max-age=300';
 
 @ApiTags('applications')
 @Controller('applications/lista-precios')
@@ -63,6 +70,7 @@ export class ListaPreciosController {
   ) {}
 
   @Get('vehicles')
+  @Header('Cache-Control', VEHICLES_CACHE_CONTROL)
   @ApiOperation({
     operationId: 'listListaPreciosVehicles',
     summary: 'Obtiene el catálogo de vehículos en stock desde Zoho Analytics.',
