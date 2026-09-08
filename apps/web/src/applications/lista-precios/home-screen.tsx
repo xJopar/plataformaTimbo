@@ -1,5 +1,5 @@
 import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
-import { Loader } from './loader';
+import { PlatformLoadingIndicator } from '../../layout/platform-loading-indicator';
 import type { EquipmentRentalsState } from './use-equipment-rentals';
 
 interface HomeScreenProps {
@@ -21,8 +21,7 @@ export function HomeScreen({
     <div className="lp-page lp-page--home">
       {vehiclesState.status === 'loading' ? (
         <div className="lp-loader-full" role="status" aria-live="polite">
-          <Loader />
-          <span className="lp-loader-full-label">Cargando lista de precios...</span>
+          <PlatformLoadingIndicator label="Cargando lista de precios" />
         </div>
       ) : null}
 

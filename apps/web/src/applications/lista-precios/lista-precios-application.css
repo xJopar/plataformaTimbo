@@ -873,126 +873,15 @@
   max-width: 280px;
 }
 
-/* ── Loader (animación de camión) ── */
+/* El indicador compartido evita que cada aplicación invente una animación de espera propia. */
 .lp-loader-full {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 260px;
-  flex-direction: column;
-  gap: var(--lp-sp-4);
 }
-.lp-loader-full-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--lp-c-text-secondary);
-}
-.lp-loader {
-  width: fit-content;
-  height: fit-content;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.lp-truck-wrapper {
-  width: 200px;
-  height: 100px;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  align-items: center;
-  justify-content: flex-end;
-  overflow-x: hidden;
-}
-.lp-truck-body {
-  width: 130px;
-  height: fit-content;
-  margin-bottom: 6px;
-  animation: lp-truck-motion 1s linear infinite;
-}
-.lp-truck-body svg {
-  width: 100%;
-  display: block;
-}
-@keyframes lp-truck-motion {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(3px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
-.lp-truck-tires {
-  width: 130px;
-  height: fit-content;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 10px 0 15px;
-  position: absolute;
-  bottom: 0;
-}
-.lp-truck-tires svg {
-  width: 24px;
-}
-.lp-road {
-  width: 100%;
-  height: 1.5px;
-  background-color: #282828;
-  position: relative;
-  bottom: 0;
-  align-self: flex-end;
-  border-radius: 3px;
-}
-.lp-road::before {
-  content: '';
-  position: absolute;
-  width: 20px;
-  height: 100%;
-  background-color: #282828;
-  right: -50%;
-  border-radius: 3px;
-  animation: lp-road-animation 1.4s linear infinite;
-  border-left: 10px solid white;
-}
-.lp-road::after {
-  content: '';
-  position: absolute;
-  width: 10px;
-  height: 100%;
-  background-color: #282828;
-  right: -65%;
-  border-radius: 3px;
-  animation: lp-road-animation 1.4s linear infinite;
-  border-left: 4px solid white;
-}
-.lp-lamp-post {
-  position: absolute;
-  bottom: 0;
-  right: -90%;
-  height: 90px;
-  animation: lp-road-animation 1.4s linear infinite;
-}
-@keyframes lp-road-animation {
-  0% {
-    transform: translateX(0px);
-  }
-  100% {
-    transform: translateX(-350px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .lp-truck-body,
-  .lp-road::before,
-  .lp-road::after,
-  .lp-lamp-post {
-    animation: none;
-  }
+.lp-loader-full .platform-loading-indicator {
+  width: min(100%, 22rem);
 }
 
 /* ── Título de sección ── */

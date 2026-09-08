@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { filterByBrandAndModelo, type VehicleGroup } from '../../vehicle-catalog/vehicle-catalog';
 import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
-import { Loader } from './loader';
+import { PlatformLoadingIndicator } from '../../layout/platform-loading-indicator';
 
 interface SuspensionSummary {
   suspension: string;
@@ -60,8 +60,7 @@ export function SuspensionsScreen({
     <div className="lp-page">
       {vehiclesState.status === 'loading' ? (
         <div className="lp-loader-full" role="status" aria-live="polite">
-          <Loader />
-          <span className="lp-loader-full-label">Cargando lista de precios...</span>
+          <PlatformLoadingIndicator label="Cargando lista de precios" />
         </div>
       ) : null}
 

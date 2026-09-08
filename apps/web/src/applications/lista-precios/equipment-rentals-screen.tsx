@@ -1,5 +1,5 @@
 import type { EquipmentRentalResponse } from '../../api';
-import { Loader } from './loader';
+import { PlatformLoadingIndicator } from '../../layout/platform-loading-indicator';
 import type { EquipmentRentalsState } from './use-equipment-rentals';
 
 export const EQUIPMENT_RENTAL_CATEGORIES = [
@@ -69,8 +69,7 @@ export function EquipmentRentalsScreen({
     return (
       <div className="lp-page lp-equipment-rentals-page">
         <div className="lp-loader-full" role="status" aria-live="polite">
-          <Loader />
-          <span className="lp-loader-full-label">Cargando tarifas de alquiler...</span>
+          <PlatformLoadingIndicator label="Cargando tarifas de alquiler" />
         </div>
       </div>
     );

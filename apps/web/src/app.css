@@ -705,13 +705,18 @@ h1 {
 .platform-startup-message p {
   color: #475569;
 }
-.platform-startup-progress {
+.platform-loading-indicator {
+  display: grid;
+  gap: 12px;
+  color: #475569;
+}
+.platform-loading-indicator-progress {
   display: block;
   block-size: 2px;
   overflow: hidden;
   background: #bcc9d7;
 }
-.platform-startup-progress::after {
+.platform-loading-indicator-progress::after {
   display: block;
   inline-size: 42%;
   block-size: 100%;
@@ -746,7 +751,7 @@ h1 {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .platform-startup-progress::after {
+  .platform-loading-indicator-progress::after {
     animation: none;
     transform: translateX(70%);
   }

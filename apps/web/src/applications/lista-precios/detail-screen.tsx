@@ -5,7 +5,7 @@ import {
   buildFromStockPath,
 } from '../calculadora-cuotas/calculadora-cuotas-routes';
 import { formatPrice, parsePrice } from '../../vehicle-catalog/vehicle-catalog';
-import { Loader } from './loader';
+import { PlatformLoadingIndicator } from '../../layout/platform-loading-indicator';
 import { useStockTour } from './use-stock-tour';
 import { VehicleGallery } from './vehicle-gallery';
 import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
@@ -131,8 +131,7 @@ export function DetailScreen({
     return (
       <div className="lp-detail-page">
         <div className="lp-loader-full" role="status" aria-live="polite">
-          <Loader />
-          <span className="lp-loader-full-label">Cargando lista de precios...</span>
+          <PlatformLoadingIndicator label="Cargando lista de precios" />
         </div>
       </div>
     );

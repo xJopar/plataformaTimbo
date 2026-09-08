@@ -11,7 +11,7 @@ import {
   type VehicleGroup,
 } from '../../vehicle-catalog/vehicle-catalog';
 import { FilterDrawer, type ListaPreciosFilterOptions } from './filter-drawer';
-import { Loader } from './loader';
+import { PlatformLoadingIndicator } from '../../layout/platform-loading-indicator';
 import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
 
 const EMPTY_FILTERS: VehicleFilters = {
@@ -142,8 +142,7 @@ export function VariantsScreen({
 
         {vehiclesState.status === 'loading' ? (
           <div className="lp-loader-full" role="status" aria-live="polite">
-            <Loader />
-            <span className="lp-loader-full-label">Cargando lista de precios...</span>
+            <PlatformLoadingIndicator label="Cargando lista de precios" />
           </div>
         ) : null}
 

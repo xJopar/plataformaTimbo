@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AuroraBackground } from '../home/aurora-background';
+import { PlatformLoadingIndicator } from '../layout/platform-loading-indicator';
 
 const LOADING_INDICATOR_DELAY_MS = 190;
 
@@ -63,8 +64,7 @@ export function PlatformStartupShell({
           </div>
         ) : isIndicatorVisible ? (
           <div className="platform-startup-message" role="status">
-            <p>Preparando tu espacio</p>
-            <span className="platform-startup-progress" aria-hidden="true" />
+            <PlatformLoadingIndicator label="Preparando tu espacio" />
           </div>
         ) : (
           <div className="platform-startup-geometry" aria-hidden="true" />
