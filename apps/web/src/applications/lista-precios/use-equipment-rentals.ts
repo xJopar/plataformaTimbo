@@ -35,6 +35,7 @@ export function useEquipmentRentals(
   reload: () => Promise<void>;
 } {
   const currentRequestId = useRef(0);
+  const hasLoadedRef = useRef(false);
   const [state, setState] = useState<EquipmentRentalsState>({ status: 'loading' });
 
   const reload = useCallback(async (): Promise<void> => {
@@ -44,6 +45,7 @@ export function useEquipmentRentals(
     try {
       const rentals = await api.applications.listListaPreciosEquipmentRentals();
       if (requestId === currentRequestId.current) {
+        hasLoadedRef.current = true;
         setState({ status: 'ready', rentals });
       }
     } catch (error) {
@@ -55,17 +57,21 @@ export function useEquipmentRentals(
         return;
       }
       if (requestId === currentRequestId.current) {
+        hasLoadedRef.current = true;
         setState({ status: 'error' });
       }
     }
   }, [api]);
 
   useEffect(() => {
-    if (!enabled) return;
-    void reload();
     return () => {
       currentRequestId.current += 1;
     };
+  }, []);
+
+  useEffect(() => {
+    if (!enabled || hasLoadedRef.current) return;
+    void reload();
   }, [enabled, reload]);
 
   return { state, reload };
