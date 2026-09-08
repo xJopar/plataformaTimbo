@@ -54,10 +54,11 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 const IMAGE_CACHE_CONTROL = 'public, max-age=604800, stale-while-revalidate=86400';
 /**
  * Precio/disponibilidad sí cambian, pero un caché cortito evita el re-fetch redundante cuando
- * se salta entre Lista de Precios y Calculadora de Cuotas (piden el mismo catálogo). `private`
- * porque el dato viaja detrás de la sesión — cada navegador lo cachea solo para su usuario.
+ * se salta entre pantallas de Lista de Precios (o hacia la Calculadora de Cuotas) que piden el
+ * mismo catálogo. `private` porque el dato viaja detrás de la sesión — cada navegador lo cachea
+ * solo para su usuario.
  */
-const VEHICLES_CACHE_CONTROL = 'private, max-age=300';
+const LISTA_PRECIOS_CATALOG_CACHE_CONTROL = 'private, max-age=300';
 
 @ApiTags('applications')
 @Controller('applications/lista-precios')
@@ -70,7 +71,7 @@ export class ListaPreciosController {
   ) {}
 
   @Get('vehicles')
-  @Header('Cache-Control', VEHICLES_CACHE_CONTROL)
+  @Header('Cache-Control', LISTA_PRECIOS_CATALOG_CACHE_CONTROL)
   @ApiOperation({
     operationId: 'listListaPreciosVehicles',
     summary: 'Obtiene el catálogo de vehículos en stock desde Zoho Analytics.',
@@ -124,6 +125,7 @@ export class ListaPreciosController {
   }
 
   @Get('equipment-rentals')
+  @Header('Cache-Control', LISTA_PRECIOS_CATALOG_CACHE_CONTROL)
   @ApiOperation({
     operationId: 'listListaPreciosEquipmentRentals',
     summary: 'Obtiene las tarifas de alquiler de maquinarias desde Zoho Analytics.',
