@@ -206,11 +206,6 @@ button:focus-visible {
 .top-bar-brand img {
   width: 190px;
 }
-.session-boot-header img {
-  width: 138px;
-  height: auto;
-  display: block;
-}
 
 .application-context {
   min-width: 0;
@@ -238,8 +233,7 @@ button:focus-visible {
 .application-breadcrumb {
   flex: 1 1 auto;
 }
-.top-bar-brand span,
-.session-boot-header span {
+.top-bar-brand span {
   padding-left: 12px;
   border-left: 1px solid rgba(255, 255, 255, 0.52);
   font-size: 0.75rem;
@@ -674,66 +668,98 @@ h1 {
   color: #00388a;
   font-weight: 750;
 }
-.session-boot-screen {
-  min-height: 100vh;
-  min-height: 100dvh;
-  background: #edf2f7;
-  color: #142033;
+.platform-startup-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
 }
-.session-boot-header {
-  min-height: 64px;
-  padding: 0 clamp(20px, 5vw, 72px);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #00388a;
-  color: #fff;
+.platform-startup-shell > :not(.aurora-background) {
+  position: relative;
+  z-index: 1;
 }
-.session-boot-content {
+.platform-startup-navigation {
+  min-height: 49px;
+  border-bottom: 1px solid #bcc9d7;
+  background: #f7f9fb;
+}
+.platform-startup-content {
   min-height: calc(100dvh - 64px);
   display: grid;
-  grid-template-columns: auto minmax(0, 32rem);
   align-content: center;
-  justify-content: center;
-  align-items: center;
-  gap: 18px;
-  padding: 32px;
+  padding: clamp(24px, 5vw, 72px);
 }
-.session-boot-content h1,
-.session-boot-content p {
+.platform-startup-shell--administration .platform-startup-content {
+  min-height: calc(100dvh - 113px);
+}
+.platform-startup-message {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 38rem);
+  margin-inline: auto;
+  color: #142033;
+}
+.platform-startup-message h1,
+.platform-startup-message p {
   margin: 0;
 }
-.session-boot-content h1 {
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
-}
-.session-boot-content p {
-  margin-top: 6px;
+.platform-startup-message p {
   color: #475569;
 }
-.session-boot-indicator {
-  width: 28px;
-  height: 28px;
-  border: 3px solid #b7c8d9;
-  border-top-color: #00388a;
-  border-radius: 50%;
-  animation: session-boot-spin 800ms linear infinite;
+.platform-startup-progress {
+  display: block;
+  block-size: 2px;
+  overflow: hidden;
+  background: #bcc9d7;
 }
-@keyframes session-boot-spin {
+.platform-startup-progress::after {
+  display: block;
+  inline-size: 42%;
+  block-size: 100%;
+  background: #00388a;
+  content: '';
+  animation: platform-startup-progress 900ms cubic-bezier(0.19, 1, 0.22, 1) infinite;
+}
+.platform-startup-geometry {
+  min-height: min(34vh, 300px);
+  border-top: 1px solid rgb(188 201 215 / 72%);
+  border-bottom: 1px solid rgb(188 201 215 / 72%);
+}
+@keyframes platform-startup-progress {
+  from {
+    transform: translateX(-140%);
+  }
   to {
-    transform: rotate(360deg);
+    transform: translateX(340%);
   }
 }
 .app-content-enter {
-  animation: app-content-enter 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: app-content-enter 180ms cubic-bezier(0.19, 1, 0.22, 1);
 }
 @keyframes app-content-enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .platform-startup-progress::after {
+    animation: none;
+    transform: translateX(70%);
+  }
+  .app-content-enter {
+    animation: app-content-enter-reduced 180ms ease;
+  }
+  @keyframes app-content-enter-reduced {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 }
 .empty-surface {
@@ -1713,17 +1739,10 @@ th {
     max-inline-size: 44vw;
   }
   .top-bar-brand,
-  .session-boot-header {
-    gap: 8px;
-  }
   .top-bar-brand img {
     width: 140px;
   }
-  .session-boot-header img {
-    width: 120px;
-  }
-  .top-bar-brand span,
-  .session-boot-header span {
+  .top-bar-brand span {
     padding-left: 8px;
     font-size: 0.6875rem;
   }
@@ -1808,13 +1827,6 @@ th {
   }
   .dispatch-board {
     min-height: 0;
-  }
-  .session-boot-content {
-    min-height: calc(100dvh - 64px);
-    grid-template-columns: 1fr;
-    justify-content: start;
-    gap: 14px;
-    padding: 28px 20px;
   }
   .administration-layout {
     display: block;

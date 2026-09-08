@@ -12,6 +12,7 @@ import {
   type AuthApi,
   type AuthSession,
   type AuthorizedApplication,
+  type PlatformApi,
 } from './api';
 
 vi.mock('./applications/hello-world/mymemory-translation', () => ({
@@ -60,6 +61,7 @@ function createApi(
   authOverrides: Partial<AuthApi> = {},
   administrationOverrides: Partial<AdministrationApi> = {},
   applicationsOverrides: Partial<ApplicationsApi> = {},
+  platformOverrides: Partial<PlatformApi> = {},
 ): Api {
   return {
     auth: {
@@ -273,6 +275,14 @@ function createApi(
       ...applicationsOverrides,
     },
     system: { getHealth: vi.fn() },
+    platform: {
+      getBootstrap: vi.fn<PlatformApi['getBootstrap']>().mockImplementation(async () => ({
+        session: await (authOverrides.getSession?.() ?? Promise.resolve(session)),
+        applications: await (applicationsOverrides.listAuthorizedApplications?.() ??
+          Promise.resolve([])),
+      })),
+      ...platformOverrides,
+    },
   };
 }
 
@@ -306,6 +316,21 @@ describe('App', () => {
       await screen.findByRole('heading', { name: 'Sin aplicaciones asignadas' }),
     ).toBeInTheDocument();
     expect(document.querySelector('[data-layout="application-launcher-grid"]')).toBeInTheDocument();
+  });
+
+  it('usa solamente el bootstrap durante el primer render autenticado', async () => {
+    const getBootstrap = vi
+      .fn<PlatformApi['getBootstrap']>()
+      .mockResolvedValue({ session, applications: [authorizedApplication] });
+    const listAuthorizedApplications = vi.fn<ApplicationsApi['listAuthorizedApplications']>();
+    const api = createApi({}, {}, { listAuthorizedApplications }, { getBootstrap });
+
+    render(<App api={api} />);
+
+    expect(await screen.findByRole('link', { name: /Hello World/ })).toBeInTheDocument();
+    expect(getBootstrap).toHaveBeenCalledTimes(1);
+    expect(api.auth.getSession).not.toHaveBeenCalled();
+    expect(listAuthorizedApplications).not.toHaveBeenCalled();
   });
 
   it('conserva el valor saliente durante los 460 ms de su transición', async () => {
@@ -350,15 +375,16 @@ describe('App', () => {
     }
   });
 
-  it('mantiene una superficie neutral mientras verifica una sesión existente', () => {
+  it('conserva el shell operativo mientras el bootstrap todavía no responde', () => {
     const getSession = vi
       .fn<AuthApi['getSession']>()
       .mockImplementation(() => new Promise<AuthSession>(() => undefined));
 
     render(<App api={createApi({ getSession })} />);
 
-    expect(screen.getByRole('status', { name: 'Verificando sesión' })).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Iniciá sesión' })).not.toBeInTheDocument();
+    expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument();
     expect(screen.getByAltText('Timbo')).toHaveAttribute(
       'src',
       '/marca/logotipo-timbo-blanco-transparente.png',
@@ -391,17 +417,17 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
-  it('permite reintentar la carga del launcher', async () => {
+  it('permite reintentar el bootstrap cuando la API no está disponible', async () => {
     window.history.replaceState({}, '', '/');
-    const listAuthorizedApplications = vi
-      .fn<ApplicationsApi['listAuthorizedApplications']>()
+    const getBootstrap = vi
+      .fn<PlatformApi['getBootstrap']>()
       .mockRejectedValueOnce(new ApiHttpError(503))
-      .mockResolvedValueOnce([]);
+      .mockResolvedValueOnce({ session, applications: [] });
     const user = userEvent.setup();
-    render(<App api={createApi({}, {}, { listAuthorizedApplications })} />);
+    render(<App api={createApi({}, {}, {}, { getBootstrap })} />);
 
     expect(
-      await screen.findByRole('heading', { name: 'No pudimos cargar tus aplicaciones' }),
+      await screen.findByRole('heading', { name: 'No pudimos preparar tu espacio' }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(
@@ -409,31 +435,30 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
-  it('vuelve al acceso cuando la sesión vence al reintentar cargar las aplicaciones', async () => {
+  it('vuelve al acceso cuando la sesión vence al reintentar el bootstrap', async () => {
     window.history.replaceState({}, '', '/');
-    const listAuthorizedApplications = vi
-      .fn<ApplicationsApi['listAuthorizedApplications']>()
+    const getBootstrap = vi
+      .fn<PlatformApi['getBootstrap']>()
       .mockRejectedValueOnce(new ApiHttpError(503))
       .mockRejectedValueOnce(new ApiHttpError(401, 'session-expired-request'));
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const user = userEvent.setup();
 
-    render(<App api={createApi({}, {}, { listAuthorizedApplications })} />);
+    render(<App api={createApi({}, {}, {}, { getBootstrap })} />);
 
     expect(
-      await screen.findByRole('heading', { name: 'No pudimos cargar tus aplicaciones' }),
+      await screen.findByRole('heading', { name: 'No pudimos preparar tu espacio' }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
     expect(await screen.findByRole('heading', { name: 'Iniciá sesión' })).toBeInTheDocument();
-    expect(listAuthorizedApplications).toHaveBeenCalledTimes(2);
+    expect(getBootstrap).toHaveBeenCalledTimes(2);
     expect(consoleError).toHaveBeenLastCalledWith(
       expect.objectContaining({
         event: 'web.browser.operation_failed',
-        operation: 'applications.load-authorized',
-        route: '/api/applications',
-        status: 401,
-        requestId: 'session-expired-request',
+        operation: 'platform.bootstrap',
+        route: '/api/platform/bootstrap',
+        status: 503,
       }),
     );
 
@@ -467,9 +492,8 @@ describe('App', () => {
     render(<App api={createApi({ getSession })} />);
 
     expect(
-      await screen.findByRole('heading', { name: 'No pudimos verificar tu acceso' }),
+      await screen.findByRole('heading', { name: 'No pudimos preparar tu espacio' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'WhatsApp' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(await screen.findByRole('heading', { name: 'Plataforma Timbo' })).toBeInTheDocument();
   });
@@ -545,9 +569,16 @@ describe('App', () => {
 
   it('navega entre Usuarios y Actividad sin volver a verificar la sesión', async () => {
     window.history.replaceState({}, '', '/');
-    const api = createApi({
-      getSession: vi.fn<AuthApi['getSession']>().mockResolvedValue(platformAdministratorSession),
-    });
+    const api = createApi(
+      {},
+      {},
+      {},
+      {
+        getBootstrap: vi
+          .fn<PlatformApi['getBootstrap']>()
+          .mockResolvedValue({ session: platformAdministratorSession, applications: [] }),
+      },
+    );
     const user = userEvent.setup();
     render(<App api={api} />);
 
@@ -564,8 +595,9 @@ describe('App', () => {
     await user.click(screen.getByRole('link', { name: 'Actividad' }));
 
     expect(await screen.findByRole('heading', { name: 'Actividad' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Verificando sesión' })).not.toBeInTheDocument();
-    expect(api.auth.getSession).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(api.auth.getSession).not.toHaveBeenCalled();
+    expect(api.platform.getBootstrap).toHaveBeenCalledTimes(1);
     expect(api.administration.listActivity).toHaveBeenCalledWith(
       expect.objectContaining({
         datePreset: 'month',

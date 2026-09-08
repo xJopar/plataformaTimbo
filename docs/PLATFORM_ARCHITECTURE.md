@@ -152,6 +152,13 @@ relaciones. `GET /api/applications` proyecta para el usuario autenticado únicam
 activas que tengan una asignación vigente, respetando el orden administrativo; no expone estado,
 fechas ni identificadores internos del catálogo. El Home consume esa proyección como launcher.
 
+`GET /api/platform/bootstrap` es el recorrido de arranque de la Web. Después de que
+`SessionAuthenticationGuard` valida una sola vez la cookie, el módulo propietario resuelve en
+paralelo la identidad de sesión (incluido el rol administrativo) y las aplicaciones autorizadas.
+La respuesta contiene `session` con la misma forma que `GET /api/auth/session` y `applications`
+con la misma forma que `GET /api/applications`. Los dos endpoints originales se conservan para
+compatibilidad y recargas posteriores; `401` sigue indicando sesión ausente o vencida.
+
 La Web también evita presentar una ruta `/apps/*` que no figure en esa proyección. Esa comprobación
 es experiencia de usuario, no una frontera de seguridad: cada API funcional de una aplicación debe
 seguir verificando acceso y permisos mediante `ApplicationAuthorizationService`.

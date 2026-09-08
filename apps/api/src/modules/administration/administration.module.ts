@@ -40,5 +40,6 @@ import { AuthorizedApplicationsController } from './authorized-applications.cont
     { provide: ADMINISTRATIVE_APPLICATIONS_SERVICE, useExisting: ApplicationsService },
     { provide: ADMINISTRATIVE_APPLICATION_ACCESS_SERVICE, useExisting: ApplicationAccessService },
   ],
+  exports: [ApplicationsService, ADMINISTRATIVE_APPLICATIONS_SERVICE],
 })
 export class AdministrationModule {}

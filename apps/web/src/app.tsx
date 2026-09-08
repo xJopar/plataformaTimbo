@@ -7,8 +7,9 @@ import type {
   AdministrativeActivityStatistics,
   Api,
   AuthSession,
+  AuthorizedApplication,
 } from './api';
-import { ApiHttpError } from './api';
+import { ApiHttpError, PlatformApiUnavailableError } from './api';
 import { ApplicationsPanel } from './administration/applications-panel';
 import { PreauthorizeUsersPage } from './administration/preauthorize-users-page';
 import { UserDetailsPage } from './administration/user-details-page';
@@ -17,10 +18,11 @@ import { humanizeEventName } from './administration/activity-event-labels';
 import { AuthorizedApplicationRoute } from './applications/authorized-application-route';
 import { HomeLauncher } from './home/home-launcher';
 import { AccessShell } from './auth/access-shell';
-import { SessionBootScreen } from './auth/session-boot-screen';
+import { PlatformStartupShell } from './auth/platform-startup-shell';
 import { PlatformHeader } from './layout/platform-header';
 import { AccessSupportLinks } from './auth/access-support-links';
 import { GoogleGlyph } from './auth/google-glyph';
+import { reportBrowserOperationFailed } from './browser-diagnostics';
 import './app.css';
 
 interface AppProps {
@@ -41,9 +43,14 @@ type AuthenticationState =
   | { status: 'signed-out' }
   | { status: 'rejected'; code: OAuthErrorCode }
   | { status: 'technical-failure'; error: Error }
-  | { status: 'signed-in'; session: AuthSession }
-  | { status: 'logging-out'; session: AuthSession }
-  | { status: 'logout-failed'; session: AuthSession; error: Error };
+  | { status: 'signed-in'; session: AuthSession; applications: AuthorizedApplication[] }
+  | { status: 'logging-out'; session: AuthSession; applications: AuthorizedApplication[] }
+  | {
+      status: 'logout-failed';
+      session: AuthSession;
+      applications: AuthorizedApplication[];
+      error: Error;
+    };
 
 const oauthErrorMessages: Record<OAuthErrorCode, string> = {
   GOOGLE_IDENTITY_INVALID: 'No fue posible validar la cuenta de Google. Volvé a intentarlo.',
@@ -113,17 +120,36 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
 
     setAuthenticationState({ status: 'checking' });
     try {
-      const session = await api.auth.getSession();
+      const bootstrap = await api.platform.getBootstrap();
       if (requestId === currentRequestId.current) {
-        setAuthenticationState({ status: 'signed-in', session });
+        setAuthenticationState({
+          status: 'signed-in',
+          session: bootstrap.session,
+          applications: bootstrap.applications,
+        });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       if (requestId !== currentRequestId.current) {
         return;
       }
       if (error instanceof ApiHttpError && error.status === 401) {
         setAuthenticationState({ status: 'signed-out' });
         return;
+      }
+      reportBrowserOperationFailed(error, {
+        operation: 'platform.bootstrap',
+        method: 'GET',
+        route: '/api/platform/bootstrap',
+        provider: 'api',
+        ...(error instanceof ApiHttpError
+          ? {
+              status: error.status,
+              ...(error.requestId === undefined ? {} : { requestId: error.requestId }),
+            }
+          : {}),
+      });
+      if (!(error instanceof ApiHttpError || error instanceof PlatformApiUnavailableError)) {
+        throw error;
       }
       setAuthenticationState({
         status: 'technical-failure',
@@ -165,11 +191,12 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
   }, [api, configurationError]);
 
   const logout = useCallback(
-    async (session: AuthSession): Promise<void> => {
+    async (session: AuthSession, applications: AuthorizedApplication[]): Promise<void> => {
       if (api === undefined) {
         setAuthenticationState({
           status: 'logout-failed',
           session,
+          applications,
           error: configurationError ?? new Error('No se pudo cerrar la sesión.'),
         });
         return;
@@ -177,7 +204,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
 
       const requestId = currentRequestId.current + 1;
       currentRequestId.current = requestId;
-      setAuthenticationState({ status: 'logging-out', session });
+      setAuthenticationState({ status: 'logging-out', session, applications });
       try {
         await api.auth.logout();
         if (requestId === currentRequestId.current) {
@@ -188,6 +215,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
           setAuthenticationState({
             status: 'logout-failed',
             session,
+            applications,
             error: new Error('No se pudo cerrar la sesión. Intentá nuevamente.'),
           });
         }
@@ -197,7 +225,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
   );
 
   if (authenticationState.status === 'checking') {
-    return <SessionBootScreen />;
+    return <PlatformStartupShell pathname={pathname} />;
   }
 
   if (authenticationState.status === 'signed-out' || authenticationState.status === 'rejected') {
@@ -223,21 +251,16 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
   }
 
   if (authenticationState.status === 'technical-failure') {
-    return withEnterTransition(
-      <AccessShell
-        title="No pudimos verificar tu acceso"
-        detail="La sesión no pudo consultarse en este momento."
-      >
-        <p role="alert">{authenticationState.error.message}</p>
-        <button className="access-primary-action" type="button" onClick={() => void loadSession()}>
-          Reintentar
-        </button>
-        <AccessSupportLinks />
-      </AccessShell>,
+    return (
+      <PlatformStartupShell
+        error={authenticationState.error.message}
+        pathname={pathname}
+        onRetry={() => void loadSession()}
+      />
     );
   }
 
-  const { session } = authenticationState;
+  const { session, applications } = authenticationState;
   const isLoggingOut = authenticationState.status === 'logging-out';
   const logoutFailure =
     authenticationState.status === 'logout-failed' ? authenticationState.error : undefined;
@@ -270,7 +293,7 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
         }
         userPathname={pathname}
         onNavigate={navigate}
-        onLogout={() => void logout(session)}
+        onLogout={() => void logout(session, applications)}
       />,
     );
   }
@@ -289,8 +312,9 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
         isLoggingOut={isLoggingOut}
         logoutFailure={logoutFailure}
         onNavigate={navigate}
-        onLogout={() => void logout(session)}
+        onLogout={() => void logout(session, applications)}
         onSessionExpired={handleSessionExpired}
+        initialApplications={applications}
       />,
     );
   }
@@ -308,8 +332,9 @@ export function App({ api, configurationError }: AppProps): React.JSX.Element {
       isLoggingOut={isLoggingOut}
       logoutFailure={logoutFailure}
       onNavigate={navigate}
-      onLogout={() => void logout(session)}
+      onLogout={() => void logout(session, applications)}
       onSessionExpired={handleSessionExpired}
+      initialApplications={applications}
     />,
   );
 }

@@ -2,12 +2,14 @@ import { createAuthApi } from './auth';
 import { createAdministrationApi } from './administration';
 import { createApplicationsApi } from './applications';
 import { createSystemApi } from './system';
+import { createPlatformApi } from './platform';
 
 export interface Api {
   auth: ReturnType<typeof createAuthApi>;
   administration: ReturnType<typeof createAdministrationApi>;
   applications: ReturnType<typeof createApplicationsApi>;
   system: ReturnType<typeof createSystemApi>;
+  platform: ReturnType<typeof createPlatformApi>;
 }
 
 export function createApi(baseUrl: string): Api {
@@ -16,6 +18,7 @@ export function createApi(baseUrl: string): Api {
     administration: createAdministrationApi(baseUrl),
     applications: createApplicationsApi(baseUrl),
     system: createSystemApi(baseUrl),
+    platform: createPlatformApi(baseUrl),
   };
 }
 
@@ -37,6 +40,12 @@ export {
   type PreauthorizeAdministrativeUserBulkResult,
 } from './administration';
 export { ApiHttpError, createApiHttpError, type HealthResponse, type SystemApi } from './system';
+export {
+  createPlatformApi,
+  type PlatformApi,
+  type PlatformBootstrap,
+  PlatformApiUnavailableError,
+} from './platform';
 export { ApplicationsApiUnavailableError } from './applications';
 export {
   type ApplicationsApi,

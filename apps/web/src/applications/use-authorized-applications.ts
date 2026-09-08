@@ -15,12 +15,17 @@ type AuthorizedApplicationsState =
 export function useAuthorizedApplications(
   api: Api,
   onSessionExpired: () => void,
+  initialApplications?: AuthorizedApplication[],
 ): {
   state: AuthorizedApplicationsState;
   reload: () => Promise<void>;
 } {
   const currentRequestId = useRef(0);
-  const [state, setState] = useState<AuthorizedApplicationsState>({ status: 'loading' });
+  const [state, setState] = useState<AuthorizedApplicationsState>(() =>
+    initialApplications === undefined
+      ? { status: 'loading' }
+      : { status: 'ready', applications: initialApplications },
+  );
 
   const reload = useCallback(async (): Promise<void> => {
     const requestId = currentRequestId.current + 1;
@@ -63,11 +68,16 @@ export function useAuthorizedApplications(
   }, [api, onSessionExpired]);
 
   useEffect(() => {
+    if (initialApplications !== undefined) {
+      return () => {
+        currentRequestId.current += 1;
+      };
+    }
     void reload();
     return () => {
       currentRequestId.current += 1;
     };
-  }, [reload]);
+  }, [initialApplications, reload]);
 
   return { state, reload };
 }

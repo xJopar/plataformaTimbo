@@ -206,7 +206,7 @@ AGENTS.md                 # Reglas durables para agentes que trabajen en este re
 2. Generar el contrato si cambió la API: `pnpm generate:contracts`. Para comprobar que lo versionado está actualizado sin escribir archivos: `pnpm check:contracts`.
 3. Configurar en el `.env` local `DATABASE_URL` y las variables de Google OAuth. El callback local debe terminar en `/api/auth/google/callback`.
 4. Levantar la API en modo desarrollo: `pnpm dev` (por defecto, `http://localhost:3000`).
-5. En otra terminal, levantar la web: `pnpm dev:web` (por defecto, `http://localhost:5173`). La pantalla verifica la sesión y, si no existe, ofrece el acceso con Google.
+5. En otra terminal, levantar la web: `pnpm dev:web` (por defecto, `http://localhost:5173`). La Web inicia con `GET /api/platform/bootstrap`, que devuelve en una respuesta la sesión vigente y las aplicaciones autorizadas; si no existe sesión, ofrece el acceso con Google.
 6. Preautorizar el usuario corporativo con `pnpm --filter @timbo/api preauthorize-user -- --corporate-email <correo>` y asignar el primer administrador con `pnpm --filter @timbo/api assign-platform-admin -- --corporate-email <correo>`. Los administradores posteriores se gestionan desde Administración. Estos comandos no deben apuntar a una base ajena al entorno autorizado.
 7. Ingresar con la misma cuenta de Google preautorizada. El Home muestra las aplicaciones activas
    asignadas a esa cuenta. `/admin`, `/admin/applications` y `/admin/activity` quedan protegidos por
@@ -235,7 +235,7 @@ Para una visión de conjunto, empezar por
 [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md). Los recorridos concretos son:
 
 1. **Arranque y configuración:** `main.ts` → `runtime-config.ts` → `bootstrap.ts` → `app.module.ts`.
-2. **Identidad:** `modules/auth/auth.controller.ts` → `auth.service.ts` → usuarios, intentos OAuth y sesiones.
+2. **Identidad:** `modules/auth/auth.controller.ts` → `auth.service.ts` → usuarios, intentos OAuth y sesiones. El arranque Web usa además `modules/platform-bootstrap` para coordinar la identidad y las aplicaciones autorizadas tras el guard de sesión.
 3. **Administración:** controllers de `modules/administration` → `UsersService`,
    `ApplicationsService`, `AccessProfilesService` o `ActivityService`.
 4. **Auditoría:** operación propietaria → transacción Prisma → `AuditEventsService` → `AUDIT_EVENT_CATALOG`.

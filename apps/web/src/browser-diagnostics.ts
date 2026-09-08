@@ -5,6 +5,7 @@ import {
 } from '@timbo/observability';
 
 export type BrowserOperation =
+  | 'platform.bootstrap'
   | 'applications.load-authorized'
   | 'administration.load-applications'
   | 'administration.manage-users'

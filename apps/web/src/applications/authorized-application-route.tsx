@@ -1,4 +1,4 @@
-import type { Api, AuthSession } from '../api';
+import type { Api, AuthSession, AuthorizedApplication } from '../api';
 import { ApplicationRouteState } from './application-route-state';
 import { findApplicationComponent } from './application-registry';
 import { useAuthorizedApplications } from './use-authorized-applications';
@@ -20,6 +20,7 @@ interface AuthorizedApplicationRouteProps {
   onNavigate: (pathname: string) => void;
   onLogout: () => void;
   onSessionExpired: () => void;
+  initialApplications?: AuthorizedApplication[];
 }
 
 export function AuthorizedApplicationRoute({
@@ -31,8 +32,9 @@ export function AuthorizedApplicationRoute({
   onNavigate,
   onLogout,
   onSessionExpired,
+  initialApplications,
 }: AuthorizedApplicationRouteProps): React.JSX.Element {
-  const { state, reload } = useAuthorizedApplications(api, onSessionExpired);
+  const { state, reload } = useAuthorizedApplications(api, onSessionExpired, initialApplications);
 
   if (state.status === 'loading') {
     return (

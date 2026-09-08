@@ -1046,6 +1046,28 @@
         ]
       }
     },
+    "/api/platform/bootstrap": {
+      "get": {
+        "operationId": "getPlatformBootstrap",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformBootstrapResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtiene la sesión y las aplicaciones autorizadas para iniciar la plataforma.",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/api/admin/activity": {
       "get": {
         "operationId": "listAdministrativeActivity",
@@ -3372,6 +3394,24 @@
           "description",
           "launchPath",
           "displayOrder"
+        ]
+      },
+      "PlatformBootstrapResponseDto": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/AuthSessionResponseDto"
+          },
+          "applications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthorizedApplicationResponseDto"
+            }
+          }
+        },
+        "required": [
+          "session",
+          "applications"
         ]
       },
       "HelloWorldJokeRequestDto": {

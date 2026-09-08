@@ -14,6 +14,8 @@ import { ActivityController } from './modules/administration/activity.controller
 import { AdministrativeApplicationsController } from './modules/administration/administrative-applications.controller';
 import { AdministrativeApplicationAccessController } from './modules/administration/administrative-application-access.controller';
 import { AuthorizedApplicationsController } from './modules/administration/authorized-applications.controller';
+import { PlatformBootstrapController } from './modules/platform-bootstrap/platform-bootstrap.controller';
+import { PlatformBootstrapService } from './modules/platform-bootstrap/platform-bootstrap.service';
 import { HelloWorldApplicationAccessGuard } from './modules/hello-world/hello-world-application-access.guard';
 import { HelloWorldController } from './modules/hello-world/hello-world.controller';
 import { HelloWorldService } from './modules/hello-world/hello-world.service';
@@ -56,6 +58,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     AdministrativeApplicationsController,
     AdministrativeApplicationAccessController,
     AuthorizedApplicationsController,
+    PlatformBootstrapController,
     ActivityController,
     HelloWorldController,
     ListaPreciosController,
@@ -64,6 +67,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
   ],
   providers: [
     { provide: AuthService, useValue: {} },
+    { provide: PlatformBootstrapService, useValue: {} },
     { provide: SessionAuthenticationGuard, useValue: { canActivate: () => true } },
     { provide: PlatformAdministratorGuard, useValue: { canActivate: () => true } },
     { provide: CsrfProtectionGuard, useValue: { canActivate: () => true } },

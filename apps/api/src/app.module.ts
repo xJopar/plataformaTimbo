@@ -12,6 +12,7 @@ import { ObservabilityModule } from './modules/observability/observability.modul
 import { Seguimiento5sModule } from './modules/seguimiento-5s/seguimiento-5s.module';
 import { UsersModule } from './modules/users/users.module';
 import { UsageEventsModule } from './modules/usage-events/usage-events.module';
+import { PlatformBootstrapModule } from './modules/platform-bootstrap/platform-bootstrap.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { UsageEventsModule } from './modules/usage-events/usage-events.module';
     HealthModule,
     UsersModule,
     AuthModule,
+    PlatformBootstrapModule,
     HelloWorldModule,
     ListaPreciosModule,
     MetaCompanyModule,

@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { Api, AuthSession } from '../api';
+import type { Api, AuthSession, AuthorizedApplication } from '../api';
 import { useAuthorizedApplications } from '../applications/use-authorized-applications';
 import { PlatformHeader } from '../layout/platform-header';
 import { PlatformSessionBar } from '../layout/platform-session-bar';
@@ -35,6 +35,7 @@ interface HomeLauncherProps {
   onNavigate: (pathname: string) => void;
   onLogout: () => void;
   onSessionExpired: () => void;
+  initialApplications?: AuthorizedApplication[];
 }
 
 type CompanyValue = (typeof COMPANY_VALUES)[number];
@@ -174,8 +175,9 @@ export function HomeLauncher({
   onNavigate,
   onLogout,
   onSessionExpired,
+  initialApplications,
 }: HomeLauncherProps): React.JSX.Element {
-  const { state, reload } = useAuthorizedApplications(api, onSessionExpired);
+  const { state, reload } = useAuthorizedApplications(api, onSessionExpired, initialApplications);
   const [companyValueIndex, setCompanyValueIndex] = useState(0);
 
   useEffect(() => {

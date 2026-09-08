@@ -503,6 +503,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/platform/bootstrap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene la sesión y las aplicaciones autorizadas para iniciar la plataforma. */
+        get: operations["getPlatformBootstrap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/activity": {
         parameters: {
             query?: never;
@@ -1381,6 +1398,10 @@ export interface components {
             launchPath: string;
             /** @example 0 */
             displayOrder: number;
+        };
+        PlatformBootstrapResponseDto: {
+            session: components["schemas"]["AuthSessionResponseDto"];
+            applications: components["schemas"]["AuthorizedApplicationResponseDto"][];
         };
         HelloWorldJokeRequestDto: {
             /**
@@ -2525,6 +2546,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuthorizedApplicationResponseDto"][];
+                };
+            };
+        };
+    };
+    getPlatformBootstrap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformBootstrapResponseDto"];
                 };
             };
         };
