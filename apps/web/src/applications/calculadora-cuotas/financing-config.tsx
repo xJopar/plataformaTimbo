@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import {
   calculateInstallmentPlan,
   formatUsd,
+  getAnnualRatePercent,
   PERIODICITY_LABELS,
   type CalculationMode,
   type CalculatorItem,
@@ -27,6 +28,8 @@ export interface FinancingConfigValue {
   reinforcementPeriodicity: CuotaPeriodicity;
   reinforcementAmountUsd: number;
   desiredRegularInstallmentAmountUsd: number;
+  customAnnualRateEnabled: boolean;
+  customAnnualRatePercent?: number;
 }
 
 interface FinancingConfigProps {
@@ -44,7 +47,8 @@ type InvalidField =
   | 'reinforcementAmount'
   | 'reinforcementPeriodicity'
   | 'targetInstallment'
-  | 'termMonths';
+  | 'termMonths'
+  | 'annualRate';
 
 interface CalculationError {
   fields: readonly InvalidField[];
@@ -109,6 +113,11 @@ function formatEditableUsd(value: number): string {
   return value.toLocaleString('es-PY', { maximumFractionDigits: 2 });
 }
 
+function formatEditablePercent(value: number | undefined): string {
+  if (value === undefined || !Number.isFinite(value) || value < 0) return '';
+  return value.toLocaleString('es-PY', { maximumFractionDigits: 2 });
+}
+
 function formatWhileTyping(value: string): string {
   const allowed = value.replace(/[^\d.,]/g, '');
   const commaPosition = allowed.lastIndexOf(',');
@@ -152,6 +161,9 @@ export function FinancingConfig({
   const [targetInstallmentInput, setTargetInstallmentInput] = useState(
     formatEditableUsd(value.desiredRegularInstallmentAmountUsd),
   );
+  const [annualRateInput, setAnnualRateInput] = useState(
+    formatEditablePercent(value.customAnnualRatePercent),
+  );
   const [calculationError, setCalculationError] = useState<CalculationError | undefined>(undefined);
 
   useEffect(() => setTermInput(String(value.termMonths)), [value.termMonths]);
@@ -162,6 +174,10 @@ export function FinancingConfig({
   useEffect(
     () => setTargetInstallmentInput(formatEditableUsd(value.desiredRegularInstallmentAmountUsd)),
     [value.desiredRegularInstallmentAmountUsd],
+  );
+  useEffect(
+    () => setAnnualRateInput(formatEditablePercent(value.customAnnualRatePercent)),
+    [value.customAnnualRatePercent],
   );
 
   function updateTerm(nextInput: string): void {
@@ -204,6 +220,7 @@ export function FinancingConfig({
 
     const reinforcementAmountUsd = parseDecimal(reinforcementAmountInput) ?? 0;
     const desiredRegularInstallmentAmountUsd = parseDecimal(targetInstallmentInput) ?? 0;
+    const customAnnualRatePercent = parseDecimal(annualRateInput);
     if (
       value.calculationMode === 'standard' &&
       value.reinforcementsEnabled &&
@@ -220,12 +237,22 @@ export function FinancingConfig({
       ]);
       return;
     }
+    if (
+      value.customAnnualRateEnabled &&
+      (customAnnualRatePercent === undefined || customAnnualRatePercent < 0)
+    ) {
+      reportInvalidField('Ingresá una tasa de interés válida para continuar.', ['annualRate']);
+      return;
+    }
 
     const nextValue = {
       ...value,
       termMonths,
       reinforcementAmountUsd,
       desiredRegularInstallmentAmountUsd,
+      customAnnualRatePercent: value.customAnnualRateEnabled
+        ? customAnnualRatePercent
+        : value.customAnnualRatePercent,
     };
     const result = calculateInstallmentPlan({ items, ...nextValue });
     if (result.status !== 'ok') {
@@ -382,6 +409,8 @@ export function FinancingConfig({
                     setCalculationError(undefined);
                     onChange({ ...value, reinforcementsEnabled });
                   }}
+                  activateLabel="Activar refuerzos"
+                  deactivateLabel="Desactivar refuerzos"
                 />
               </div>
               {value.reinforcementsEnabled ? (
@@ -460,6 +489,71 @@ export function FinancingConfig({
             hasCalculationError={calculationError?.fields.includes('downPayment') === true}
             onEdit={() => setCalculationError(undefined)}
           />
+          <fieldset
+            className="cc-field-group cc-reinforcements-disclosure cc-interest-rate-disclosure"
+            aria-labelledby="cc-interest-rate-title"
+          >
+            <div className="cc-reinforcements-heading">
+              <span id="cc-interest-rate-title" className="cc-reinforcements-title">
+                Editar interés
+              </span>
+              <ReinforcementSwitch
+                checked={value.customAnnualRateEnabled}
+                onChange={(customAnnualRateEnabled) => {
+                  setCalculationError(undefined);
+                  onChange({
+                    ...value,
+                    customAnnualRateEnabled,
+                    customAnnualRatePercent:
+                      customAnnualRateEnabled && value.customAnnualRatePercent === undefined
+                        ? getAnnualRatePercent(
+                            Math.max(1, value.termMonths),
+                            normalizedTotalPriceUsd === 0
+                              ? 0
+                              : (normalizedDownPaymentUsd / normalizedTotalPriceUsd) * 100,
+                          )
+                        : value.customAnnualRatePercent,
+                  });
+                }}
+                activateLabel="Activar edición de interés"
+                deactivateLabel="Desactivar edición de interés"
+              />
+            </div>
+            {value.customAnnualRateEnabled ? (
+              <div className="cc-interest-rate-field cc-field">
+                <label htmlFor="cc-custom-annual-rate">Tasa anual</label>
+                <div
+                  className={
+                    calculationError?.fields.includes('annualRate')
+                      ? 'cc-input-with-suffix cc-input-error'
+                      : 'cc-input-with-suffix'
+                  }
+                >
+                  <input
+                    id="cc-custom-annual-rate"
+                    className={
+                      calculationError?.fields.includes('annualRate') ? 'cc-input-error' : undefined
+                    }
+                    aria-invalid={calculationError?.fields.includes('annualRate') || undefined}
+                    type="text"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    value={annualRateInput}
+                    onChange={(event) => {
+                      setCalculationError(undefined);
+                      const formatted = formatWhileTyping(event.target.value);
+                      setAnnualRateInput(formatted);
+                      const parsed = parseDecimal(formatted);
+                      if (parsed !== undefined && parsed >= 0) {
+                        onChange({ ...value, customAnnualRatePercent: parsed });
+                      }
+                    }}
+                  />
+                  <span aria-hidden="true">%</span>
+                </div>
+              </div>
+            ) : null}
+          </fieldset>
           {calculationError === undefined ? null : (
             <p className="cc-field-error" role="alert">
               {calculationError.message}

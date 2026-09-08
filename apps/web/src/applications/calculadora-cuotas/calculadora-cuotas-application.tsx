@@ -33,6 +33,8 @@ const DEFAULT_CONFIG: FinancingConfigValue = {
   reinforcementPeriodicity: 'semestral',
   reinforcementAmountUsd: 0,
   desiredRegularInstallmentAmountUsd: 0,
+  customAnnualRateEnabled: false,
+  customAnnualRatePercent: undefined,
 };
 
 type WizardScreen = 'main' | 'mode' | 'config' | 'result';

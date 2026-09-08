@@ -24,6 +24,8 @@ const DEFAULT_VALUE: FinancingConfigValue = {
   reinforcementPeriodicity: 'semestral',
   reinforcementAmountUsd: 0,
   desiredRegularInstallmentAmountUsd: 0,
+  customAnnualRateEnabled: false,
+  customAnnualRatePercent: undefined,
 };
 
 function renderConfig(
@@ -119,6 +121,43 @@ describe('FinancingConfig', () => {
     fireEvent.click(screen.getByRole('switch', { name: 'Activar refuerzos' }));
 
     expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_VALUE, reinforcementsEnabled: true });
+  });
+
+  it.each(['standard', 'target-installment'] as const)(
+    'permite editar la tasa anual en modalidad %s',
+    (calculationMode) => {
+      const onChange = vi.fn();
+      renderConfig(
+        {
+          ...DEFAULT_VALUE,
+          calculationMode,
+          reinforcementsEnabled: calculationMode === 'target-installment',
+          customAnnualRateEnabled: true,
+          customAnnualRatePercent: 10,
+        },
+        onChange,
+      );
+
+      expect(screen.getByLabelText('Tasa anual')).toHaveValue('10');
+
+      fireEvent.change(screen.getByLabelText('Tasa anual'), { target: { value: '8' } });
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ customAnnualRateEnabled: true, customAnnualRatePercent: 8 }),
+      );
+    },
+  );
+
+  it('habilita la tasa automática como punto de partida al activar su edición', () => {
+    const onChange = vi.fn();
+    renderConfig(DEFAULT_VALUE, onChange);
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Activar edición de interés' }));
+
+    expect(onChange).toHaveBeenLastCalledWith({
+      ...DEFAULT_VALUE,
+      customAnnualRateEnabled: true,
+      customAnnualRatePercent: 10,
+    });
   });
 
   it('muestra la cuota objetivo como subtítulo antes de los refuerzos obligatorios', () => {

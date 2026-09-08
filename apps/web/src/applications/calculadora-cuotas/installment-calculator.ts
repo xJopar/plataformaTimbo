@@ -25,6 +25,8 @@ export interface InstallmentPlanInput {
   reinforcementPeriodicity: CuotaPeriodicity;
   reinforcementAmountUsd: number;
   desiredRegularInstallmentAmountUsd: number;
+  customAnnualRateEnabled: boolean;
+  customAnnualRatePercent?: number;
 }
 
 export interface InstallmentPlan {
@@ -147,7 +149,16 @@ export function calculateInstallmentPlan(input: InstallmentPlanInput): Installme
   const downPaymentUsd = Math.min(Math.max(rawDownPaymentUsd, 0), totalPriceUsd);
   const downPaymentPercent = (downPaymentUsd / totalPriceUsd) * 100;
   const financedPrincipalUsd = totalPriceUsd - downPaymentUsd;
-  const annualRatePercent = getAnnualRatePercent(termMonths, downPaymentPercent);
+  const annualRatePercent = input.customAnnualRateEnabled
+    ? input.customAnnualRatePercent
+    : getAnnualRatePercent(termMonths, downPaymentPercent);
+  if (
+    annualRatePercent === undefined ||
+    !Number.isFinite(annualRatePercent) ||
+    annualRatePercent < 0
+  ) {
+    throw new Error('La tasa anual personalizada debe ser un valor válido mayor o igual a cero.');
+  }
   const interestTotalUsd = financedPrincipalUsd * (annualRatePercent / 100) * (termMonths / 12);
   const saldoAFinanciarUsd = financedPrincipalUsd + interestTotalUsd;
 

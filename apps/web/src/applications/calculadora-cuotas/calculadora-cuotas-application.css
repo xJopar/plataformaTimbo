@@ -1380,6 +1380,22 @@
   border-top: 0;
 }
 
+.cc-interest-rate-disclosure {
+  padding-bottom: 0;
+  border-bottom: 0;
+  gap: var(--cc-sp-2);
+}
+
+.cc-interest-rate-field {
+  inline-size: min(100%, 20rem);
+}
+
+@media (max-width: 359px) {
+  .cc-interest-rate-disclosure .cc-reinforcements-heading {
+    flex-wrap: wrap;
+  }
+}
+
 .cc-field {
   display: flex;
   flex-direction: column;

@@ -31,6 +31,8 @@ const BASE_INPUT: InstallmentPlanInput = {
   reinforcementPeriodicity: 'semestral',
   reinforcementAmountUsd: 0,
   desiredRegularInstallmentAmountUsd: 0,
+  customAnnualRateEnabled: false,
+  customAnnualRatePercent: undefined,
 };
 
 describe('sumItemsUsd', () => {
@@ -119,6 +121,20 @@ describe('calculateInstallmentPlan', () => {
     expect(plan.regularInstallmentCount).toBe(36);
     expect(plan.regularInstallmentAmountUsd).toBeCloseTo(11_960 / 36, 6);
     expect(plan.totalPagarUsd).toBeCloseTo(14_260, 6);
+  });
+
+  it('usa una tasa anual personalizada cuando fue habilitada', () => {
+    const result = calculateInstallmentPlan({
+      ...BASE_INPUT,
+      items: [item({ priceUsd: 100_000 })],
+      customAnnualRateEnabled: true,
+      customAnnualRatePercent: 8,
+    });
+
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.plan.annualRatePercent).toBe(8);
+    expect(result.plan.interestTotalUsd).toBeCloseTo(19_200, 6);
   });
 
   it('calcula el sobrante de los refuerzos según las cuotas elegidas por el cliente', () => {

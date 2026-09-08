@@ -2,12 +2,16 @@ import { useId } from 'react';
 import styled from 'styled-components';
 
 interface ReinforcementSwitchProps {
+  activateLabel: string;
   checked: boolean;
+  deactivateLabel: string;
   onChange: (checked: boolean) => void;
 }
 
 export function ReinforcementSwitch({
+  activateLabel,
   checked,
+  deactivateLabel,
   onChange,
 }: ReinforcementSwitchProps): React.JSX.Element {
   const filterId = `reinforcement-switch-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
@@ -16,7 +20,7 @@ export function ReinforcementSwitch({
     <StyledWrapper>
       <label className="toggle-container">
         <input
-          aria-label={checked ? 'Desactivar refuerzos' : 'Activar refuerzos'}
+          aria-label={checked ? deactivateLabel : activateLabel}
           checked={checked}
           className="toggle-input"
           role="switch"

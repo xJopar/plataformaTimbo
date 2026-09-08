@@ -18,6 +18,9 @@ se elige explícitamente antes de editar condiciones: `Normal` permite agregar r
 periodicidad, mientras que `Cuota objetivo` usa el importe de cuota para calcular los refuerzos.
 Al cambiar una modalidad ya configurada se conserva la entrega inicial y se confirma el reinicio de
 las demás condiciones.
+Debajo de la entrega inicial, ambas modalidades ofrecen una edición opcional de la tasa anual: el
+control permanece cerrado hasta que se activa y la tasa ingresada modifica exclusivamente el
+cálculo local del plan, sin sumar contenido a su vista final ni al cuotero descargable.
 
 ## Superficie de trabajo
 
