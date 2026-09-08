@@ -124,12 +124,12 @@ button:focus-visible {
   animation-delay: -4s;
 }
 .aurora-background-layer--2 .aurora-background-orb {
-  background: radial-gradient(circle, rgb(110 125 190 / 20%) 0%, transparent 65%);
+  background: radial-gradient(circle, rgb(220 38 38 / 32%) 0%, transparent 65%);
   animation-name: aurora-breathe-secondary;
   animation-delay: -10s;
 }
 .aurora-background-layer--3 .aurora-background-orb {
-  background: radial-gradient(circle, rgb(70 145 175 / 17%) 0%, transparent 68%);
+  background: radial-gradient(circle, rgb(220 38 38 / 32%) 0%, transparent 68%);
   animation-name: aurora-breathe-accent;
   animation-delay: -15s;
 }
