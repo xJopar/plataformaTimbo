@@ -113,7 +113,7 @@ button:focus-visible {
   block-size: 100%;
   display: block;
   transform-origin: center;
-  animation-duration: 18s;
+  animation-duration: 15s;
   animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
   animation-iteration-count: infinite;
   animation-direction: alternate;
@@ -124,12 +124,12 @@ button:focus-visible {
   animation-delay: -4s;
 }
 .aurora-background-layer--2 .aurora-background-orb {
-  background: radial-gradient(circle, rgb(110 125 190 / 13%) 0%, transparent 65%);
+  background: radial-gradient(circle, rgb(110 125 190 / 20%) 0%, transparent 65%);
   animation-name: aurora-breathe-secondary;
   animation-delay: -10s;
 }
 .aurora-background-layer--3 .aurora-background-orb {
-  background: radial-gradient(circle, rgb(70 145 175 / 10%) 0%, transparent 68%);
+  background: radial-gradient(circle, rgb(70 145 175 / 17%) 0%, transparent 68%);
   animation-name: aurora-breathe-accent;
   animation-delay: -15s;
 }
@@ -143,18 +143,18 @@ button:focus-visible {
 }
 @keyframes aurora-breathe-secondary {
   from {
-    transform: translate3d(1.5%, -1.5%, 0) scale(1.03);
+    transform: translate3d(2.5%, -2.5%, 0) scale(1.045);
   }
   to {
-    transform: translate3d(-2%, 1%, 0) scale(0.98);
+    transform: translate3d(-3%, 2%, 0) scale(0.965);
   }
 }
 @keyframes aurora-breathe-accent {
   from {
-    transform: translate3d(-1%, 1.5%, 0) scale(0.99);
+    transform: translate3d(-2%, 2.5%, 0) scale(0.975);
   }
   to {
-    transform: translate3d(1.5%, -2%, 0) scale(1.035);
+    transform: translate3d(2.5%, -3%, 0) scale(1.055);
   }
 }
 

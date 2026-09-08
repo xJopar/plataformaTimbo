@@ -1,7 +1,7 @@
 # Fondo aurora del launcher
 
 El home usa una aurora ambiental para diferenciar el punto de entrada a las aplicaciones sin
-convertir el color en una señal de acción. Tres masas de color respiran durante 18 segundos y se
+convertir el color en una señal de acción. Tres masas de color respiran durante 15 segundos y se
 desplazan apenas con el puntero fino; el contenido, los controles y la navegación permanecen
 estáticos.
 
