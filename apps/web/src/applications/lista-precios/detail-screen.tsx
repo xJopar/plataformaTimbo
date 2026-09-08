@@ -6,6 +6,7 @@ import {
 } from '../calculadora-cuotas/calculadora-cuotas-routes';
 import { formatPrice, parsePrice } from '../../vehicle-catalog/vehicle-catalog';
 import { Loader } from './loader';
+import { useStockTour } from './use-stock-tour';
 import { VehicleGallery } from './vehicle-gallery';
 import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
 
@@ -56,10 +57,12 @@ function AvailBadge({ disponible }: { disponible: string }): React.JSX.Element {
 function StockUnit({
   unit,
   selected,
+  tour,
   onSelect,
 }: {
   unit: VehicleResponse;
   selected: boolean;
+  tour: boolean;
   onSelect: (unit: VehicleResponse | null) => void;
 }): React.JSX.Element {
   const precio = parsePrice(unit.precioLista);
@@ -72,10 +75,12 @@ function StockUnit({
     unit.km ? `${Number(unit.km).toLocaleString('es-PY')} km` : null,
   ].filter(Boolean);
 
+  const modifier = selected ? ' lp-stock-unit--selected' : tour ? ' lp-stock-unit--tour' : '';
+
   return (
     <button
       type="button"
-      className={`lp-stock-unit${selected ? ' lp-stock-unit--selected' : ''}`}
+      className={`lp-stock-unit${modifier}`}
       aria-pressed={selected}
       onClick={() => onSelect(selected ? null : unit)}
     >
@@ -108,6 +113,10 @@ export function DetailScreen({
   const group = vehiclesState.status === 'ready' ? vehiclesState.groups.get(modelKey) : undefined;
   const canCalculateInstallments = availableApplications.some(
     (application) => application.launchPath === CALCULADORA_CUOTAS_LAUNCH_PATH,
+  );
+  const tourStock = useStockTour(
+    group?.units.map((unit) => unit.stock) ?? [],
+    selectedUnit === null,
   );
 
   useEffect(() => {
@@ -311,6 +320,7 @@ export function DetailScreen({
                 key={unit.stock}
                 unit={unit}
                 selected={selectedUnit?.stock === unit.stock}
+                tour={tourStock === unit.stock}
                 onSelect={setSelectedUnit}
               />
             ))}
