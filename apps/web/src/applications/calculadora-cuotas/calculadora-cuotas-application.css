@@ -1390,6 +1390,113 @@
   inline-size: min(100%, 20rem);
 }
 
+.cc-interest-rate-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cc-sp-1);
+}
+
+.cc-interest-rate-info {
+  position: relative;
+  display: inline-flex;
+}
+
+.cc-interest-rate-info-button {
+  box-sizing: border-box;
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cc-c-text-secondary);
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.cc-interest-rate-info-icon {
+  display: block;
+  transform-origin: center;
+  transition: transform 140ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.cc-interest-rate-info-button:focus-visible {
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 2px;
+}
+
+.cc-interest-rate-info-button:active {
+  background-color: var(--cc-c-surface-alt);
+}
+
+.cc-interest-rate-info-tooltip {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + var(--cc-sp-1));
+  right: 0;
+  width: min(17rem, calc(100vw - var(--cc-sp-6)));
+  padding: var(--cc-sp-3);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface-alt);
+  color: var(--cc-c-text-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  opacity: 1;
+  transform-origin: top right;
+  transition: opacity 160ms cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+@starting-style {
+  .cc-interest-rate-info-tooltip {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cc-interest-rate-info-icon {
+    animation: cc-interest-rate-info-attention 420ms cubic-bezier(0.645, 0.045, 0.355, 1);
+    animation-delay: 360ms;
+    animation-iteration-count: 1;
+  }
+
+  .cc-interest-rate-info-button:active .cc-interest-rate-info-icon {
+    transform: scale(0.94);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .cc-interest-rate-info-button:hover {
+      color: var(--cc-c-brand);
+    }
+
+    .cc-interest-rate-info-button:hover .cc-interest-rate-info-icon {
+      transform: scale(1.08);
+    }
+  }
+}
+
+@keyframes cc-interest-rate-info-attention {
+  20% {
+    transform: rotate(-8deg);
+  }
+
+  40% {
+    transform: rotate(7deg);
+  }
+
+  60% {
+    transform: rotate(-4deg);
+  }
+
+  80% {
+    transform: rotate(2deg);
+  }
+}
+
 @media (max-width: 359px) {
   .cc-interest-rate-disclosure .cc-reinforcements-heading {
     flex-wrap: wrap;

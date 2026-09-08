@@ -12,6 +12,7 @@ import {
   type InstallmentPlanResult,
 } from './installment-calculator';
 import { InitialDownPaymentField } from './initial-down-payment-field';
+import { InterestRateInfo } from './interest-rate-info';
 import { ReinforcementSwitch } from './reinforcement-switch';
 
 const PERIODICITY_OPTIONS: CuotaPeriodicity[] = ['mensual', 'semestral', 'anual'];
@@ -497,27 +498,30 @@ export function FinancingConfig({
               <span id="cc-interest-rate-title" className="cc-reinforcements-title">
                 Editar interés
               </span>
-              <ReinforcementSwitch
-                checked={value.customAnnualRateEnabled}
-                onChange={(customAnnualRateEnabled) => {
-                  setCalculationError(undefined);
-                  onChange({
-                    ...value,
-                    customAnnualRateEnabled,
-                    customAnnualRatePercent:
-                      customAnnualRateEnabled && value.customAnnualRatePercent === undefined
-                        ? getAnnualRatePercent(
-                            Math.max(1, value.termMonths),
-                            normalizedTotalPriceUsd === 0
-                              ? 0
-                              : (normalizedDownPaymentUsd / normalizedTotalPriceUsd) * 100,
-                          )
-                        : value.customAnnualRatePercent,
-                  });
-                }}
-                activateLabel="Activar edición de interés"
-                deactivateLabel="Desactivar edición de interés"
-              />
+              <div className="cc-interest-rate-actions">
+                <InterestRateInfo />
+                <ReinforcementSwitch
+                  checked={value.customAnnualRateEnabled}
+                  onChange={(customAnnualRateEnabled) => {
+                    setCalculationError(undefined);
+                    onChange({
+                      ...value,
+                      customAnnualRateEnabled,
+                      customAnnualRatePercent:
+                        customAnnualRateEnabled && value.customAnnualRatePercent === undefined
+                          ? getAnnualRatePercent(
+                              Math.max(1, value.termMonths),
+                              normalizedTotalPriceUsd === 0
+                                ? 0
+                                : (normalizedDownPaymentUsd / normalizedTotalPriceUsd) * 100,
+                            )
+                          : value.customAnnualRatePercent,
+                    });
+                  }}
+                  activateLabel="Activar edición de interés"
+                  deactivateLabel="Desactivar edición de interés"
+                />
+              </div>
             </div>
             {value.customAnnualRateEnabled ? (
               <div className="cc-interest-rate-field cc-field">
