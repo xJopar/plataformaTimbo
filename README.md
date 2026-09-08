@@ -20,7 +20,8 @@ stock, filtros, precios ni mensajes de WhatsApp.
 `Calculadora de Cuotas` en `/apps/calculadora-cuotas` permite armar un plan de financiación en un
 flujo guiado desde unidades de Lista de Precios o montos manuales. La persona puede calcularlo en
 modalidad normal, definiendo refuerzos opcionales, o desde una cuota objetivo; luego descarga el
-cuotero calculado como imagen PNG, con la entrega inicial y las cuotas del plan.
+cuotero calculado como imagen PNG, con la entrega inicial y las cuotas del plan. En Condiciones,
+puede habilitar una tasa anual personalizada que se usa sólo para calcular el plan local.
 `Meta Company` en `/apps/meta-company` administra las metas comerciales que consume Power BI. Sus
 perfiles permiten editar metas y, para administradores, crear y activar o desactivar marcas y
 negocios. La pantalla principal permite descargar una plantilla e importar metas desde Excel por
