@@ -113,7 +113,7 @@ button:focus-visible {
   block-size: 100%;
   display: block;
   transform-origin: center;
-  animation-duration: 15s;
+  animation-duration: 10s;
   animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
   animation-iteration-count: infinite;
   animation-direction: alternate;
