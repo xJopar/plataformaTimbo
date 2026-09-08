@@ -191,6 +191,14 @@ describe('MetaCompanyApplication — asesores', () => {
 });
 
 describe('MetaCompanyApplication — metas por marca', () => {
+  it('ofrece la descarga de la plantilla de carga de metas', async () => {
+    renderMetaCompany('/apps/meta-company');
+
+    const templateLink = await screen.findByRole('link', { name: 'Descargar plantilla Excel' });
+    expect(templateLink).toHaveAttribute('href', '/plantilla-metas-comerciales.xlsx');
+    expect(templateLink).toHaveAttribute('download');
+  });
+
   it('el tab de marca navega a su propia ruta', async () => {
     const user = userEvent.setup();
     const onNavigate = vi.fn<ApplicationComponentProps['onNavigate']>();

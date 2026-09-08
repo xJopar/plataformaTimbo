@@ -68,6 +68,13 @@
   font-weight: 700;
   cursor: pointer;
 }
+.mc-template-download {
+  align-items: center;
+  box-sizing: border-box;
+  display: inline-flex;
+  justify-content: center;
+  text-decoration: none;
+}
 .mc-primary-action,
 .mc-mode-switch .is-active {
   background: #00388a;
@@ -339,6 +346,9 @@ select:focus-visible {
     justify-content: stretch;
   }
   .mc-title-actions button {
+    flex: 1;
+  }
+  .mc-title-actions .mc-template-download {
     flex: 1;
   }
   .mc-manage-form-grid,

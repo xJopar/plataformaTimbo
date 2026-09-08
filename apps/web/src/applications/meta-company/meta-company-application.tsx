@@ -278,6 +278,13 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                 <p>Actualizá los valores que Power BI utilizará en sus reportes.</p>
               </div>
               <div className="mc-title-actions">
+                <a
+                  className="mc-secondary-action mc-template-download"
+                  download
+                  href="/plantilla-metas-comerciales.xlsx"
+                >
+                  Descargar plantilla Excel
+                </a>
                 {capabilities.canManageCatalogs ? (
                   <>
                     <button
