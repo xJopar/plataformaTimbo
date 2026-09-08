@@ -205,6 +205,10 @@ button:focus-visible {
 }
 .top-bar-brand img {
   width: 190px;
+  transition: opacity 0.15s ease;
+}
+.top-bar-brand:hover img {
+  opacity: 0.82;
 }
 
 .application-context {
