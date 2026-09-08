@@ -605,6 +605,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications/lista-precios/vehicles/{stock}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene las keys de las fotos (completa + miniatura) de un Stock, si tiene. */
+        get: operations["getListaPreciosVehicleImages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/lista-precios/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Transmite una foto del bucket por su key, con caché de navegador de larga duración. */
+        get: operations["getListaPreciosImage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/applications/lista-precios/equipment-rentals": {
         parameters: {
             query?: never;
@@ -1405,8 +1439,10 @@ export interface components {
             aproxLlegada: string;
             disponible1: string;
             stock: string;
-            /** @description URLs firmadas (presigned) de las fotos, si hay. */
-            images: string[];
+        };
+        VehicleImageDto: {
+            full: string;
+            thumb: string;
         };
         EquipmentRentalResponseDto: {
             description: string;
@@ -2744,6 +2780,44 @@ export interface operations {
             };
             /** @description Zoho Analytics no está disponible. */
             502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getListaPreciosVehicleImages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stock: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleImageDto"][];
+                };
+            };
+        };
+    };
+    getListaPreciosImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

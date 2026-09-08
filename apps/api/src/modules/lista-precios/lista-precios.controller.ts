@@ -5,10 +5,15 @@ import {
   Controller,
   Get,
   HttpCode,
+  NotFoundException,
+  Param,
   Post,
+  Query,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBadGatewayResponse,
   ApiBadRequestResponse,
@@ -28,11 +33,14 @@ import {
   EquipmentRentalResponseDto,
   toEquipmentRentalResponse,
 } from './dto/equipment-rental-response.dto';
-import { toVehicleResponse, VehicleResponseDto } from './dto/vehicle-response.dto';
+import { toVehicleResponse, VehicleImageDto, VehicleResponseDto } from './dto/vehicle-response.dto';
 import { ListaPreciosApplicationAccessGuard } from './lista-precios-application-access.guard';
 import { ListaPreciosProviderUnavailableError } from './lista-precios.errors';
 import { ListaPreciosService } from './lista-precios.service';
 import { VehicleImagesService } from './vehicle-images.service';
+
+/** 7 días frescos + 1 día de gracia para revalidar en segundo plano sin bloquear al usuario. */
+const IMAGE_CACHE_CONTROL = 'public, max-age=604800, stale-while-revalidate=86400';
 import {
   LISTA_PRECIOS_BRAND_MAX_LENGTH,
   LISTA_PRECIOS_MODEL_MAX_LENGTH,
@@ -64,7 +72,7 @@ export class ListaPreciosController {
   public async getVehicles(): Promise<VehicleResponseDto[]> {
     try {
       const rows = await this.listaPreciosService.getVehicles();
-      return await this.vehicleImagesService.attachImages(rows.map(toVehicleResponse));
+      return rows.map(toVehicleResponse);
     } catch (error) {
       if (error instanceof ListaPreciosProviderUnavailableError) {
         throw new BadGatewayException(
@@ -77,6 +85,34 @@ export class ListaPreciosController {
       }
       throw error;
     }
+  }
+
+  @Get('vehicles/:stock/images')
+  @ApiOperation({
+    operationId: 'getListaPreciosVehicleImages',
+    summary: 'Obtiene las keys de las fotos (completa + miniatura) de un Stock, si tiene.',
+  })
+  @ApiOkResponse({ type: VehicleImageDto, isArray: true })
+  public async getVehicleImages(@Param('stock') stock: string): Promise<VehicleImageDto[]> {
+    return this.vehicleImagesService.getImages(stock);
+  }
+
+  @Get('images')
+  @ApiOperation({
+    operationId: 'getListaPreciosImage',
+    summary: 'Transmite una foto del bucket por su key, con caché de navegador de larga duración.',
+  })
+  public async getImage(@Query('key') key: string | undefined, @Res() res: Response): Promise<void> {
+    const image = await this.vehicleImagesService.streamImage(key ?? '');
+    if (image === null) {
+      throw new NotFoundException({
+        code: 'LISTA_PRECIOS_IMAGE_NOT_FOUND',
+        message: 'La foto solicitada no existe.',
+      });
+    }
+    res.setHeader('Content-Type', image.contentType);
+    res.setHeader('Cache-Control', IMAGE_CACHE_CONTROL);
+    image.body.pipe(res);
   }
 
   @Get('equipment-rentals')

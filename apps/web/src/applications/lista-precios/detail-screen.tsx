@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AuthorizedApplication, VehicleResponse } from '../../api';
+import type { Api, AuthorizedApplication, VehicleResponse } from '../../api';
 import {
   CALCULADORA_CUOTAS_LAUNCH_PATH,
   buildFromStockPath,
@@ -14,6 +14,7 @@ import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-cata
 const SEMIRREMOLQUE_BRANDS = ['FACCHINI', 'LIBRELATO'];
 
 interface DetailScreenProps {
+  api: Api;
   modelKey: string;
   vehiclesState: VehicleCatalogState;
   availableApplications: readonly AuthorizedApplication[];
@@ -101,6 +102,7 @@ function StockUnit({
 }
 
 export function DetailScreen({
+  api,
   modelKey,
   vehiclesState,
   availableApplications,
@@ -208,7 +210,8 @@ export function DetailScreen({
                 </div>
 
                 <VehicleGallery
-                  images={selectedUnit.images}
+                  api={api}
+                  stock={selectedUnit.stock}
                   altLabel={`${group.name} - Stock ${selectedUnit.stock}`}
                 />
 

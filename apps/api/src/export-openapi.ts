@@ -71,7 +71,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     { provide: HelloWorldService, useValue: {} },
     { provide: ListaPreciosApplicationAccessGuard, useValue: { canActivate: () => true } },
     { provide: ListaPreciosService, useValue: {} },
-    { provide: VehicleImagesService, useValue: { attachImages: (rows: unknown[]) => rows } },
+    { provide: VehicleImagesService, useValue: { getImages: () => [], streamImage: () => null } },
     { provide: MetaCompanyApplicationAccessGuard, useValue: { canActivate: () => true } },
     { provide: MetaCompanyCatalogManagementGuard, useValue: { canActivate: () => true } },
     { provide: MetaCompanyGoalManagementGuard, useValue: { canActivate: () => true } },

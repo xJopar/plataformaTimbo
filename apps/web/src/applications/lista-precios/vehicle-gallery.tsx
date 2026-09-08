@@ -1,10 +1,18 @@
 import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { Api } from '../../api';
 import { AppIcon } from '../../ui/app-icon';
+import { useVehicleImages } from './use-vehicle-images';
 
 interface VehicleGalleryProps {
-  images: string[];
+  api: Api;
+  stock: string;
   altLabel: string;
+}
+
+interface ResolvedImage {
+  full: string;
+  thumb: string;
 }
 
 function Slide({ src, alt, eager }: { src: string; alt: string; eager: boolean }): React.JSX.Element {
@@ -23,11 +31,23 @@ function Slide({ src, alt, eager }: { src: string; alt: string; eager: boolean }
   );
 }
 
-export function VehicleGallery({ images, altLabel }: VehicleGalleryProps): React.JSX.Element | null {
+export function VehicleGallery({ api, stock, altLabel }: VehicleGalleryProps): React.JSX.Element | null {
+  const imagesState = useVehicleImages(api, stock);
   const [activeIndex, setActiveIndex] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
   const thumbsRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const images: ResolvedImage[] = useMemo(
+    () =>
+      imagesState.status === 'ready'
+        ? imagesState.images.map((image) => ({
+            full: api.applications.getListaPreciosImageUrl(image.full),
+            thumb: api.applications.getListaPreciosImageUrl(image.thumb),
+          }))
+        : [],
+    [imagesState],
+  );
 
   useEffect(() => {
     setActiveIndex(0);
@@ -67,21 +87,37 @@ export function VehicleGallery({ images, altLabel }: VehicleGalleryProps): React
     slide?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', inline: 'start', block: 'nearest' });
   }, []);
 
+  if (imagesState.status === 'loading') {
+    return (
+      <div className="lp-gallery">
+        <div className="lp-gallery-viewport">
+          <div className="lp-gallery-slide">
+            <div className="lp-gallery-skeleton" aria-hidden="true" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (images.length === 0) return null;
 
   return (
     <div className="lp-gallery">
       <div className="lp-gallery-viewport">
         <div className="lp-gallery-track" ref={trackRef}>
-          {images.map((src, index) => (
+          {images.map((image, index) => (
             <div
-              key={src}
+              key={image.full}
               ref={(el) => {
                 slideRefs.current[index] = el;
               }}
               className="lp-gallery-slide-wrap"
             >
-              <Slide src={src} alt={`${altLabel} — foto ${index + 1} de ${images.length}`} eager={index === 0} />
+              <Slide
+                src={image.full}
+                alt={`${altLabel} — foto ${index + 1} de ${images.length}`}
+                eager={index === 0}
+              />
             </div>
           ))}
         </div>
@@ -115,16 +151,16 @@ export function VehicleGallery({ images, altLabel }: VehicleGalleryProps): React
 
       {images.length > 1 ? (
         <div className="lp-gallery-thumbs" ref={thumbsRef}>
-          {images.map((src, index) => (
+          {images.map((image, index) => (
             <button
               type="button"
-              key={src}
+              key={image.full}
               className={`lp-gallery-thumb${index === activeIndex ? ' lp-gallery-thumb--active' : ''}`}
               aria-label={`Ir a la foto ${index + 1}`}
               aria-current={index === activeIndex}
               onClick={() => goTo(index)}
             >
-              <img src={src} alt="" loading="lazy" />
+              <img src={image.thumb} alt="" loading="lazy" />
             </button>
           ))}
         </div>

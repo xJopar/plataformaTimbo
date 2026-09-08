@@ -1688,6 +1688,55 @@
         ]
       }
     },
+    "/api/applications/lista-precios/vehicles/{stock}/images": {
+      "get": {
+        "operationId": "getListaPreciosVehicleImages",
+        "parameters": [
+          {
+            "name": "stock",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleImageDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtiene las keys de las fotos (completa + miniatura) de un Stock, si tiene.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
+    "/api/applications/lista-precios/images": {
+      "get": {
+        "operationId": "getListaPreciosImage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Transmite una foto del bucket por su key, con caché de navegador de larga duración.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
     "/api/applications/lista-precios/equipment-rentals": {
       "get": {
         "operationId": "listListaPreciosEquipmentRentals",
@@ -3477,13 +3526,6 @@
           },
           "stock": {
             "type": "string"
-          },
-          "images": {
-            "description": "URLs firmadas (presigned) de las fotos, si hay.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         },
         "required": [
@@ -3524,8 +3566,22 @@
           "ubicacion1",
           "aproxLlegada",
           "disponible1",
-          "stock",
-          "images"
+          "stock"
+        ]
+      },
+      "VehicleImageDto": {
+        "type": "object",
+        "properties": {
+          "full": {
+            "type": "string"
+          },
+          "thumb": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "full",
+          "thumb"
         ]
       },
       "EquipmentRentalResponseDto": {

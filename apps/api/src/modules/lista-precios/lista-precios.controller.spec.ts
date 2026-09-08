@@ -10,7 +10,8 @@ describe('ListaPreciosController', () => {
   const listaPreciosService = { getVehicles: jest.fn(), getEquipmentRentals: jest.fn() };
   const usageEventsService = { append: jest.fn() };
   const vehicleImagesService = {
-    attachImages: jest.fn((rows: unknown[]) => Promise.resolve(rows)),
+    getImages: jest.fn(() => Promise.resolve([])),
+    streamImage: jest.fn(() => Promise.resolve(null)),
   };
   const controller = new ListaPreciosController(
     listaPreciosService as unknown as ListaPreciosService,

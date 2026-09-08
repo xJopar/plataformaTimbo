@@ -158,6 +158,12 @@ function createApi(
       listListaPreciosEquipmentRentals: vi
         .fn<ApplicationsApi['listListaPreciosEquipmentRentals']>()
         .mockResolvedValue([]),
+      getListaPreciosVehicleImages: vi
+        .fn<ApplicationsApi['getListaPreciosVehicleImages']>()
+        .mockResolvedValue([]),
+      getListaPreciosImageUrl: vi
+        .fn<ApplicationsApi['getListaPreciosImageUrl']>()
+        .mockReturnValue(''),
       recordListaPreciosUsageEvent: vi
         .fn<ApplicationsApi['recordListaPreciosUsageEvent']>()
         .mockResolvedValue(undefined),

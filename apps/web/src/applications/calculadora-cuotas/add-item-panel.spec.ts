@@ -42,7 +42,6 @@ const BASE_VEHICLE: VehicleResponse = {
   aproxLlegada: '',
   disponible1: '',
   stock: '',
-  images: [],
 };
 
 function vehicle(overrides: Partial<VehicleResponse>): VehicleResponse {

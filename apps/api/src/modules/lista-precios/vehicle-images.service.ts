@@ -1,20 +1,25 @@
+import type { Readable } from 'node:stream';
 import { Injectable, Logger } from '@nestjs/common';
 import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { resolveVehicleImagesConfig } from './vehicle-images.config';
 import vehicleImageFolders from './vehicle-image-folders.json';
-import type { VehicleResponseDto } from './dto/vehicle-response.dto';
+import type { VehicleImageDto } from './dto/vehicle-response.dto';
+
+const THUMB_DIR_NAME = 'thumbs';
 
 const STOCK_TO_PREFIX: Record<string, string> = vehicleImageFolders;
 
 /** Cuánto se cachea en memoria el listado completo del bucket antes de refrescarlo. */
 const LISTING_CACHE_MILLISECONDS = 5 * 60 * 1000;
-/** Vigencia de cada URL presignada; se regeneran en cada `attachImages`, no hace falta más. */
-const PRESIGNED_URL_EXPIRY_SECONDS = 60 * 60;
 
 interface ListingCache {
   fetchedAt: number;
   keys: string[];
+}
+
+export interface StreamedImage {
+  body: Readable;
+  contentType: string;
 }
 
 /**
@@ -27,8 +32,10 @@ interface ListingCache {
  * bucket (no del manifiesto), así que agregar/sacar fotos de una carpeta ya existente no
  * requiere regenerar nada.
  *
- * El bucket es privado: se sirven URLs presignadas (GET, expiran) en vez de proxear los bytes
- * por la propia API, porque el egress directo del bucket es gratis en Railway y el de la API no.
+ * El bucket es privado y la API lo lee con sus propias credenciales (no hace falta presignar
+ * nada): `getImages` sólo devuelve las *keys* de S3 de cada foto, y el navegador las pide por
+ * `streamImage` a través de una URL propia y estable (misma key siempre = cacheable de verdad,
+ * a diferencia de una URL presignada que cambia de firma en cada pedido).
  */
 @Injectable()
 export class VehicleImagesService {
@@ -37,13 +44,11 @@ export class VehicleImagesService {
   private listingCache: ListingCache | undefined;
   private listingPromise: Promise<string[]> | undefined;
 
-  public async attachImages(rows: VehicleResponseDto[]): Promise<VehicleResponseDto[]> {
-    const stocksWithFolder = rows
-      .map((row) => row.stock)
-      .filter((stock) => STOCK_TO_PREFIX[stock] !== undefined);
-
-    if (stocksWithFolder.length === 0) {
-      return rows;
+  /** Devuelve las keys de S3 (foto completa + miniatura) de un Stock, en orden, o [] si no hay. */
+  public async getImages(stock: string): Promise<VehicleImageDto[]> {
+    const prefix = STOCK_TO_PREFIX[stock];
+    if (prefix === undefined) {
+      return [];
     }
 
     let keys: string[];
@@ -51,36 +56,49 @@ export class VehicleImagesService {
       keys = await this.getKeys();
     } catch (error) {
       this.logger.warn('No se pudo listar el bucket de imágenes; se muestran sin fotos.', error);
-      return rows;
+      return [];
     }
 
-    return Promise.all(
-      rows.map(async (row) => {
-        const prefix = STOCK_TO_PREFIX[row.stock];
-        if (prefix === undefined) {
-          return row;
-        }
-        const images = await this.resolveImageUrls(keys, prefix);
-        return images.length > 0 ? Object.assign(row, { images }) : row;
-      }),
-    );
-  }
-
-  private async resolveImageUrls(keys: string[], prefix: string): Promise<string[]> {
     const folderPrefix = `${prefix}/`;
-    const matchingKeys = keys
+    const keySet = new Set(keys);
+    return keys
       .filter((key) => key.startsWith(folderPrefix) && !key.slice(folderPrefix.length).includes('/'))
-      .sort((a, b) => extractOrder(a) - extractOrder(b));
-
-    return Promise.all(matchingKeys.map((key) => this.presign(key)));
+      .sort((a, b) => extractOrder(a) - extractOrder(b))
+      .map((key) => {
+        const thumbKey = toThumbKey(key);
+        return { full: key, thumb: keySet.has(thumbKey) ? thumbKey : key };
+      });
   }
 
-  private presign(key: string): Promise<string> {
+  /**
+   * Trae el contenido de una key del bucket para transmitirlo al navegador. Sólo sirve keys que
+   * figuran en el listado en vivo del bucket (nunca una key arbitraria del pedido), así que el
+   * endpoint que expone esto no puede usarse para curiosear el bucket más allá de lo que
+   * `getImages` ya expone igual.
+   */
+  public async streamImage(key: string): Promise<StreamedImage | null> {
+    let keys: string[];
+    try {
+      keys = await this.getKeys();
+    } catch (error) {
+      this.logger.warn('No se pudo listar el bucket de imágenes.', error);
+      return null;
+    }
+    if (!keys.includes(key)) {
+      return null;
+    }
+
     const config = resolveVehicleImagesConfig();
-    const command = new GetObjectCommand({ Bucket: config.bucket, Key: key });
-    return getSignedUrl(this.getClient(config), command, {
-      expiresIn: PRESIGNED_URL_EXPIRY_SECONDS,
-    });
+    const response = await this.getClient(config).send(
+      new GetObjectCommand({ Bucket: config.bucket, Key: key }),
+    );
+    if (response.Body === undefined) {
+      return null;
+    }
+    return {
+      body: response.Body as Readable,
+      contentType: response.ContentType ?? 'application/octet-stream',
+    };
   }
 
   private async getKeys(): Promise<string[]> {
@@ -128,4 +146,16 @@ function extractOrder(key: string): number {
   const filename = key.split('/').pop() ?? key;
   const match = /^(\d+)/.exec(filename);
   return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
+}
+
+/**
+ * "MARCA/MODELO/STOCK/2.jpg" -> "MARCA/MODELO/STOCK/thumbs/2.webp": la miniatura vive al lado
+ * del original, siempre en WebP (ver `scripts/lista-precios-imagenes/generate-thumbnails.mjs`).
+ */
+function toThumbKey(key: string): string {
+  const lastSlash = key.lastIndexOf('/');
+  const dir = key.slice(0, lastSlash);
+  const filename = key.slice(lastSlash + 1);
+  const base = filename.replace(/\.[^.]+$/, '');
+  return `${dir}/${THUMB_DIR_NAME}/${base}.webp`;
 }

@@ -22,6 +22,10 @@ export type EquipmentRentalResponse = NonNullable<
   paths['/api/applications/lista-precios/equipment-rentals']['get']['responses'][200]['content']['application/json']
 >[number];
 
+export type VehicleImage = NonNullable<
+  paths['/api/applications/lista-precios/vehicles/{stock}/images']['get']['responses'][200]['content']['application/json']
+>[number];
+
 export type ListaPreciosUsageEventName =
   | 'lista-precios.catalog_opened'
   | 'lista-precios.model_viewed'
@@ -116,6 +120,8 @@ export interface ApplicationsApi {
   requestHelloWorldJoke(input: HelloWorldJokeRequest): Promise<HelloWorldJoke>;
   listListaPreciosVehicles(): Promise<VehicleResponse[]>;
   listListaPreciosEquipmentRentals(): Promise<EquipmentRentalResponse[]>;
+  getListaPreciosVehicleImages(stock: string): Promise<VehicleImage[]>;
+  getListaPreciosImageUrl(key: string): string;
   recordListaPreciosUsageEvent(input: ListaPreciosUsageEventRequest): Promise<void>;
   listMetaCompanyGoals(
     period: string,
@@ -312,6 +318,29 @@ export function createApplicationsApi(
       }
 
       return data;
+    },
+    async getListaPreciosVehicleImages(stock: string): Promise<VehicleImage[]> {
+      const { data, response } = await client
+        .GET('/api/applications/lista-precios/vehicles/{stock}/images', {
+          params: { path: { stock } },
+        })
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('getListaPreciosVehicleImages', {
+            cause: error,
+          });
+        });
+
+      if (!response.ok) {
+        throw createApiHttpError(response);
+      }
+      if (data === undefined) {
+        throw new Error('La API respondió sin las fotos esperadas de la unidad.');
+      }
+
+      return data;
+    },
+    getListaPreciosImageUrl(key: string): string {
+      return `${baseUrl}/api/applications/lista-precios/images?key=${encodeURIComponent(key)}`;
     },
     async listListaPreciosEquipmentRentals(): Promise<EquipmentRentalResponse[]> {
       const { data, response } = await client

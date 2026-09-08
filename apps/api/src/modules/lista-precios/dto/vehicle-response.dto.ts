@@ -2,6 +2,16 @@ import { ApiProperty } from '@nestjs/swagger';
 import type { ZohoVehicleRow } from '../lista-precios.service';
 
 /**
+ * Un par de keys de S3: la foto completa y su miniatura liviana (~200px, WebP). No son URLs —
+ * el cliente las combina con `GET /applications/lista-precios/images?key=...` para armar el
+ * `src` de la imagen (ver `apps/web/src/api/applications.ts`, `getListaPreciosImageUrl`).
+ */
+export class VehicleImageDto {
+  @ApiProperty() full!: string;
+  @ApiProperty() thumb!: string;
+}
+
+/**
  * Un registro de la vista de Zoho Analytics ya son todas strings (posiblemente vacías): la
  * vista no distingue "sin dato" de "" y no hay forma de inferir tipos numéricos/fecha de forma
  * confiable columna por columna, así que el parseo (precio, fechas, años) queda del lado del
@@ -46,8 +56,6 @@ export class VehicleResponseDto {
   @ApiProperty() aproxLlegada!: string;
   @ApiProperty() disponible1!: string;
   @ApiProperty() stock!: string;
-  @ApiProperty({ type: [String], description: 'URLs firmadas (presigned) de las fotos, si hay.' })
-  images!: string[];
 }
 
 const VEHICLE_FIELDS = [
@@ -92,7 +100,7 @@ const VEHICLE_FIELDS = [
 ] as const satisfies readonly (keyof VehicleResponseDto)[];
 
 export function toVehicleResponse(row: ZohoVehicleRow): VehicleResponseDto {
-  const response = { images: [] } as unknown as VehicleResponseDto;
+  const response = {} as VehicleResponseDto;
   for (const field of VEHICLE_FIELDS) {
     response[field] = row[field] ?? '';
   }

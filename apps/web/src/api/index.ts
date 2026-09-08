@@ -56,6 +56,7 @@ export {
   type ListaPreciosUsageEventRequest,
   type SaveFiveSDailyEntriesRequest,
   type UpdateFiveSIndicatorRequest,
+  type VehicleImage,
   type VehicleResponse,
   createApplicationsApi,
 } from './applications';

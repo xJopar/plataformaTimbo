@@ -218,6 +218,7 @@ export function ListaPreciosApplication({
 
       {route.view === 'detail' ? (
         <DetailScreen
+          api={api}
           modelKey={route.modelKey}
           vehiclesState={vehiclesState}
           availableApplications={availableApplications}
