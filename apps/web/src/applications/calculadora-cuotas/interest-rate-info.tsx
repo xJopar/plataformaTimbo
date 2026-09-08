@@ -1,13 +1,31 @@
 import { BadgeQuestionMarkIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+
+const TOOLTIP_DURATION_MS = 5_000;
 
 export function InterestRateInfo(): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLSpanElement>(null);
   const tooltipId = useId();
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const closeTooltip = window.setTimeout(() => setIsOpen(false), TOOLTIP_DURATION_MS);
+    const closeWhenClickingOutside = (event: PointerEvent): void => {
+      if (!containerRef.current?.contains(event.target as Node)) setIsOpen(false);
+    };
+
+    document.addEventListener('pointerdown', closeWhenClickingOutside);
+    return () => {
+      window.clearTimeout(closeTooltip);
+      document.removeEventListener('pointerdown', closeWhenClickingOutside);
+    };
+  }, [isOpen]);
+
   return (
-    <span className="cc-interest-rate-info">
+    <span ref={containerRef} className="cc-interest-rate-info">
       <button
         type="button"
         className="cc-interest-rate-info-button"

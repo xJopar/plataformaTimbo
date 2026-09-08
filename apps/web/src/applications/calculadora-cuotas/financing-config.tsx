@@ -495,11 +495,13 @@ export function FinancingConfig({
             aria-labelledby="cc-interest-rate-title"
           >
             <div className="cc-reinforcements-heading">
-              <span id="cc-interest-rate-title" className="cc-reinforcements-title">
-                Editar interés
-              </span>
-              <div className="cc-interest-rate-actions">
+              <div className="cc-interest-rate-heading">
                 <InterestRateInfo />
+                <span id="cc-interest-rate-title" className="cc-reinforcements-title">
+                  Editar interés
+                </span>
+              </div>
+              <div className="cc-interest-rate-actions">
                 <ReinforcementSwitch
                   checked={value.customAnnualRateEnabled}
                   onChange={(customAnnualRateEnabled) => {
