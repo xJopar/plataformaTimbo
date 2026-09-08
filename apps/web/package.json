@@ -23,7 +23,8 @@
     "react-dom": "19.2.8",
     "serve-handler": "6.1.7",
     "sonner": "2.0.8",
-    "styled-components": "6.1.19"
+    "styled-components": "6.1.19",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "7.0.1",

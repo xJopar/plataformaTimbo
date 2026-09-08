@@ -3803,6 +3803,10 @@
           "value": {
             "type": "string",
             "example": "38237.42"
+          },
+          "workingDays": {
+            "type": "number",
+            "example": 22
           }
         },
         "required": [
@@ -3842,6 +3846,11 @@
           "value": {
             "type": "string",
             "example": "38237.42"
+          },
+          "workingDays": {
+            "type": "number",
+            "example": 22,
+            "nullable": true
           },
           "updatedAt": {
             "type": "string",

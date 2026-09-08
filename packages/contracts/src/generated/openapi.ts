@@ -1509,6 +1509,8 @@ export interface components {
             brandId: number;
             /** @example 38237.42 */
             value: string;
+            /** @example 22 */
+            workingDays?: number;
         };
         MetaCompanyBrandGoalResponseDto: {
             /** @example 1 */
@@ -1525,6 +1527,8 @@ export interface components {
             brandName: string;
             /** @example 38237.42 */
             value: string;
+            /** @example 22 */
+            workingDays?: number | null;
             /** @example 2026-09-01T12:00:00.000Z */
             updatedAt?: string | null;
         };

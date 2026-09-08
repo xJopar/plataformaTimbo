@@ -12,6 +12,7 @@ import { AdvisorGoalsListScreen } from './advisor-goals-list-screen';
 import { BrandGoalsListScreen } from './brand-goals-list-screen';
 import { CatalogItemManagementScreen } from './catalog-item-management-screen';
 import { EmpresaManagementScreen } from './empresa-management-screen';
+import { ExcelImportScreen } from './excel-import-screen';
 import './meta-company-application.css';
 import {
   buildAdvisorDetailPath,
@@ -36,6 +37,7 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
   const [isManagingAdvisors, setIsManagingAdvisors] = useState(false);
+  const [isImportingExcel, setIsImportingExcel] = useState(false);
   const [catalogAction, setCatalogAction] = useState<string>();
 
   const loadWorkspace = async (): Promise<void> => {
@@ -285,6 +287,16 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                 >
                   Descargar plantilla Excel
                 </a>
+                {capabilities.canManageGoals ? (
+                  <button
+                    type="button"
+                    className="mc-secondary-action"
+                    aria-expanded={isImportingExcel}
+                    onClick={() => setIsImportingExcel((visible) => !visible)}
+                  >
+                    Importar Excel
+                  </button>
+                ) : null}
                 {capabilities.canManageCatalogs ? (
                   <>
                     <button
@@ -322,6 +334,14 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                 ) : null}
               </div>
             </header>
+
+            {isImportingExcel ? (
+              <ExcelImportScreen
+                applicationsApi={props.api.applications}
+                catalogs={catalogs}
+                onCompleted={loadWorkspace}
+              />
+            ) : null}
 
             <div className="mc-mode-switch" role="group" aria-label="Tipo de metas">
               <button

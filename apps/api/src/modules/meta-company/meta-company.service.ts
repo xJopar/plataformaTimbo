@@ -295,7 +295,13 @@ export class MetaCompanyService {
   }
 
   public async createBrandGoal(
-    input: { period: string; businessId: number; brandId: number; value: string },
+    input: {
+      period: string;
+      businessId: number;
+      brandId: number;
+      value: string;
+      workingDays?: number;
+    },
     actorUserId: string,
   ) {
     const data = {
@@ -303,6 +309,7 @@ export class MetaCompanyService {
       businessId: parseId(input.businessId),
       brandId: parseId(input.brandId),
       value: parseValue(input.value),
+      workingDays: input.workingDays === undefined ? null : parseWorkingDays(input.workingDays),
     };
     await this.requireScope(data.businessId, data.brandId);
     await this.ensureNoBrandGoal(data);
@@ -362,11 +369,20 @@ export class MetaCompanyService {
     return goal;
   }
 
-  public async updateBrandGoal(id: number, value: string, actorUserId: string) {
+  public async updateBrandGoal(
+    id: number,
+    value: string,
+    workingDays: number | undefined,
+    actorUserId: string,
+  ) {
     const goal = await this.prisma.commercialBrandGoal
       .update({
         where: { id: parseId(id) },
-        data: { value: parseValue(value), updatedAt: new Date() },
+        data: {
+          value: parseValue(value),
+          ...(workingDays === undefined ? {} : { workingDays: parseWorkingDays(workingDays) }),
+          updatedAt: new Date(),
+        },
         include: { brand: true, business: true },
       })
       .catch(throwGoalNotFound);

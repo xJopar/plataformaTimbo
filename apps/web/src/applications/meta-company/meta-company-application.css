@@ -57,6 +57,19 @@
   color: #142033;
   font: inherit;
 }
+.mc-month-input {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.mc-month-input input {
+  width: 100%;
+}
+.mc-month-input span {
+  color: #8c2f16;
+  font-size: 12px;
+  font-weight: 700;
+}
 .mc-primary-action,
 .mc-secondary-action,
 .mc-text-action,
@@ -131,6 +144,36 @@ button:disabled {
   margin-top: 24px;
   border-top: 3px solid #00388a;
   padding: 20px;
+}
+.mc-import {
+  max-width: 760px;
+}
+.mc-file-input {
+  display: grid;
+  gap: 6px;
+  margin-top: 20px;
+  width: fit-content;
+  font-size: 13px;
+  font-weight: 700;
+}
+.mc-file-input input {
+  max-width: 100%;
+  color: #142033;
+  font: inherit;
+}
+.mc-import-file,
+.mc-import-summary {
+  margin: 16px 0 0;
+  color: #475569;
+}
+.mc-import-errors {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  padding-left: 20px;
+}
+.mc-import-errors li {
+  overflow-wrap: anywhere;
 }
 .mc-workbench-heading {
   display: flex;

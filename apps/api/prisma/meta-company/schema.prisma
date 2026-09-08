@@ -77,6 +77,7 @@ model CommercialBrandGoal {
   businessId Int                @map("id_negocio")
   brandId    Int                @map("id_marca")
   value      Decimal            @map("meta") @db.Decimal(18, 2)
+  workingDays Int?              @map("dias_habiles")
   createdAt  DateTime           @default(now()) @map("fecha_creacion") @db.Timestamptz(6)
   updatedAt  DateTime?          @map("fecha_modificacion") @db.Timestamptz(6)
   business   CommercialBusiness @relation(fields: [businessId], references: [id], onDelete: Restrict)

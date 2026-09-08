@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { MonthGoal } from './meta-company-mock-data';
 
 const SHORT_MONTH_NAMES = [
@@ -16,7 +17,7 @@ const SHORT_MONTH_NAMES = [
 ];
 
 const MONEY_FORMATTER = new Intl.NumberFormat('es-PY', {
-  minimumFractionDigits: 0,
+  minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
@@ -28,6 +29,16 @@ export function formatMonthLabel(periodo: string): string {
 
 export function formatMoney(value: string): string {
   return MONEY_FORMATTER.format(Number(value));
+}
+
+export function parseMoneyInput(value: string): string | undefined {
+  const trimmedValue = value.trim();
+  if (trimmedValue === '') return undefined;
+  const normalizedValue = trimmedValue.includes(',')
+    ? trimmedValue.replaceAll('.', '').replace(',', '.')
+    : trimmedValue;
+  const parsedValue = Number(normalizedValue);
+  return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue.toFixed(2) : undefined;
 }
 
 interface MonthGoalRowProps {
@@ -44,24 +55,48 @@ export function MonthGoalRow({
   onSave,
 }: MonthGoalRowProps): React.JSX.Element {
   const label = formatMonthLabel(month.periodo);
+  const [value, setValue] = useState(month.meta === null ? '' : formatMoney(month.meta));
+  const [validationError, setValidationError] = useState<string>();
 
   return (
     <form
       className="mc-month-row"
       onSubmit={(event) => {
         event.preventDefault();
-        onSave(month.periodo, String(new FormData(event.currentTarget).get('value')));
+        const normalizedValue = parseMoneyInput(value);
+        if (normalizedValue === undefined) {
+          setValidationError('Ingresá una meta válida, sin valores negativos.');
+          return;
+        }
+        setValidationError(undefined);
+        onSave(month.periodo, normalizedValue);
       }}
     >
       <span className="mc-month-label">{label}</span>
       {canEdit ? (
-        <input
-          name="value"
-          defaultValue={month.meta ?? ''}
-          inputMode="decimal"
-          placeholder="Sin meta"
-          aria-label={`Meta de ${label}`}
-        />
+        <div className="mc-month-input">
+          <input
+            name="value"
+            value={value}
+            inputMode="decimal"
+            onBlur={() => {
+              const normalizedValue = parseMoneyInput(value);
+              if (normalizedValue !== undefined) setValue(formatMoney(normalizedValue));
+            }}
+            onChange={(event) => setValue(event.target.value)}
+            placeholder="0,00"
+            aria-label={`Meta de ${label}`}
+            aria-describedby={
+              validationError === undefined ? undefined : `mc-month-error-${month.periodo}`
+            }
+            aria-invalid={validationError === undefined ? undefined : true}
+          />
+          {validationError === undefined ? null : (
+            <span id={`mc-month-error-${month.periodo}`} role="alert">
+              {validationError}
+            </span>
+          )}
+        </div>
       ) : (
         <output className="mc-month-value">
           {month.meta === null ? 'Sin meta' : formatMoney(month.meta)}

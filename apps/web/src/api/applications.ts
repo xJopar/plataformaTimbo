@@ -99,6 +99,7 @@ export interface MetaCompanyBrandGoalRequest {
   businessId: number;
   brandId: number;
   value: string;
+  workingDays?: number;
 }
 
 export interface MetaCompanyAdvisorGoalRequest {
@@ -144,6 +145,7 @@ export interface ApplicationsApi {
   updateMetaCompanyBrandGoal(
     id: number,
     value: string,
+    workingDays?: number,
   ): Promise<
     paths['/api/applications/meta-company/brand-goals/{id}']['patch']['responses'][200]['content']['application/json']
   >;
@@ -391,12 +393,12 @@ export function createApplicationsApi(
       if (data === undefined) throw new Error('La API respondió sin la meta creada.');
       return data;
     },
-    async updateMetaCompanyBrandGoal(id, value) {
+    async updateMetaCompanyBrandGoal(id, value, workingDays) {
       const { data, response } = await client.PATCH(
         '/api/applications/meta-company/brand-goals/{id}',
         {
           params: { path: { id: String(id) } },
-          body: { value },
+          body: { value, ...(workingDays === undefined ? {} : { workingDays }) },
           headers: { 'x-timbo-csrf': '1' },
         },
       );

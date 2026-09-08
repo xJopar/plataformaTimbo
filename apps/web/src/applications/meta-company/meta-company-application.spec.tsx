@@ -199,6 +199,15 @@ describe('MetaCompanyApplication — metas por marca', () => {
     expect(templateLink).toHaveAttribute('download');
   });
 
+  it('abre el importador Excel para quien puede gestionar metas', async () => {
+    const user = userEvent.setup();
+    renderMetaCompany('/apps/meta-company');
+
+    await user.click(await screen.findByRole('button', { name: 'Importar Excel' }));
+
+    expect(await screen.findByRole('heading', { name: 'Importar metas desde Excel' })).toBeInTheDocument();
+  });
+
   it('el tab de marca navega a su propia ruta', async () => {
     const user = userEvent.setup();
     const onNavigate = vi.fn<ApplicationComponentProps['onNavigate']>();

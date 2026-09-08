@@ -23,8 +23,8 @@ modalidad normal, definiendo refuerzos opcionales, o desde una cuota objetivo; l
 cuotero calculado como imagen PNG, con la entrega inicial y las cuotas del plan.
 `Meta Company` en `/apps/meta-company` administra las metas comerciales que consume Power BI. Sus
 perfiles permiten editar metas y, para administradores, crear y activar o desactivar marcas y
-negocios. La pantalla principal ofrece una plantilla Excel descargable para preparar metas por
-asesor y por marca. La aplicación usa temporalmente un proveedor PostgreSQL aislado y valida los
+negocios. La pantalla principal permite descargar una plantilla e importar metas desde Excel por
+asesor y por marca, validando cada fila contra los catálogos activos antes de guardarla. La aplicación usa temporalmente un proveedor PostgreSQL aislado y valida los
 asesores contra SAP mediante Service Layer; sus auditorías se conservan en la base central de la
 plataforma.
 Administración permite asignar aplicaciones a empleados y gestionar sus perfiles y permisos

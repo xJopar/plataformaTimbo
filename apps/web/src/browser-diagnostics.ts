@@ -19,6 +19,7 @@ export type BrowserOperation =
   | 'meta-company.update-catalog-status'
   | 'meta-company.save-advisor'
   | 'meta-company.update-advisor-status'
+  | 'meta-company.import-goals'
   | 'seguimiento-5s.load-data'
   | 'seguimiento-5s.save-entries'
   | 'seguimiento-5s.manage-indicators'
