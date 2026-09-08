@@ -3477,6 +3477,13 @@
           },
           "stock": {
             "type": "string"
+          },
+          "images": {
+            "description": "URLs firmadas (presigned) de las fotos, si hay.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -3517,7 +3524,8 @@
           "ubicacion1",
           "aproxLlegada",
           "disponible1",
-          "stock"
+          "stock",
+          "images"
         ]
       },
       "EquipmentRentalResponseDto": {

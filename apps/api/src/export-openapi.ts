@@ -20,6 +20,7 @@ import { HelloWorldService } from './modules/hello-world/hello-world.service';
 import { ListaPreciosApplicationAccessGuard } from './modules/lista-precios/lista-precios-application-access.guard';
 import { ListaPreciosController } from './modules/lista-precios/lista-precios.controller';
 import { ListaPreciosService } from './modules/lista-precios/lista-precios.service';
+import { VehicleImagesService } from './modules/lista-precios/vehicle-images.service';
 import { MetaCompanyApplicationAccessGuard } from './modules/meta-company/meta-company-application-access.guard';
 import { MetaCompanyController } from './modules/meta-company/meta-company.controller';
 import {
@@ -70,6 +71,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     { provide: HelloWorldService, useValue: {} },
     { provide: ListaPreciosApplicationAccessGuard, useValue: { canActivate: () => true } },
     { provide: ListaPreciosService, useValue: {} },
+    { provide: VehicleImagesService, useValue: { attachImages: (rows: unknown[]) => rows } },
     { provide: MetaCompanyApplicationAccessGuard, useValue: { canActivate: () => true } },
     { provide: MetaCompanyCatalogManagementGuard, useValue: { canActivate: () => true } },
     { provide: MetaCompanyGoalManagementGuard, useValue: { canActivate: () => true } },

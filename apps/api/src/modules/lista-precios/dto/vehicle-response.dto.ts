@@ -46,6 +46,8 @@ export class VehicleResponseDto {
   @ApiProperty() aproxLlegada!: string;
   @ApiProperty() disponible1!: string;
   @ApiProperty() stock!: string;
+  @ApiProperty({ type: [String], description: 'URLs firmadas (presigned) de las fotos, si hay.' })
+  images!: string[];
 }
 
 const VEHICLE_FIELDS = [
@@ -90,7 +92,7 @@ const VEHICLE_FIELDS = [
 ] as const satisfies readonly (keyof VehicleResponseDto)[];
 
 export function toVehicleResponse(row: ZohoVehicleRow): VehicleResponseDto {
-  const response = {} as VehicleResponseDto;
+  const response = { images: [] } as unknown as VehicleResponseDto;
   for (const field of VEHICLE_FIELDS) {
     response[field] = row[field] ?? '';
   }

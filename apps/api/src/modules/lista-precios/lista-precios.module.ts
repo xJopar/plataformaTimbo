@@ -6,6 +6,7 @@ import { ListaPreciosApplicationAccessGuard } from './lista-precios-application-
 import { ListaPreciosController } from './lista-precios.controller';
 import { ListaPreciosService } from './lista-precios.service';
 import { LISTA_PRECIOS_FETCH } from './lista-precios.tokens';
+import { VehicleImagesService } from './vehicle-images.service';
 
 @Module({
   imports: [AuthModule, AccessProfilesModule, UsageEventsModule],
@@ -13,6 +14,7 @@ import { LISTA_PRECIOS_FETCH } from './lista-precios.tokens';
   providers: [
     ListaPreciosApplicationAccessGuard,
     ListaPreciosService,
+    VehicleImagesService,
     { provide: LISTA_PRECIOS_FETCH, useValue: fetch },
   ],
 })

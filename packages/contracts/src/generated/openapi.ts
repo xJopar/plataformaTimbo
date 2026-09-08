@@ -1405,6 +1405,8 @@ export interface components {
             aproxLlegada: string;
             disponible1: string;
             stock: string;
+            /** @description URLs firmadas (presigned) de las fotos, si hay. */
+            images: string[];
         };
         EquipmentRentalResponseDto: {
             description: string;

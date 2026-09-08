@@ -4,13 +4,18 @@ import { UsageEventsService } from '../usage-events/usage-events.service';
 import { ListaPreciosController } from './lista-precios.controller';
 import { ListaPreciosProviderUnavailableError } from './lista-precios.errors';
 import { ListaPreciosService } from './lista-precios.service';
+import { VehicleImagesService } from './vehicle-images.service';
 
 describe('ListaPreciosController', () => {
   const listaPreciosService = { getVehicles: jest.fn(), getEquipmentRentals: jest.fn() };
   const usageEventsService = { append: jest.fn() };
+  const vehicleImagesService = {
+    attachImages: jest.fn((rows: unknown[]) => Promise.resolve(rows)),
+  };
   const controller = new ListaPreciosController(
     listaPreciosService as unknown as ListaPreciosService,
     usageEventsService as unknown as UsageEventsService,
+    vehicleImagesService as unknown as VehicleImagesService,
   );
   const request = {
     authenticatedUser: { id: '7f025649-8238-4958-97a8-f49ea0cd6759' },

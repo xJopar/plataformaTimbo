@@ -307,7 +307,7 @@ export function getFilterOptions(
     }
     for (const unit of group.units) {
       const unitValue = unit[field as keyof VehicleResponse];
-      if (unitValue) {
+      if (typeof unitValue === 'string' && unitValue) {
         values.add(unitValue);
       }
     }

@@ -6,6 +6,7 @@ import {
 } from '../calculadora-cuotas/calculadora-cuotas-routes';
 import { formatPrice, parsePrice } from '../../vehicle-catalog/vehicle-catalog';
 import { Loader } from './loader';
+import { VehicleGallery } from './vehicle-gallery';
 import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
 
 /** Piso/Altura son campos propios de semirremolques (Facchini, Librelato). */
@@ -196,6 +197,11 @@ export function DetailScreen({
                   <span className="lp-detail-unit-code">{selectedUnit.stock}</span>
                   <AvailBadge disponible={selectedUnit.disponible} />
                 </div>
+
+                <VehicleGallery
+                  images={selectedUnit.images}
+                  altLabel={`${group.name} - Stock ${selectedUnit.stock}`}
+                />
 
                 <div className="lp-shared-info-card">
                   <div className="lp-shared-info-card-grid">

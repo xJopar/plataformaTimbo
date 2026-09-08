@@ -32,6 +32,7 @@ import { toVehicleResponse, VehicleResponseDto } from './dto/vehicle-response.dt
 import { ListaPreciosApplicationAccessGuard } from './lista-precios-application-access.guard';
 import { ListaPreciosProviderUnavailableError } from './lista-precios.errors';
 import { ListaPreciosService } from './lista-precios.service';
+import { VehicleImagesService } from './vehicle-images.service';
 import {
   LISTA_PRECIOS_BRAND_MAX_LENGTH,
   LISTA_PRECIOS_MODEL_MAX_LENGTH,
@@ -50,6 +51,7 @@ export class ListaPreciosController {
   public constructor(
     private readonly listaPreciosService: ListaPreciosService,
     private readonly usageEventsService: UsageEventsService,
+    private readonly vehicleImagesService: VehicleImagesService,
   ) {}
 
   @Get('vehicles')
@@ -62,7 +64,7 @@ export class ListaPreciosController {
   public async getVehicles(): Promise<VehicleResponseDto[]> {
     try {
       const rows = await this.listaPreciosService.getVehicles();
-      return rows.map(toVehicleResponse);
+      return await this.vehicleImagesService.attachImages(rows.map(toVehicleResponse));
     } catch (error) {
       if (error instanceof ListaPreciosProviderUnavailableError) {
         throw new BadGatewayException(
