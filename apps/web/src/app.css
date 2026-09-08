@@ -119,17 +119,17 @@ button:focus-visible {
   animation-direction: alternate;
 }
 .aurora-background-layer--1 .aurora-background-orb {
-  background: radial-gradient(circle, rgb(220 38 38 / 32%) 0%, transparent 66%);
+  background: radial-gradient(circle, rgb(0 166 166 / 28%) 0%, transparent 66%);
   animation-name: aurora-breathe-primary;
   animation-delay: -4s;
 }
 .aurora-background-layer--2 .aurora-background-orb {
-  background: radial-gradient(circle, rgb(220 38 38 / 32%) 0%, transparent 65%);
+  background: radial-gradient(circle, rgb(0 132 164 / 22%) 0%, transparent 65%);
   animation-name: aurora-breathe-secondary;
   animation-delay: -10s;
 }
 .aurora-background-layer--3 .aurora-background-orb {
-  background: radial-gradient(circle, rgb(220 38 38 / 32%) 0%, transparent 68%);
+  background: radial-gradient(circle, rgb(46 156 139 / 18%) 0%, transparent 68%);
   animation-name: aurora-breathe-accent;
   animation-delay: -15s;
 }

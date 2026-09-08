@@ -1,9 +1,10 @@
 # Fondo aurora del launcher
 
 El home usa una aurora ambiental para diferenciar el punto de entrada a las aplicaciones sin
-convertir el color en una señal de acción. Tres masas de color respiran durante 15 segundos y se
-desplazan apenas con el puntero fino; el contenido, los controles y la navegación permanecen
-estáticos.
+convertir el color en una señal de acción. Tres masas de turquesa, cian azulado y teal respiran
+durante 10 segundos y se desplazan apenas con el puntero fino; el contenido, los controles y la
+navegación permanecen estáticos. La masa superior izquierda domina la composición y las otras dos
+descienden en intensidad para conservar una jerarquía asimétrica.
 
 El efecto anima exclusivamente `transform`. El granulado es una textura estática y no se emplean
 desenfoques, canvas ni shaders en tiempo real. El seguimiento del puntero agrupa eventos con
