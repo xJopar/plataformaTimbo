@@ -3,6 +3,7 @@ import type { Api, AuthSession } from '../api';
 import { useAuthorizedApplications } from '../applications/use-authorized-applications';
 import { PlatformHeader } from '../layout/platform-header';
 import { PlatformSessionBar } from '../layout/platform-session-bar';
+import { AuroraBackground } from './aurora-background';
 
 const COMPANY_VALUES = [
   {
@@ -229,6 +230,7 @@ export function HomeLauncher({
 
   return (
     <main className="platform-shell" data-visual-contract="launcher-aplicaciones-autorizadas">
+      <AuroraBackground />
       <PlatformHeader
         isLoggingOut={isLoggingOut}
         isPlatformAdministrator={session.isPlatformAdministrator}

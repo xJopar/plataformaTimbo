@@ -60,10 +60,102 @@ button:focus-visible {
   background: #edf2f7;
 }
 .platform-shell[data-visual-contract='launcher-aplicaciones-autorizadas'] {
-  background:
-    radial-gradient(at 15% 10%, rgb(0 75 160 / 14%), transparent 40%),
-    radial-gradient(at 85% 5%, rgb(110 125 190 / 11%), transparent 38%),
-    radial-gradient(at 70% 90%, rgb(70 145 175 / 8%), transparent 45%), #f3f6fa;
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  background: #f3f6fa;
+}
+.platform-shell[data-visual-contract='launcher-aplicaciones-autorizadas']
+  > :not(.aurora-background) {
+  position: relative;
+  z-index: 1;
+}
+.aurora-background {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  contain: paint;
+  pointer-events: none;
+}
+.aurora-background::after {
+  position: absolute;
+  inset: 0;
+  background-image: url('./assets/aurora-grain.svg');
+  content: '';
+  opacity: 0.05;
+}
+.aurora-background-layer {
+  position: absolute;
+  display: block;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.aurora-background-layer--1 {
+  inset-block-start: clamp(-560px, -25vmax, -220px);
+  inset-inline-start: clamp(-540px, -23vmax, -190px);
+  inline-size: clamp(660px, 72vmax, 1500px);
+  block-size: clamp(660px, 72vmax, 1500px);
+}
+.aurora-background-layer--2 {
+  inset-block-start: clamp(-520px, -23vmax, -200px);
+  inset-inline-end: clamp(-560px, -25vmax, -210px);
+  inline-size: clamp(620px, 68vmax, 1420px);
+  block-size: clamp(620px, 68vmax, 1420px);
+}
+.aurora-background-layer--3 {
+  inset-inline-end: clamp(-400px, -17vmax, -150px);
+  inset-block-end: clamp(-480px, -22vmax, -190px);
+  inline-size: clamp(560px, 60vmax, 1240px);
+  block-size: clamp(560px, 60vmax, 1240px);
+}
+.aurora-background-orb {
+  inline-size: 100%;
+  block-size: 100%;
+  display: block;
+  transform-origin: center;
+  animation-duration: 18s;
+  animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+.aurora-background-layer--1 .aurora-background-orb {
+  background: radial-gradient(circle, rgb(0 75 160 / 16%) 0%, transparent 66%);
+  animation-name: aurora-breathe-primary;
+  animation-delay: -4s;
+}
+.aurora-background-layer--2 .aurora-background-orb {
+  background: radial-gradient(circle, rgb(110 125 190 / 13%) 0%, transparent 65%);
+  animation-name: aurora-breathe-secondary;
+  animation-delay: -10s;
+}
+.aurora-background-layer--3 .aurora-background-orb {
+  background: radial-gradient(circle, rgb(70 145 175 / 10%) 0%, transparent 68%);
+  animation-name: aurora-breathe-accent;
+  animation-delay: -15s;
+}
+@keyframes aurora-breathe-primary {
+  from {
+    transform: translate3d(-1.5%, -1%, 0) scale(0.98);
+  }
+  to {
+    transform: translate3d(2%, 1.5%, 0) scale(1.04);
+  }
+}
+@keyframes aurora-breathe-secondary {
+  from {
+    transform: translate3d(1.5%, -1.5%, 0) scale(1.03);
+  }
+  to {
+    transform: translate3d(-2%, 1%, 0) scale(0.98);
+  }
+}
+@keyframes aurora-breathe-accent {
+  from {
+    transform: translate3d(-1%, 1.5%, 0) scale(0.99);
+  }
+  to {
+    transform: translate3d(1.5%, -2%, 0) scale(1.035);
+  }
 }
 
 .top-bar {
