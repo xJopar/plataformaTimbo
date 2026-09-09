@@ -10,6 +10,7 @@ const IMAGE_WIDTH = 760;
 const IMAGE_SCALE = 2;
 const IMAGE_HORIZONTAL_PADDING = 48;
 const HEADER_HEIGHT = 96;
+const FOOTER_HEIGHT = 12;
 const ITEM_LINE_HEIGHT = 28;
 const ITEM_GAP = 10;
 const BRAND_BLUE = '#00388a';
@@ -127,7 +128,16 @@ function getReceiptHeight(items: ReceiptItem[], hasReinforcements: boolean): num
   const reinforcementHeight = hasReinforcements ? 152 : 0;
   const downPaymentHeight = 152;
   return (
-    HEADER_HEIGHT + 48 + 34 + itemsHeight + 72 + downPaymentHeight + 126 + reinforcementHeight + 48
+    HEADER_HEIGHT +
+    48 +
+    34 +
+    itemsHeight +
+    72 +
+    downPaymentHeight +
+    126 +
+    reinforcementHeight +
+    48 +
+    FOOTER_HEIGHT
   );
 }
 
@@ -240,18 +250,13 @@ export async function downloadInstallmentSummaryImage({
   setFont(context, 20, 700);
   context.fillStyle = '#ffffff';
   context.textAlign = 'right';
-  context.fillText(`PLAN DE PAGO · ID ${imageId}`, IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, 61);
+  context.fillText('PLAN DE PAGO', IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, 61);
   context.textAlign = 'left';
 
   let y = HEADER_HEIGHT + 48;
   y = drawSectionLabel(context, y, 'UNIDADES');
   y = drawReceiptItems(context, y, receiptItems);
   drawRule(context, y + 24);
-  setFont(context, 12, 600);
-  context.fillStyle = MUTED_INK;
-  context.textAlign = 'right';
-  context.fillText(`ID ${imageId}`, IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, imageHeight - 20);
-  context.textAlign = 'left';
 
   y = drawInstallment(
     context,
@@ -285,6 +290,13 @@ export async function downloadInstallmentSummaryImage({
   }
 
   drawRule(context, y + 24);
+  context.fillStyle = BRAND_BLUE;
+  context.fillRect(0, imageHeight - FOOTER_HEIGHT, IMAGE_WIDTH, FOOTER_HEIGHT);
+  setFont(context, 8, 600);
+  context.fillStyle = '#ffffff';
+  context.textAlign = 'right';
+  context.fillText(imageId, IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, imageHeight - 3);
+  context.textAlign = 'left';
 
   const imageBlob = await canvasToBlob(canvas);
   const imageUrl = URL.createObjectURL(imageBlob);

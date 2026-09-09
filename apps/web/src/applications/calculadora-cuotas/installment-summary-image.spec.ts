@@ -107,8 +107,9 @@ describe('downloadInstallmentSummaryImage', () => {
     expect(renderedText).toContain('ENTREGA INICIAL');
     expect(renderedText).toContain('2.500 USD');
     expect(renderedText).not.toContain('20%');
-    expect(renderedText).toContain('PLAN DE PAGO · ID A1B2C3D4');
-    expect(renderedText).toContain('ID A1B2C3D4');
+    expect(renderedText).toContain('PLAN DE PAGO');
+    expect(renderedText).toContain('A1B2C3D4');
+    expect(renderedText).not.toContain('ID A1B2C3D4');
     expect(downloadLink.download).toBe('cuotero-timbo-A1B2C3D4.png');
   });
 });
