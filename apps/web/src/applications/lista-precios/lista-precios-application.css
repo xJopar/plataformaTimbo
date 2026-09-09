@@ -198,13 +198,58 @@
   color: var(--lp-c-text-white);
 }
 .lp-location-segments-secondary {
+  background: var(--lp-c-surface);
+}
+.lp-location-options-toggle {
+  width: 100%;
+  min-height: 54px;
   display: flex;
   align-items: center;
-  gap: var(--lp-sp-2);
-  min-height: 58px;
-  overflow-x: auto;
+  justify-content: space-between;
+  gap: var(--lp-sp-3);
   padding: var(--lp-sp-2) var(--lp-sp-4);
-  scrollbar-color: var(--lp-c-border-strong) transparent;
+  border: 0;
+  background: var(--lp-c-surface);
+  color: var(--lp-c-text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+.lp-location-options-toggle-summary,
+.lp-location-options-toggle-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lp-sp-2);
+}
+.lp-location-options-toggle-summary {
+  min-width: 0;
+  color: var(--lp-c-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.lp-location-options-toggle-summary span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lp-location-options-toggle-summary strong {
+  color: var(--lp-c-brand-text);
+  font-family: var(--lp-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.lp-location-options-toggle-action {
+  flex: 0 0 auto;
+  color: var(--lp-c-brand-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+.lp-location-options {
+  display: none;
+}
+.lp-location-options--expanded {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--lp-sp-2);
+  padding: 0 var(--lp-sp-4) var(--lp-sp-3);
 }
 .lp-location-segments-secondary-label {
   display: inline-flex;
@@ -218,7 +263,7 @@
   text-transform: uppercase;
 }
 .lp-location-option {
-  flex: 0 0 auto;
+  width: 100%;
   display: inline-flex;
   align-items: center;
   gap: var(--lp-sp-2);
@@ -230,7 +275,8 @@
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  white-space: nowrap;
+  justify-content: space-between;
+  text-align: left;
 }
 .lp-location-option:hover {
   background: var(--lp-c-surface-alt);
@@ -247,7 +293,8 @@
   color: var(--lp-c-brand-text);
 }
 .lp-location-segment:focus-visible,
-.lp-location-option:focus-visible {
+.lp-location-option:focus-visible,
+.lp-location-options-toggle:focus-visible {
   outline: 3px solid rgb(11 79 156 / 36%);
   outline-offset: -3px;
 }
@@ -1218,6 +1265,24 @@
   .lp-location-segments-secondary {
     padding-right: clamp(20px, 5vw, 72px);
     padding-left: clamp(20px, 5vw, 72px);
+  }
+  .lp-location-options-toggle {
+    display: none;
+  }
+  .lp-location-options {
+    display: flex;
+    align-items: center;
+    gap: var(--lp-sp-2);
+    min-height: 58px;
+    overflow-x: auto;
+    padding: var(--lp-sp-2) 0;
+    scrollbar-color: var(--lp-c-border-strong) transparent;
+  }
+  .lp-location-option {
+    flex: 0 0 auto;
+    width: auto;
+    justify-content: initial;
+    white-space: nowrap;
   }
   .lp-filter-btn {
     flex-shrink: 0;

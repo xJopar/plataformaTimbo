@@ -7,8 +7,10 @@ finalmente, las variantes resultantes.
 La segmentación rápida conserva cuatro grupos comerciales: Disponibles, En tránsito, Judiciales y
 Comprometidos. Al elegir uno, sólo se muestran ubicaciones que tienen al menos una unidad dentro de
 ese grupo; cada control informa su cantidad. La primera línea usa cuatro celdas equivalentes en
-escritorio y dos columnas en móvil. La segunda es horizontal para conservar nombres largos sin
-alterar el orden de foco ni reducir objetivos táctiles.
+escritorio y dos columnas en móvil. En escritorio la segunda línea es horizontal. En móvil se
+contrae inicialmente a una acción explícita que informa cuántas ubicaciones existen; al expandirla,
+las presenta en una lista vertical. Tras elegir una, el mismo control muestra la selección y ofrece
+"Cambiar", evitando que el scroll horizontal oculte opciones a quien no descubra el gesto.
 
 Las ubicaciones En tránsito, Fábrica y Aduana pertenecen al segmento En tránsito; Ciudad del Este,
 Carneados, Proceso/Taller y Leasing al Judicial; y Préstamo, Alquileres y Uso Interno al

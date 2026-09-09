@@ -1,4 +1,6 @@
 import {
+  ArrowDown01Icon,
+  ArrowUp01Icon,
   Cancel01Icon,
   CheckmarkCircle02Icon,
   FilterIcon,
@@ -84,6 +86,7 @@ export function VariantsScreen({
   onFilterStateChange,
 }: VariantsScreenProps): React.JSX.Element {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [locationOptionsExpanded, setLocationOptionsExpanded] = useState(false);
 
   const variantGroups = useMemo(
     () =>
@@ -171,6 +174,9 @@ export function VariantsScreen({
   }, [variantGroups, filterState.filters, filterState.search, filterOptions]);
 
   const activeFilterCount = Object.values(filterState.filters).filter(Boolean).length;
+  const selectedLocationOption = locationOptions.find(
+    (option) => option.label === filterState.location,
+  );
 
   const handleFilterChange = (field: keyof VehicleFilters, value: string): void => {
     onFilterStateChange({
@@ -181,6 +187,7 @@ export function VariantsScreen({
 
   const handleLocationSegmentChange = (segment: VehicleLocationSegment): void => {
     const nextSegment = filterState.locationSegment === segment ? undefined : segment;
+    setLocationOptionsExpanded(false);
     onFilterStateChange({
       ...filterState,
       locationSegment: nextSegment,
@@ -189,6 +196,7 @@ export function VariantsScreen({
   };
 
   const handleLocationChange = (location: string): void => {
+    setLocationOptionsExpanded(false);
     onFilterStateChange({
       ...filterState,
       location: filterState.location === location ? '' : location,
@@ -258,26 +266,75 @@ export function VariantsScreen({
 
             {filterState.locationSegment !== undefined ? (
               <div className="lp-location-segments-secondary" aria-label="Ubicaciones">
-                <span className="lp-location-segments-secondary-label">
-                  <AppIcon icon={Location01Icon} size={15} />
-                  Ubicación
-                </span>
-                {locationOptions.map(({ label, count }) => {
-                  const isActive = filterState.location === label;
-                  return (
-                    <button
-                      key={label}
-                      className={`lp-location-option${isActive ? ' lp-location-option--active' : ''}`}
-                      type="button"
-                      aria-pressed={isActive}
-                      aria-label={`${label}: ${count} ${count === 1 ? 'unidad' : 'unidades'}`}
-                      onClick={() => handleLocationChange(label)}
-                    >
-                      <span>{label}</span>
-                      <span className="lp-location-option-count">{count}</span>
-                    </button>
-                  );
-                })}
+                <button
+                  className="lp-location-options-toggle"
+                  type="button"
+                  aria-expanded={locationOptionsExpanded}
+                  aria-controls="lp-location-options"
+                  aria-label={
+                    selectedLocationOption === undefined
+                      ? `Ver ${locationOptions.length} ${
+                          locationOptions.length === 1
+                            ? 'ubicación disponible'
+                            : 'ubicaciones disponibles'
+                        }`
+                      : `Cambiar ubicación seleccionada: ${selectedLocationOption.label}`
+                  }
+                  onClick={() => setLocationOptionsExpanded((expanded) => !expanded)}
+                >
+                  <span className="lp-location-options-toggle-summary">
+                    <AppIcon icon={Location01Icon} size={17} />
+                    {selectedLocationOption === undefined ? (
+                      <span>
+                        Ubicaciones disponibles <strong>{locationOptions.length}</strong>
+                      </span>
+                    ) : (
+                      <span>
+                        Ubicación: {selectedLocationOption.label}{' '}
+                        <strong>{selectedLocationOption.count}</strong>
+                      </span>
+                    )}
+                  </span>
+                  <span className="lp-location-options-toggle-action">
+                    {locationOptionsExpanded
+                      ? 'Ocultar'
+                      : selectedLocationOption === undefined
+                        ? 'Ver todas'
+                        : 'Cambiar'}
+                    <AppIcon
+                      icon={locationOptionsExpanded ? ArrowUp01Icon : ArrowDown01Icon}
+                      size={16}
+                    />
+                  </span>
+                </button>
+
+                <div
+                  id="lp-location-options"
+                  className={`lp-location-options${
+                    locationOptionsExpanded ? ' lp-location-options--expanded' : ''
+                  }`}
+                >
+                  <span className="lp-location-segments-secondary-label">
+                    <AppIcon icon={Location01Icon} size={15} />
+                    Ubicación
+                  </span>
+                  {locationOptions.map(({ label, count }) => {
+                    const isActive = filterState.location === label;
+                    return (
+                      <button
+                        key={label}
+                        className={`lp-location-option${isActive ? ' lp-location-option--active' : ''}`}
+                        type="button"
+                        aria-pressed={isActive}
+                        aria-label={`${label}: ${count} ${count === 1 ? 'unidad' : 'unidades'}`}
+                        onClick={() => handleLocationChange(label)}
+                      >
+                        <span>{label}</span>
+                        <span className="lp-location-option-count">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ) : null}
           </section>

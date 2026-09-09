@@ -89,6 +89,11 @@ describe('VariantsScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Disponibles: 1 unidad' }));
 
     expect(screen.getByLabelText('Ubicaciones')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ver 1 ubicación disponible' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    await user.click(screen.getByRole('button', { name: 'Ver 1 ubicación disponible' }));
     expect(screen.getByRole('button', { name: 'Asunción: 1 unidad' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Fábrica: 1 unidad' })).not.toBeInTheDocument();
     expect(screen.getByText('1 variante')).toBeInTheDocument();
