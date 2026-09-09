@@ -1,13 +1,74 @@
+import { createAuthApi } from './auth';
+import { createAdministrationApi } from './administration';
+import { createApplicationsApi } from './applications';
 import { createSystemApi } from './system';
+import { createPlatformApi } from './platform';
 
 export interface Api {
+  auth: ReturnType<typeof createAuthApi>;
+  administration: ReturnType<typeof createAdministrationApi>;
+  applications: ReturnType<typeof createApplicationsApi>;
   system: ReturnType<typeof createSystemApi>;
+  platform: ReturnType<typeof createPlatformApi>;
 }
 
 export function createApi(baseUrl: string): Api {
   return {
+    auth: createAuthApi(baseUrl),
+    administration: createAdministrationApi(baseUrl),
+    applications: createApplicationsApi(baseUrl),
     system: createSystemApi(baseUrl),
+    platform: createPlatformApi(baseUrl),
   };
 }
 
-export { ApiHttpError, type HealthResponse, type SystemApi } from './system';
+export { type AuthApi, type AuthSession } from './auth';
+export {
+  type ActivityFilters,
+  type AdministrativeApplication,
+  type AdministrativeApplicationPermission,
+  type AdministrativeApplicationProfile,
+  type AdministrativeActivity,
+  type AdministrativeActivityFilterOptions,
+  type AdministrativeActivityItem,
+  type AdministrativeActivityStatistics,
+  type AdministrationApi,
+  type AdministrativeUser,
+  type AdministrativeUserApplicationAccess,
+  type BulkApplicationAccessResult,
+  type BulkAdministrativeUserStatusResult,
+  type PreauthorizeAdministrativeUserBulkResult,
+} from './administration';
+export { ApiHttpError, createApiHttpError, type HealthResponse, type SystemApi } from './system';
+export {
+  createPlatformApi,
+  type PlatformApi,
+  type PlatformBootstrap,
+  PlatformApiUnavailableError,
+} from './platform';
+export { ApplicationsApiUnavailableError } from './applications';
+export {
+  type ApplicationsApi,
+  type CalculadoraCuotasCalculationSource,
+  type CalculadoraCuotasUsageEventName,
+  type CalculadoraCuotasUsageEventRequest,
+  type EquipmentRentalResponse,
+  type AuthorizedApplication,
+  type CreateFiveSIndicatorRequest,
+  type FiveSCapabilities,
+  type FiveSDailyEntries,
+  type FiveSDashboardSummary,
+  type FiveSEntryValue,
+  type FiveSIndicator,
+  type FiveSParticipant,
+  type FiveSRoleKey,
+  type HelloWorldJoke,
+  type HelloWorldJokeRequest,
+  type ListaPreciosUsageEventName,
+  type ListaPreciosUsageEventRequest,
+  type SaveFiveSDailyEntriesRequest,
+  type UpdateFiveSIndicatorRequest,
+  type VehicleImage,
+  type VehicleResponse,
+  createApplicationsApi,
+} from './applications';

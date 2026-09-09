@@ -4,6 +4,1188 @@
  */
 
 export interface paths {
+    "/api/auth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inicia el acceso con Google. */
+        get: operations["startGoogleLogin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Completa el acceso con Google. */
+        get: operations["completeGoogleLogin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene la sesión autenticada vigente. */
+        get: operations["getAuthSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoca la sesión actual. */
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista usuarios para Administración. */
+        get: operations["listAdministrativeUsers"];
+        put?: never;
+        /** Preautoriza un usuario. */
+        post: operations["preauthorizeAdministrativeUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/bulk-activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activa varios usuarios, informando el resultado de cada uno. */
+        post: operations["activateAdministrativeUsersBulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/bulk-deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva varios usuarios, informando el resultado de cada uno. */
+        post: operations["deactivateAdministrativeUsersBulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preautoriza varios usuarios en un lote, informando el resultado de cada correo. */
+        post: operations["preauthorizeAdministrativeUsersBulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Actualiza únicamente el nombre visible de un usuario. */
+        patch: operations["updateAdministrativeUser"];
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva un usuario. */
+        post: operations["deactivateAdministrativeUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reactiva un usuario. */
+        post: operations["reactivateAdministrativeUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/platform-administrator": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Otorga el rol de administrador de plataforma a un usuario activo. */
+        post: operations["grantPlatformAdministrator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/platform-administrator/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoca el rol de administrador sin permitir auto-revocación ni último administrador. */
+        post: operations["revokePlatformAdministrator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista aplicaciones para Administración. */
+        get: operations["listAdministrativeApplications"];
+        put?: never;
+        /** Crea una aplicación interna. */
+        post: operations["createAdministrativeApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edita los datos mutables de una aplicación. */
+        patch: operations["updateAdministrativeApplication"];
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva una aplicación. */
+        post: operations["deactivateAdministrativeApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reactiva una aplicación. */
+        post: operations["reactivateAdministrativeApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/applications/{applicationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asigna una aplicación activa a un usuario activo. */
+        post: operations["assignApplicationToUser"];
+        /** Retira una aplicación y sus perfiles funcionales del usuario. */
+        delete: operations["unassignApplicationFromUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/users/bulk-assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asigna una aplicación a varios usuarios, informando el resultado de cada uno. */
+        post: operations["assignApplicationToUsersBulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/users/bulk-unassign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retira una aplicación de varios usuarios, informando el resultado de cada uno. */
+        post: operations["unassignApplicationFromUsersBulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista asignaciones de aplicaciones. */
+        get: operations["listUserApplicationAccesses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista permisos del catálogo de una aplicación. */
+        get: operations["listApplicationPermissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/applications/{applicationId}/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista perfiles funcionales de una aplicación. */
+        get: operations["listApplicationProfiles"];
+        put?: never;
+        /** Crea un perfil funcional. */
+        post: operations["createApplicationProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/application-profiles/{profileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edita un perfil funcional. */
+        patch: operations["updateApplicationProfile"];
+        trace?: never;
+    };
+    "/api/admin/application-profiles/{profileId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva un perfil funcional. */
+        post: operations["deactivateApplicationProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/application-profiles/{profileId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reactiva un perfil funcional. */
+        post: operations["reactivateApplicationProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/application-profiles/{profileId}/permissions/{permissionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Agrega un permiso del mismo catálogo al perfil. */
+        post: operations["addPermissionToApplicationProfile"];
+        /** Retira un permiso de un perfil funcional. */
+        delete: operations["removePermissionFromApplicationProfile"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/application-profiles/{profileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asigna un perfil funcional a un usuario con acceso a la aplicación. */
+        post: operations["assignApplicationProfileToUser"];
+        /** Retira un perfil funcional de un usuario. */
+        delete: operations["unassignApplicationProfileFromUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista las aplicaciones activas asignadas al usuario autenticado. */
+        get: operations["listAuthorizedApplications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/bootstrap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene la sesión y las aplicaciones autorizadas para iniciar la plataforma. */
+        get: operations["getPlatformBootstrap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista actividad normalizada. */
+        get: operations["listAdministrativeActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/activity/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resume actividad normalizada. */
+        get: operations["getAdministrativeActivityStatistics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/activity/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista opciones de filtros de actividad. */
+        get: operations["getAdministrativeActivityFilterOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/activity/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exporta el filtro completo de actividad. */
+        get: operations["exportAdministrativeActivityCsv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/hello-world/joke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Registra la solicitud y obtiene un chiste en inglés para Hello World. */
+        post: operations["requestHelloWorldJoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/lista-precios/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene el catálogo de vehículos en stock desde Zoho Analytics. */
+        get: operations["listListaPreciosVehicles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/lista-precios/vehicles/{stock}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene las keys de las fotos (completa + miniatura) de un Stock, si tiene. */
+        get: operations["getListaPreciosVehicleImages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/lista-precios/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Transmite una foto del bucket por su key, con caché de navegador de larga duración. */
+        get: operations["getListaPreciosImage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/lista-precios/equipment-rentals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene las tarifas de alquiler de maquinarias desde Zoho Analytics. */
+        get: operations["listListaPreciosEquipmentRentals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/lista-precios/usage-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Registra un hito de uso permitido de Lista de Precios. */
+        post: operations["recordListaPreciosUsageEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/calculadora-cuotas/usage-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Registra un hito de uso permitido de Calculadora de Cuotas. */
+        post: operations["recordCalculadoraCuotasUsageEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista metas comerciales por periodo y empresa. */
+        get: operations["listMetaCompanyGoals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/catalogs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista catalogos comerciales activos. */
+        get: operations["listMetaCompanyCatalogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/catalogs/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista todos los catalogos comerciales. */
+        get: operations["listAllMetaCompanyCatalogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene las acciones habilitadas para la sesion. */
+        get: operations["getMetaCompanyCapabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/brand-goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MetaCompanyController_createBrandGoal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/advisor-goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MetaCompanyController_createAdvisorGoal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/brand-goals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_updateBrandGoal"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/advisor-goals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_updateAdvisorGoal"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/empresas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MetaCompanyController_createEmpresa"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/empresas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_updateEmpresa"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/empresas/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_setEmpresaActive"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MetaCompanyController_createBrand"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/brands/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_updateBrand"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/brands/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_setBrandActive"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/businesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MetaCompanyController_createBusiness"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/businesses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_updateBusiness"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/businesses/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_setBusinessActive"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/advisors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MetaCompanyController_createAdvisor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/meta-company/advisors/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_updateAdvisor"];
+        trace?: never;
+    };
+    "/api/applications/meta-company/advisors/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["MetaCompanyController_setAdvisorActive"];
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene las acciones habilitadas para la sesión en Seguimiento 5S. */
+        get: operations["getSeguimiento5sCapabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/indicators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista los indicadores 5S activos (o todos, si se pide explícitamente). */
+        get: operations["listSeguimiento5sIndicators"];
+        put?: never;
+        /** Crea un indicador 5S. */
+        post: operations["createSeguimiento5sIndicator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/indicators/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edita un indicador 5S. */
+        patch: operations["updateSeguimiento5sIndicator"];
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/indicators/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva un indicador 5S. */
+        post: operations["deactivateSeguimiento5sIndicator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/indicators/{id}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reactiva un indicador 5S. */
+        post: operations["reactivateSeguimiento5sIndicator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista a los empleados asignados con su rol dentro de Seguimiento 5S. */
+        get: operations["listSeguimiento5sParticipants"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/participants/{userId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asigna el rol de líder o miembro a un participante. */
+        post: operations["setSeguimiento5sParticipantRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene el checklist diario de todo el equipo para una fecha. */
+        get: operations["getSeguimiento5sDailyEntries"];
+        /** Guarda el checklist diario de todo el equipo para una fecha. */
+        put: operations["saveSeguimiento5sDailyEntries"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/applications/seguimiento-5s/dashboard/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtiene los indicadores del dashboard y la serie diaria de cumplimiento ponderado. */
+        get: operations["getSeguimiento5sDashboardSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -25,6 +1207,630 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AuthSessionResponseDto: {
+            /** @example d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6 */
+            id: string;
+            /** @example persona@timbo.com */
+            corporateEmail: string;
+            /** @example Persona Timbo */
+            displayName: string | null;
+            /** @example false */
+            isPlatformAdministrator: boolean;
+        };
+        AdministrativeUserResponseDto: {
+            /** @example d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6 */
+            id: string;
+            /** @example persona@timbo.com */
+            corporateEmail: string;
+            /** @example Persona Timbo */
+            displayName: string | null;
+            /**
+             * @example ACTIVE
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE";
+            /**
+             * Format: date-time
+             * @example 2026-08-21T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-08-21T12:00:00.000Z
+             */
+            deactivatedAt: Record<string, never> | null;
+            /**
+             * @description Indica si el usuario tiene la asignación PLATFORM_ADMIN protegida.
+             * @example false
+             */
+            isPlatformAdministrator: boolean;
+        };
+        PreauthorizeAdministrativeUserDto: {
+            /** @example persona@timbo.com */
+            corporateEmail: string;
+        };
+        BulkAdministrativeUserStatusDto: {
+            /**
+             * @description Identificadores de usuarios a los que se aplicará el cambio de estado.
+             * @example [
+             *       "d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6"
+             *     ]
+             */
+            userIds: string[];
+        };
+        BulkAdministrativeUserStatusResultDto: {
+            /** @example d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6 */
+            userId: string;
+            /**
+             * @example UPDATED
+             * @enum {string}
+             */
+            status: "UPDATED" | "SKIPPED" | "REJECTED";
+            /** @example Primero se debe revocar el rol de administrador de plataforma. */
+            message?: string;
+        };
+        PreauthorizeAdministrativeUsersBulkDto: {
+            entries: components["schemas"]["PreauthorizeAdministrativeUserDto"][];
+        };
+        PreauthorizeAdministrativeUserBulkResultDto: {
+            /** @example persona@timbo.com */
+            corporateEmail: string;
+            /**
+             * @example CREATED
+             * @enum {string}
+             */
+            status: "CREATED" | "FAILED";
+            /**
+             * @description Motivo del fallo; presente únicamente cuando status es FAILED.
+             * @example Ya existe un usuario con el correo corporativo indicado.
+             */
+            message?: string;
+            user?: components["schemas"]["AdministrativeUserResponseDto"];
+        };
+        UpdateAdministrativeUserDto: {
+            /** @example Persona Timbo */
+            displayName: string | null;
+        };
+        AdministrativeApplicationResponseDto: {
+            /** @example d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6 */
+            id: string;
+            /** @example hello-world */
+            key: string;
+            /** @example Hello World */
+            name: string;
+            /** @example Primera aplicación de Plataforma Timbo. */
+            description: string | null;
+            /** @example /apps/hello-world */
+            launchPath: string;
+            /**
+             * @example ACTIVE
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE";
+            /** @example 0 */
+            displayOrder: number;
+            /**
+             * Format: date-time
+             * @example 2026-08-24T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-08-24T12:00:00.000Z
+             */
+            updatedAt: string;
+            /**
+             * Format: date-time
+             * @example null
+             */
+            deactivatedAt: string | null;
+        };
+        CreateAdministrativeApplicationDto: {
+            /** @example hello-world */
+            key: string;
+            /** @example Hello World */
+            name: string;
+            /** @example Primera aplicación de Plataforma Timbo. */
+            description?: string | null;
+            /** @example /apps/hello-world */
+            launchPath: string;
+            /** @example 0 */
+            displayOrder: number;
+        };
+        UpdateAdministrativeApplicationDto: {
+            /** @example Hello World */
+            name?: string;
+            /** @example Primera aplicación de Plataforma Timbo. */
+            description?: string | null;
+            /** @example /apps/hello-world */
+            launchPath?: string;
+            /** @example 0 */
+            displayOrder?: number;
+        };
+        BulkApplicationAccessDto: {
+            /**
+             * @example [
+             *       "d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6"
+             *     ]
+             */
+            userIds: string[];
+        };
+        BulkApplicationAccessResultDto: {
+            /** @example d9e7d1f5-4c1e-4a77-9b63-4f37b755f1d6 */
+            userId: string;
+            /**
+             * @example ASSIGNED
+             * @enum {string}
+             */
+            status: "ASSIGNED" | "UNASSIGNED" | "FAILED";
+            /**
+             * @description Motivo del fallo; presente únicamente cuando status es FAILED.
+             * @example El usuario ya tiene asignada la aplicación.
+             */
+            message?: string;
+        };
+        AdministrativeUserApplicationAccessResponseDto: {
+            /** Format: uuid */
+            applicationId: string;
+            /** Format: date-time */
+            assignedAt: string;
+            profileIds: string[];
+        };
+        AdministrativeApplicationPermissionResponseDto: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            description: string | null;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+        };
+        AdministrativeApplicationProfileResponseDto: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            description: string | null;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            permissionIds: string[];
+        };
+        CreateApplicationProfileDto: {
+            key: string;
+            name: string;
+            description?: string | null;
+        };
+        UpdateApplicationProfileDto: {
+            name?: string;
+            description?: string | null;
+        };
+        AuthorizedApplicationResponseDto: {
+            /** @example hello-world */
+            key: string;
+            /** @example Hello World */
+            name: string;
+            /** @example Primera aplicación de Plataforma Timbo. */
+            description: string | null;
+            /** @example /apps/hello-world */
+            launchPath: string;
+            /** @example 0 */
+            displayOrder: number;
+        };
+        PlatformBootstrapResponseDto: {
+            session: components["schemas"]["AuthSessionResponseDto"];
+            applications: components["schemas"]["AuthorizedApplicationResponseDto"][];
+        };
+        HelloWorldJokeRequestDto: {
+            /**
+             * Format: uuid
+             * @description Identificador idempotente del clic que solicita un chiste.
+             */
+            eventId: string;
+            /**
+             * Format: uuid
+             * @description Identificador efímero de la visita a la aplicación.
+             */
+            visitId: string;
+        };
+        HelloWorldJokeResponseDto: {
+            /** @example R7UfaahVfFd */
+            id: string;
+            /** @example Why did the scarecrow win an award? He was outstanding in his field. */
+            originalText: string;
+        };
+        VehicleResponseDto: {
+            marca: string;
+            modelo: string;
+            anioFab: string;
+            config: string;
+            susp: string;
+            tipoMotor: string;
+            tipoCabina: string;
+            tipoCaja: string;
+            aire: string;
+            color: string;
+            km: string;
+            precioLista: string;
+            ubicacion: string;
+            fechaSena: string;
+            vendedorSena: string;
+            uComentario: string;
+            disponible: string;
+            tipoUnidad: string;
+            uso: string;
+            inyeccion: string;
+            altura: string;
+            piso: string;
+            tipo: string;
+            chasis: string;
+            url: string;
+            codGrupo: string;
+            comentario: string;
+            origen: string;
+            kmOrigen: string;
+            fechaEntradaTaller: string;
+            fechaSalidaTaller: string;
+            equipamiento: string;
+            laterales: string;
+            diasTranscurridos: string;
+            ubicacion1: string;
+            aproxLlegada: string;
+            disponible1: string;
+            stock: string;
+        };
+        VehicleImageDto: {
+            full: string;
+            thumb: string;
+        };
+        EquipmentRentalResponseDto: {
+            description: string;
+            capacity: string;
+            tariff: string;
+        };
+        ListaPreciosUsageEventRequestDto: {
+            /**
+             * Format: uuid
+             * @description Identificador idempotente del evento de uso.
+             */
+            eventId: string;
+            /**
+             * Format: uuid
+             * @description Identificador efímero de la visita a Lista de Precios.
+             */
+            visitId: string;
+            /**
+             * @description Hito de uso permitido por Lista de Precios.
+             * @enum {string}
+             */
+            eventName: "lista-precios.catalog_opened" | "lista-precios.model_viewed" | "lista-precios.consultation_started";
+            /** @description Marca del modelo visto o consultado. */
+            brand?: string;
+            /** @description Modelo visto o consultado. */
+            model?: string;
+        };
+        CalculadoraCuotasUsageEventRequestDto: {
+            /**
+             * Format: uuid
+             * @description Identificador idempotente del evento de uso.
+             */
+            eventId: string;
+            /**
+             * Format: uuid
+             * @description Identificador efímero de la visita a Calculadora de Cuotas.
+             */
+            visitId: string;
+            /**
+             * @description Hito de uso permitido por Calculadora de Cuotas.
+             * @enum {string}
+             */
+            eventName: "calculadora-cuotas.opened" | "calculadora-cuotas.lista_precios_item_added" | "calculadora-cuotas.image_exported";
+            /** @description Identificador visible de ocho caracteres de la imagen exportada. */
+            imageId?: string;
+            /**
+             * @description Origen de las unidades incluidas al exportar la imagen.
+             * @enum {string}
+             */
+            calculationSource?: "manual" | "lista_precios" | "mixed";
+        };
+        MetaCompanyAdvisorGoalListItemDto: {
+            /** @example 1 */
+            id: number;
+            /** @example 2026-09-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example Comercial */
+            businessName: string;
+            /** @example 1 */
+            brandId?: number | null;
+            /** @example No aplica */
+            brandName: string;
+            /** @example 10 */
+            salespersonCode?: number | null;
+            /** @enum {string} */
+            goalType: "Marca" | "Vendedor";
+            /** @example 38237.42 */
+            value: string;
+            /** @example 2026-09-01T12:00:00.000Z */
+            updatedAt?: string | null;
+        };
+        MetaCompanyEmpresaResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example TIMBO */
+            code: string;
+            /** @example Timbo */
+            name: string;
+            /** @example true */
+            active: boolean;
+        };
+        MetaCompanyCatalogItemResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example 1 */
+            empresaId: number;
+            /** @example Comercial */
+            name: string;
+            /** @example true */
+            active: boolean;
+        };
+        MetaCompanyAdvisorResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example 1 */
+            empresaId: number;
+            /** @example SAP_B1 */
+            sourceSystem: string;
+            /** @example 10 */
+            externalCode: string;
+            /** @example Hugo Baez */
+            displayName: string;
+            /** @enum {string} */
+            kind: "PERSON" | "SALES_CHANNEL";
+            /** @example true */
+            active: boolean;
+        };
+        MetaCompanyCatalogResponseDto: {
+            empresas: components["schemas"]["MetaCompanyEmpresaResponseDto"][];
+            brands: components["schemas"]["MetaCompanyCatalogItemResponseDto"][];
+            businesses: components["schemas"]["MetaCompanyCatalogItemResponseDto"][];
+            advisors: components["schemas"]["MetaCompanyAdvisorResponseDto"][];
+        };
+        MetaCompanyCapabilitiesResponseDto: {
+            canManageCatalogs: boolean;
+            canManageGoals: boolean;
+        };
+        CreateMetaCompanyBrandGoalDto: {
+            /** @example 2026-09-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example 1 */
+            brandId: number;
+            /** @example 38237.42 */
+            value: string;
+            /** @example 22 */
+            workingDays?: number;
+        };
+        MetaCompanyBrandGoalResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example 2026-09-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example Comercial */
+            businessName: string;
+            /** @example 1 */
+            brandId: number;
+            /** @example FACCHINI */
+            brandName: string;
+            /** @example 38237.42 */
+            value: string;
+            /** @example 22 */
+            workingDays?: number | null;
+            /** @example 2026-09-01T12:00:00.000Z */
+            updatedAt?: string | null;
+        };
+        CreateMetaCompanyAdvisorGoalDto: {
+            /** @example 2026-09-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example 1 */
+            brandId?: number;
+            /** @example 1 */
+            advisorId: number;
+            /** @example 38237.42 */
+            value: string;
+            /** @example 22 */
+            workingDays?: number;
+        };
+        MetaCompanyAdvisorGoalResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example 2026-09-01 */
+            period: string;
+            /** @example 1 */
+            businessId: number;
+            /** @example FIXIT */
+            businessName: string;
+            /** @example 1 */
+            brandId?: number | null;
+            /** @example Marca de repuesto */
+            brandName?: string | null;
+            /** @example 1 */
+            advisorId: number;
+            /** @example 195fix */
+            advisorCode: string;
+            /** @example FIX0ASU0JUAN FERREIRA */
+            advisorName: string;
+            /** @example 31708.00 */
+            value: string;
+            /** @example 22 */
+            workingDays?: number | null;
+            /** @example 2026-09-01T12:00:00.000Z */
+            updatedAt?: string | null;
+        };
+        UpdateMetaCompanyGoalDto: {
+            /** @example 38237.42 */
+            value: string;
+            /** @example 22 */
+            workingDays?: number;
+        };
+        CreateMetaCompanyEmpresaDto: {
+            /** @example TIMBO */
+            code: string;
+            /** @example Timbo */
+            name: string;
+        };
+        UpdateMetaCompanyEmpresaDto: {
+            /** @example TIMBO */
+            code: string;
+            /** @example Timbo */
+            name: string;
+        };
+        SetMetaCompanyCatalogItemActiveDto: {
+            /** @example false */
+            active: boolean;
+        };
+        CreateMetaCompanyCatalogItemDto: {
+            /** @example 1 */
+            empresaId: number;
+            /** @example Comercial */
+            name: string;
+        };
+        UpdateMetaCompanyCatalogItemDto: {
+            /** @example 1 */
+            empresaId: number;
+            /** @example Comercial */
+            name: string;
+        };
+        CreateMetaCompanyAdvisorDto: {
+            /** @example 1 */
+            empresaId: number;
+            /** @example SAP_B1 */
+            sourceSystem: string;
+            /** @example 10 */
+            externalCode: string;
+            /** @example Hugo Baez */
+            displayName: string;
+            /**
+             * @example PERSON
+             * @enum {string}
+             */
+            kind: "PERSON" | "SALES_CHANNEL";
+        };
+        UpdateMetaCompanyAdvisorDto: {
+            /** @example 1 */
+            empresaId: number;
+            /** @example SAP_B1 */
+            sourceSystem: string;
+            /** @example 10 */
+            externalCode: string;
+            /** @example Hugo Baez */
+            displayName: string;
+            /**
+             * @example PERSON
+             * @enum {string}
+             */
+            kind: "PERSON" | "SALES_CHANNEL";
+        };
+        FiveSCapabilitiesResponseDto: {
+            canManageIndicators: boolean;
+            canManageEntries: boolean;
+            canManageParticipants: boolean;
+        };
+        FiveSIndicatorResponseDto: {
+            id: string;
+            key: string;
+            name: string;
+            /** @example 2026-08-17 */
+            controlledSince: string;
+            displayOrder: number;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+        };
+        CreateFiveSIndicatorDto: {
+            /**
+             * @description Clave en kebab-case, única.
+             * @example orden-de-cables
+             */
+            key: string;
+            /** @example Orden de cables */
+            name: string;
+            /**
+             * @description Fecha desde la que se controla (AAAA-MM-DD).
+             * @example 2026-08-17
+             */
+            controlledSince: string;
+            /** @example 0 */
+            displayOrder?: number;
+        };
+        UpdateFiveSIndicatorDto: {
+            /** @example Orden de cables */
+            name?: string;
+            /** @example 2026-08-17 */
+            controlledSince?: string;
+            /** @example 0 */
+            displayOrder?: number;
+        };
+        FiveSParticipantResponseDto: {
+            userId: string;
+            displayName: string;
+            corporateEmail: string;
+            /** @enum {string|null} */
+            roleKey: "lider-5s" | "miembro-5s" | null;
+        };
+        SetFiveSParticipantRoleDto: {
+            /** @enum {string} */
+            roleKey: "lider-5s" | "miembro-5s";
+        };
+        FiveSDailyIndicatorValueDto: {
+            indicatorId: string;
+            /** @enum {string|null} */
+            value: "MET" | "NOT_MET" | "NOT_APPLICABLE" | null;
+        };
+        FiveSDailyPersonSummaryDto: {
+            userId: string;
+            displayName: string;
+            roleKey: string | null;
+            indicatorValues: components["schemas"]["FiveSDailyIndicatorValueDto"][];
+            points: number;
+            evaluated: number;
+            notApplicable: number;
+            pending: number;
+            compliance: number | null;
+        };
+        FiveSDailyEntriesResponseDto: {
+            /** @example 2026-08-17 */
+            entryDate: string;
+            people: components["schemas"]["FiveSDailyPersonSummaryDto"][];
+        };
+        SaveFiveSDailyEntryItemDto: {
+            userId: string;
+            indicatorId: string;
+            /** @enum {string} */
+            value: "MET" | "NOT_MET" | "NOT_APPLICABLE";
+        };
+        SaveFiveSDailyEntriesRequestDto: {
+            /** @example 2026-08-17 */
+            entryDate: string;
+            entries: components["schemas"]["SaveFiveSDailyEntryItemDto"][];
+        };
+        FiveSDashboardDailyPointDto: {
+            /** @example 2026-08-17 */
+            entryDate: string;
+            compliance: number | null;
+        };
+        FiveSDashboardSummaryResponseDto: {
+            /** @example 2026-08-17 */
+            lastLoadedDate: string | null;
+            lastLoadedCompliance: number | null;
+            controlsPerformed: number;
+            markedNotApplicable: number;
+            dailySeries: components["schemas"]["FiveSDashboardDailyPointDto"][];
+        };
         HealthResponseDto: {
             /**
              * @description Estado de disponibilidad de la API.
@@ -46,6 +1852,1845 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    startGoogleLogin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirección al proveedor Google. */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    completeGoogleLogin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sesión creada y redirección al origen web configurado. */
+            303: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAuthSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthSessionResponseDto"];
+                };
+            };
+        };
+    };
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sesión revocada o cookie ya ausente. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listAdministrativeUsers: {
+        parameters: {
+            query?: {
+                /** @description Texto a buscar en el correo corporativo o nombre visible. */
+                search?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeUserResponseDto"][];
+                };
+            };
+        };
+    };
+    preauthorizeAdministrativeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreauthorizeAdministrativeUserDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeUserResponseDto"];
+                };
+            };
+        };
+    };
+    activateAdministrativeUsersBulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkAdministrativeUserStatusDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkAdministrativeUserStatusResultDto"][];
+                };
+            };
+        };
+    };
+    deactivateAdministrativeUsersBulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkAdministrativeUserStatusDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkAdministrativeUserStatusResultDto"][];
+                };
+            };
+        };
+    };
+    preauthorizeAdministrativeUsersBulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreauthorizeAdministrativeUsersBulkDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreauthorizeAdministrativeUserBulkResultDto"][];
+                };
+            };
+        };
+    };
+    updateAdministrativeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAdministrativeUserDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeUserResponseDto"];
+                };
+            };
+        };
+    };
+    deactivateAdministrativeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Usuario desactivado. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reactivateAdministrativeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Usuario reactivado. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    grantPlatformAdministrator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rol administrativo otorgado. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    revokePlatformAdministrator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rol administrativo revocado. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listAdministrativeApplications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationResponseDto"][];
+                };
+            };
+        };
+    };
+    createAdministrativeApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAdministrativeApplicationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationResponseDto"];
+                };
+            };
+        };
+    };
+    updateAdministrativeApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAdministrativeApplicationDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationResponseDto"];
+                };
+            };
+        };
+    };
+    deactivateAdministrativeApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Aplicación desactivada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reactivateAdministrativeApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Aplicación reactivada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    assignApplicationToUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    unassignApplicationFromUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    assignApplicationToUsersBulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkApplicationAccessDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkApplicationAccessResultDto"][];
+                };
+            };
+        };
+    };
+    unassignApplicationFromUsersBulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkApplicationAccessDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkApplicationAccessResultDto"][];
+                };
+            };
+        };
+    };
+    listUserApplicationAccesses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeUserApplicationAccessResponseDto"][];
+                };
+            };
+        };
+    };
+    listApplicationPermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationPermissionResponseDto"][];
+                };
+            };
+        };
+    };
+    listApplicationProfiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationProfileResponseDto"][];
+                };
+            };
+        };
+    };
+    createApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateApplicationProfileDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationProfileResponseDto"];
+                };
+            };
+        };
+    };
+    updateApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateApplicationProfileDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeApplicationProfileResponseDto"];
+                };
+            };
+        };
+    };
+    deactivateApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reactivateApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    addPermissionToApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+                permissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    removePermissionFromApplicationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+                permissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    assignApplicationProfileToUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    unassignApplicationProfileFromUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listAuthorizedApplications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizedApplicationResponseDto"][];
+                };
+            };
+        };
+    };
+    getPlatformBootstrap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformBootstrapResponseDto"];
+                };
+            };
+        };
+    };
+    listAdministrativeActivity: {
+        parameters: {
+            query?: {
+                /** @description Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay. */
+                datePreset?: "today" | "week" | "month";
+                /** @description Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo. */
+                dateFrom?: unknown;
+                /** @description Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días. */
+                dateTo?: unknown;
+                /** @description Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos. */
+                asOf?: unknown;
+                actor?: unknown;
+                source?: "AUDIT" | "USAGE";
+                appKey?: unknown;
+                eventName?: unknown;
+                target?: unknown;
+                limit?: unknown;
+                offset?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            id: string;
+                            /** @enum {string} */
+                            source: "AUDIT" | "USAGE";
+                            actor: string;
+                            appKey: string;
+                            eventName: string;
+                            outcome: string;
+                            /** Format: uuid */
+                            visitId: string | null;
+                            targetType: string | null;
+                            targetId: string | null;
+                            target: string | null;
+                            metadata: {
+                                [key: string]: string;
+                            };
+                            /** Format: date-time */
+                            occurredAt: string;
+                        }[];
+                        total: number;
+                        limit: number;
+                        offset: number;
+                    };
+                };
+            };
+            /** @description Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAdministrativeActivityStatistics: {
+        parameters: {
+            query?: {
+                /** @description Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay. */
+                datePreset?: "today" | "week" | "month";
+                /** @description Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo. */
+                dateFrom?: unknown;
+                /** @description Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días. */
+                dateTo?: unknown;
+                /** @description Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos. */
+                asOf?: unknown;
+                actor?: unknown;
+                source?: "AUDIT" | "USAGE";
+                appKey?: unknown;
+                eventName?: unknown;
+                target?: unknown;
+                limit?: unknown;
+                offset?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        eventsToday: number;
+                        activePeopleToday: number;
+                        mostFrequentApp: string | null;
+                        mostFrequentEvent: string | null;
+                    };
+                };
+            };
+            /** @description Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAdministrativeActivityFilterOptions: {
+        parameters: {
+            query?: {
+                /** @description Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay. */
+                datePreset?: "today" | "week" | "month";
+                /** @description Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo. */
+                dateFrom?: unknown;
+                /** @description Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días. */
+                dateTo?: unknown;
+                /** @description Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos. */
+                asOf?: unknown;
+                actor?: unknown;
+                source?: "AUDIT" | "USAGE";
+                appKey?: unknown;
+                eventName?: unknown;
+                target?: unknown;
+                limit?: unknown;
+                offset?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        actors?: string[];
+                        sources?: string[];
+                        apps?: string[];
+                        events?: string[];
+                        targets?: string[];
+                    };
+                };
+            };
+            /** @description Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    exportAdministrativeActivityCsv: {
+        parameters: {
+            query?: {
+                /** @description Período rápido. Si se omite, se usa Este mes en la zona horaria de Paraguay. */
+                datePreset?: "today" | "week" | "month";
+                /** @description Inicio del rango personalizado en Paraguay (YYYY-MM-DD). Requiere dateTo. */
+                dateFrom?: unknown;
+                /** @description Fin inclusivo del rango personalizado en Paraguay (YYYY-MM-DD). Máximo 366 días. */
+                dateTo?: unknown;
+                /** @description Marca de tiempo ISO 8601 para compartir exactamente el corte de los períodos rápidos. */
+                asOf?: unknown;
+                actor?: unknown;
+                source?: "AUDIT" | "USAGE";
+                appKey?: unknown;
+                eventName?: unknown;
+                target?: unknown;
+                limit?: unknown;
+                offset?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Rango inválido o mayor a 366 días. Códigos: ACTIVITY_DATE_RANGE_INVALID o ACTIVITY_DATE_RANGE_EXCEEDED. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    requestHelloWorldJoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HelloWorldJokeRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HelloWorldJokeResponseDto"];
+                };
+            };
+            /** @description El proveedor de chistes no está disponible. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listListaPreciosVehicles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleResponseDto"][];
+                };
+            };
+            /** @description Zoho Analytics no está disponible. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getListaPreciosVehicleImages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stock: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleImageDto"][];
+                };
+            };
+        };
+    };
+    getListaPreciosImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listListaPreciosEquipmentRentals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentRentalResponseDto"][];
+                };
+            };
+            /** @description Zoho Analytics no está disponible. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    recordListaPreciosUsageEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListaPreciosUsageEventRequestDto"];
+            };
+        };
+        responses: {
+            /** @description El evento fue procesado sin interrumpir el recorrido. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description El evento de uso no cumple el contrato permitido. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    recordCalculadoraCuotasUsageEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalculadoraCuotasUsageEventRequestDto"];
+            };
+        };
+        responses: {
+            /** @description El evento fue procesado sin interrumpir el recorrido. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description El evento de uso no cumple el contrato permitido. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listMetaCompanyGoals: {
+        parameters: {
+            query?: {
+                period?: string;
+                empresaId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorGoalListItemDto"][];
+                };
+            };
+        };
+    };
+    listMetaCompanyCatalogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogResponseDto"];
+                };
+            };
+        };
+    };
+    listAllMetaCompanyCatalogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogResponseDto"];
+                };
+            };
+        };
+    };
+    getMetaCompanyCapabilities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCapabilitiesResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_createBrandGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyBrandGoalDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyBrandGoalResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_createAdvisorGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyAdvisorGoalDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorGoalResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_updateBrandGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMetaCompanyGoalDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyBrandGoalResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_updateAdvisorGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMetaCompanyGoalDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorGoalResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_createEmpresa: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyEmpresaDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyEmpresaResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_updateEmpresa: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMetaCompanyEmpresaDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyEmpresaResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_setEmpresaActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyEmpresaResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_createBrand: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyCatalogItemDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_updateBrand: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMetaCompanyCatalogItemDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_setBrandActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_createBusiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyCatalogItemDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_updateBusiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMetaCompanyCatalogItemDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_setBusinessActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyCatalogItemResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_createAdvisor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMetaCompanyAdvisorDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_updateAdvisor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMetaCompanyAdvisorDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorResponseDto"];
+                };
+            };
+        };
+    };
+    MetaCompanyController_setAdvisorActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMetaCompanyCatalogItemActiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCompanyAdvisorResponseDto"];
+                };
+            };
+        };
+    };
+    getSeguimiento5sCapabilities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSCapabilitiesResponseDto"];
+                };
+            };
+        };
+    };
+    listSeguimiento5sIndicators: {
+        parameters: {
+            query: {
+                includeInactive: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSIndicatorResponseDto"][];
+                };
+            };
+        };
+    };
+    createSeguimiento5sIndicator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFiveSIndicatorDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSIndicatorResponseDto"];
+                };
+            };
+        };
+    };
+    updateSeguimiento5sIndicator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFiveSIndicatorDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSIndicatorResponseDto"];
+                };
+            };
+        };
+    };
+    deactivateSeguimiento5sIndicator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reactivateSeguimiento5sIndicator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listSeguimiento5sParticipants: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSParticipantResponseDto"][];
+                };
+            };
+        };
+    };
+    setSeguimiento5sParticipantRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetFiveSParticipantRoleDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getSeguimiento5sDailyEntries: {
+        parameters: {
+            query: {
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSDailyEntriesResponseDto"];
+                };
+            };
+        };
+    };
+    saveSeguimiento5sDailyEntries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveFiveSDailyEntriesRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSDailyEntriesResponseDto"];
+                };
+            };
+        };
+    };
+    getSeguimiento5sDashboardSummary: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiveSDashboardSummaryResponseDto"];
+                };
+            };
+        };
+    };
     getHealth: {
         parameters: {
             query?: never;

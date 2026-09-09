@@ -12,6 +12,7 @@
     ]
   },
   "deploy": {
+    "preDeployCommand": "corepack pnpm --filter @timbo/api prisma:migrate:deploy",
     "startCommand": "corepack pnpm --filter @timbo/api start",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 120,

@@ -11,6 +11,9 @@
     "dev:web": "pnpm --filter @timbo/web dev",
     "start:api": "pnpm --filter @timbo/api start",
     "start:web": "pnpm --filter @timbo/web start",
+    "prisma:validate": "pnpm --filter @timbo/api prisma:validate",
+    "prisma:generate": "pnpm --filter @timbo/api prisma:generate",
+    "prisma:migrate:deploy": "pnpm --filter @timbo/api prisma:migrate:deploy",
     "build": "pnpm -r run build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "eslint .",
@@ -21,6 +24,7 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1127.0",
     "@eslint/js": "^10.0.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.13.0",
@@ -30,6 +34,7 @@
     "jest": "^30.4.2",
     "pnpm": "11.22.0",
     "prettier": "^3.9.6",
+    "sharp": "^0.35.4",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
     "ts-node": "^10.9.2",

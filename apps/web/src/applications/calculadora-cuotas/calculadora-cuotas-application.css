@@ -1,0 +1,2596 @@
+/* Tokens propios de la Calculadora de Cuotas, scoped al subárbol de la app (no en :root) — misma
+   convención que Lista de Precios, pero tomando directamente los valores de DESIGN.md en vez de
+   portar una paleta ajena: esta app nace dentro del App Shell, no tiene identidad previa propia. */
+.calculadora-cuotas-shell {
+  --cc-c-brand: #00388a;
+  --cc-c-brand-dark: #002a6b;
+  --cc-c-brand-light: #dcecf0;
+  --cc-c-bg: #edf2f7;
+  --cc-c-surface: #f7f9fb;
+  --cc-c-surface-alt: #ffffff;
+  --cc-c-border: #bcc9d7;
+  --cc-c-border-strong: #94a3b8;
+  --cc-c-text-primary: #142033;
+  --cc-c-text-secondary: #475569;
+  --cc-c-text-disabled: #64748b;
+  --cc-c-error-ink: #8c2f16;
+  --cc-c-error-surface: #fff7f4;
+  --cc-c-error-border: #e8b5a4;
+  --cc-c-revisit-surface: #f4e5b9;
+  --cc-c-revisit-ink: #5d4210;
+  --cc-c-revisit-border: #c99d37;
+  --cc-c-focus: #2d6099;
+  --cc-c-focus-ring: rgb(11 79 156 / 18%);
+  --cc-font-mono: 'SF Mono', 'Fira Code', 'Roboto Mono', monospace;
+  --cc-sp-1: 4px;
+  --cc-sp-2: 8px;
+  --cc-sp-3: 12px;
+  --cc-sp-4: 16px;
+  --cc-sp-5: 20px;
+  --cc-sp-6: 24px;
+  --cc-sp-7: 32px;
+  --cc-content-max: 1100px;
+  --cc-page-gutter: clamp(20px, 3vw, 32px);
+  --cc-t-fast: 120ms ease-out;
+  min-height: 100%;
+  background: var(--cc-c-surface-alt);
+}
+
+.calculadora-cuotas-shell button,
+.calculadora-cuotas-shell input,
+.calculadora-cuotas-shell select {
+  font: inherit;
+}
+
+.cc-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* La tarea vive sobre una sola superficie blanca, sin convertirla en una tarjeta flotante. */
+.cc-page {
+  width: min(100%, calc(var(--cc-content-max) + (var(--cc-page-gutter) * 2)));
+  margin: 0 auto;
+  padding: clamp(24px, 3vw, 32px) var(--cc-page-gutter) 40px;
+}
+
+/* El wizard conserva una decisión por pantalla, pero usa el ancho disponible para la tarea actual. */
+.cc-wizard {
+  width: 100%;
+  max-width: var(--cc-content-max);
+  margin: 0 auto;
+}
+
+.cc-wizard-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 0 var(--cc-sp-6);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--cc-c-border);
+  border-radius: 999px;
+  list-style: none;
+}
+
+.cc-wizard-steps li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cc-sp-2);
+  min-width: 0;
+  min-height: 54px;
+  padding: var(--cc-sp-2) var(--cc-sp-3);
+  color: var(--cc-c-text-disabled);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.cc-wizard-step-label {
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.cc-wizard-mobile-step {
+  display: none;
+}
+
+.cc-wizard-steps li + li {
+  border-left: 1px solid var(--cc-c-border);
+}
+
+.cc-wizard-step-marker {
+  display: grid;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid var(--cc-c-border-strong);
+  border-radius: 50%;
+  color: var(--cc-c-text-disabled);
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.cc-wizard-steps .cc-wizard-step--active {
+  background: var(--cc-c-brand);
+  color: #fff;
+}
+
+.cc-wizard-steps .cc-wizard-step--active .cc-wizard-step-marker {
+  border-color: currentColor;
+  background: transparent;
+  color: #fff;
+}
+
+.cc-wizard-steps .cc-wizard-step--complete {
+  background: var(--cc-c-brand-light);
+  color: var(--cc-c-text-primary);
+}
+
+.cc-wizard-steps .cc-wizard-step--complete .cc-wizard-step-marker {
+  border-color: var(--cc-c-text-primary);
+  background: transparent;
+  color: var(--cc-c-text-primary);
+}
+
+.cc-wizard-screen--main {
+  padding: 0;
+}
+
+.cc-wizard-screen--main > .cc-section:first-child {
+  padding-top: 0;
+}
+
+.cc-wizard-screen[data-animate='true'][data-transition-direction='forward'] {
+  animation: cc-wizard-screen-forward 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cc-wizard-screen[data-animate='true'][data-transition-direction='backward'] {
+  animation: cc-wizard-screen-backward 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cc-wizard-screen-forward {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+}
+
+@keyframes cc-wizard-screen-backward {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}
+
+.cc-main-workspace {
+  display: grid;
+  gap: var(--cc-sp-6);
+}
+
+.cc-main-summary {
+  display: none;
+}
+
+.cc-main-mobile-actions {
+  display: flex;
+}
+
+.cc-wizard-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cc-sp-3);
+  margin-top: var(--cc-sp-5);
+  padding-top: var(--cc-sp-4);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-wizard-actions .cc-apply-btn {
+  width: auto;
+  min-width: 210px;
+}
+
+.cc-wizard-total {
+  color: var(--cc-c-text-secondary);
+  font-family: var(--cc-font-mono);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.cc-secondary-action {
+  min-height: 44px;
+  padding: 0 var(--cc-sp-4);
+  border: 1px solid var(--cc-c-border-strong);
+  background: transparent;
+  color: var(--cc-c-text-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cc-secondary-action:hover {
+  border-color: var(--cc-c-brand);
+  color: var(--cc-c-brand);
+}
+
+.cc-revisit-action {
+  min-height: 44px;
+  padding: 0 var(--cc-sp-4);
+  border: 1px solid var(--cc-c-revisit-border);
+  background: var(--cc-c-revisit-surface);
+  color: var(--cc-c-revisit-ink);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background var(--cc-t-fast),
+    border-color var(--cc-t-fast),
+    transform var(--cc-t-fast);
+}
+
+.cc-revisit-action:hover {
+  border-color: var(--cc-c-revisit-ink);
+  background: #efdba4;
+}
+
+.cc-secondary-action:focus-visible,
+.cc-revisit-action:focus-visible,
+.cc-wizard-actions .cc-apply-btn:focus-visible {
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 3px;
+}
+
+.cc-section-description {
+  margin: var(--cc-sp-1) 0 0;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 1023px) {
+  .cc-page--has-mobile-bar {
+    padding-top: var(--cc-sp-1);
+    padding-bottom: 88px;
+  }
+
+  .cc-cuotero-footer--needs-calculation {
+    display: none;
+  }
+}
+
+.cc-logout-error {
+  width: min(100%, calc(var(--cc-content-max) + (var(--cc-page-gutter) * 2)));
+  margin: var(--cc-sp-2) auto 0;
+  padding: 0 var(--cc-page-gutter);
+}
+
+/* ── Layout: una sola columna que fluye en mobile. Desde 1024px, grid de 2 columnas (armado |
+   config+cuotero apilados). Desde 1280px — cubre el 1366px de un notebook corporativo típico ya
+   descontado el scrollbar — Config y Cuotero se separan en sus propios carriles de grid en vez de
+   compartir uno: así el Cuotero arranca a la misma altura que Config en vez de heredar el alto
+   acumulado de sus campos, que es lo que hoy lo empuja fuera de la vista inicial. Config y Cuotero
+   son elementos de grid independientes (no una envoltura compartida) para que cada
+   `position: sticky` opere sobre su propia columna. ── */
+.cc-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-6);
+}
+
+.cc-layout-main,
+.cc-layout-config,
+.cc-layout-result {
+  display: flex;
+  flex-direction: column;
+}
+
+.cc-layout-input {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  .cc-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    align-items: start;
+    gap: 0 48px;
+  }
+
+  .cc-layout-config,
+  .cc-layout-result {
+    grid-column: 2;
+    position: sticky;
+    top: var(--cc-sp-5);
+  }
+}
+
+.cc-main-workspace-primary {
+  display: grid;
+  min-width: 0;
+  padding: var(--cc-sp-5);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface);
+  box-shadow: 0 6px 16px rgb(20 32 51 / 8%);
+}
+
+/* La carga y la revisión comparten contexto; la línea conserva su separación operativa. */
+.cc-main-workspace-primary > .cc-section {
+  padding: 0;
+}
+
+.cc-main-workspace-primary > .cc-section + .cc-section {
+  padding-top: var(--cc-sp-5);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-main-summary {
+  display: grid;
+  gap: var(--cc-sp-4);
+  padding: var(--cc-sp-5);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface);
+}
+
+.cc-main-summary-heading,
+.cc-config-summary-heading {
+  margin: 0;
+  color: var(--cc-c-text-primary);
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.cc-main-summary dl {
+  display: grid;
+  gap: var(--cc-sp-3);
+  margin: 0;
+}
+
+.cc-main-summary dl div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+}
+
+.cc-main-summary dt,
+.cc-config-summary dt {
+  color: var(--cc-c-text-secondary);
+  font-size: 0.875rem;
+}
+
+.cc-main-summary dd,
+.cc-config-summary dd {
+  margin: 0;
+  color: var(--cc-c-brand);
+  font-family: var(--cc-font-mono);
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.cc-main-summary .cc-apply-btn {
+  width: 100%;
+}
+
+.cc-mode-switch {
+  width: min(100%, 360px);
+  margin-top: var(--cc-sp-4);
+  border-radius: 10px;
+}
+
+.cc-mode-btn {
+  min-height: 46px;
+}
+
+.cc-added-empty {
+  display: grid;
+  min-height: 104px;
+  align-items: center;
+  margin: 0;
+  padding: var(--cc-sp-5);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface);
+  font-weight: 600;
+}
+
+.cc-mode-selection {
+  width: min(100%, 720px);
+}
+
+.cc-calculation-mode-options {
+  position: relative;
+  min-height: 320px;
+  margin-top: var(--cc-sp-5);
+  overflow: clip;
+  border: 2px solid #0b3d91;
+  background: #e8eff7;
+  isolation: isolate;
+}
+
+.cc-calculation-mode-list,
+.cc-calculation-mode-surface {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cc-calculation-mode-list {
+  z-index: 0;
+  color: #102a4c;
+}
+
+.cc-calculation-mode-surface {
+  z-index: 1;
+  background: #0b3d91;
+  clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+  opacity: 0;
+  transform: scale(1);
+  transform-origin: center;
+  will-change: clip-path, transform;
+  transition:
+    clip-path 280ms cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 190ms ease,
+    background-color 190ms ease,
+    transform 140ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.cc-calculation-mode-options[data-selected-mode='standard'] .cc-calculation-mode-surface,
+.cc-calculation-mode-options[data-selected-mode='target-installment'] .cc-calculation-mode-surface {
+  opacity: 1;
+}
+
+.cc-calculation-mode-options[data-selected-mode='target-installment'] .cc-calculation-mode-surface {
+  clip-path: polygon(100% 0, 100% 100%, 0 100%, 0 100%);
+}
+
+.cc-calculation-mode-options[data-selected-mode='standard'] .cc-calculation-mode-surface {
+  clip-path: polygon(0 0, 100% 0, 0 100%, 0 100%);
+}
+
+.cc-calculation-mode-option {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.cc-calculation-mode-option--standard {
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.cc-calculation-mode-option--target {
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.cc-calculation-mode-copy {
+  position: absolute;
+  display: grid;
+  gap: var(--cc-sp-2);
+  max-width: min(46%, 290px);
+}
+
+.cc-calculation-mode-copy--standard {
+  top: clamp(24px, 5vw, 40px);
+  left: clamp(24px, 5vw, 40px);
+  text-align: left;
+}
+
+.cc-calculation-mode-copy--target {
+  right: clamp(24px, 5vw, 40px);
+  bottom: clamp(24px, 5vw, 40px);
+  text-align: right;
+}
+
+.cc-calculation-mode-copy strong {
+  display: block;
+  font-size: clamp(1.375rem, 3vw, 1.875rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.cc-calculation-mode-copy > span {
+  color: #425b76;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.cc-calculation-mode-surface .cc-calculation-mode-copy {
+  color: #fff;
+}
+
+.cc-calculation-mode-surface .cc-calculation-mode-copy > span {
+  color: #fff;
+  opacity: 0.88;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cc-calculation-mode-options:has(.cc-calculation-mode-option[data-selected='true']:hover)
+    .cc-calculation-mode-surface {
+    background: #0a3883;
+  }
+}
+
+.cc-calculation-mode-option:focus-visible {
+  outline: 0;
+}
+
+.cc-calculation-mode-options:has(.cc-calculation-mode-option--standard:focus-visible)
+  .cc-calculation-mode-copy--standard,
+.cc-calculation-mode-options:has(.cc-calculation-mode-option--target:focus-visible)
+  .cc-calculation-mode-copy--target {
+  outline: 2px solid currentColor;
+  outline-offset: 6px;
+}
+
+.cc-apply-btn:active,
+.cc-secondary-action:active,
+.cc-revisit-action:active {
+  transform: scale(0.98);
+}
+
+.cc-calculation-mode-options:has(.cc-calculation-mode-option:active) .cc-calculation-mode-surface {
+  transform: scale(0.995);
+}
+
+.cc-config-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+  margin-bottom: var(--cc-sp-6);
+}
+
+.cc-config-heading .cc-section-title {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.cc-config-layout {
+  grid-template-areas: 'controls' 'summary';
+  gap: var(--cc-sp-6);
+}
+
+.cc-config-controls {
+  max-width: 704px;
+}
+
+.cc-field-group,
+.cc-down-payment {
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 var(--cc-sp-5);
+  border: 0;
+  border-bottom: 1px solid var(--cc-c-border);
+}
+
+.cc-field-group + .cc-field-group,
+.cc-field-group + .cc-down-payment {
+  padding-top: var(--cc-sp-5);
+}
+
+.cc-field-group legend,
+.cc-down-payment legend {
+  padding: 0;
+  color: var(--cc-c-text-primary);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.cc-config-inline-fields,
+.cc-down-payment-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cc-sp-4);
+  margin-top: var(--cc-sp-4);
+}
+
+.cc-field {
+  display: grid;
+  gap: var(--cc-sp-2);
+}
+
+.cc-field label {
+  color: var(--cc-c-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.cc-field > input,
+.cc-field > select,
+.cc-input-with-suffix {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--cc-c-border-strong);
+  background: var(--cc-c-surface-alt);
+  color: var(--cc-c-text-primary);
+}
+
+.cc-field > input,
+.cc-field > select {
+  padding: 0 var(--cc-sp-3);
+}
+
+.cc-input-with-suffix {
+  display: flex;
+  align-items: center;
+  gap: var(--cc-sp-2);
+  padding: 0 var(--cc-sp-3);
+}
+
+.cc-input-with-suffix input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--cc-c-text-primary);
+  font-family: var(--cc-font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cc-input-with-suffix span {
+  flex: 0 0 auto;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.cc-field--important .cc-input-with-suffix {
+  border-color: var(--cc-c-brand);
+}
+
+.cc-field > input:focus-visible,
+.cc-field > select:focus-visible,
+.cc-input-with-suffix:focus-within,
+.cc-search-bar:focus-within {
+  border-color: var(--cc-c-brand);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--cc-c-focus-ring);
+}
+
+.cc-input-with-suffix input:focus-visible,
+.cc-search-bar input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.cc-input-error {
+  border-color: var(--cc-c-error-ink) !important;
+}
+
+.cc-down-payment[data-calculation-error='true'] .cc-down-payment-readout,
+.cc-down-payment[data-calculation-error='true'] .cc-down-payment-slider {
+  border-color: var(--cc-c-error-ink);
+  box-shadow: 0 0 0 3px rgb(140 47 22 / 12%);
+}
+
+.cc-field-error {
+  margin: var(--cc-sp-3) 0 0;
+  color: var(--cc-c-error-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.cc-down-payment-inputs {
+  max-width: 520px;
+}
+
+.cc-down-payment-slider {
+  width: 100%;
+  min-height: 40px;
+  margin: var(--cc-sp-4) 0 0;
+  accent-color: var(--cc-c-brand);
+}
+
+.cc-down-payment-slider-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.cc-config-summary {
+  display: grid;
+  gap: var(--cc-sp-4);
+  padding: var(--cc-sp-5);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface);
+}
+
+.cc-config-summary dl {
+  display: grid;
+  gap: var(--cc-sp-3);
+  margin: 0;
+}
+
+.cc-config-summary dl div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+}
+
+.cc-config-summary-balance {
+  margin-top: var(--cc-sp-1);
+  padding-top: var(--cc-sp-3);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-config-summary-balance dd {
+  font-size: 1.125rem;
+}
+
+@media (min-width: 1024px) {
+  .cc-main-workspace {
+    grid-template-columns: minmax(0, 720px) 320px;
+    justify-content: space-between;
+    gap: 48px;
+  }
+
+  .cc-main-summary,
+  .cc-config-summary {
+    position: sticky;
+    top: var(--cc-sp-5);
+  }
+
+  .cc-config-layout {
+    grid-template-columns: minmax(0, 704px) 320px;
+    grid-template-areas: 'controls summary';
+    justify-content: space-between;
+    gap: 48px;
+  }
+}
+
+@media (max-width: 640px) {
+  .cc-wizard-steps li {
+    gap: 4px;
+    padding: var(--cc-sp-2) 4px;
+    font-size: 0.6875rem;
+  }
+
+  .cc-wizard-step-marker {
+    flex-basis: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .cc-wizard-step-label {
+    overflow-wrap: anywhere;
+  }
+
+  .cc-config-heading,
+  .cc-wizard-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cc-config-inline-fields,
+  .cc-down-payment-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .cc-wizard-actions .cc-apply-btn,
+  .cc-secondary-action,
+  .cc-revisit-action {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-wizard-screen[data-animate='true'][data-transition-direction],
+  .cc-calculation-mode-surface,
+  .cc-calculation-mode-option,
+  .cc-calculation-mode-option strong,
+  .cc-calculation-mode-option-copy > span,
+  .cc-apply-btn,
+  .cc-secondary-action,
+  .cc-revisit-action {
+    animation: none;
+    transition-duration: 0ms;
+  }
+
+  .cc-down-payment-slider::-webkit-slider-thumb,
+  .cc-down-payment-slider::-moz-range-thumb {
+    transition: none;
+  }
+
+  .cc-down-payment-slider:active::-webkit-slider-thumb,
+  .cc-down-payment-slider:active::-moz-range-thumb {
+    transform: none;
+  }
+}
+
+@media (min-width: 1280px) {
+  .cc-layout {
+    grid-template-columns: minmax(0, 1fr) 300px 380px;
+    gap: 0 32px;
+  }
+
+  .cc-layout-input {
+    display: grid;
+    grid-column: 1 / span 2;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+    align-items: stretch;
+    gap: 0 var(--cc-sp-7);
+    padding: var(--cc-sp-5);
+    border-top: 3px solid var(--cc-c-brand);
+    background: var(--cc-c-surface-alt);
+  }
+
+  .cc-layout-input .cc-layout-config {
+    grid-column: auto;
+    position: static;
+    top: auto;
+  }
+
+  .cc-layout-input .cc-section.cc-config {
+    padding: 0;
+    border-top: 0;
+    background: transparent;
+  }
+
+  .cc-layout-result {
+    grid-column: 3;
+  }
+}
+
+/* Las secciones internas conservan reglas ligeras. A partir de 1280 px, armado y financiación
+   comparten una sola superficie de entrada; Cuotero permanece separado como resultado. */
+.cc-section {
+  padding-top: var(--cc-sp-5);
+}
+
+.cc-layout-main > .cc-section:first-child,
+.cc-layout-config > .cc-section:first-child,
+.cc-layout-result > .cc-section:first-child {
+  padding-top: 0;
+}
+
+.cc-section + .cc-section {
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cc-sp-3);
+  margin-bottom: var(--cc-sp-3);
+  margin-top: 0;
+}
+
+/* Los títulos de sección comparten la voz de Cuotero. La superficie y el contenido, no una
+   escala tipográfica paralela, distinguen los controles del resultado. */
+.cc-section-title {
+  margin: 0 0 var(--cc-sp-3);
+  color: var(--cc-c-text-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.cc-section-heading .cc-section-title {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+/* ── Selector de modo (agregar unidad / precio manual) ── */
+.cc-mode-switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: var(--cc-sp-4);
+  overflow: hidden;
+  background: var(--cc-c-surface-alt);
+  border: 1px solid var(--cc-c-border);
+  isolation: isolate;
+}
+
+.cc-mode-btn {
+  position: relative;
+  z-index: 1;
+  min-height: 44px;
+  padding: 0 var(--cc-sp-3);
+  border: 0;
+  background: var(--cc-c-surface-alt);
+  color: var(--cc-c-text-secondary);
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.cc-mode-btn + .cc-mode-btn {
+  border-inline-start: 1px solid var(--cc-c-border);
+}
+
+.cc-mode-btn--active {
+  background: var(--cc-c-brand);
+  color: #fff;
+}
+
+.cc-mode-btn:focus-visible {
+  position: relative;
+  z-index: 3;
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cc-mode-switch[data-animate='true'] .cc-mode-btn {
+    transition:
+      background-color 160ms cubic-bezier(0.23, 1, 0.32, 1),
+      color 120ms ease-out;
+  }
+}
+
+.cc-mode-stage {
+  min-width: 0;
+}
+
+/* ── Búsqueda de catálogo ── */
+.cc-search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--cc-sp-2);
+  min-height: 44px;
+  padding: 0 var(--cc-sp-3);
+  border: 1px solid var(--cc-c-border-strong);
+  background: var(--cc-c-surface-alt);
+  color: var(--cc-c-text-secondary);
+}
+
+.cc-search-bar input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--cc-c-text-primary);
+  font-size: 0.9375rem;
+}
+
+.cc-search-bar input::placeholder {
+  color: var(--cc-c-text-disabled);
+}
+
+.cc-catalog-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--cc-sp-3);
+  margin-top: var(--cc-sp-4);
+  color: var(--cc-c-text-secondary);
+  font-size: 0.875rem;
+}
+
+.cc-catalog-loading .session-boot-indicator {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+.cc-catalog-empty {
+  margin: var(--cc-sp-4) 0 0;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.875rem;
+}
+
+.cc-catalog-results {
+  display: flex;
+  flex-direction: column;
+  margin: var(--cc-sp-4) 0 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface-alt);
+  max-block-size: min(26rem, 40dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.cc-catalog-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cc-sp-3);
+  padding: var(--cc-sp-3) var(--cc-sp-4);
+  border-bottom: 1px solid var(--cc-c-border);
+}
+
+.cc-catalog-result:last-child {
+  border-bottom: none;
+}
+
+.cc-catalog-result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cc-catalog-result-name {
+  font-weight: 700;
+  color: var(--cc-c-text-primary);
+}
+
+.cc-catalog-result-meta {
+  font-size: 0.8125rem;
+  color: var(--cc-c-text-secondary);
+  font-family: var(--cc-font-mono);
+}
+
+.cc-add-btn {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 var(--cc-sp-3);
+  border: 1px solid var(--cc-c-brand);
+  background: var(--cc-c-surface-alt);
+  color: var(--cc-c-brand);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition:
+    background var(--cc-t-fast),
+    color var(--cc-t-fast);
+}
+
+.cc-add-btn:hover:not(:disabled) {
+  background: var(--cc-c-brand);
+  color: #fff;
+}
+
+.cc-add-btn:disabled {
+  border-color: var(--cc-c-border);
+  color: var(--cc-c-text-disabled);
+  cursor: default;
+}
+
+/* ── Formulario de precio manual ── */
+.cc-manual-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-2);
+}
+
+.cc-manual-form label {
+  color: var(--cc-c-text-secondary);
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+
+.cc-manual-form [role='alert'] {
+  margin: 0;
+  padding: var(--cc-sp-2) var(--cc-sp-3);
+  border: 1px solid var(--cc-c-error-border);
+  background: var(--cc-c-error-surface);
+  color: var(--cc-c-error-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.cc-manual-submit {
+  align-self: flex-start;
+  margin-top: var(--cc-sp-2);
+}
+
+/* ── Unidades ── */
+.cc-added-count {
+  color: var(--cc-c-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.cc-added-empty {
+  margin: 0;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.cc-added-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface-alt);
+}
+
+.cc-added-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: var(--cc-sp-3);
+  padding: var(--cc-sp-3) var(--cc-sp-4);
+  border-bottom: 1px solid var(--cc-c-border);
+}
+
+.cc-added-row:last-child {
+  border-bottom: none;
+}
+
+.cc-added-row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-added-row-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--cc-c-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.cc-added-row-total {
+  display: grid;
+  gap: 2px;
+}
+
+.cc-added-row-total span {
+  color: var(--cc-c-text-disabled);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cc-added-row-total strong {
+  font-family: var(--cc-font-mono);
+  font-weight: 700;
+  color: var(--cc-c-brand);
+}
+
+.cc-quantity-control {
+  display: grid;
+  grid-template-columns: 44px minmax(32px, auto) 44px;
+  align-items: center;
+  border: 1px solid var(--cc-c-border-strong);
+}
+
+.cc-quantity-button {
+  width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--cc-c-brand);
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cc-quantity-button:hover:not(:disabled) {
+  background: var(--cc-c-brand-light);
+}
+
+.cc-quantity-button:disabled {
+  color: var(--cc-c-text-disabled);
+  cursor: not-allowed;
+}
+
+.cc-quantity-button:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: -2px;
+}
+
+.cc-quantity-value {
+  min-width: 32px;
+  color: var(--cc-c-text-primary);
+  font-family: var(--cc-font-mono);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.cc-remove-btn {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 var(--cc-sp-3);
+  border: 1px solid var(--cc-c-error-border);
+  background: var(--cc-c-error-surface);
+  color: var(--cc-c-error-ink);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.cc-remove-btn:hover {
+  background: var(--cc-c-error-ink);
+  border-color: var(--cc-c-error-ink);
+  color: #fff;
+}
+
+.cc-remove-btn:focus-visible {
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 3px;
+}
+
+/* ── Diálogo de confirmación de borrado ── */
+.cc-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: var(--cc-sp-4);
+  background: rgba(20, 32, 51, 0.5);
+}
+
+.cc-dialog {
+  width: min(420px, 100%);
+  padding: var(--cc-sp-5);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface-alt);
+}
+
+.cc-dialog h2 {
+  margin: 0 0 var(--cc-sp-3);
+  font-size: 1.125rem;
+}
+
+.cc-dialog p {
+  margin: 0 0 var(--cc-sp-5);
+  color: var(--cc-c-text-secondary);
+  line-height: 1.5;
+}
+
+.cc-dialog p strong {
+  color: var(--cc-c-text-primary);
+}
+
+.cc-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--cc-sp-3);
+}
+
+/* `.text-button` es una clase compartida de todo el App Shell (`app.css`) pensada para sentarse
+   sola debajo de un párrafo — trae `margin-top: 18px` y `padding: 0 12px`. Puesta a la par de
+   `.cc-dialog-confirm` en una fila flex, ese margen la corre hacia abajo y el padding más chico la
+   angosta: por eso "Cancelar" se veía más chico y desalineado que "Eliminar" en el popup. */
+.cc-dialog-actions .text-button {
+  margin-top: 0;
+  padding: 0 var(--cc-sp-4);
+}
+
+.cc-dialog-confirm {
+  min-height: 44px;
+  padding: 0 var(--cc-sp-4);
+  border: 1px solid var(--cc-c-error-ink);
+  background: var(--cc-c-error-ink);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cc-dialog-confirm:hover {
+  background: #6e2410;
+  border-color: #6e2410;
+}
+
+.cc-dialog-confirm:focus-visible,
+.cc-dialog .text-button:focus-visible {
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 3px;
+}
+
+/* ── Financiación ── */
+/* Label arriba, valor abajo (no lado a lado): en una columna angosta de sidebar (300-380px),
+   "Precio total" + un valor largo compitiendo en una fila con `justify-content: space-between`
+   fuerza a ambos a partirse en dos líneas. Apilados, cada uno tiene todo el ancho disponible y el
+   valor —el número más importante de esta columna— gana peso en vez de competir con su etiqueta. */
+.cc-total-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-2);
+  padding-bottom: var(--cc-sp-4);
+  margin-bottom: var(--cc-sp-4);
+  border-bottom: 1px solid var(--cc-c-border);
+}
+
+.cc-total-label {
+  color: var(--cc-c-text-secondary);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cc-total-value {
+  font-family: var(--cc-font-mono);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--cc-c-brand);
+}
+
+/* El placeholder ("Agregá unidades para calcular") es una instrucción, no un dato — no debe leer
+   con la misma voz tabular/numérica que el precio real una vez que hay unidades cargadas. */
+.cc-total-value--empty {
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--cc-c-text-secondary);
+}
+
+.cc-field-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-3);
+}
+
+.cc-field-group + .cc-field-group {
+  padding-top: var(--cc-sp-5);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-payment-conditions + .cc-reinforcements-disclosure {
+  padding-top: var(--cc-sp-5);
+  border-top: 0;
+}
+
+.cc-reinforcements-disclosure {
+  padding-bottom: var(--cc-sp-5);
+  border-bottom: 1px solid var(--cc-c-border);
+  gap: var(--cc-sp-2);
+}
+
+.cc-reinforcements-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cc-sp-3);
+  min-height: 44px;
+}
+
+.cc-reinforcements-title {
+  color: var(--cc-c-text-primary);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.cc-reinforcements-fields {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.cc-interest-rate-disclosure {
+  padding-bottom: 0;
+  border-bottom: 0;
+  gap: var(--cc-sp-2);
+}
+
+.cc-interest-rate-field {
+  inline-size: min(100%, 20rem);
+}
+
+.cc-interest-rate-actions {
+  display: inline-flex;
+  align-items: center;
+}
+
+.cc-interest-rate-heading {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: var(--cc-sp-1);
+}
+
+.cc-interest-rate-info {
+  position: relative;
+  display: inline-flex;
+}
+
+.cc-interest-rate-info-button {
+  box-sizing: border-box;
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cc-c-text-secondary);
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.cc-interest-rate-info-icon {
+  display: block;
+  transform-origin: center;
+  transition: transform 140ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.cc-interest-rate-info-button:focus-visible {
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 2px;
+}
+
+.cc-interest-rate-info-button:active {
+  background-color: var(--cc-c-surface-alt);
+}
+
+.cc-interest-rate-info-tooltip {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% + var(--cc-sp-2));
+  left: 0;
+  width: min(17rem, calc(100vw - var(--cc-sp-6)));
+  padding: var(--cc-sp-3);
+  border: 1px solid var(--cc-c-text-primary);
+  background: var(--cc-c-text-primary);
+  box-shadow: 0 10px 22px rgb(20 32 51 / 20%);
+  color: var(--cc-c-surface-alt);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transform-origin: bottom left;
+  transition:
+    opacity 160ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@starting-style {
+  .cc-interest-rate-info-tooltip {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-interest-rate-info-tooltip {
+    transform: none;
+    transition: opacity 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  @starting-style {
+    .cc-interest-rate-info-tooltip {
+      opacity: 0;
+      transform: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cc-interest-rate-info-icon {
+    animation: cc-interest-rate-info-attention 420ms cubic-bezier(0.645, 0.045, 0.355, 1);
+    animation-delay: 360ms;
+    animation-iteration-count: 1;
+  }
+
+  .cc-interest-rate-info-button:active .cc-interest-rate-info-icon {
+    transform: scale(0.94);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .cc-interest-rate-info-button:hover {
+      color: var(--cc-c-brand);
+    }
+
+    .cc-interest-rate-info-button:hover .cc-interest-rate-info-icon {
+      transform: scale(1.08);
+    }
+  }
+}
+
+@keyframes cc-interest-rate-info-attention {
+  20% {
+    transform: rotate(-8deg);
+  }
+
+  40% {
+    transform: rotate(7deg);
+  }
+
+  60% {
+    transform: rotate(-4deg);
+  }
+
+  80% {
+    transform: rotate(2deg);
+  }
+}
+
+@media (max-width: 359px) {
+  .cc-interest-rate-disclosure .cc-reinforcements-heading {
+    flex-wrap: wrap;
+  }
+}
+
+.cc-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-2);
+}
+
+.cc-field label,
+.cc-field-label {
+  color: var(--cc-c-text-secondary);
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+
+.cc-field-hint {
+  color: var(--cc-c-text-disabled);
+  font-size: 0.75rem;
+}
+
+.cc-inline-input {
+  display: flex;
+  align-items: center;
+  gap: var(--cc-sp-2);
+  min-height: 44px;
+  padding: 0 var(--cc-sp-3);
+  border: 1px solid var(--cc-c-border-strong);
+  background: var(--cc-c-surface-alt);
+}
+
+.cc-inline-input input {
+  flex: 1;
+  min-height: 0;
+  border: none;
+  padding: 0;
+  color: var(--cc-c-text-primary);
+  font-weight: 700;
+}
+
+.cc-inline-input input:focus-visible {
+  outline: none;
+}
+
+.cc-inline-input span {
+  flex-shrink: 0;
+  color: var(--cc-c-text-secondary);
+  font-weight: 700;
+}
+
+/* ── Checkbox de refuerzos opcionales ── */
+.cc-checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: var(--cc-sp-2);
+  cursor: pointer;
+}
+
+.cc-apply-hint {
+  margin: 0;
+  color: var(--cc-c-text-secondary);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.cc-apply-btn {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--cc-sp-3);
+  border: 1px solid var(--cc-c-brand);
+  background: var(--cc-c-brand);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--cc-t-fast);
+}
+
+.cc-apply-btn:hover:not(:disabled) {
+  background: var(--cc-c-brand-dark);
+}
+
+.cc-apply-btn:disabled {
+  border-color: var(--cc-c-border);
+  background: var(--cc-c-border);
+  color: var(--cc-c-text-disabled);
+  cursor: default;
+}
+
+/* El plan final retoma la superficie del wizard, con más elevación para señalar el cierre. */
+.cc-section.cc-cuotero {
+  display: grid;
+  min-width: 0;
+  padding: var(--cc-sp-5);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface);
+  box-shadow: 0 12px 28px rgb(20 32 51 / 14%);
+}
+
+.cc-section.cc-config .cc-section-heading,
+.cc-section.cc-cuotero .cc-section-heading {
+  margin-top: 0;
+}
+
+.cc-section.cc-cuotero .cc-section-heading {
+  margin-top: 0;
+}
+
+.cc-section.cc-config .cc-section-heading,
+.cc-section.cc-cuotero .cc-section-heading {
+  align-items: flex-start;
+}
+
+.cc-cuotero:focus-visible {
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: -2px;
+}
+
+.cc-download-image-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cc-sp-2);
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--cc-sp-4);
+  border: 1px solid var(--cc-c-brand);
+  background: var(--cc-c-brand);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition:
+    background var(--cc-t-fast),
+    color var(--cc-t-fast);
+}
+
+.cc-download-image-btn:hover:not(:disabled) {
+  background: var(--cc-c-brand-dark);
+}
+
+.cc-download-image-btn:focus-visible {
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 3px;
+}
+
+.cc-download-image-btn:disabled {
+  border-color: var(--cc-c-border);
+  background: var(--cc-c-border);
+  color: var(--cc-c-text-disabled);
+  cursor: progress;
+}
+
+.cc-cuotero-footer {
+  margin-top: var(--cc-sp-5);
+  padding-top: var(--cc-sp-4);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-cuotero-calculate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-2);
+}
+
+.cc-cuotero-error {
+  margin: 0;
+  padding: var(--cc-sp-3) var(--cc-sp-4);
+  border: 1px solid var(--cc-c-error-border);
+  background: var(--cc-c-error-surface);
+  color: var(--cc-c-error-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* Jerarquía por tipografía y espacio, no por cajas: "Plan de pagos" (entrega, cuotas, refuerzos,
+   última cuota, total) es la respuesta que busca quien usa la calculadora — el monto de la cuota
+   y el total a pagar llevan tratamiento de titular (`.cc-cuotero-hero`). "Detalles del
+   financiamiento" (tasa, intereses, total financiado) es información de respaldo para quien la
+   necesite, deliberadamente más chica y silenciosa — nadie la lee primero. */
+.cc-cuotero-kicker {
+  margin: 0 0 var(--cc-sp-2);
+  color: var(--cc-c-text-secondary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cc-cuotero-list {
+  margin: 0 0 var(--cc-sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-3);
+}
+
+.cc-cuotero-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+}
+
+.cc-cuotero-row dt {
+  color: var(--cc-c-text-secondary);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.cc-cuotero-row dd {
+  margin: 0;
+  font-family: var(--cc-font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cc-c-text-primary);
+}
+
+.cc-cuotero-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-1);
+  margin-bottom: var(--cc-sp-4);
+}
+
+.cc-cuotero-hero-label {
+  color: var(--cc-c-text-secondary);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.cc-cuotero-hero-value {
+  font-family: var(--cc-font-mono);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--cc-c-brand);
+}
+
+.cc-cuotero-hero--total {
+  padding-top: var(--cc-sp-4);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-cuotero-secondary {
+  margin-top: var(--cc-sp-5);
+  padding-top: var(--cc-sp-4);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-cuotero-detail-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-sp-2);
+}
+
+.cc-cuotero-detail-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+}
+
+.cc-cuotero-detail-row dt {
+  color: var(--cc-c-text-disabled);
+  font-weight: 500;
+  font-size: 0.8125rem;
+}
+
+.cc-cuotero-detail-row dd {
+  margin: 0;
+  font-family: var(--cc-font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cc-c-text-secondary);
+}
+
+/* ── Barra inferior fija (mobile/tablet): total corriente + salto directo al cuotero, para no
+   depender de scrollear hasta el final para ver el resultado. Desktop ya lo resuelve con las
+   columnas fijas (`.cc-layout-config`, `.cc-layout-result`), así que la barra no existe ahí. ── */
+.cc-mobile-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 150;
+  padding: var(--cc-sp-3) var(--cc-sp-4);
+  padding-bottom: max(var(--cc-sp-3), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface-alt);
+}
+
+.cc-mobile-summary-total {
+  font-family: var(--cc-font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cc-c-text-primary);
+}
+
+.cc-mobile-summary-btn {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 var(--cc-sp-5);
+  border: none;
+  background: var(--cc-c-brand);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background var(--cc-t-fast);
+}
+
+.cc-mobile-summary-btn:hover {
+  background: var(--cc-c-brand-dark);
+}
+
+@media (min-width: 1024px) {
+  .cc-mobile-summary {
+    display: none;
+  }
+
+  .cc-main-workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 280px);
+    align-items: start;
+    gap: var(--cc-sp-6);
+  }
+
+  .cc-main-summary {
+    position: sticky;
+    top: var(--cc-sp-5);
+    display: grid;
+    gap: var(--cc-sp-4);
+    padding-left: var(--cc-sp-5);
+    border-left: 1px solid var(--cc-c-border);
+  }
+
+  .cc-main-summary-heading {
+    margin: 0;
+    color: var(--cc-c-text-primary);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .cc-main-summary dl {
+    display: grid;
+    gap: var(--cc-sp-3);
+    margin: 0;
+  }
+
+  .cc-main-summary dl div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--cc-sp-3);
+  }
+
+  .cc-main-summary dt {
+    color: var(--cc-c-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .cc-main-summary dd {
+    margin: 0;
+    color: var(--cc-c-brand);
+    font-family: var(--cc-font-mono);
+    font-size: 1.0625rem;
+    font-weight: 700;
+  }
+
+  .cc-main-summary .cc-apply-btn {
+    width: 100%;
+  }
+
+  .cc-main-mobile-actions {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .cc-wizard-steps {
+    gap: 0;
+    margin-bottom: var(--cc-sp-5);
+  }
+
+  .cc-wizard-steps li {
+    font-size: 0.75rem;
+  }
+
+  .cc-wizard-steps .cc-wizard-step--active {
+    border-left-color: var(--cc-c-brand);
+  }
+
+  .cc-wizard-step-marker {
+    flex-basis: 22px;
+    width: 22px;
+    height: 22px;
+    font-size: 0.6875rem;
+  }
+
+  .cc-wizard-screen--main,
+  .cc-section.cc-config,
+  .cc-section.cc-cuotero {
+    padding: var(--cc-sp-4);
+  }
+
+  .cc-wizard-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cc-wizard-actions .cc-apply-btn,
+  .cc-secondary-action,
+  .cc-revisit-action {
+    width: 100%;
+  }
+
+  .cc-total-value {
+    font-size: 1rem;
+  }
+
+  .cc-added-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .cc-added-row-info {
+    grid-column: 1;
+  }
+
+  .cc-remove-btn {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .cc-added-row-total {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  .cc-quantity-control {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .cc-catalog-result {
+    flex-wrap: wrap;
+  }
+
+  .cc-section.cc-cuotero .cc-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cc-main-workspace-primary,
+  .cc-main-summary,
+  .cc-config-summary {
+    padding: var(--cc-sp-4);
+  }
+
+  .cc-calculation-mode-options {
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+  }
+
+  .cc-catalog-result-name,
+  .cc-catalog-result-meta {
+    overflow-wrap: anywhere;
+  }
+
+  .cc-download-image-btn {
+    min-height: 56px;
+  }
+
+  .cc-download-image-btn span {
+    text-wrap: balance;
+  }
+
+  .cc-dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .cc-dialog-actions .text-button,
+  .cc-dialog-confirm {
+    width: 100%;
+  }
+}
+
+@media (max-width: 440px) {
+  .cc-wizard-steps {
+    margin-bottom: var(--cc-sp-2);
+  }
+
+  .cc-wizard-steps li {
+    min-height: 50px;
+    padding: var(--cc-sp-2);
+  }
+
+  .cc-wizard-step-label {
+    display: none;
+  }
+
+  .cc-wizard-mobile-step {
+    display: block;
+    margin: 0 0 var(--cc-sp-5);
+    color: var(--cc-c-text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .cc-cuotero-row {
+    display: grid;
+    gap: var(--cc-sp-1);
+  }
+
+  .cc-cuotero-row dd {
+    justify-self: start;
+  }
+}
+
+/* Condiciones retoma la superficie de carga de unidades; los grupos internos se separan por
+   ritmo espacial para que ambas modalidades conserven la misma lectura. */
+.cc-section.cc-config {
+  display: grid;
+  min-width: 0;
+  padding: var(--cc-sp-5);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface);
+  box-shadow: 0 6px 16px rgb(20 32 51 / 8%);
+}
+
+.cc-config-layout {
+  display: grid;
+  grid-template-areas:
+    'summary'
+    'controls';
+  gap: var(--cc-sp-6);
+}
+
+.cc-config-summary {
+  grid-area: summary;
+  display: grid;
+  gap: var(--cc-sp-4);
+  padding: var(--cc-sp-5);
+  border: 1px solid var(--cc-c-border);
+  background: var(--cc-c-surface);
+}
+
+.cc-config-summary-heading {
+  margin: 0;
+  color: var(--cc-c-text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.cc-config-summary dl {
+  display: grid;
+  gap: var(--cc-sp-3);
+  margin: 0;
+}
+
+.cc-config-summary dl div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+}
+
+.cc-config-summary dt {
+  color: var(--cc-c-text-secondary);
+  font-size: 0.875rem;
+}
+
+.cc-config-summary dd {
+  margin: 0;
+  color: var(--cc-c-text-primary);
+  font-family: var(--cc-font-mono);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.cc-config-summary-total dd,
+.cc-config-summary-balance dd {
+  color: var(--cc-c-brand);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.cc-config-summary-balance {
+  padding-top: var(--cc-sp-3);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+.cc-config-controls {
+  grid-area: controls;
+  display: grid;
+  gap: var(--cc-sp-6);
+  width: 100%;
+  max-width: 760px;
+}
+
+.cc-config-controls > .cc-field-group,
+.cc-config-controls > .cc-down-payment {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.cc-config-controls > .cc-down-payment {
+  padding-bottom: 0;
+}
+
+.cc-config-controls .cc-field-group legend,
+.cc-config-controls .cc-down-payment legend,
+.cc-reinforcements-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+/* Un importe es un valor puntual: en escritorio conserva la huella de un control monetario,
+   sin extenderse como una fila de datos. En pantallas angostas usa el ancho disponible. */
+.cc-target-installment-field {
+  inline-size: min(100%, 20rem);
+  margin-top: var(--cc-sp-1);
+}
+
+/* El importe acompaña a su título, mientras que el plazo inicia el siguiente ajuste sin crear
+   una pausa visual excesiva entre ambas decisiones. */
+.cc-field-group:has(.cc-target-installment-field)
+  + .cc-payment-conditions
+  .cc-config-inline-fields {
+  margin-top: 0;
+}
+
+.cc-down-payment {
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 var(--cc-sp-5);
+  border: 0;
+  border-bottom: 1px solid var(--cc-c-border);
+}
+
+.cc-down-payment legend {
+  padding: 0;
+  color: var(--cc-c-text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.cc-down-payment-overview {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cc-sp-4);
+  margin-top: var(--cc-sp-2);
+}
+
+.cc-down-payment-overview p {
+  margin: 0;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.875rem;
+}
+
+.cc-down-payment-percent {
+  color: var(--cc-c-brand);
+  font-family: var(--cc-font-mono);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.cc-down-payment-slider {
+  width: 100%;
+  min-height: 44px;
+  margin: var(--cc-sp-2) 0 0;
+  accent-color: var(--cc-c-brand);
+  cursor: pointer;
+}
+
+.cc-down-payment-slider:focus-visible {
+  outline: 2px solid var(--cc-c-focus);
+  outline-offset: 3px;
+}
+
+.cc-down-payment-slider-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.cc-down-payment-amount {
+  margin-top: var(--cc-sp-4);
+}
+
+.cc-down-payment-amount .cc-inline-input {
+  max-width: 320px;
+}
+
+.cc-down-payment-amount input {
+  font-family: var(--cc-font-mono);
+}
+
+.cc-config-settings {
+  display: grid;
+  gap: var(--cc-sp-5);
+  padding-top: var(--cc-sp-5);
+}
+
+.cc-config-settings .cc-field-group + .cc-field-group {
+  padding-top: var(--cc-sp-5);
+  border-top: 1px solid var(--cc-c-border);
+}
+
+@media (min-width: 720px) {
+  .cc-config-settings .cc-field-group:first-child {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--cc-sp-4);
+  }
+}
+
+@media (min-width: 1024px) {
+  .cc-config-layout {
+    grid-template-columns: minmax(0, 760px) minmax(250px, 1fr);
+    grid-template-areas: 'controls summary';
+    align-items: start;
+    gap: var(--cc-sp-7);
+  }
+
+  .cc-config-summary {
+    position: sticky;
+    top: var(--cc-sp-5);
+    padding: var(--cc-sp-5);
+    border: 1px solid var(--cc-c-border);
+  }
+}
+
+/* Entrega inicial prioriza las cifras sobre los controles para leer y ajustar la financiación de un vistazo. */
+.cc-down-payment {
+  min-width: 0;
+  margin: 0;
+  padding: var(--cc-sp-5) 0;
+  border: 0;
+  border-top: 1px solid var(--cc-c-border);
+  border-bottom: 1px solid var(--cc-c-border);
+}
+
+.cc-down-payment legend {
+  padding: 0;
+  color: var(--cc-c-text-primary);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.cc-down-payment-values {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--cc-sp-4);
+  margin-top: var(--cc-sp-5);
+}
+
+.cc-down-payment-value {
+  display: grid;
+  min-width: 0;
+  gap: var(--cc-sp-1);
+  color: var(--cc-c-text-primary);
+  cursor: text;
+}
+
+.cc-down-payment-value--percent {
+  justify-items: end;
+  text-align: right;
+}
+
+.cc-down-payment-value-label {
+  color: var(--cc-c-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.cc-down-payment-readout {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  color: var(--cc-c-brand);
+  font-family: var(--cc-font-mono);
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.cc-down-payment-value--percent .cc-down-payment-readout {
+  justify-content: flex-end;
+  font-size: clamp(2rem, 5.5vw, 3.25rem);
+}
+
+.cc-down-payment-readout input {
+  min-width: 0;
+  padding: 0 0 3px;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  transition: border-color 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.cc-down-payment-value--amount .cc-down-payment-readout input {
+  width: min(100%, 13ch);
+}
+
+.cc-down-payment-value--percent .cc-down-payment-readout input {
+  width: 6.5ch;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cc-down-payment-readout input:hover {
+    border-bottom-color: var(--cc-c-border-strong);
+  }
+}
+
+.cc-down-payment-readout input:focus-visible {
+  outline: none;
+  border-bottom-color: var(--cc-c-brand);
+}
+
+.cc-down-payment-slider-control {
+  position: relative;
+  display: grid;
+  align-items: center;
+  height: 52px;
+  margin-top: var(--cc-sp-5);
+}
+
+.cc-down-payment-slider-track,
+.cc-down-payment-slider-track::after {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 8px;
+  transform: translateY(-50%);
+}
+
+.cc-down-payment-slider-track {
+  border-radius: 999px;
+  background: #d8e2ed;
+}
+
+.cc-down-payment-slider-track::after {
+  content: '';
+  border-radius: inherit;
+  background: var(--cc-c-brand);
+  transform: translateY(-50%) scaleX(var(--cc-down-payment-progress));
+  transform-origin: left center;
+}
+
+.cc-down-payment-slider-tooltip {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: clamp(18px, var(--cc-down-payment-tooltip-position), calc(100% - 18px));
+  color: var(--cc-c-brand);
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -85%);
+  transition:
+    opacity 150ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.cc-down-payment-slider {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 52px;
+  margin: 0;
+  border: 0;
+  appearance: none;
+  outline: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.cc-down-payment-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  background: transparent;
+}
+
+.cc-down-payment-slider::-webkit-slider-thumb {
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  margin-top: -6px;
+  border: 3px solid var(--cc-c-brand);
+  border-radius: 50%;
+  appearance: none;
+  background: var(--cc-c-surface-alt);
+  transition:
+    border-color 150ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.cc-down-payment-slider::-moz-range-track,
+.cc-down-payment-slider::-moz-range-progress {
+  height: 8px;
+  background: transparent;
+}
+
+.cc-down-payment-slider::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--cc-c-brand);
+  border-radius: 50%;
+  background: var(--cc-c-surface-alt);
+  transition:
+    border-color 150ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.cc-down-payment-slider:focus-visible {
+  outline: none;
+}
+
+.cc-down-payment-slider-control:focus-within {
+  outline: none;
+}
+
+.cc-down-payment-slider:focus-visible::-webkit-slider-thumb {
+  border-color: var(--cc-c-focus);
+}
+
+.cc-down-payment-slider:focus-visible::-moz-range-thumb {
+  border-color: var(--cc-c-focus);
+}
+
+.cc-down-payment-slider-control:has(.cc-down-payment-slider:focus-visible)
+  .cc-down-payment-slider-tooltip {
+  opacity: 1;
+  transform: translate(-50%, -100%);
+}
+
+.cc-down-payment-slider:active::-webkit-slider-thumb,
+.cc-down-payment-slider:active::-moz-range-thumb {
+  transform: scale(1.06);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cc-down-payment-slider:hover::-webkit-slider-thumb,
+  .cc-down-payment-slider:hover::-moz-range-thumb {
+    transform: scale(1.06);
+  }
+
+  .cc-down-payment-slider-control:has(.cc-down-payment-slider:hover)
+    .cc-down-payment-slider-tooltip {
+    opacity: 1;
+    transform: translate(-50%, -100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-down-payment-slider::-webkit-slider-thumb,
+  .cc-down-payment-slider::-moz-range-thumb {
+    transition: none;
+  }
+
+  .cc-down-payment-slider-tooltip {
+    transition: none;
+  }
+
+  .cc-down-payment-slider:active::-webkit-slider-thumb,
+  .cc-down-payment-slider:active::-moz-range-thumb {
+    transform: none;
+  }
+}
+
+.cc-down-payment-slider-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--cc-c-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+@media (max-width: 479px) {
+  .cc-down-payment-values {
+    gap: var(--cc-sp-3);
+  }
+
+  .cc-down-payment-readout {
+    font-size: clamp(1.5rem, 9vw, 2rem);
+  }
+}
+
+/* En un teléfono, el resumen sigue apareciendo antes de los controles pero se lee en un vistazo;
+   las cifras de entrega conservan sus dos referencias sin invadirse. */
+@media (max-width: 640px) {
+  .cc-config-layout {
+    gap: var(--cc-sp-5);
+  }
+
+  .cc-config-summary {
+    gap: var(--cc-sp-3);
+    padding: var(--cc-sp-4);
+  }
+
+  .cc-config-summary dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--cc-sp-4);
+    row-gap: var(--cc-sp-3);
+  }
+
+  .cc-config-summary dl div {
+    display: grid;
+    gap: var(--cc-sp-1);
+  }
+
+  .cc-config-summary dd {
+    text-align: left;
+  }
+
+  .cc-config-summary-balance {
+    grid-column: 1 / -1;
+  }
+
+  .cc-down-payment-values {
+    gap: var(--cc-sp-3);
+  }
+
+  .cc-down-payment-readout {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+  }
+
+  .cc-down-payment-value--percent .cc-down-payment-readout {
+    font-size: clamp(1.75rem, 6.5vw, 2.25rem);
+  }
+}
+
+@media (max-width: 359px) {
+  .cc-down-payment-values,
+  .cc-config-summary dl {
+    grid-template-columns: 1fr;
+  }
+
+  .cc-config-summary-balance {
+    grid-column: auto;
+  }
+}

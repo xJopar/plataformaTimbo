@@ -1,0 +1,27 @@
+export type AuthPublicErrorCode =
+  | 'AUTHENTICATION_REQUIRED'
+  | 'AUTHORIZATION_REQUIRED'
+  | 'ACTIVITY_DATE_RANGE_EXCEEDED'
+  | 'ACTIVITY_DATE_RANGE_INVALID'
+  | 'ACTIVITY_QUERY_INVALID'
+  | 'CSRF_REJECTED'
+  | 'GOOGLE_IDENTITY_INVALID'
+  | 'GOOGLE_IDENTITY_MISMATCH'
+  | 'LOGIN_ATTEMPT_INVALID'
+  | 'LOGIN_RESPONSE_INVALID'
+  | 'PLATFORM_ADMIN_DEACTIVATION_FORBIDDEN'
+  | 'PLATFORM_ADMIN_INACTIVE_USER_FORBIDDEN'
+  | 'PLATFORM_ADMIN_LAST_ACTIVE_REVOCATION_FORBIDDEN'
+  | 'PLATFORM_ADMIN_SELF_REVOCATION_FORBIDDEN'
+  | 'USER_INACTIVE'
+  | 'USER_NOT_AUTHORIZED';
+
+export class AuthPublicError extends Error {
+  public constructor(
+    public readonly code: AuthPublicErrorCode,
+    public readonly statusCode: number,
+  ) {
+    super(code);
+    this.name = new.target.name;
+  }
+}

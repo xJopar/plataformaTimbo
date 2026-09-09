@@ -1,13 +1,36 @@
 export interface RuntimeConfig {
   port: number;
   corsOrigin: string;
+  databaseUrl: string;
+  metaCompanyEnabled: boolean;
+  googleOAuth: GoogleOAuthConfig;
+  sessionCookie: SessionCookieConfig;
+}
+
+export interface GoogleOAuthConfig {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+}
+
+export interface SessionCookieConfig {
+  httpOnly: true;
+  secure: boolean;
+  sameSite: 'lax' | 'none';
+  maxAge: number;
+  path: '/';
 }
 
 export const DEFAULT_PORT = 3000;
 export const DEFAULT_CORS_ORIGIN = 'http://localhost:5173';
+export const DEFAULT_ENVIRONMENT = 'development';
+export const DEFAULT_CORPORATE_EMAIL_DOMAIN = 'timbo.com.py';
+export const DEFAULT_META_COMPANY_ENABLED = true;
 
 const MIN_PORT = 1;
 const MAX_PORT = 65535;
+export const SESSION_DURATION_MS = 8 * 60 * 60 * 1000;
+const GOOGLE_OAUTH_CALLBACK_PATH = '/api/auth/google/callback';
 
 function resolvePort(rawPort: string | undefined): number {
   if (rawPort === undefined) {
@@ -26,7 +49,7 @@ function resolvePort(rawPort: string | undefined): number {
   return parsedPort;
 }
 
-function resolveCorsOrigin(rawCorsOrigin: string | undefined): string {
+export function resolveCorsOrigin(rawCorsOrigin: string | undefined): string {
   if (rawCorsOrigin === undefined) {
     return DEFAULT_CORS_ORIGIN;
   }
@@ -51,6 +74,170 @@ function resolveCorsOrigin(rawCorsOrigin: string | undefined): string {
   return parsedUrl.origin;
 }
 
+export function resolveCorsOriginFromEnvironment(env: NodeJS.ProcessEnv = process.env): string {
+  return resolveCorsOrigin(env.CORS_ORIGIN);
+}
+
+export function resolveDatabaseUrl(rawDatabaseUrl: string | undefined): string {
+  const invalidDatabaseUrlMessage =
+    'La variable de entorno DATABASE_URL es obligatoria y debe ser una URL PostgreSQL valida.';
+
+  if (rawDatabaseUrl === undefined || rawDatabaseUrl.trim() === '') {
+    throw new Error(invalidDatabaseUrlMessage);
+  }
+
+  try {
+    const parsedUrl = new URL(rawDatabaseUrl);
+    if (parsedUrl.protocol !== 'postgresql:' && parsedUrl.protocol !== 'postgres:') {
+      throw new Error(invalidDatabaseUrlMessage);
+    }
+  } catch {
+    throw new Error(invalidDatabaseUrlMessage);
+  }
+
+  return rawDatabaseUrl;
+}
+
+export function resolveDatabaseUrlFromEnvironment(env: NodeJS.ProcessEnv = process.env): string {
+  return resolveDatabaseUrl(env.DATABASE_URL);
+}
+
+export function resolveMetaCompanyDatabaseUrlFromEnvironment(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return resolveDatabaseUrl(env.DATABASE_META_EXAMPLE_URL);
+}
+
+export function resolveMetaCompanyEnabled(rawMetaCompanyEnabled: string | undefined): boolean {
+  const normalizedMetaCompanyEnabled = rawMetaCompanyEnabled?.trim().toLowerCase();
+
+  if (normalizedMetaCompanyEnabled === undefined || normalizedMetaCompanyEnabled === '') {
+    return DEFAULT_META_COMPANY_ENABLED;
+  }
+
+  if (normalizedMetaCompanyEnabled === 'true') {
+    return true;
+  }
+
+  if (normalizedMetaCompanyEnabled === 'false') {
+    return false;
+  }
+
+  throw new Error('La variable de entorno META_COMPANY_ENABLED debe ser true o false.');
+}
+
+export function resolveMetaCompanyEnabledFromEnvironment(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  return resolveMetaCompanyEnabled(env.META_COMPANY_ENABLED);
+}
+
+/**
+ * `NODE_ENV` es opcional y no bloquea el arranque: sólo identifica el entorno en los logs
+ * operativos estructurados (campo `environment`), nunca decide comportamiento de seguridad.
+ */
+export function resolveEnvironment(rawEnvironment: string | undefined): string {
+  const trimmedEnvironment = rawEnvironment?.trim();
+  return trimmedEnvironment === undefined || trimmedEnvironment === ''
+    ? DEFAULT_ENVIRONMENT
+    : trimmedEnvironment;
+}
+
+export function resolveEnvironmentFromEnvironment(env: NodeJS.ProcessEnv = process.env): string {
+  return resolveEnvironment(env.NODE_ENV);
+}
+
+export function resolveCorporateEmailDomain(rawCorporateEmailDomain: string | undefined): string {
+  const normalizedCorporateEmailDomain =
+    rawCorporateEmailDomain?.trim().toLowerCase() ?? DEFAULT_CORPORATE_EMAIL_DOMAIN;
+
+  if (
+    !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/u.test(
+      normalizedCorporateEmailDomain,
+    )
+  ) {
+    throw new Error(
+      'La variable de entorno CORPORATE_EMAIL_DOMAIN debe contener un dominio de correo válido, sin arroba.',
+    );
+  }
+
+  return normalizedCorporateEmailDomain;
+}
+
+export function resolveCorporateEmailDomainFromEnvironment(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return resolveCorporateEmailDomain(env.CORPORATE_EMAIL_DOMAIN);
+}
+
+function resolveRequiredGoogleValue(rawValue: string | undefined, variableName: string): string {
+  if (rawValue === undefined || rawValue.trim() === '') {
+    throw new Error(`La variable de entorno ${variableName} es obligatoria.`);
+  }
+
+  return rawValue;
+}
+
+function resolveGoogleOAuthRedirectUri(rawRedirectUri: string | undefined): URL {
+  const invalidRedirectUriMessage =
+    'La variable de entorno GOOGLE_OAUTH_REDIRECT_URI debe ser una URL HTTP o HTTPS valida del callback de Google, sin parametros ni fragmento.';
+  const redirectUri = resolveRequiredGoogleValue(rawRedirectUri, 'GOOGLE_OAUTH_REDIRECT_URI');
+
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(redirectUri);
+  } catch {
+    throw new Error(invalidRedirectUriMessage);
+  }
+
+  const isHttpProtocol = parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+  const isExactCallbackPath = parsedUrl.pathname === GOOGLE_OAUTH_CALLBACK_PATH;
+  const hasExtraSegments = parsedUrl.search !== '' || parsedUrl.hash !== '';
+
+  if (!isHttpProtocol || !isExactCallbackPath || hasExtraSegments) {
+    throw new Error(invalidRedirectUriMessage);
+  }
+
+  return parsedUrl;
+}
+
+function resolveSessionCookieConfig(redirectUri: URL): SessionCookieConfig {
+  const isLocalhost =
+    redirectUri.hostname === 'localhost' ||
+    redirectUri.hostname === '127.0.0.1' ||
+    redirectUri.hostname === '[::1]';
+
+  if (redirectUri.protocol === 'http:' && !isLocalhost) {
+    throw new Error(
+      'La variable de entorno GOOGLE_OAUTH_REDIRECT_URI debe usar HTTPS fuera de localhost.',
+    );
+  }
+
+  return {
+    httpOnly: true,
+    secure: !isLocalhost,
+    sameSite: isLocalhost ? 'lax' : 'none',
+    maxAge: SESSION_DURATION_MS,
+    path: '/',
+  };
+}
+
+export function resolveGoogleOAuthConfig(
+  env: NodeJS.ProcessEnv = process.env,
+): GoogleOAuthConfig & { sessionCookie: SessionCookieConfig } {
+  const redirectUri = resolveGoogleOAuthRedirectUri(env.GOOGLE_OAUTH_REDIRECT_URI);
+
+  return {
+    clientId: resolveRequiredGoogleValue(env.GOOGLE_OAUTH_CLIENT_ID, 'GOOGLE_OAUTH_CLIENT_ID'),
+    clientSecret: resolveRequiredGoogleValue(
+      env.GOOGLE_OAUTH_CLIENT_SECRET,
+      'GOOGLE_OAUTH_CLIENT_SECRET',
+    ),
+    redirectUri: redirectUri.toString(),
+    sessionCookie: resolveSessionCookieConfig(redirectUri),
+  };
+}
+
 /**
  * Resuelve y valida la configuración de runtime a partir de variables de entorno.
  * Se ejecuta antes de `NestFactory.create` para que una configuración inválida
@@ -58,8 +245,18 @@ function resolveCorsOrigin(rawCorsOrigin: string | undefined): string {
  * valores incorrectos o fallar más tarde con un error genérico.
  */
 export function resolveRuntimeConfig(env: NodeJS.ProcessEnv = process.env): RuntimeConfig {
+  const googleOAuthConfig = resolveGoogleOAuthConfig(env);
+
   return {
     port: resolvePort(env.PORT),
-    corsOrigin: resolveCorsOrigin(env.CORS_ORIGIN),
+    corsOrigin: resolveCorsOriginFromEnvironment(env),
+    databaseUrl: resolveDatabaseUrl(env.DATABASE_URL),
+    metaCompanyEnabled: resolveMetaCompanyEnabledFromEnvironment(env),
+    googleOAuth: {
+      clientId: googleOAuthConfig.clientId,
+      clientSecret: googleOAuthConfig.clientSecret,
+      redirectUri: googleOAuthConfig.redirectUri,
+    },
+    sessionCookie: googleOAuthConfig.sessionCookie,
   };
 }

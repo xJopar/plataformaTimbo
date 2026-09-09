@@ -1,6 +1,15 @@
 node_modules/
 dist/
+server-dist/
 coverage/
 *.tsbuildinfo
+apps/api/src/generated/
 .env
 *.local
+graphify-out/
+docs/commercial-goals-data-model.md
+docs/commercial-goals-sql-server.sql
+docs/cuotas_redondeo.js
+docs/ServiceLayer Pedido para Meta Company.md
+docs/ServiceLayer Endpoints - Motivo y Uso.md
+docs/ServiceLayer Endpoints.md

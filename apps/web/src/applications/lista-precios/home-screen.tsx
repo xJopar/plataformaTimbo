@@ -1,0 +1,87 @@
+import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
+import { PlatformLoadingIndicator } from '../../layout/platform-loading-indicator';
+import type { EquipmentRentalsState } from './use-equipment-rentals';
+
+interface HomeScreenProps {
+  vehiclesState: VehicleCatalogState;
+  equipmentRentalsState: EquipmentRentalsState;
+  onRetry: () => void;
+  onSelectBrand: (brand: string) => void;
+  onSelectEquipmentRentals: () => void;
+}
+
+export function HomeScreen({
+  vehiclesState,
+  equipmentRentalsState,
+  onRetry,
+  onSelectBrand,
+  onSelectEquipmentRentals,
+}: HomeScreenProps): React.JSX.Element {
+  return (
+    <div className="lp-page lp-page--home">
+      {vehiclesState.status === 'loading' ? (
+        <div className="lp-loader-full" role="status" aria-live="polite">
+          <PlatformLoadingIndicator label="Cargando lista de precios" />
+        </div>
+      ) : null}
+
+      {vehiclesState.status === 'error' ? (
+        <div className="lp-state-box">
+          <span className="lp-state-box-title">Error al cargar datos</span>
+          <p className="lp-state-box-desc">
+            No pudimos obtener el catálogo de vehículos. Intentá nuevamente.
+          </p>
+          <button className="lp-cta-btn" type="button" onClick={onRetry}>
+            Reintentar
+          </button>
+        </div>
+      ) : null}
+
+      {vehiclesState.status === 'ready' && vehiclesState.brands.length === 0 ? (
+        <div className="lp-state-box">
+          <span className="lp-state-box-title">Sin datos</span>
+          <p className="lp-state-box-desc">No se encontraron unidades en el catálogo.</p>
+        </div>
+      ) : null}
+
+      {vehiclesState.status === 'ready' && vehiclesState.brands.length > 0 ? (
+        <div className="lp-brand-grid">
+          {vehiclesState.brands.map((brand) => (
+            <button
+              type="button"
+              key={brand.marca}
+              className={`lp-brand-card${brand.isOtros ? ' lp-brand-card--full' : ''}`}
+              onClick={() => onSelectBrand(brand.marca)}
+            >
+              <span className="lp-brand-card-name">{brand.marca}</span>
+              <span className="lp-brand-card-meta">
+                {brand.modelCount} modelo{brand.modelCount !== 1 ? 's' : ''}
+              </span>
+              <span className="lp-brand-card-count">
+                <span className="lp-brand-card-count-badge">
+                  {brand.unitCount} {brand.unitCount !== 1 ? 'unidades' : 'unidad'}
+                </span>
+              </span>
+            </button>
+          ))}
+          {equipmentRentalsState.status === 'ready' ? (
+            <button
+              type="button"
+              className="lp-brand-card lp-brand-card--full"
+              onClick={onSelectEquipmentRentals}
+            >
+              <span className="lp-brand-card-name">Alquiler de maquinarias</span>
+              <span className="lp-brand-card-meta">
+                {equipmentRentalsState.rentals.length} modelo
+                {equipmentRentalsState.rentals.length !== 1 ? 's' : ''}
+              </span>
+              <span className="lp-brand-card-count">
+                <span className="lp-brand-card-count-link">Ver tarifas</span>
+              </span>
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}

@@ -4,3 +4,4 @@ coverage
 pnpm-lock.yaml
 packages/contracts/openapi.json
 packages/contracts/src/generated/openapi.ts
+apps/api/src/generated

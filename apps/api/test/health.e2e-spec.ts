@@ -4,6 +4,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { API_GLOBAL_PREFIX, configureApp } from '../src/bootstrap';
+import { PrismaService } from '../src/database/prisma.service';
+import { MetaCompanyPrismaService } from '../src/modules/meta-company/meta-company-prisma.service';
 import { DEFAULT_CORS_ORIGIN } from '../src/runtime-config';
 
 describe('GET /api/health (e2e)', () => {
@@ -11,8 +13,13 @@ describe('GET /api/health (e2e)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+      imports: [AppModule.register(true)],
+    })
+      .overrideProvider(PrismaService)
+      .useValue({})
+      .overrideProvider(MetaCompanyPrismaService)
+      .useValue({})
+      .compile();
 
     app = moduleFixture.createNestApplication();
     configureApp(app, DEFAULT_CORS_ORIGIN);

@@ -1,0 +1,441 @@
+import { FilterIcon } from '@hugeicons/core-free-icons';
+import { useEffect, useMemo, useState } from 'react';
+import type { Api, AuthorizedApplication, VehicleResponse } from '../../api';
+import {
+  CALCULADORA_CUOTAS_LAUNCH_PATH,
+  buildFromStockPath,
+} from '../calculadora-cuotas/calculadora-cuotas-routes';
+import {
+  applyFilters,
+  filterByLocation,
+  filterByVehicleLocationSegment,
+  formatPrice,
+  parsePrice,
+} from '../../vehicle-catalog/vehicle-catalog';
+import { PlatformLoadingIndicator } from '../../layout/platform-loading-indicator';
+import { AppIcon } from '../../ui/app-icon';
+import { useStockTour } from './use-stock-tour';
+import { VehicleGallery } from './vehicle-gallery';
+import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
+import type { VariantFilterState } from './variants-screen';
+
+/** Piso/Altura son campos propios de semirremolques (Facchini, Librelato). */
+const SEMIRREMOLQUE_BRANDS = ['FACCHINI', 'LIBRELATO'];
+
+interface DetailScreenProps {
+  api: Api;
+  modelKey: string;
+  vehiclesState: VehicleCatalogState;
+  variantFilterState: VariantFilterState;
+  availableApplications: readonly AuthorizedApplication[];
+  whatsAppNumber: string;
+  whatsAppMessageTemplate: string;
+  onConsultationStarted: () => void;
+  onNavigate: (pathname: string) => void;
+}
+
+const LOCATION_SEGMENT_LABELS: Record<
+  NonNullable<VariantFilterState['locationSegment']>,
+  string
+> = {
+  stripped: 'Carneados',
+  available: 'Disponibles',
+  'in-transit': 'En tránsito',
+  judicial: 'Judiciales',
+  committed: 'Comprometidos',
+};
+
+const FILTER_LABELS: Record<keyof VariantFilterState['filters'], string> = {
+  config: 'Configuración',
+  susp: 'Suspensión',
+  tipoMotor: 'Motor',
+  tipoCaja: 'Caja',
+  color: 'Color',
+  ubicacion: 'Ubicación',
+  aire: 'Aire',
+  anioFab: 'Año',
+};
+
+function getFilterSummary(filterState: VariantFilterState): string[] {
+  const summary = [
+    filterState.locationSegment === undefined
+      ? undefined
+      : LOCATION_SEGMENT_LABELS[filterState.locationSegment],
+    filterState.location === '' ? undefined : filterState.location,
+    filterState.search === '' ? undefined : `Búsqueda: ${filterState.search}`,
+    ...Object.entries(filterState.filters)
+      .filter(([, value]) => value !== '')
+      .map(
+        ([field, value]) =>
+          `${FILTER_LABELS[field as keyof VariantFilterState['filters']]}: ${value}`,
+      ),
+  ];
+  return summary.filter((item): item is string => item !== undefined);
+}
+
+function InfoRow({
+  label,
+  value,
+  mono,
+  highlight,
+}: {
+  label: string;
+  value: string | undefined;
+  mono?: boolean;
+  highlight?: boolean;
+}): React.JSX.Element | null {
+  if (!value) return null;
+  return (
+    <div className={`lp-detail-row${highlight ? ' lp-detail-row--highlight' : ''}`}>
+      <span className="lp-detail-row-label">{label}</span>
+      <span className={`lp-detail-row-value${mono ? ' lp-detail-row-value--mono' : ''}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function AvailBadge({ disponible }: { disponible: string }): React.JSX.Element {
+  const isAvailable = disponible.toUpperCase() === 'SI';
+  return (
+    <span className={`lp-avail-badge lp-avail-badge--${isAvailable ? 'yes' : 'no'}`}>
+      {isAvailable ? 'Disponible' : 'No disponible'}
+    </span>
+  );
+}
+
+function StockUnit({
+  unit,
+  selected,
+  tour,
+  onSelect,
+}: {
+  unit: VehicleResponse;
+  selected: boolean;
+  tour: boolean;
+  onSelect: (unit: VehicleResponse | null) => void;
+}): React.JSX.Element {
+  const precio = parsePrice(unit.precioLista);
+  const metaParts = [
+    unit.color,
+    unit.tipoCaja,
+    unit.aire === 'SI' ? 'Con A/C' : unit.aire === 'NO' ? 'Sin A/C' : null,
+    unit.ubicacion,
+    precio !== null ? formatPrice(precio) : null,
+    unit.km ? `${Number(unit.km).toLocaleString('es-PY')} km` : null,
+  ].filter(Boolean);
+
+  const modifier = selected ? ' lp-stock-unit--selected' : tour ? ' lp-stock-unit--tour' : '';
+
+  return (
+    <button
+      type="button"
+      className={`lp-stock-unit${modifier}`}
+      aria-pressed={selected}
+      onClick={() => onSelect(selected ? null : unit)}
+    >
+      <span className="lp-stock-unit-head">
+        <span className="lp-stock-unit-code">{unit.stock}</span>
+        <AvailBadge disponible={unit.disponible} />
+      </span>
+
+      {metaParts.length > 0 ? (
+        <span className="lp-stock-unit-meta">{metaParts.join(' · ')}</span>
+      ) : null}
+      {unit.origen ? <span className="lp-stock-unit-origin">{unit.origen}</span> : null}
+      {unit.comentario && unit.comentario !== unit.origen ? (
+        <span className="lp-stock-unit-origin">{unit.comentario}</span>
+      ) : null}
+    </button>
+  );
+}
+
+export function DetailScreen({
+  api,
+  modelKey,
+  vehiclesState,
+  variantFilterState,
+  availableApplications,
+  whatsAppNumber,
+  whatsAppMessageTemplate,
+  onConsultationStarted,
+  onNavigate,
+}: DetailScreenProps): React.JSX.Element {
+  const [selectedUnit, setSelectedUnit] = useState<VehicleResponse | null>(null);
+  const catalogGroup =
+    vehiclesState.status === 'ready' ? vehiclesState.groups.get(modelKey) : undefined;
+  const group = useMemo(() => {
+    if (catalogGroup === undefined) return undefined;
+
+    const groups = new Map([[modelKey, catalogGroup]]);
+    const advancedFilteredGroups = applyFilters(
+      groups,
+      variantFilterState.search,
+      variantFilterState.filters,
+    );
+    const segmentFilteredGroups =
+      variantFilterState.locationSegment === undefined
+        ? advancedFilteredGroups
+        : filterByVehicleLocationSegment(
+            advancedFilteredGroups,
+            variantFilterState.locationSegment,
+          );
+    const locationFilteredGroups =
+      variantFilterState.location === ''
+        ? segmentFilteredGroups
+        : filterByLocation(segmentFilteredGroups, variantFilterState.location);
+
+    return locationFilteredGroups.get(modelKey);
+  }, [catalogGroup, modelKey, variantFilterState]);
+  const canCalculateInstallments = availableApplications.some(
+    (application) => application.launchPath === CALCULADORA_CUOTAS_LAUNCH_PATH,
+  );
+  const tourStock = useStockTour(
+    group?.units.map((unit) => unit.stock) ?? [],
+    selectedUnit === null,
+  );
+
+  useEffect(() => {
+    if (selectedUnit !== null) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [selectedUnit]);
+
+  if (vehiclesState.status === 'loading') {
+    return (
+      <div className="lp-detail-page">
+        <div className="lp-loader-full" role="status" aria-live="polite">
+          <PlatformLoadingIndicator label="Cargando lista de precios" />
+        </div>
+      </div>
+    );
+  }
+
+  if (vehiclesState.status === 'error') {
+    return (
+      <div className="lp-detail-page">
+        <div className="lp-state-box">
+          <span className="lp-state-box-title">Error al cargar datos</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (group === undefined) {
+    return (
+      <div className="lp-detail-page">
+        <div className="lp-state-box">
+          <span className="lp-state-box-title">Modelo no encontrado</span>
+        </div>
+      </div>
+    );
+  }
+
+  const anioLabel =
+    group.anios.length === 1
+      ? group.anios[0]
+      : `${group.anios[0]} - ${group.anios[group.anios.length - 1]}`;
+  const groupPriceLabel =
+    group.precioMin === null
+      ? null
+      : group.precioMin === group.precioMax
+        ? formatPrice(group.precioMin)
+        : `${formatPrice(group.precioMin)} - ${formatPrice(group.precioMax)}`;
+
+  const unitPrice = selectedUnit === null ? null : parsePrice(selectedUnit.precioLista);
+  const isSemirremolque = SEMIRREMOLQUE_BRANDS.includes(group.marca.trim().toUpperCase());
+  const filterSummary = getFilterSummary(variantFilterState);
+  const hasActiveFilters = filterSummary.length > 0;
+
+  function buildWhatsAppUrl(): string {
+    const modeloStr =
+      selectedUnit !== null
+        ? `${group?.name} - Stock ${selectedUnit.stock}`
+        : `${group?.name} (${group?.anios[group.anios.length - 1]})`;
+    const text = whatsAppMessageTemplate.replace('{modelo}', modeloStr);
+    return `https://wa.me/${whatsAppNumber}?text=${encodeURIComponent(text)}`;
+  }
+
+  return (
+    <div className="lp-detail-page lp-detail-page--has-cta">
+      <div className="lp-detail-page-grid">
+        <div className="lp-detail-page-left">
+          <div
+            key={selectedUnit?.stock ?? 'group'}
+            className="lp-detail-section lp-detail-panel-anim"
+          >
+            {selectedUnit === null ? (
+              <>
+                <InfoRow label="Nombre" value={group.name} />
+                <InfoRow label="Tipo" value={group.tipo} />
+                <InfoRow label="Año Fab." value={anioLabel} />
+                <InfoRow label="Config." value={group.config} />
+                <InfoRow label="Motor" value={group.tipoMotor} />
+                <InfoRow label="Susp." value={group.susp} />
+                {groupPriceLabel !== null ? (
+                  <InfoRow label="Precio" value={groupPriceLabel} mono />
+                ) : null}
+                <p className="lp-detail-hint">Tocá una unidad para ver su detalle</p>
+              </>
+            ) : (
+              <>
+                <div className="lp-detail-unit-head">
+                  <span className="lp-detail-unit-code">{selectedUnit.stock}</span>
+                  <AvailBadge disponible={selectedUnit.disponible} />
+                </div>
+
+                <VehicleGallery
+                  api={api}
+                  stock={selectedUnit.stock}
+                  altLabel={`${group.name} - Stock ${selectedUnit.stock}`}
+                />
+
+                <div className="lp-shared-info-card">
+                  <div className="lp-shared-info-card-grid">
+                    {group.name ? (
+                      <div className="lp-shared-info-card-cell lp-shared-info-card-cell--full">
+                        <span className="lp-shared-info-card-lbl">Nombre</span>
+                        <span className="lp-shared-info-card-val">{group.name}</span>
+                      </div>
+                    ) : null}
+                    {group.tipo || selectedUnit.tipoUnidad ? (
+                      <div className="lp-shared-info-card-cell">
+                        <span className="lp-shared-info-card-lbl">Tipo</span>
+                        <span className="lp-shared-info-card-val">
+                          {group.tipo || selectedUnit.tipoUnidad}
+                        </span>
+                      </div>
+                    ) : null}
+                    {selectedUnit.anioFab ? (
+                      <div className="lp-shared-info-card-cell">
+                        <span className="lp-shared-info-card-lbl">Año Fab.</span>
+                        <span className="lp-shared-info-card-val">{selectedUnit.anioFab}</span>
+                      </div>
+                    ) : null}
+                    {group.tipoMotor ? (
+                      <div className="lp-shared-info-card-cell">
+                        <span className="lp-shared-info-card-lbl">Motor</span>
+                        <span className="lp-shared-info-card-val">{group.tipoMotor}</span>
+                      </div>
+                    ) : null}
+                    {group.susp ? (
+                      <div className="lp-shared-info-card-cell">
+                        <span className="lp-shared-info-card-lbl">Susp.</span>
+                        <span className="lp-shared-info-card-val">{group.susp}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                {unitPrice !== null ? (
+                  <div className="lp-price-band">
+                    <span className="lp-price-band-lbl">Precio lista</span>
+                    <span className="lp-price-band-val">{formatPrice(unitPrice)}</span>
+                  </div>
+                ) : null}
+
+                {unitPrice !== null && canCalculateInstallments ? (
+                  <button
+                    type="button"
+                    className="lp-installment-link"
+                    onClick={() =>
+                      onNavigate(
+                        buildFromStockPath(CALCULADORA_CUOTAS_LAUNCH_PATH, selectedUnit.stock),
+                      )
+                    }
+                  >
+                    Calcular cuota para esta unidad
+                  </button>
+                ) : null}
+
+                <div className="lp-unit-fields-section">
+                  <InfoRow label="Color" value={selectedUnit.color} />
+                  {selectedUnit.comentario && selectedUnit.comentario !== selectedUnit.origen ? (
+                    <InfoRow label="Comentario" value={selectedUnit.comentario} highlight />
+                  ) : null}
+                  <InfoRow label="Tipo Caja" value={selectedUnit.tipoCaja} />
+                  <InfoRow
+                    label="Aire"
+                    value={
+                      selectedUnit.aire === 'SI'
+                        ? 'Si'
+                        : selectedUnit.aire === 'NO'
+                          ? 'No'
+                          : selectedUnit.aire
+                    }
+                  />
+                  <InfoRow
+                    label="KM"
+                    value={
+                      selectedUnit.km
+                        ? `${Number(selectedUnit.km).toLocaleString('es-PY')} km`
+                        : undefined
+                    }
+                  />
+                  <InfoRow label="Ubicacion" value={selectedUnit.ubicacion} />
+                  <InfoRow label="Origen" value={selectedUnit.origen} />
+                  {isSemirremolque ? <InfoRow label="Piso" value={selectedUnit.piso} /> : null}
+                  {isSemirremolque ? <InfoRow label="Altura" value={selectedUnit.altura} /> : null}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="lp-detail-page-right">
+          <div className="lp-stock-section-header">
+            <div>
+              <span className="lp-stock-section-label">
+                {selectedUnit !== null
+                  ? 'Unidad seleccionada'
+                  : hasActiveFilters
+                    ? 'Unidades filtradas'
+                    : 'Unidades disponibles'}
+              </span>
+              {hasActiveFilters ? (
+                <span className="lp-stock-filter-context">
+                  <AppIcon icon={FilterIcon} size={13} />
+                  <span>
+                    Mostrando {group.stockCount} de {catalogGroup?.stockCount ?? group.stockCount}{' '}
+                    {catalogGroup?.stockCount === 1 ? 'unidad' : 'unidades'}
+                  </span>
+                  <span className="lp-stock-filter-context-criteria">
+                    {filterSummary.join(' · ')}
+                  </span>
+                </span>
+              ) : null}
+            </div>
+            <span className="lp-stock-badge">
+              {group.stockCount} {group.stockCount !== 1 ? 'unidades' : 'unidad'}
+            </span>
+          </div>
+
+          <div className="lp-stock-list">
+            {group.units.map((unit) => (
+              <StockUnit
+                key={unit.stock}
+                unit={unit}
+                selected={selectedUnit?.stock === unit.stock}
+                tour={tourStock === unit.stock}
+                onSelect={setSelectedUnit}
+              />
+            ))}
+          </div>
+
+          <button
+            className="lp-cta-btn lp-cta-btn--fixed"
+            type="button"
+            onClick={() => {
+              onConsultationStarted();
+              window.open(buildWhatsAppUrl(), '_blank', 'noopener,noreferrer');
+            }}
+          >
+            {selectedUnit !== null
+              ? `Consultar stock ${selectedUnit.stock}`
+              : 'Consultar disponibilidad'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

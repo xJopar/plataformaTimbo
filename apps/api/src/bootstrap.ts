@@ -21,7 +21,17 @@ export function createOpenApiDocument(app: INestApplication): OpenAPIObject {
  */
 export function configureApp(app: INestApplication, corsOrigin: string): OpenAPIObject {
   app.setGlobalPrefix(API_GLOBAL_PREFIX);
-  app.enableCors({ origin: corsOrigin });
+  app.enableCors({
+    credentials: true,
+    origin: (
+      origin: string | undefined,
+      callback: (error: Error | null, allow?: boolean) => void,
+    ) => {
+      callback(null, origin === undefined || origin === corsOrigin);
+    },
+  });
+  // El filtro global de excepciones se registra vía DI (APP_FILTER en AppModule): necesita
+  // RequestContextService y OperationalLoggerService, no puede instanciarse con `new`.
 
   const openApiDocument = createOpenApiDocument(app);
   SwaggerModule.setup(SWAGGER_UI_PATH, app, openApiDocument, {

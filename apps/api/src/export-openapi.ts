@@ -1,13 +1,109 @@
 import 'reflect-metadata';
 import { writeFile } from 'node:fs/promises';
 import { basename, resolve } from 'node:path';
+import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { configureApp } from './bootstrap';
+import { HealthModule } from './health/health.module';
+import { AuthController } from './modules/auth/auth.controller';
+import { AuthService } from './modules/auth/auth.service';
+import { CsrfProtectionGuard } from './modules/auth/csrf-protection.guard';
+import { SessionAuthenticationGuard } from './modules/auth/session-authentication.guard';
+import { AdministrativeUsersController } from './modules/administration/administrative-users.controller';
+import { ActivityController } from './modules/administration/activity.controller';
+import { AdministrativeApplicationsController } from './modules/administration/administrative-applications.controller';
+import { AdministrativeApplicationAccessController } from './modules/administration/administrative-application-access.controller';
+import { AuthorizedApplicationsController } from './modules/administration/authorized-applications.controller';
+import { PlatformBootstrapController } from './modules/platform-bootstrap/platform-bootstrap.controller';
+import { PlatformBootstrapService } from './modules/platform-bootstrap/platform-bootstrap.service';
+import { HelloWorldApplicationAccessGuard } from './modules/hello-world/hello-world-application-access.guard';
+import { HelloWorldController } from './modules/hello-world/hello-world.controller';
+import { HelloWorldService } from './modules/hello-world/hello-world.service';
+import { ListaPreciosApplicationAccessGuard } from './modules/lista-precios/lista-precios-application-access.guard';
+import { ListaPreciosController } from './modules/lista-precios/lista-precios.controller';
+import { ListaPreciosService } from './modules/lista-precios/lista-precios.service';
+import { VehicleImagesService } from './modules/lista-precios/vehicle-images.service';
+import { CalculadoraCuotasApplicationAccessGuard } from './modules/calculadora-cuotas/calculadora-cuotas-application-access.guard';
+import { CalculadoraCuotasController } from './modules/calculadora-cuotas/calculadora-cuotas.controller';
+import { MetaCompanyApplicationAccessGuard } from './modules/meta-company/meta-company-application-access.guard';
+import { MetaCompanyController } from './modules/meta-company/meta-company.controller';
+import {
+  MetaCompanyCatalogManagementGuard,
+  MetaCompanyGoalManagementGuard,
+} from './modules/meta-company/meta-company-permission.guards';
+import { MetaCompanyService } from './modules/meta-company/meta-company.service';
+import { Seguimiento5sApplicationAccessGuard } from './modules/seguimiento-5s/seguimiento-5s-application-access.guard';
+import {
+  Seguimiento5sEntryManagementGuard,
+  Seguimiento5sIndicatorManagementGuard,
+  Seguimiento5sParticipantManagementGuard,
+} from './modules/seguimiento-5s/seguimiento-5s-permission.guards';
+import { Seguimiento5sController } from './modules/seguimiento-5s/seguimiento-5s.controller';
+import { Seguimiento5sService } from './modules/seguimiento-5s/seguimiento-5s.service';
+import { UsageEventsService } from './modules/usage-events/usage-events.service';
+import { ACTIVITY_SERVICE } from './modules/administration/administration.tokens';
+import { ADMINISTRATIVE_APPLICATIONS_SERVICE } from './modules/administration/administration.tokens';
+import { ADMINISTRATIVE_USERS_SERVICE } from './modules/administration/administration.tokens';
+import { ADMINISTRATIVE_APPLICATION_ACCESS_SERVICE } from './modules/administration/administration.tokens';
+import { PlatformAdministratorGuard } from './modules/administration/platform-administrator.guard';
+import { ACCESS_PROFILES_SERVICE } from './modules/access-profiles/access-profiles.tokens';
+import { APPLICATION_AUTHORIZATION_SERVICE } from './modules/access-profiles/access-profiles.tokens';
+import { USERS_SERVICE, USER_SESSIONS_SERVICE } from './modules/auth/auth.tokens';
 import { DEFAULT_CORS_ORIGIN } from './runtime-config';
+import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
+
+@Module({
+  imports: [HealthModule],
+  controllers: [
+    AuthController,
+    AdministrativeUsersController,
+    AdministrativeApplicationsController,
+    AdministrativeApplicationAccessController,
+    AuthorizedApplicationsController,
+    PlatformBootstrapController,
+    ActivityController,
+    HelloWorldController,
+    ListaPreciosController,
+    CalculadoraCuotasController,
+    MetaCompanyController,
+    Seguimiento5sController,
+  ],
+  providers: [
+    { provide: AuthService, useValue: {} },
+    { provide: PlatformBootstrapService, useValue: {} },
+    { provide: SessionAuthenticationGuard, useValue: { canActivate: () => true } },
+    { provide: PlatformAdministratorGuard, useValue: { canActivate: () => true } },
+    { provide: CsrfProtectionGuard, useValue: { canActivate: () => true } },
+    { provide: HelloWorldApplicationAccessGuard, useValue: { canActivate: () => true } },
+    { provide: HelloWorldService, useValue: {} },
+    { provide: ListaPreciosApplicationAccessGuard, useValue: { canActivate: () => true } },
+    { provide: ListaPreciosService, useValue: {} },
+    { provide: VehicleImagesService, useValue: { getImages: () => [], streamImage: () => null } },
+    { provide: CalculadoraCuotasApplicationAccessGuard, useValue: { canActivate: () => true } },
+    { provide: MetaCompanyApplicationAccessGuard, useValue: { canActivate: () => true } },
+    { provide: MetaCompanyCatalogManagementGuard, useValue: { canActivate: () => true } },
+    { provide: MetaCompanyGoalManagementGuard, useValue: { canActivate: () => true } },
+    { provide: MetaCompanyService, useValue: {} },
+    { provide: Seguimiento5sApplicationAccessGuard, useValue: { canActivate: () => true } },
+    { provide: Seguimiento5sIndicatorManagementGuard, useValue: { canActivate: () => true } },
+    { provide: Seguimiento5sEntryManagementGuard, useValue: { canActivate: () => true } },
+    { provide: Seguimiento5sParticipantManagementGuard, useValue: { canActivate: () => true } },
+    { provide: Seguimiento5sService, useValue: {} },
+    { provide: UsageEventsService, useValue: {} },
+    { provide: ADMINISTRATIVE_USERS_SERVICE, useValue: {} },
+    { provide: ADMINISTRATIVE_APPLICATIONS_SERVICE, useValue: {} },
+    { provide: ADMINISTRATIVE_APPLICATION_ACCESS_SERVICE, useValue: {} },
+    { provide: ACCESS_PROFILES_SERVICE, useValue: {} },
+    { provide: APPLICATION_AUTHORIZATION_SERVICE, useValue: {} },
+    { provide: USER_SESSIONS_SERVICE, useValue: {} },
+    { provide: USERS_SERVICE, useValue: {} },
+    { provide: ACTIVITY_SERVICE, useValue: {} },
+  ],
+})
+class OpenApiExportModule {}
 
 async function exportOpenApiDocument(outputPath: string): Promise<void> {
-  const app = await NestFactory.create(AppModule, { logger: false });
+  const app = await NestFactory.create(OpenApiExportModule, { logger: false, abortOnError: false });
 
   try {
     // Se aplica la misma configuración que el runtime para conservar prefijo y documento publicados.
@@ -31,7 +127,6 @@ if (
 }
 
 exportOpenApiDocument(outputPath).catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
+  console.error(JSON.stringify(createStartupFailureDiagnostic(error)));
   process.exitCode = 1;
 });
