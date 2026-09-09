@@ -17,3 +17,7 @@ Comprometido. Las demás unidades cuyo indicador de disponibilidad sea `SI` son 
 La selección de búsqueda, filtros avanzados, grupo comercial y ubicación pertenece a cada
 marca/modelo/suspensión mientras la persona recorre el detalle de una variante. No se convierte en
 un patrón global porque es propio de la consulta de stock de Lista de Precios.
+
+Al entrar al detalle, esa misma selección limita la lista de unidades. El encabezado de la lista
+declara cuántas unidades se muestran frente al total de la variante y nombra los criterios activos;
+así el contexto se conserva sin repetir la interfaz de filtros.

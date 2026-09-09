@@ -1,14 +1,23 @@
-import { useEffect, useState } from 'react';
+import { FilterIcon } from '@hugeicons/core-free-icons';
+import { useEffect, useMemo, useState } from 'react';
 import type { Api, AuthorizedApplication, VehicleResponse } from '../../api';
 import {
   CALCULADORA_CUOTAS_LAUNCH_PATH,
   buildFromStockPath,
 } from '../calculadora-cuotas/calculadora-cuotas-routes';
-import { formatPrice, parsePrice } from '../../vehicle-catalog/vehicle-catalog';
+import {
+  applyFilters,
+  filterByLocation,
+  filterByVehicleLocationSegment,
+  formatPrice,
+  parsePrice,
+} from '../../vehicle-catalog/vehicle-catalog';
 import { PlatformLoadingIndicator } from '../../layout/platform-loading-indicator';
+import { AppIcon } from '../../ui/app-icon';
 import { useStockTour } from './use-stock-tour';
 import { VehicleGallery } from './vehicle-gallery';
 import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
+import type { VariantFilterState } from './variants-screen';
 
 /** Piso/Altura son campos propios de semirremolques (Facchini, Librelato). */
 const SEMIRREMOLQUE_BRANDS = ['FACCHINI', 'LIBRELATO'];
@@ -17,11 +26,50 @@ interface DetailScreenProps {
   api: Api;
   modelKey: string;
   vehiclesState: VehicleCatalogState;
+  variantFilterState: VariantFilterState;
   availableApplications: readonly AuthorizedApplication[];
   whatsAppNumber: string;
   whatsAppMessageTemplate: string;
   onConsultationStarted: () => void;
   onNavigate: (pathname: string) => void;
+}
+
+const LOCATION_SEGMENT_LABELS: Record<
+  NonNullable<VariantFilterState['locationSegment']>,
+  string
+> = {
+  available: 'Disponibles',
+  'in-transit': 'En tránsito',
+  judicial: 'Judiciales',
+  committed: 'Comprometidos',
+};
+
+const FILTER_LABELS: Record<keyof VariantFilterState['filters'], string> = {
+  config: 'Configuración',
+  susp: 'Suspensión',
+  tipoMotor: 'Motor',
+  tipoCaja: 'Caja',
+  color: 'Color',
+  ubicacion: 'Ubicación',
+  aire: 'Aire',
+  anioFab: 'Año',
+};
+
+function getFilterSummary(filterState: VariantFilterState): string[] {
+  const summary = [
+    filterState.locationSegment === undefined
+      ? undefined
+      : LOCATION_SEGMENT_LABELS[filterState.locationSegment],
+    filterState.location === '' ? undefined : filterState.location,
+    filterState.search === '' ? undefined : `Búsqueda: ${filterState.search}`,
+    ...Object.entries(filterState.filters)
+      .filter(([, value]) => value !== '')
+      .map(
+        ([field, value]) =>
+          `${FILTER_LABELS[field as keyof VariantFilterState['filters']]}: ${value}`,
+      ),
+  ];
+  return summary.filter((item): item is string => item !== undefined);
 }
 
 function InfoRow({
@@ -105,6 +153,7 @@ export function DetailScreen({
   api,
   modelKey,
   vehiclesState,
+  variantFilterState,
   availableApplications,
   whatsAppNumber,
   whatsAppMessageTemplate,
@@ -112,7 +161,31 @@ export function DetailScreen({
   onNavigate,
 }: DetailScreenProps): React.JSX.Element {
   const [selectedUnit, setSelectedUnit] = useState<VehicleResponse | null>(null);
-  const group = vehiclesState.status === 'ready' ? vehiclesState.groups.get(modelKey) : undefined;
+  const catalogGroup =
+    vehiclesState.status === 'ready' ? vehiclesState.groups.get(modelKey) : undefined;
+  const group = useMemo(() => {
+    if (catalogGroup === undefined) return undefined;
+
+    const groups = new Map([[modelKey, catalogGroup]]);
+    const advancedFilteredGroups = applyFilters(
+      groups,
+      variantFilterState.search,
+      variantFilterState.filters,
+    );
+    const segmentFilteredGroups =
+      variantFilterState.locationSegment === undefined
+        ? advancedFilteredGroups
+        : filterByVehicleLocationSegment(
+            advancedFilteredGroups,
+            variantFilterState.locationSegment,
+          );
+    const locationFilteredGroups =
+      variantFilterState.location === ''
+        ? segmentFilteredGroups
+        : filterByLocation(segmentFilteredGroups, variantFilterState.location);
+
+    return locationFilteredGroups.get(modelKey);
+  }, [catalogGroup, modelKey, variantFilterState]);
   const canCalculateInstallments = availableApplications.some(
     (application) => application.launchPath === CALCULADORA_CUOTAS_LAUNCH_PATH,
   );
@@ -170,6 +243,8 @@ export function DetailScreen({
 
   const unitPrice = selectedUnit === null ? null : parsePrice(selectedUnit.precioLista);
   const isSemirremolque = SEMIRREMOLQUE_BRANDS.includes(group.marca.trim().toUpperCase());
+  const filterSummary = getFilterSummary(variantFilterState);
+  const hasActiveFilters = filterSummary.length > 0;
 
   function buildWhatsAppUrl(): string {
     const modeloStr =
@@ -308,9 +383,27 @@ export function DetailScreen({
 
         <div className="lp-detail-page-right">
           <div className="lp-stock-section-header">
-            <span className="lp-stock-section-label">
-              {selectedUnit !== null ? 'Unidad seleccionada' : 'Unidades disponibles'}
-            </span>
+            <div>
+              <span className="lp-stock-section-label">
+                {selectedUnit !== null
+                  ? 'Unidad seleccionada'
+                  : hasActiveFilters
+                    ? 'Unidades filtradas'
+                    : 'Unidades disponibles'}
+              </span>
+              {hasActiveFilters ? (
+                <span className="lp-stock-filter-context">
+                  <AppIcon icon={FilterIcon} size={13} />
+                  <span>
+                    Mostrando {group.stockCount} de {catalogGroup?.stockCount ?? group.stockCount}{' '}
+                    {catalogGroup?.stockCount === 1 ? 'unidad' : 'unidades'}
+                  </span>
+                  <span className="lp-stock-filter-context-criteria">
+                    {filterSummary.join(' · ')}
+                  </span>
+                </span>
+              ) : null}
+            </div>
             <span className="lp-stock-badge">
               {group.stockCount} {group.stockCount !== 1 ? 'unidades' : 'unidad'}
             </span>

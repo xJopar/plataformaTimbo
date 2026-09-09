@@ -594,6 +594,20 @@
   background: var(--lp-c-bg);
   border-bottom: 1px solid var(--lp-c-border);
 }
+.lp-stock-filter-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lp-sp-1);
+  margin-top: var(--lp-sp-1);
+  color: var(--lp-c-text-secondary);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.lp-stock-filter-context-criteria {
+  color: var(--lp-c-brand-text);
+  font-weight: 600;
+}
 .lp-stock-section-label {
   font-size: 10px;
   font-weight: 600;

@@ -15,6 +15,7 @@ import {
   buildSuspensionVariantsPath,
   buildVariantsPath,
   getParentPath,
+  isHowoNxModel,
   parseListaPreciosRoute,
   type ListaPreciosRoute,
 } from './lista-precios-routes';
@@ -157,6 +158,19 @@ export function ListaPreciosApplication({
     variantFilterKey === undefined
       ? EMPTY_VARIANT_FILTER_STATE
       : (variantFilters[variantFilterKey] ?? EMPTY_VARIANT_FILTER_STATE);
+  const detailVariantFilterState =
+    route.view !== 'detail'
+      ? EMPTY_VARIANT_FILTER_STATE
+      : (() => {
+          const [brand, modelo, , suspension] = route.modelKey.split('|');
+          if (brand === undefined || modelo === undefined) return EMPTY_VARIANT_FILTER_STATE;
+          const filterKey = getVariantFilterKey(
+            brand,
+            modelo,
+            isHowoNxModel(brand, modelo) ? suspension : undefined,
+          );
+          return variantFilters[filterKey] ?? EMPTY_VARIANT_FILTER_STATE;
+        })();
 
   const updateVariantFilterState = useCallback(
     (nextFilterState: VariantFilterState): void => {
@@ -252,6 +266,7 @@ export function ListaPreciosApplication({
           api={api}
           modelKey={route.modelKey}
           vehiclesState={vehiclesState}
+          variantFilterState={detailVariantFilterState}
           availableApplications={availableApplications}
           whatsAppNumber={import.meta.env.VITE_LISTA_PRECIOS_WA_NUMBER ?? DEFAULT_WHATSAPP_NUMBER}
           whatsAppMessageTemplate={
