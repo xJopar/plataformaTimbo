@@ -744,10 +744,7 @@ function ActivityResults({
           label="Aplicación más frecuente"
           value={statistics.mostFrequentApp ?? '—'}
         />
-        <ActivityMetric
-          label="Evento más frecuente"
-          value={statistics.mostFrequentEvent ?? '—'}
-        />
+        <ActivityMetric label="Evento más frecuente" value={statistics.mostFrequentEvent ?? '—'} />
       </div>
       <div className="activity-results-header">
         <div>
