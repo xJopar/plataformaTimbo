@@ -23,8 +23,11 @@ stock, filtros, precios ni mensajes de WhatsApp.
 `Calculadora de Cuotas` en `/apps/calculadora-cuotas` permite armar un plan de financiación en un
 flujo guiado desde unidades de Lista de Precios o montos manuales. La persona puede calcularlo en
 modalidad normal, definiendo refuerzos opcionales, o desde una cuota objetivo; luego descarga el
-cuotero calculado como imagen PNG, con la entrega inicial y las cuotas del plan. En Condiciones,
-puede habilitar una tasa anual personalizada que se usa sólo para calcular el plan local.
+cuotero calculado como imagen PNG, con la entrega inicial, las cuotas del plan y un identificador
+visible de ocho caracteres. Registra entrada, incorporación desde Lista de Precios y exportación;
+esta última conserva el identificador y si las unidades son manuales, de Lista de Precios o mixtas,
+sin persistir el contenido ni los importes del cuotero. En Condiciones, puede habilitar una tasa
+anual personalizada que se usa sólo para calcular el plan local.
 `Meta Company` en `/apps/meta-company` administra las metas comerciales que consume Power BI. Sus
 perfiles permiten editar metas y, para administradores, crear y activar o desactivar marcas y
 negocios. La pantalla principal permite descargar una plantilla e importar metas desde Excel por
@@ -46,8 +49,9 @@ para el alcance y los recorridos vigentes.
 - **Observabilidad:** logs JSON de API y gateway, diagnósticos estructurados en el navegador,
   redacción segura y correlación por `X-Request-Id`.
 - **Datos de actividad:** auditoría persistente para operaciones administrativas, incluidas las de
-  Meta Company, y eventos de uso idempotentes para Hello World y Lista de Precios; la exportación
-  CSV entrega visita, objetivo, marca y modelo en columnas separadas cuando corresponden.
+  Meta Company, y eventos de uso idempotentes para Hello World, Lista de Precios y Calculadora de
+  Cuotas; la exportación CSV entrega visita, objetivo, marca y modelo en columnas separadas cuando
+  corresponden.
 - **Experiencia:** acceso corporativo, launcher de aplicaciones autorizadas, superficies de
   Administración, `Hello World`, `Lista de Precios`, `Calculadora de Cuotas` y `Meta Company`.
 

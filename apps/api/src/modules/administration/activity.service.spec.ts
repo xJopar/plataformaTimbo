@@ -91,6 +91,33 @@ describe('ActivityService', () => {
     });
   });
 
+  it('expone sólo el origen permitido de una imagen exportada de Calculadora de Cuotas', async () => {
+    prismaService.$queryRaw
+      .mockResolvedValueOnce([
+        {
+          id: 'event-calculator-image',
+          source: 'USAGE',
+          actor: 'Persona Timbo',
+          appKey: 'calculadora-cuotas',
+          eventName: 'calculadora-cuotas.image_exported',
+          outcome: 'SUCCESS',
+          visitId: 'a75a9b36-fcb4-4489-a3ea-f1e9a8d5d398',
+          targetType: 'calculator_image',
+          targetId: 'A1B2C3D4',
+          metadata: { calculationSource: 'manual', totalPriceUsd: 25000 },
+          occurredAt: new Date('2026-08-21T12:00:00.000Z'),
+        },
+      ])
+      .mockResolvedValueOnce([{ total: 1 }]);
+
+    const result = await service.list(parseActivityQuery({}));
+
+    expect(result.items[0]).toMatchObject({
+      target: 'calculator_image:A1B2C3D4',
+      metadata: { calculationSource: 'manual' },
+    });
+  });
+
   it('exporta el filtro completo como CSV UTF-8 y neutraliza fórmulas aun con espacios o controles', async () => {
     const unsafeActors = [
       '=directo',

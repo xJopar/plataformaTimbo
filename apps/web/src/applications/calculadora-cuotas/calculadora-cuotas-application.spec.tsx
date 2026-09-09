@@ -24,6 +24,7 @@ function renderCalculator(): void {
   const api = {
     applications: {
       listListaPreciosVehicles: vi.fn().mockResolvedValue([]),
+      recordCalculadoraCuotasUsageEvent: vi.fn().mockResolvedValue(undefined),
     },
   } as unknown as Api;
 

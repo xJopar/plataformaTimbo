@@ -38,3 +38,6 @@ cálculo local del plan, sin sumar contenido a su vista final ni al cuotero desc
   junto al campo y mediante una notificación breve cuando bloquea la acción.
 - El cuotero descargable conserva el mismo orden de lectura que el plan: unidades, entrega inicial,
   cuotas regulares y refuerzos. La entrega se expresa como importe, sin repetir su porcentaje.
+- El cuotero incorpora su identificador alfanumérico de ocho caracteres en el título y como pie
+  discreto alineado al extremo inferior derecho; es una referencia operativa para buscar la
+  exportación, no un nuevo dato de cálculo.

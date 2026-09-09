@@ -261,6 +261,14 @@ su mensaje quedan fuera del evento. Actividad permite mostrar únicamente esa me
 allowlist específica y el CSV incorpora `visitId`, objetivo, marca y modelo en columnas separadas
 para análisis en Excel.
 
+`calculadora-cuotas` produce `calculadora-cuotas.opened` una vez por visita,
+`calculadora-cuotas.lista_precios_item_added` al incorporar una unidad proveniente de Lista de
+Precios y `calculadora-cuotas.image_exported` luego de iniciar la descarga PNG. Este último usa el
+objetivo `calculator_image` con el ID alfanumérico de ocho caracteres que aparece dentro de la
+imagen y metadata `calculationSource` limitada a `manual`, `lista_precios` o `mixed`; así Actividad
+permite encontrar la exportación y distinguir su origen sin conservar stock, unidades, importes ni
+condiciones de financiación.
+
 Para incorporar un productor de uso:
 
 1. Definir primero qué decisión de producto u operación permitirá tomar cada evento. No registrar

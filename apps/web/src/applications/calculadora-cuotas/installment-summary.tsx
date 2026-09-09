@@ -1,5 +1,6 @@
 import { ImageDownloadIcon } from '@hugeicons/core-free-icons';
 import { useState } from 'react';
+import { reportBrowserOperationFailed } from '../../browser-diagnostics';
 import { AppIcon } from '../../ui/app-icon';
 import {
   formatUsd,
@@ -17,6 +18,16 @@ interface InstallmentSummaryProps {
   installmentPeriodicity: CuotaPeriodicity;
   reinforcementPeriodicity: CuotaPeriodicity;
   calculationMode: CalculationMode;
+  onImageExported: (imageId: string) => void;
+}
+
+const IMAGE_ID_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+export function createInstallmentImageId(): string {
+  const values = crypto.getRandomValues(new Uint8Array(8));
+  return Array.from(values, (value) => IMAGE_ID_ALPHABET[value % IMAGE_ID_ALPHABET.length]).join(
+    '',
+  );
 }
 
 export function InstallmentSummary({
@@ -25,6 +36,7 @@ export function InstallmentSummary({
   installmentPeriodicity,
   reinforcementPeriodicity,
   calculationMode,
+  onImageExported,
 }: InstallmentSummaryProps): React.JSX.Element {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadFailure, setDownloadFailure] = useState<string | undefined>(undefined);
@@ -34,18 +46,22 @@ export function InstallmentSummary({
     setIsDownloading(true);
     setDownloadFailure(undefined);
     try {
+      const imageId = createInstallmentImageId();
       await downloadInstallmentSummaryImage({
         items,
         plan: planResult.plan,
         installmentPeriodicity,
         reinforcementPeriodicity,
+        imageId,
       });
+      onImageExported(imageId);
     } catch (error: unknown) {
       setDownloadFailure('No pudimos generar la imagen. Intentá descargarla nuevamente.');
-      console.error('No se pudo descargar la imagen del cuotero.', {
-        operation: 'download-installment-summary-image',
-        errorName: error instanceof Error ? error.name : 'UnknownError',
-        errorMessage: error instanceof Error ? error.message : undefined,
+      reportBrowserOperationFailed(error, {
+        operation: 'calculadora-cuotas.download-image',
+        method: 'POST',
+        route: '/apps/calculadora-cuotas',
+        provider: 'api',
       });
     } finally {
       setIsDownloading(false);

@@ -206,6 +206,7 @@ export interface InstallmentSummaryImageInput {
   plan: InstallmentPlan;
   installmentPeriodicity: CuotaPeriodicity;
   reinforcementPeriodicity: CuotaPeriodicity;
+  imageId: string;
 }
 
 /** Genera un recibo de cuotas de TIMBO sin precios de unidades ni total final. */
@@ -214,6 +215,7 @@ export async function downloadInstallmentSummaryImage({
   plan,
   installmentPeriodicity,
   reinforcementPeriodicity,
+  imageId,
 }: InstallmentSummaryImageInput): Promise<void> {
   const brandLogo = await loadBrandLogo();
   const canvas = document.createElement('canvas');
@@ -238,13 +240,18 @@ export async function downloadInstallmentSummaryImage({
   setFont(context, 20, 700);
   context.fillStyle = '#ffffff';
   context.textAlign = 'right';
-  context.fillText('PLAN DE PAGO', IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, 61);
+  context.fillText(`PLAN DE PAGO · ID ${imageId}`, IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, 61);
   context.textAlign = 'left';
 
   let y = HEADER_HEIGHT + 48;
   y = drawSectionLabel(context, y, 'UNIDADES');
   y = drawReceiptItems(context, y, receiptItems);
   drawRule(context, y + 24);
+  setFont(context, 12, 600);
+  context.fillStyle = MUTED_INK;
+  context.textAlign = 'right';
+  context.fillText(`ID ${imageId}`, IMAGE_WIDTH - IMAGE_HORIZONTAL_PADDING, imageHeight - 20);
+  context.textAlign = 'left';
 
   y = drawInstallment(
     context,
@@ -283,7 +290,7 @@ export async function downloadInstallmentSummaryImage({
   const imageUrl = URL.createObjectURL(imageBlob);
   const downloadLink = document.createElement('a');
   downloadLink.href = imageUrl;
-  downloadLink.download = 'cuotero-timbo.png';
+  downloadLink.download = `cuotero-timbo-${imageId}.png`;
   document.body.append(downloadLink);
   downloadLink.click();
   downloadLink.remove();

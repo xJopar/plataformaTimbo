@@ -39,6 +39,21 @@ export interface ListaPreciosUsageEventRequest {
   model?: string;
 }
 
+export type CalculadoraCuotasUsageEventName =
+  | 'calculadora-cuotas.opened'
+  | 'calculadora-cuotas.lista_precios_item_added'
+  | 'calculadora-cuotas.image_exported';
+
+export type CalculadoraCuotasCalculationSource = 'manual' | 'lista_precios' | 'mixed';
+
+export interface CalculadoraCuotasUsageEventRequest {
+  eventId: string;
+  visitId: string;
+  eventName: CalculadoraCuotasUsageEventName;
+  imageId?: string;
+  calculationSource?: CalculadoraCuotasCalculationSource;
+}
+
 export type FiveSIndicator = NonNullable<
   paths['/api/applications/seguimiento-5s/indicators']['get']['responses'][200]['content']['application/json']
 >[number];
@@ -123,6 +138,7 @@ export interface ApplicationsApi {
   getListaPreciosVehicleImages(stock: string): Promise<VehicleImage[]>;
   getListaPreciosImageUrl(key: string): string;
   recordListaPreciosUsageEvent(input: ListaPreciosUsageEventRequest): Promise<void>;
+  recordCalculadoraCuotasUsageEvent(input: CalculadoraCuotasUsageEventRequest): Promise<void>;
   listMetaCompanyGoals(
     period: string,
     empresaId?: number,
@@ -375,6 +391,21 @@ export function createApplicationsApi(
       if (!response.ok) {
         throw createApiHttpError(response);
       }
+    },
+    async recordCalculadoraCuotasUsageEvent(
+      input: CalculadoraCuotasUsageEventRequest,
+    ): Promise<void> {
+      const { response } = await client
+        .POST('/api/applications/calculadora-cuotas/usage-events', {
+          body: input,
+          headers: { 'x-timbo-csrf': '1' },
+        })
+        .catch((error: unknown) => {
+          throw new ApplicationsApiUnavailableError('recordCalculadoraCuotasUsageEvent', {
+            cause: error,
+          });
+        });
+      if (!response.ok) throw createApiHttpError(response);
     },
     async listMetaCompanyGoals(period, empresaId) {
       const { data, response } = await client.GET('/api/applications/meta-company/goals', {

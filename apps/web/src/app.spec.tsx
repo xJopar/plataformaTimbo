@@ -169,6 +169,9 @@ function createApi(
       recordListaPreciosUsageEvent: vi
         .fn<ApplicationsApi['recordListaPreciosUsageEvent']>()
         .mockResolvedValue(undefined),
+      recordCalculadoraCuotasUsageEvent: vi
+        .fn<ApplicationsApi['recordCalculadoraCuotasUsageEvent']>()
+        .mockResolvedValue(undefined),
       listMetaCompanyGoals: vi.fn<ApplicationsApi['listMetaCompanyGoals']>().mockResolvedValue([]),
       listMetaCompanyCatalogs: vi
         .fn<ApplicationsApi['listMetaCompanyCatalogs']>()

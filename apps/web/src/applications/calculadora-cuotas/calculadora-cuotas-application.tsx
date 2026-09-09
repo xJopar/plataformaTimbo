@@ -21,6 +21,7 @@ import {
   type CalculatorItem,
 } from './installment-calculator';
 import { parseCalculadoraCuotasRoute } from './calculadora-cuotas-routes';
+import { useCalculadoraCuotasUsageEvents } from './use-calculadora-cuotas-usage-events';
 
 const DEFAULT_CONFIG: FinancingConfigValue = {
   calculationMode: 'standard',
@@ -51,6 +52,7 @@ export function CalculadoraCuotasApplication({
   onLogout,
 }: ApplicationComponentProps): React.JSX.Element {
   const { state: vehiclesState } = useVehicleCatalog(api);
+  const { recordImageExported, recordListaPreciosItemAdded } = useCalculadoraCuotasUsageEvents(api);
   const [items, setItems] = useState<CalculatorItem[]>([]);
   const [draftConfig, setDraftConfig] = useState<FinancingConfigValue>(DEFAULT_CONFIG);
   const [calculatedConfig, setCalculatedConfig] = useState<FinancingConfigValue>(DEFAULT_CONFIG);
@@ -95,6 +97,7 @@ export function CalculadoraCuotasApplication({
           quantity: 1,
         },
       ]);
+      recordListaPreciosItemAdded(`catalog:${unit.stock}`);
       requestAnimationFrame(() =>
         toast.info(`Se agregó ${group.name} (stock ${unit.stock}) desde Lista de Precios.`),
       );
@@ -103,7 +106,7 @@ export function CalculadoraCuotasApplication({
     requestAnimationFrame(() =>
       toast.info('No encontramos esa unidad en el catálogo actual de Lista de Precios.'),
     );
-  }, [route, vehiclesState]);
+  }, [recordListaPreciosItemAdded, route, vehiclesState]);
 
   const existingItemIds = useMemo(() => new Set(items.map((item) => item.id)), [items]);
   const totalPriceUsd = useMemo(() => sumItemsUsd(items), [items]);
@@ -131,6 +134,7 @@ export function CalculadoraCuotasApplication({
   function addItem(item: CalculatorItem): void {
     if (existingItemIds.has(item.id)) return;
     setItems((current) => [...current, item]);
+    if (item.source === 'catalog') recordListaPreciosItemAdded(item.id);
   }
 
   function confirmRemoval(itemId: string): void {
@@ -350,6 +354,7 @@ export function CalculadoraCuotasApplication({
                 installmentPeriodicity={calculatedConfig.installmentPeriodicity}
                 reinforcementPeriodicity={calculatedConfig.reinforcementPeriodicity}
                 calculationMode={calculatedConfig.calculationMode}
+                onImageExported={(imageId) => recordImageExported(imageId, items)}
               />
               <footer className="cc-wizard-actions">
                 <button

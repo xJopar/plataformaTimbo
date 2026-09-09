@@ -23,6 +23,8 @@ import { ListaPreciosApplicationAccessGuard } from './modules/lista-precios/list
 import { ListaPreciosController } from './modules/lista-precios/lista-precios.controller';
 import { ListaPreciosService } from './modules/lista-precios/lista-precios.service';
 import { VehicleImagesService } from './modules/lista-precios/vehicle-images.service';
+import { CalculadoraCuotasApplicationAccessGuard } from './modules/calculadora-cuotas/calculadora-cuotas-application-access.guard';
+import { CalculadoraCuotasController } from './modules/calculadora-cuotas/calculadora-cuotas.controller';
 import { MetaCompanyApplicationAccessGuard } from './modules/meta-company/meta-company-application-access.guard';
 import { MetaCompanyController } from './modules/meta-company/meta-company.controller';
 import {
@@ -62,6 +64,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     ActivityController,
     HelloWorldController,
     ListaPreciosController,
+    CalculadoraCuotasController,
     MetaCompanyController,
     Seguimiento5sController,
   ],
@@ -76,6 +79,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
     { provide: ListaPreciosApplicationAccessGuard, useValue: { canActivate: () => true } },
     { provide: ListaPreciosService, useValue: {} },
     { provide: VehicleImagesService, useValue: { getImages: () => [], streamImage: () => null } },
+    { provide: CalculadoraCuotasApplicationAccessGuard, useValue: { canActivate: () => true } },
     { provide: MetaCompanyApplicationAccessGuard, useValue: { canActivate: () => true } },
     { provide: MetaCompanyCatalogManagementGuard, useValue: { canActivate: () => true } },
     { provide: MetaCompanyGoalManagementGuard, useValue: { canActivate: () => true } },

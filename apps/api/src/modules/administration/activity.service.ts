@@ -236,6 +236,14 @@ function redactMetadata(
   ) {
     return { brand: metadata.brand, model: metadata.model };
   }
+  if (
+    source === 'USAGE' &&
+    eventName === 'calculadora-cuotas.image_exported' &&
+    isRecord(metadata) &&
+    isCalculationSource(metadata.calculationSource)
+  ) {
+    return { calculationSource: metadata.calculationSource };
+  }
   return {};
 }
 
@@ -327,4 +335,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isBoundedActivityText(value: unknown, maxLength: number): value is string {
   return typeof value === 'string' && value.trim().length > 0 && value.length <= maxLength;
+}
+
+function isCalculationSource(value: unknown): value is 'manual' | 'lista_precios' | 'mixed' {
+  return value === 'manual' || value === 'lista_precios' || value === 'mixed';
 }

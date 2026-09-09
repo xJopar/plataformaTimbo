@@ -13,6 +13,8 @@ export type BrowserOperation =
   | 'hello-world.translate-joke'
   | 'lista-precios.record-usage-event'
   | 'lista-precios.load-equipment-rentals'
+  | 'calculadora-cuotas.record-usage-event'
+  | 'calculadora-cuotas.download-image'
   | 'meta-company.load-data'
   | 'meta-company.save-empresa'
   | 'meta-company.update-empresa-status'

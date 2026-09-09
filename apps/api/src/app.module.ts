@@ -3,6 +3,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { HealthModule } from './health/health.module';
 import { AuditEventsModule } from './modules/audit-events/audit-events.module';
 import { AdministrationModule } from './modules/administration/administration.module';
+import { CalculadoraCuotasModule } from './modules/calculadora-cuotas/calculadora-cuotas.module';
 import { AuthExceptionFilter } from './modules/auth/auth-exception.filter';
 import { AuthModule } from './modules/auth/auth.module';
 import { HelloWorldModule } from './modules/hello-world/hello-world.module';
@@ -26,6 +27,7 @@ import { PlatformBootstrapModule } from './modules/platform-bootstrap/platform-b
     PlatformBootstrapModule,
     HelloWorldModule,
     ListaPreciosModule,
+    CalculadoraCuotasModule,
     MetaCompanyModule,
     Seguimiento5sModule,
   ],

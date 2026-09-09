@@ -1815,6 +1815,34 @@
         ]
       }
     },
+    "/api/applications/calculadora-cuotas/usage-events": {
+      "post": {
+        "operationId": "recordCalculadoraCuotasUsageEvent",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalculadoraCuotasUsageEventRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "El evento fue procesado sin interrumpir el recorrido."
+          },
+          "400": {
+            "description": "El evento de uso no cumple el contrato permitido."
+          }
+        },
+        "summary": "Registra un hito de uso permitido de Calculadora de Cuotas.",
+        "tags": [
+          "applications"
+        ]
+      }
+    },
     "/api/applications/meta-company/goals": {
       "get": {
         "operationId": "listMetaCompanyGoals",
@@ -3672,6 +3700,49 @@
           "model": {
             "type": "string",
             "description": "Modelo visto o consultado."
+          }
+        },
+        "required": [
+          "eventId",
+          "visitId",
+          "eventName"
+        ]
+      },
+      "CalculadoraCuotasUsageEventRequestDto": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identificador idempotente del evento de uso."
+          },
+          "visitId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identificador efímero de la visita a Calculadora de Cuotas."
+          },
+          "eventName": {
+            "type": "string",
+            "enum": [
+              "calculadora-cuotas.opened",
+              "calculadora-cuotas.lista_precios_item_added",
+              "calculadora-cuotas.image_exported"
+            ],
+            "description": "Hito de uso permitido por Calculadora de Cuotas."
+          },
+          "imageId": {
+            "type": "string",
+            "pattern": "^[A-Z0-9]{8}$",
+            "description": "Identificador visible de ocho caracteres de la imagen exportada."
+          },
+          "calculationSource": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "lista_precios",
+              "mixed"
+            ],
+            "description": "Origen de las unidades incluidas al exportar la imagen."
           }
         },
         "required": [

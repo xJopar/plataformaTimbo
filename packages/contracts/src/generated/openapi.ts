@@ -690,6 +690,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/applications/calculadora-cuotas/usage-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Registra un hito de uso permitido de Calculadora de Cuotas. */
+        post: operations["recordCalculadoraCuotasUsageEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/applications/meta-company/goals": {
         parameters: {
             query?: never;
@@ -1490,6 +1507,30 @@ export interface components {
             brand?: string;
             /** @description Modelo visto o consultado. */
             model?: string;
+        };
+        CalculadoraCuotasUsageEventRequestDto: {
+            /**
+             * Format: uuid
+             * @description Identificador idempotente del evento de uso.
+             */
+            eventId: string;
+            /**
+             * Format: uuid
+             * @description Identificador efímero de la visita a Calculadora de Cuotas.
+             */
+            visitId: string;
+            /**
+             * @description Hito de uso permitido por Calculadora de Cuotas.
+             * @enum {string}
+             */
+            eventName: "calculadora-cuotas.opened" | "calculadora-cuotas.lista_precios_item_added" | "calculadora-cuotas.image_exported";
+            /** @description Identificador visible de ocho caracteres de la imagen exportada. */
+            imageId?: string;
+            /**
+             * @description Origen de las unidades incluidas al exportar la imagen.
+             * @enum {string}
+             */
+            calculationSource?: "manual" | "lista_precios" | "mixed";
         };
         MetaCompanyAdvisorGoalListItemDto: {
             /** @example 1 */
@@ -2901,6 +2942,35 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ListaPreciosUsageEventRequestDto"];
+            };
+        };
+        responses: {
+            /** @description El evento fue procesado sin interrumpir el recorrido. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description El evento de uso no cumple el contrato permitido. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    recordCalculadoraCuotasUsageEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalculadoraCuotasUsageEventRequestDto"];
             };
         };
         responses: {

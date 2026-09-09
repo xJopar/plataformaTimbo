@@ -63,4 +63,25 @@ export const PRODUCT_USAGE_EVENT_CATALOG: UsageEventCatalog = {
       { name: 'model', required: true, type: 'string', maxLength: 120 },
     ],
   },
+  'calculadora-cuotas.opened': {
+    appKey: 'calculadora-cuotas',
+    metadataFields: [],
+  },
+  'calculadora-cuotas.lista_precios_item_added': {
+    appKey: 'calculadora-cuotas',
+    metadataFields: [],
+  },
+  'calculadora-cuotas.image_exported': {
+    appKey: 'calculadora-cuotas',
+    target: { targetType: 'calculator_image', required: true, maxIdLength: 8 },
+    metadataFields: [
+      {
+        name: 'calculationSource',
+        required: true,
+        type: 'string',
+        maxLength: 14,
+        allowedValues: ['manual', 'lista_precios', 'mixed'],
+      },
+    ],
+  },
 };

@@ -35,7 +35,10 @@ experiencia para las aplicaciones internas de Timbo. El incremento vigente inclu
 `Lista de Precios` es la primera aplicación de negocio migrada y registra sólo hitos comerciales
 acotados, no clics ni contenido de catálogo completo.
 `Calculadora de Cuotas` compone un plan localmente a partir de los datos que el usuario agregó; la
-descarga PNG se genera en el navegador y no envía ni persiste el contenido del cuotero.
+descarga PNG se genera en el navegador y no envía ni persiste el contenido del cuotero. Registra
+por visita la entrada y la incorporación desde Lista de Precios, y al exportar conserva sólo el
+identificador visible de ocho caracteres como objetivo `calculator_image` y el origen agregado de
+las unidades (`manual`, `lista_precios` o `mixed`).
 `Meta Company` usa de forma temporal un proveedor PostgreSQL separado de la base central. La API
 valida altas y ediciones de asesores contra SAP mediante Service Layer y mantiene las reglas de
 acceso y las auditorías administrativas en la plataforma; los demás datos comerciales se
@@ -198,6 +201,13 @@ Administración consulta ambas tablas mediante una proyección unificada. La res
 metadata por allowlist y la exportación CSV protege contra fórmulas; para Lista de Precios expone
 explícitamente visita, tipo/id de objetivo, marca y modelo en columnas separadas, sin revelar la
 metadata cruda persistida.
+
+Calculadora de Cuotas registra `calculadora-cuotas.opened` una vez por visita,
+`calculadora-cuotas.lista_precios_item_added` al incorporar una unidad desde Lista de Precios y
+`calculadora-cuotas.image_exported` después de iniciar con éxito una descarga PNG. La
+exportación usa el identificador visible `calculator_image:<ID>` para búsqueda y sólo expone la
+metadata tipada `calculationSource`; no persiste descripción de unidades, stock, precios, tasa ni
+condiciones de financiación.
 
 ## Persistencia y contratos
 

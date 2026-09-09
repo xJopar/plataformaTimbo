@@ -49,6 +49,9 @@ export {
 export { ApplicationsApiUnavailableError } from './applications';
 export {
   type ApplicationsApi,
+  type CalculadoraCuotasCalculationSource,
+  type CalculadoraCuotasUsageEventName,
+  type CalculadoraCuotasUsageEventRequest,
   type EquipmentRentalResponse,
   type AuthorizedApplication,
   type CreateFiveSIndicatorRequest,

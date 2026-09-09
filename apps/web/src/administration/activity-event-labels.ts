@@ -33,6 +33,9 @@ const EVENT_LABELS: Record<string, string> = {
   'lista-precios.catalog_opened': 'Ingresó al catálogo',
   'lista-precios.model_viewed': 'Vio un modelo',
   'lista-precios.consultation_started': 'Inició una consulta',
+  'calculadora-cuotas.opened': 'Ingresó a la calculadora',
+  'calculadora-cuotas.lista_precios_item_added': 'Agregó una unidad desde Lista de Precios',
+  'calculadora-cuotas.image_exported': 'Exportó un cuotero como imagen',
 };
 
 /**
