@@ -5,10 +5,14 @@ import {
   extractBrands,
   filterByBrand,
   filterByBrandAndModelo,
+  filterByLocation,
   filterBySuspension,
+  filterByVehicleLocationSegment,
   formatPrice,
   getFilterOptions,
   getGroupKey,
+  getVehicleLocationOptions,
+  getVehicleLocationSegment,
   groupByMarcaModelo,
   groupByModel,
   parsePrice,
@@ -266,6 +270,75 @@ describe('getFilterOptions / applyFilters', () => {
       anioFab: '2024',
     });
     expect(filtered.size).toBe(1);
+  });
+
+  it('actualiza el conteo de unidades de la variante al filtrar campos de unidad', () => {
+    const groupedVehicles = groupByModel([
+      vehicle({ marca: 'Scania', modelo: 'R', config: '4x2', stock: 'ST-1', color: 'Blanco' }),
+      vehicle({ marca: 'Scania', modelo: 'R', config: '4x2', stock: 'ST-2', color: 'Rojo' }),
+    ]);
+
+    const filtered = applyFilters(groupedVehicles, '', {
+      config: '',
+      susp: '',
+      tipoMotor: '',
+      tipoCaja: '',
+      color: 'Blanco',
+      ubicacion: '',
+      aire: '',
+      anioFab: '',
+    });
+
+    expect([...filtered.values()][0]?.stockCount).toBe(1);
+  });
+});
+
+describe('segmentación rápida por ubicación', () => {
+  const units = [
+    vehicle({
+      marca: 'Sinotruk',
+      modelo: 'Howo',
+      config: '4x2',
+      stock: 'ST-1',
+      disponible: 'SI',
+      ubicacion: 'Asunción',
+    }),
+    vehicle({
+      marca: 'Sinotruk',
+      modelo: 'Howo',
+      config: '4x2',
+      stock: 'ST-2',
+      disponible: 'SI',
+      ubicacion: 'Fábrica',
+    }),
+    vehicle({
+      marca: 'Sinotruk',
+      modelo: 'Howo',
+      config: '4x2',
+      stock: 'ST-3',
+      ubicacion: 'Ciudad del Este',
+    }),
+    vehicle({
+      marca: 'Sinotruk',
+      modelo: 'Howo',
+      config: '4x2',
+      stock: 'ST-4',
+      ubicacion: 'Alquileres',
+    }),
+  ];
+  const groups = groupByModel(units);
+
+  it('usa las categorías acordadas y no duplica una ubicación especial disponible', () => {
+    expect(getVehicleLocationSegment(units[0] ?? BASE_VEHICLE)).toBe('available');
+    expect(getVehicleLocationSegment(units[1] ?? BASE_VEHICLE)).toBe('in-transit');
+    expect(getVehicleLocationSegment(units[2] ?? BASE_VEHICLE)).toBe('judicial');
+    expect(getVehicleLocationSegment(units[3] ?? BASE_VEHICLE)).toBe('committed');
+  });
+
+  it('ofrece únicamente las ubicaciones que tienen unidades en el segmento elegido', () => {
+    const available = filterByVehicleLocationSegment(groups, 'available');
+    expect(getVehicleLocationOptions(available)).toEqual([{ label: 'Asunción', count: 1 }]);
+    expect(filterByLocation(available, 'Asunción').size).toBe(1);
   });
 });
 

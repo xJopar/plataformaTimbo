@@ -129,6 +129,129 @@
   opacity: 0.8;
 }
 
+/* ── Segmentación rápida por ubicación ── */
+.lp-location-segments {
+  background: var(--lp-c-surface);
+  border-bottom: 1px solid var(--lp-c-border);
+}
+.lp-location-segments-primary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--lp-c-border);
+  border-left: 1px solid var(--lp-c-border);
+}
+.lp-location-segment {
+  min-width: 0;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--lp-sp-2);
+  padding: var(--lp-sp-3);
+  border: 0;
+  border-right: 1px solid var(--lp-c-border);
+  border-bottom: 1px solid var(--lp-c-border);
+  background: var(--lp-c-surface);
+  color: var(--lp-c-text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background var(--lp-t-fast),
+    color var(--lp-t-fast),
+    border-color var(--lp-t-fast);
+}
+.lp-location-segment:hover:not(:disabled) {
+  background: var(--lp-c-surface-alt);
+}
+.lp-location-segment:disabled {
+  color: var(--lp-c-text-disabled);
+  cursor: not-allowed;
+}
+.lp-location-segment--active {
+  background: var(--lp-c-brand);
+  color: var(--lp-c-text-white);
+}
+.lp-location-segment--active:hover:not(:disabled) {
+  background: var(--lp-c-brand-dark);
+}
+.lp-location-segment-label {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lp-location-segment-count,
+.lp-location-option-count {
+  font-family: var(--lp-font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.lp-location-segment-count {
+  color: var(--lp-c-brand-text);
+}
+.lp-location-segment--active .lp-location-segment-count {
+  color: var(--lp-c-text-white);
+}
+.lp-location-segments-secondary {
+  display: flex;
+  align-items: center;
+  gap: var(--lp-sp-2);
+  min-height: 58px;
+  overflow-x: auto;
+  padding: var(--lp-sp-2) var(--lp-sp-4);
+  scrollbar-color: var(--lp-c-border-strong) transparent;
+}
+.lp-location-segments-secondary-label {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--lp-sp-1);
+  color: var(--lp-c-text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.lp-location-option {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lp-sp-2);
+  min-height: 38px;
+  padding: 0 var(--lp-sp-3);
+  border: 1px solid var(--lp-c-border-strong);
+  background: var(--lp-c-surface);
+  color: var(--lp-c-text-primary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.lp-location-option:hover {
+  background: var(--lp-c-surface-alt);
+}
+.lp-location-option--active {
+  background: var(--lp-c-brand-light);
+  border-color: var(--lp-c-brand);
+  color: var(--lp-c-brand-dark);
+}
+.lp-location-option--active:hover {
+  background: var(--lp-c-brand-light);
+}
+.lp-location-option-count {
+  color: var(--lp-c-brand-text);
+}
+.lp-location-segment:focus-visible,
+.lp-location-option:focus-visible {
+  outline: 3px solid rgb(11 79 156 / 36%);
+  outline-offset: -3px;
+}
+
 /* ── Grilla de marcas (home) ── */
 .lp-brand-grid {
   display: grid;
@@ -1069,6 +1192,18 @@
   }
   .lp-search-bar {
     flex: 1;
+  }
+
+  .lp-location-segments-primary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .lp-location-segment {
+    min-height: 64px;
+    padding: var(--lp-sp-3) clamp(12px, 2vw, 20px);
+  }
+  .lp-location-segments-secondary {
+    padding-right: clamp(20px, 5vw, 72px);
+    padding-left: clamp(20px, 5vw, 72px);
   }
   .lp-filter-btn {
     flex-shrink: 0;

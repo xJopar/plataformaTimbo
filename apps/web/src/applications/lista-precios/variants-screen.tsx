@@ -1,20 +1,34 @@
-import { Cancel01Icon, FilterIcon, Search01Icon } from '@hugeicons/core-free-icons';
+import {
+  Cancel01Icon,
+  CheckmarkCircle02Icon,
+  FilterIcon,
+  HandshakeIcon,
+  JusticeScale01Icon,
+  Location01Icon,
+  Search01Icon,
+  TruckDeliveryIcon,
+} from '@hugeicons/core-free-icons';
 import { useMemo, useState } from 'react';
 import { AppIcon } from '../../ui/app-icon';
 import {
   applyFilters,
   filterByBrandAndModelo,
   filterBySuspension,
+  filterByLocation,
+  filterByVehicleLocationSegment,
   formatPrice,
   getFilterOptions,
+  getVehicleLocationOptions,
+  getVehicleLocationSegment,
   type VehicleFilters,
   type VehicleGroup,
+  type VehicleLocationSegment,
 } from '../../vehicle-catalog/vehicle-catalog';
 import { FilterDrawer, type ListaPreciosFilterOptions } from './filter-drawer';
 import { PlatformLoadingIndicator } from '../../layout/platform-loading-indicator';
 import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
 
-const EMPTY_FILTERS: VehicleFilters = {
+export const EMPTY_VARIANT_FILTERS: VehicleFilters = {
   config: '',
   susp: '',
   tipoMotor: '',
@@ -25,12 +39,39 @@ const EMPTY_FILTERS: VehicleFilters = {
   anioFab: '',
 };
 
+export interface VariantFilterState {
+  search: string;
+  filters: VehicleFilters;
+  locationSegment: VehicleLocationSegment | undefined;
+  location: string;
+}
+
+export const EMPTY_VARIANT_FILTER_STATE: VariantFilterState = {
+  search: '',
+  filters: EMPTY_VARIANT_FILTERS,
+  locationSegment: undefined,
+  location: '',
+};
+
+const LOCATION_SEGMENTS: {
+  key: VehicleLocationSegment;
+  label: string;
+  icon: typeof CheckmarkCircle02Icon;
+}[] = [
+  { key: 'available', label: 'Disponibles', icon: CheckmarkCircle02Icon },
+  { key: 'in-transit', label: 'En tránsito', icon: TruckDeliveryIcon },
+  { key: 'judicial', label: 'Judiciales', icon: JusticeScale01Icon },
+  { key: 'committed', label: 'Comprometidos', icon: HandshakeIcon },
+];
+
 interface VariantsScreenProps {
   brand: string;
   modelo: string;
   suspension?: string;
   vehiclesState: VehicleCatalogState;
   onSelectVariant: (modelKey: string) => void;
+  filterState: VariantFilterState;
+  onFilterStateChange: (nextState: VariantFilterState) => void;
 }
 
 export function VariantsScreen({
@@ -39,9 +80,9 @@ export function VariantsScreen({
   suspension,
   vehiclesState,
   onSelectVariant,
+  filterState,
+  onFilterStateChange,
 }: VariantsScreenProps): React.JSX.Element {
-  const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState<VehicleFilters>(EMPTY_FILTERS);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const variantGroups = useMemo(
@@ -71,9 +112,44 @@ export function VariantsScreen({
     [variantGroups],
   );
 
+  const filteredGroups = useMemo(
+    () => applyFilters(variantGroups, filterState.search, filterState.filters),
+    [variantGroups, filterState.search, filterState.filters],
+  );
+
+  const locationSegmentCounts = useMemo(() => {
+    const counts = new Map<VehicleLocationSegment, number>();
+    for (const group of filteredGroups.values()) {
+      for (const unit of group.units) {
+        const segment = getVehicleLocationSegment(unit);
+        if (segment !== undefined) {
+          counts.set(segment, (counts.get(segment) ?? 0) + 1);
+        }
+      }
+    }
+    return counts;
+  }, [filteredGroups]);
+
+  const segmentedGroups = useMemo(
+    () =>
+      filterState.locationSegment === undefined
+        ? filteredGroups
+        : filterByVehicleLocationSegment(filteredGroups, filterState.locationSegment),
+    [filteredGroups, filterState.locationSegment],
+  );
+
+  const locationOptions = useMemo(
+    () =>
+      filterState.locationSegment === undefined ? [] : getVehicleLocationOptions(segmentedGroups),
+    [segmentedGroups, filterState.locationSegment],
+  );
+
   const visibleGroups = useMemo(
-    () => applyFilters(variantGroups, search, filters),
-    [variantGroups, search, filters],
+    () =>
+      filterState.location === ''
+        ? segmentedGroups
+        : filterByLocation(segmentedGroups, filterState.location),
+    [segmentedGroups, filterState.location],
   );
 
   const disabledOptions = useMemo(() => {
@@ -81,22 +157,42 @@ export function VariantsScreen({
     for (const field of Object.keys(filterOptions) as (keyof VehicleFilters)[]) {
       const fieldResult: Record<string, boolean> = {};
       for (const option of filterOptions[field]) {
-        if (filters[field] === option) {
+        if (filterState.filters[field] === option) {
           fieldResult[option] = false;
           continue;
         }
-        const testFilters = { ...filters, [field]: option };
-        fieldResult[option] = applyFilters(variantGroups, search, testFilters).size === 0;
+        const testFilters = { ...filterState.filters, [field]: option };
+        fieldResult[option] =
+          applyFilters(variantGroups, filterState.search, testFilters).size === 0;
       }
       result[field] = fieldResult;
     }
     return result;
-  }, [variantGroups, filters, search, filterOptions]);
+  }, [variantGroups, filterState.filters, filterState.search, filterOptions]);
 
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const activeFilterCount = Object.values(filterState.filters).filter(Boolean).length;
 
   const handleFilterChange = (field: keyof VehicleFilters, value: string): void => {
-    setFilters((current) => ({ ...current, [field]: value }));
+    onFilterStateChange({
+      ...filterState,
+      filters: { ...filterState.filters, [field]: value },
+    });
+  };
+
+  const handleLocationSegmentChange = (segment: VehicleLocationSegment): void => {
+    const nextSegment = filterState.locationSegment === segment ? undefined : segment;
+    onFilterStateChange({
+      ...filterState,
+      locationSegment: nextSegment,
+      location: '',
+    });
+  };
+
+  const handleLocationChange = (location: string): void => {
+    onFilterStateChange({
+      ...filterState,
+      location: filterState.location === location ? '' : location,
+    });
   };
 
   return (
@@ -108,15 +204,17 @@ export function VariantsScreen({
             <input
               type="search"
               placeholder="Buscar configuración, motor..."
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              value={filterState.search}
+              onChange={(event) =>
+                onFilterStateChange({ ...filterState, search: event.target.value })
+              }
               aria-label="Buscar"
             />
-            {search ? (
+            {filterState.search ? (
               <button
                 className="lp-search-bar-clear"
                 type="button"
-                onClick={() => setSearch('')}
+                onClick={() => onFilterStateChange({ ...filterState, search: '' })}
                 aria-label="Limpiar búsqueda"
               >
                 <AppIcon icon={Cancel01Icon} size={14} />
@@ -133,6 +231,57 @@ export function VariantsScreen({
             Filtrar{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
           </button>
         </div>
+
+        {vehiclesState.status === 'ready' ? (
+          <section className="lp-location-segments" aria-label="Segmentar por ubicación">
+            <div className="lp-location-segments-primary">
+              {LOCATION_SEGMENTS.map(({ key, label, icon }) => {
+                const count = locationSegmentCounts.get(key) ?? 0;
+                const isActive = filterState.locationSegment === key;
+                return (
+                  <button
+                    key={key}
+                    className={`lp-location-segment${isActive ? ' lp-location-segment--active' : ''}`}
+                    type="button"
+                    aria-pressed={isActive}
+                    aria-label={`${label}: ${count} ${count === 1 ? 'unidad' : 'unidades'}`}
+                    disabled={count === 0 && !isActive}
+                    onClick={() => handleLocationSegmentChange(key)}
+                  >
+                    <AppIcon icon={icon} size={18} />
+                    <span className="lp-location-segment-label">{label}</span>
+                    <span className="lp-location-segment-count">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {filterState.locationSegment !== undefined ? (
+              <div className="lp-location-segments-secondary" aria-label="Ubicaciones">
+                <span className="lp-location-segments-secondary-label">
+                  <AppIcon icon={Location01Icon} size={15} />
+                  Ubicación
+                </span>
+                {locationOptions.map(({ label, count }) => {
+                  const isActive = filterState.location === label;
+                  return (
+                    <button
+                      key={label}
+                      className={`lp-location-option${isActive ? ' lp-location-option--active' : ''}`}
+                      type="button"
+                      aria-pressed={isActive}
+                      aria-label={`${label}: ${count} ${count === 1 ? 'unidad' : 'unidades'}`}
+                      onClick={() => handleLocationChange(label)}
+                    >
+                      <span>{label}</span>
+                      <span className="lp-location-option-count">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
 
         {vehiclesState.status === 'ready' ? (
           <div className="lp-section-title lp-section-title--models">
@@ -208,9 +357,14 @@ export function VariantsScreen({
       <FilterDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        filters={filters}
+        filters={filterState.filters}
         onChange={handleFilterChange}
-        onClear={() => setFilters(EMPTY_FILTERS)}
+        onClear={() =>
+          onFilterStateChange({
+            ...filterState,
+            filters: EMPTY_VARIANT_FILTERS,
+          })
+        }
         options={filterOptions}
         disabledOptions={disabledOptions}
       />

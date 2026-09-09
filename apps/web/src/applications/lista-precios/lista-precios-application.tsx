@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { ApplicationComponentProps } from '../application-component';
 import { PlatformHeader } from '../../layout/platform-header';
 import { PlatformSessionBar } from '../../layout/platform-session-bar';
@@ -23,12 +23,24 @@ import {
   type VehicleCatalogState,
 } from '../../vehicle-catalog/use-vehicle-catalog';
 import { useListaPreciosUsageEvents } from './use-lista-precios-usage-events';
-import { VariantsScreen } from './variants-screen';
+import {
+  EMPTY_VARIANT_FILTER_STATE,
+  VariantsScreen,
+  type VariantFilterState,
+} from './variants-screen';
 import { SuspensionsScreen } from './suspensions-screen';
 import { useEquipmentRentals } from './use-equipment-rentals';
 
 const DEFAULT_WHATSAPP_NUMBER = '595976511016';
 const DEFAULT_WHATSAPP_MESSAGE_TEMPLATE = 'Hola, ¿está disponible el modelo: {modelo}?';
+
+function getVariantFilterKey(
+  brand: string,
+  modelo: string,
+  suspension: string | undefined,
+): string {
+  return [brand, modelo, suspension ?? ''].map((part) => part.trim().toUpperCase()).join('|');
+}
 
 /** Contexto del catálogo junto al nombre de la aplicación. */
 function computeBreadcrumb(
@@ -104,6 +116,7 @@ export function ListaPreciosApplication({
 }: ApplicationComponentProps): React.JSX.Element {
   const { state: vehiclesState, reload } = useVehicleCatalog(api);
   const internalNavigationCount = useRef(0);
+  const [variantFilters, setVariantFilters] = useState<Record<string, VariantFilterState>>({});
 
   const route = useMemo(
     () => parseListaPreciosRoute(pathname, application.launchPath),
@@ -136,6 +149,22 @@ export function ListaPreciosApplication({
   const launchPath = application.launchPath;
   const breadcrumb = computeBreadcrumb(route, vehiclesState);
   const backLabel = computeBackLabel(route, vehiclesState);
+  const variantFilterKey =
+    route.view === 'variants'
+      ? getVariantFilterKey(route.brand, route.modelo, route.suspension)
+      : undefined;
+  const currentVariantFilterState =
+    variantFilterKey === undefined
+      ? EMPTY_VARIANT_FILTER_STATE
+      : (variantFilters[variantFilterKey] ?? EMPTY_VARIANT_FILTER_STATE);
+
+  const updateVariantFilterState = useCallback(
+    (nextFilterState: VariantFilterState): void => {
+      if (variantFilterKey === undefined) return;
+      setVariantFilters((current) => ({ ...current, [variantFilterKey]: nextFilterState }));
+    },
+    [variantFilterKey],
+  );
 
   return (
     <main className="platform-shell lista-precios-shell">
@@ -200,6 +229,8 @@ export function ListaPreciosApplication({
           suspension={route.suspension}
           vehiclesState={vehiclesState}
           onSelectVariant={(modelKey) => navigateWithinApp(buildDetailPath(launchPath, modelKey))}
+          filterState={currentVariantFilterState}
+          onFilterStateChange={updateVariantFilterState}
         />
       ) : null}
 

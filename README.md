@@ -12,7 +12,9 @@ El catálogo incluye `Hello World` como integración técnica en `/apps/hello-wo
 principal registra el uso idempotente `hello-world.joke_requested`, obtiene un chiste en inglés
 desde icanhazdadjoke y lo traduce al español con MyMemory, sin claves de API.
 También incluye `Lista de Precios` en `/apps/lista-precios`: consulta el catálogo autorizado de
-vehículos y las tarifas de alquiler de maquinarias desde Zoho Analytics. La tarjeta de alquiler
+vehículos y las tarifas de alquiler de maquinarias desde Zoho Analytics. En las variantes permite
+segmentar rápidamente unidades por disponibilidad, tránsito, judiciales o comprometidos y luego
+por ubicación, conservando los filtros al navegar al detalle y regresar. La tarjeta de alquiler
 presenta Descripción del equipo, Capacidad y Tarifa, agrupadas por tipo de maquinaria. El modelo
 HOWO NX de SINOTRUK permite elegir la suspensión antes de consultar sus variantes. Registra
 aperturas, vistas únicas de modelo por visita e inicios de consulta, sin persistir unidades de

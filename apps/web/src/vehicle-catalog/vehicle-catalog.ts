@@ -55,6 +55,22 @@ export interface VehicleFilters {
   anioFab: string;
 }
 
+export type VehicleLocationSegment = 'available' | 'in-transit' | 'judicial' | 'committed';
+
+export interface VehicleLocationOption {
+  label: string;
+  count: number;
+}
+
+const LOCATION_SEGMENT_VALUES: Record<
+  Exclude<VehicleLocationSegment, 'available'>,
+  readonly string[]
+> = {
+  'in-transit': ['EN TRANSITO', 'FABRICA', 'ADUANA'],
+  judicial: ['CIUDAD DEL ESTE', 'CARNEADOS', 'PROCESO/TALLER', 'LEASING'],
+  committed: ['PRESTAMO', 'ALQUILERES', 'USO INTERNO'],
+};
+
 export function getGroupKey(unit: VehicleResponse): string {
   return [unit.marca, unit.modelo, unit.config || unit.chasis, unit.susp, unit.tipoMotor]
     .map((part) => part.trim().toUpperCase())
@@ -315,6 +331,98 @@ export function getFilterOptions(
   return [...values].sort();
 }
 
+function normalizeLocation(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .trim()
+    .toUpperCase();
+}
+
+function createGroupWithUnits(group: VehicleGroup, units: VehicleResponse[]): VehicleGroup {
+  const prices = units
+    .map((unit) => parsePrice(unit.precioLista))
+    .filter((price): price is number => price !== null);
+  const years = [...new Set(units.map((unit) => unit.anioFab.slice(0, 4)).filter(Boolean))].sort();
+
+  return {
+    ...group,
+    units,
+    stockCount: units.length,
+    anios: years,
+    precioMin: prices.length === 0 ? null : Math.min(...prices),
+    precioMax: prices.length === 0 ? null : Math.max(...prices),
+  };
+}
+
+function filterUnits(
+  groups: Map<string, VehicleGroup>,
+  predicate: (unit: VehicleResponse) => boolean,
+): Map<string, VehicleGroup> {
+  const result = new Map<string, VehicleGroup>();
+  for (const [key, group] of groups) {
+    const matchingUnits = group.units.filter(predicate);
+    if (matchingUnits.length > 0) {
+      result.set(key, createGroupWithUnits(group, matchingUnits));
+    }
+  }
+  return result;
+}
+
+/**
+ * Clasifica las ubicaciones comerciales acordadas para la vista rápida. Las ubicaciones especiales
+ * tienen prioridad sobre el indicador de disponibilidad para que una unidad no aparezca en dos
+ * segmentos a la vez.
+ */
+export function getVehicleLocationSegment(
+  unit: VehicleResponse,
+): VehicleLocationSegment | undefined {
+  const location = normalizeLocation(unit.ubicacion);
+  for (const [segment, locations] of Object.entries(LOCATION_SEGMENT_VALUES) as [
+    Exclude<VehicleLocationSegment, 'available'>,
+    readonly string[],
+  ][]) {
+    if (locations.includes(location)) {
+      return segment;
+    }
+  }
+  return unit.disponible.trim().toUpperCase() === 'SI' ? 'available' : undefined;
+}
+
+export function filterByVehicleLocationSegment(
+  groups: Map<string, VehicleGroup>,
+  segment: VehicleLocationSegment,
+): Map<string, VehicleGroup> {
+  return filterUnits(groups, (unit) => getVehicleLocationSegment(unit) === segment);
+}
+
+export function filterByLocation(
+  groups: Map<string, VehicleGroup>,
+  location: string,
+): Map<string, VehicleGroup> {
+  const normalizedLocation = normalizeLocation(location);
+  return filterUnits(groups, (unit) => normalizeLocation(unit.ubicacion) === normalizedLocation);
+}
+
+export function getVehicleLocationOptions(
+  groups: Map<string, VehicleGroup>,
+): VehicleLocationOption[] {
+  const counts = new Map<string, VehicleLocationOption>();
+  for (const group of groups.values()) {
+    for (const unit of group.units) {
+      const label = unit.ubicacion.trim();
+      if (label === '') continue;
+      const normalizedLabel = normalizeLocation(label);
+      const current = counts.get(normalizedLabel);
+      counts.set(normalizedLabel, {
+        label: current?.label ?? label,
+        count: (current?.count ?? 0) + 1,
+      });
+    }
+  }
+  return [...counts.values()].sort((left, right) => left.label.localeCompare(right.label, 'es'));
+}
+
 export function applyFilters(
   groups: Map<string, VehicleGroup>,
   search: string,
@@ -335,22 +443,19 @@ export function applyFilters(
     if (filters.susp && group.susp.toUpperCase() !== filters.susp.toUpperCase()) continue;
     if (filters.tipoMotor && group.tipoMotor.toUpperCase() !== filters.tipoMotor.toUpperCase())
       continue;
-    if (filters.anioFab && !group.anios.includes(filters.anioFab)) continue;
-
-    if (filters.tipoCaja || filters.color || filters.ubicacion || filters.aire) {
-      const matchesUnit = group.units.some((unit) => {
-        if (filters.tipoCaja && unit.tipoCaja.toUpperCase() !== filters.tipoCaja.toUpperCase())
-          return false;
-        if (filters.color && unit.color.toUpperCase() !== filters.color.toUpperCase()) return false;
-        if (filters.ubicacion && unit.ubicacion.toUpperCase() !== filters.ubicacion.toUpperCase())
-          return false;
-        if (filters.aire && unit.aire.toUpperCase() !== filters.aire.toUpperCase()) return false;
-        return true;
-      });
-      if (!matchesUnit) continue;
+    const matchingUnits = group.units.filter((unit) => {
+      if (filters.anioFab && unit.anioFab.slice(0, 4) !== filters.anioFab) return false;
+      if (filters.tipoCaja && unit.tipoCaja.toUpperCase() !== filters.tipoCaja.toUpperCase())
+        return false;
+      if (filters.color && unit.color.toUpperCase() !== filters.color.toUpperCase()) return false;
+      if (filters.ubicacion && unit.ubicacion.toUpperCase() !== filters.ubicacion.toUpperCase())
+        return false;
+      if (filters.aire && unit.aire.toUpperCase() !== filters.aire.toUpperCase()) return false;
+      return true;
+    });
+    if (matchingUnits.length > 0) {
+      result.set(key, createGroupWithUnits(group, matchingUnits));
     }
-
-    result.set(key, group);
   }
 
   return result;
