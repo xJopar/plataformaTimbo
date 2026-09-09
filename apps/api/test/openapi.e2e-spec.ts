@@ -14,7 +14,7 @@ describe('Documentación OpenAPI publicada (e2e)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [AppModule.register(true)],
     })
       .overrideProvider(PrismaService)
       .useValue({})

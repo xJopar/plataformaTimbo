@@ -75,7 +75,9 @@ describe('autenticación HTTP (e2e)', () => {
     process.env.GOOGLE_OAUTH_REDIRECT_URI = 'http://localhost:3000/api/auth/google/callback';
     process.env.CORS_ORIGIN = TEST_ORIGIN;
 
-    const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule.register(true)],
+    })
       .overrideProvider(PrismaService)
       .useValue(prismaService)
       .overrideProvider(MetaCompanyPrismaService)

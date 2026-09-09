@@ -2,6 +2,7 @@ import {
   DEFAULT_CORS_ORIGIN,
   DEFAULT_CORPORATE_EMAIL_DOMAIN,
   DEFAULT_ENVIRONMENT,
+  DEFAULT_META_COMPANY_ENABLED,
   DEFAULT_PORT,
   SESSION_DURATION_MS,
   resolveDatabaseUrl,
@@ -9,6 +10,8 @@ import {
   resolveEnvironment,
   resolveEnvironmentFromEnvironment,
   resolveGoogleOAuthConfig,
+  resolveMetaCompanyEnabled,
+  resolveMetaCompanyEnabledFromEnvironment,
   resolveRuntimeConfig,
 } from './runtime-config';
 
@@ -30,6 +33,7 @@ describe('resolveRuntimeConfig', () => {
       port: DEFAULT_PORT,
       corsOrigin: DEFAULT_CORS_ORIGIN,
       databaseUrl: TEST_DATABASE_URL,
+      metaCompanyEnabled: DEFAULT_META_COMPANY_ENABLED,
       googleOAuth: {
         clientId: TEST_GOOGLE_OAUTH_ENVIRONMENT.GOOGLE_OAUTH_CLIENT_ID,
         clientSecret: TEST_GOOGLE_OAUTH_ENVIRONMENT.GOOGLE_OAUTH_CLIENT_SECRET,
@@ -173,6 +177,26 @@ describe('resolveRuntimeConfig', () => {
       maxAge: SESSION_DURATION_MS,
       path: '/',
     });
+  });
+});
+
+describe('resolveMetaCompanyEnabled', () => {
+  it('mantiene Meta Company habilitada cuando la variable está ausente', () => {
+    expect(resolveMetaCompanyEnabled(undefined)).toBe(DEFAULT_META_COMPANY_ENABLED);
+    expect(resolveMetaCompanyEnabled('   ')).toBe(DEFAULT_META_COMPANY_ENABLED);
+  });
+
+  it('acepta valores booleanos sin distinguir mayúsculas', () => {
+    expect(resolveMetaCompanyEnabled(' TRUE ')).toBe(true);
+    expect(resolveMetaCompanyEnabled('false')).toBe(false);
+  });
+
+  it('resuelve META_COMPANY_ENABLED desde el entorno recibido', () => {
+    expect(resolveMetaCompanyEnabledFromEnvironment({ META_COMPANY_ENABLED: 'false' })).toBe(false);
+  });
+
+  it.each(['yes', '0', 'enabled'])('rechaza un valor inválido: %s', (invalidValue) => {
+    expect(() => resolveMetaCompanyEnabled(invalidValue)).toThrow(/META_COMPANY_ENABLED/);
   });
 });
 

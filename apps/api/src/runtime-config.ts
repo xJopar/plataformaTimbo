@@ -2,6 +2,7 @@ export interface RuntimeConfig {
   port: number;
   corsOrigin: string;
   databaseUrl: string;
+  metaCompanyEnabled: boolean;
   googleOAuth: GoogleOAuthConfig;
   sessionCookie: SessionCookieConfig;
 }
@@ -24,6 +25,7 @@ export const DEFAULT_PORT = 3000;
 export const DEFAULT_CORS_ORIGIN = 'http://localhost:5173';
 export const DEFAULT_ENVIRONMENT = 'development';
 export const DEFAULT_CORPORATE_EMAIL_DOMAIN = 'timbo.com.py';
+export const DEFAULT_META_COMPANY_ENABLED = true;
 
 const MIN_PORT = 1;
 const MAX_PORT = 65535;
@@ -104,6 +106,30 @@ export function resolveMetaCompanyDatabaseUrlFromEnvironment(
   env: NodeJS.ProcessEnv = process.env,
 ): string {
   return resolveDatabaseUrl(env.DATABASE_META_EXAMPLE_URL);
+}
+
+export function resolveMetaCompanyEnabled(rawMetaCompanyEnabled: string | undefined): boolean {
+  const normalizedMetaCompanyEnabled = rawMetaCompanyEnabled?.trim().toLowerCase();
+
+  if (normalizedMetaCompanyEnabled === undefined || normalizedMetaCompanyEnabled === '') {
+    return DEFAULT_META_COMPANY_ENABLED;
+  }
+
+  if (normalizedMetaCompanyEnabled === 'true') {
+    return true;
+  }
+
+  if (normalizedMetaCompanyEnabled === 'false') {
+    return false;
+  }
+
+  throw new Error('La variable de entorno META_COMPANY_ENABLED debe ser true o false.');
+}
+
+export function resolveMetaCompanyEnabledFromEnvironment(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  return resolveMetaCompanyEnabled(env.META_COMPANY_ENABLED);
 }
 
 /**
@@ -225,6 +251,7 @@ export function resolveRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runt
     port: resolvePort(env.PORT),
     corsOrigin: resolveCorsOriginFromEnvironment(env),
     databaseUrl: resolveDatabaseUrl(env.DATABASE_URL),
+    metaCompanyEnabled: resolveMetaCompanyEnabledFromEnvironment(env),
     googleOAuth: {
       clientId: googleOAuthConfig.clientId,
       clientSecret: googleOAuthConfig.clientSecret,

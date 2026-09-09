@@ -19,9 +19,15 @@ La API usa PostgreSQL mediante Prisma. Cada entorno Railway referencia solamente
 `DATABASE_URL` privado de su PostgreSQL del mismo entorno. La migración se aplica antes de
 arrancar la API mediante el `preDeployCommand` versionado en `apps/api/railway.json`.
 
-El build de la API genera el cliente Prisma antes de compilar y la CLI `prisma` es una dependencia
-disponible en la imagen. El pre-deploy ejecuta exclusivamente `prisma migrate deploy`: no genera
+El build de la API genera el cliente Prisma principal antes de compilar y, sólo cuando Meta Company
+está habilitada, también su cliente aislado. La CLI `prisma` es una dependencia disponible en la
+imagen. El pre-deploy ejecuta exclusivamente `prisma migrate deploy`: no genera
 migraciones ni ejecuta `migrate dev`, `db push` o `migrate reset`.
+
+La base principal siempre recibe sus migraciones versionadas. Meta Company tiene un proveedor
+PostgreSQL con ciclo de vida propio: sólo genera su cliente, migra su esquema secundario y carga su módulo cuando
+`META_COMPANY_ENABLED=true`. Mientras esa variable sea `false`, Production no requiere
+`DATABASE_META_EXAMPLE_URL` ni credenciales de Service Layer.
 
 ## Configuración inicial histórica (no repetir)
 
@@ -131,9 +137,11 @@ Si la web muestra “API no disponible”, revisar primero el valor efectivo de
 `CORS_ORIGIN` en `api`.
 
 El pre-deploy ejecuta `corepack pnpm --filter @timbo/api prisma:migrate:deploy` desde la raíz
-real del monorepo; si una migración falla, Railway no inicia la API. En development puede
-comprobarse de manera controlada que no haya migraciones pendientes. Producción no se usa para
-crear, generar, validar por escritura ni resetear migraciones.
+real del monorepo; si una migración principal falla, Railway no inicia la API. Con
+`META_COMPANY_ENABLED=true`, aplica después las migraciones de Meta Company y una falla también
+detiene el despliegue. Con `META_COMPANY_ENABLED=false`, omite únicamente esa migración secundaria.
+En development puede comprobarse de manera controlada que no haya migraciones pendientes.
+Producción no se usa para crear, generar, validar por escritura ni resetear migraciones.
 
 ## Promoción autorizada a production
 

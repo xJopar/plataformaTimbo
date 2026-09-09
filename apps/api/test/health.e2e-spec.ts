@@ -13,7 +13,7 @@ describe('GET /api/health (e2e)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [AppModule.register(true)],
     })
       .overrideProvider(PrismaService)
       .useValue({})

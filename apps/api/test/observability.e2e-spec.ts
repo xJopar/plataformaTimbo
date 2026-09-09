@@ -37,7 +37,9 @@ describe('Log operativo estructurado y X-Request-Id (e2e)', () => {
   };
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule.register(true)],
+    })
       .overrideProvider(PrismaService)
       .useValue(prismaService)
       .overrideProvider(MetaCompanyPrismaService)
