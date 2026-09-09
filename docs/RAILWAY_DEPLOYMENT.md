@@ -19,14 +19,15 @@ La API usa PostgreSQL mediante Prisma. Cada entorno Railway referencia solamente
 `DATABASE_URL` privado de su PostgreSQL del mismo entorno. La migración se aplica antes de
 arrancar la API mediante el `preDeployCommand` versionado en `apps/api/railway.json`.
 
-El build de la API genera el cliente Prisma principal antes de compilar y, sólo cuando Meta Company
-está habilitada, también su cliente aislado. La CLI `prisma` es una dependencia disponible en la
-imagen. El pre-deploy ejecuta exclusivamente `prisma migrate deploy`: no genera
+El build de la API genera siempre los dos clientes Prisma antes de compilar, porque TypeScript necesita
+resolver los tipos de Meta Company aun cuando su módulo no se cargue en ejecución. La generación no
+conecta ni migra esa base secundaria. La CLI `prisma` es una dependencia disponible en la imagen. El
+pre-deploy ejecuta exclusivamente `prisma migrate deploy`: no genera
 migraciones ni ejecuta `migrate dev`, `db push` o `migrate reset`.
 
 La base principal siempre recibe sus migraciones versionadas. Meta Company tiene un proveedor
-PostgreSQL con ciclo de vida propio: sólo genera su cliente, migra su esquema secundario y carga su módulo cuando
-`META_COMPANY_ENABLED=true`. Mientras esa variable sea `false`, Production no requiere
+PostgreSQL con ciclo de vida propio: su cliente se genera durante el build, pero sólo migra su esquema
+secundario y carga su módulo cuando `META_COMPANY_ENABLED=true`. Mientras esa variable sea `false`, Production no requiere
 `DATABASE_META_EXAMPLE_URL` ni credenciales de Service Layer.
 
 ## Configuración inicial histórica (no repetir)

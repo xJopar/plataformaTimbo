@@ -1,18 +1,15 @@
 const { spawnSync } = require('node:child_process');
 const { resolve } = require('node:path');
-const { resolveMetaCompanyEnabled } = require('./meta-company-feature.cjs');
 
 const applicationDirectory = resolve(__dirname, '..');
 const prismaCliPath = resolve(applicationDirectory, 'node_modules', 'prisma', 'build', 'index.js');
 
-function generateClients(environment, runPrismaGenerate) {
+function generateClients(runPrismaGenerate) {
   if (!runPrismaGenerate('prisma.config.ts')) {
     return false;
   }
 
-  return (
-    !resolveMetaCompanyEnabled(environment) || runPrismaGenerate('meta-company.prisma.config.ts')
-  );
+  return runPrismaGenerate('meta-company.prisma.config.ts');
 }
 
 function runPrismaGenerate(configPath) {
@@ -35,7 +32,7 @@ function runPrismaGenerate(configPath) {
 
 function main() {
   try {
-    generateClients(process.env, runPrismaGenerate);
+    generateClients(runPrismaGenerate);
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
