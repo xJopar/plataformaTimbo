@@ -612,6 +612,45 @@ describe('App', () => {
     expect(window.location.pathname).toBe('/admin/activity');
   });
 
+  it('muestra los valores ausentes con un separador UTF-8 válido', async () => {
+    window.history.replaceState({}, '', '/admin/activity');
+    render(
+      <App
+        api={createApi(
+          {},
+          {
+            listActivity: vi.fn<AdministrationApi['listActivity']>().mockResolvedValue({
+              items: [
+                {
+                  id: 'activity-a',
+                  source: 'USAGE',
+                  actor: 'Persona Timbo',
+                  appKey: 'calculadora-cuotas',
+                  eventName: 'calculadora-cuotas.opened',
+                  outcome: 'SUCCESS',
+                  visitId: 'a75a9b36-fcb4-4489-a3ea-f1e9a8d5d398',
+                  targetType: null,
+                  targetId: null,
+                  target: null,
+                  metadata: {},
+                  occurredAt: '2026-09-09T16:35:00.000Z',
+                },
+              ],
+              total: 1,
+              limit: 25,
+              offset: 0,
+            }),
+          },
+        )}
+      />,
+    );
+
+    await screen.findByRole('heading', { name: 'Actividad' });
+
+    expect(screen.getAllByText('—')).toHaveLength(4);
+    expect(screen.queryByText('\u00e2\u20ac\u201d')).not.toBeInTheDocument();
+  });
+
   it('muestra un estado sin permiso cuando la API rechaza el panel', async () => {
     window.history.replaceState({}, '', '/admin');
     render(

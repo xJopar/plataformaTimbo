@@ -635,7 +635,7 @@ function ActivityPanel({ api }: { api: Api }): React.JSX.Element {
           </button>
         </div>
       </form>
-      {activityState.status === 'loading' ? <p aria-live="polite">Cargando actividadâ€¦</p> : null}
+      {activityState.status === 'loading' ? <p aria-live="polite">Cargando actividad…</p> : null}
       {activityState.status === 'ready' ? (
         <ActivityResults
           activity={activityState.activity}
@@ -742,11 +742,11 @@ function ActivityResults({
         />
         <ActivityMetric
           label="Aplicación más frecuente"
-          value={statistics.mostFrequentApp ?? 'â€”'}
+          value={statistics.mostFrequentApp ?? '—'}
         />
         <ActivityMetric
           label="Evento más frecuente"
-          value={statistics.mostFrequentEvent ?? 'â€”'}
+          value={statistics.mostFrequentEvent ?? '—'}
         />
       </div>
       <div className="activity-results-header">
@@ -760,7 +760,7 @@ function ActivityResults({
           disabled={activity.total === 0 || isDownloading}
           onClick={onDownload}
         >
-          {isDownloading ? 'Preparando CSVâ€¦' : 'Descargar CSV'}
+          {isDownloading ? 'Preparando CSV…' : 'Descargar CSV'}
         </button>
       </div>
       {activity.items.length === 0 ? (
@@ -831,7 +831,7 @@ function ActivityRow({ item }: { item: AdministrativeActivityItem }): React.JSX.
   const displayTarget =
     item.metadata.brand !== undefined && item.metadata.model !== undefined
       ? `${item.metadata.brand} / ${item.metadata.model}`
-      : (item.target ?? 'â€”');
+      : (item.target ?? '—');
   return (
     <tr>
       <td>
@@ -849,7 +849,7 @@ function ActivityRow({ item }: { item: AdministrativeActivityItem }): React.JSX.
       <td>{displayTarget}</td>
       <td>
         {metadata.length === 0 ? (
-          'â€”'
+          '—'
         ) : (
           <details>
             <summary>Ver detalle seguro</summary>
