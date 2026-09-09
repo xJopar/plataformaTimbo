@@ -82,20 +82,21 @@ describe('VariantsScreen', () => {
     const user = userEvent.setup();
     render(<VariantScreenHarness />);
 
-    expect(screen.getByRole('button', { name: 'Disponibles: 1 unidad' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Disponibles: 2 unidades' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'En tránsito: 1 unidad' })).toBeEnabled();
     expect(screen.queryByLabelText('Ubicaciones')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Disponibles: 1 unidad' }));
+    await user.click(screen.getByRole('button', { name: 'Disponibles: 2 unidades' }));
 
     expect(screen.getByLabelText('Ubicaciones')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Ver 1 ubicación disponible' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Ver 2 ubicaciones disponibles' })).toHaveAttribute(
       'aria-expanded',
       'false',
     );
-    await user.click(screen.getByRole('button', { name: 'Ver 1 ubicación disponible' }));
+    await user.click(screen.getByRole('button', { name: 'Ver 2 ubicaciones disponibles' }));
     expect(screen.getByRole('button', { name: 'Asunción: 1 unidad' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ciudad del Este: 1 unidad' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Fábrica: 1 unidad' })).not.toBeInTheDocument();
-    expect(screen.getByText('1 variante')).toBeInTheDocument();
+    expect(screen.getByText('2 variantes')).toBeInTheDocument();
   });
 });

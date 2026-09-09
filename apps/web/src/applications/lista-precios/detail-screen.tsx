@@ -38,6 +38,7 @@ const LOCATION_SEGMENT_LABELS: Record<
   NonNullable<VariantFilterState['locationSegment']>,
   string
 > = {
+  stripped: 'Carneados',
   available: 'Disponibles',
   'in-transit': 'En tránsito',
   judicial: 'Judiciales',

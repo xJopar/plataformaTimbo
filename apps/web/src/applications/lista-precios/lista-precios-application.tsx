@@ -43,6 +43,18 @@ function getVariantFilterKey(
   return [brand, modelo, suspension ?? ''].map((part) => part.trim().toUpperCase()).join('|');
 }
 
+function getBrandFilterKey(brand: string): string {
+  return brand.trim().toUpperCase();
+}
+
+function getInitialVariantFilterState(brandFilterState: VariantFilterState): VariantFilterState {
+  return {
+    ...EMPTY_VARIANT_FILTER_STATE,
+    locationSegment: brandFilterState.locationSegment,
+    location: brandFilterState.location,
+  };
+}
+
 /** Contexto del catálogo junto al nombre de la aplicación. */
 function computeBreadcrumb(
   route: ListaPreciosRoute,
@@ -118,6 +130,7 @@ export function ListaPreciosApplication({
   const { state: vehiclesState, reload } = useVehicleCatalog(api);
   const internalNavigationCount = useRef(0);
   const [variantFilters, setVariantFilters] = useState<Record<string, VariantFilterState>>({});
+  const [brandFilters, setBrandFilters] = useState<Record<string, VariantFilterState>>({});
 
   const route = useMemo(
     () => parseListaPreciosRoute(pathname, application.launchPath),
@@ -154,10 +167,18 @@ export function ListaPreciosApplication({
     route.view === 'variants'
       ? getVariantFilterKey(route.brand, route.modelo, route.suspension)
       : undefined;
+  const currentBrandFilterKey =
+    route.view === 'brand' || route.view === 'variants'
+      ? getBrandFilterKey(route.brand)
+      : undefined;
+  const currentBrandFilterState =
+    currentBrandFilterKey === undefined
+      ? EMPTY_VARIANT_FILTER_STATE
+      : (brandFilters[currentBrandFilterKey] ?? EMPTY_VARIANT_FILTER_STATE);
   const currentVariantFilterState =
     variantFilterKey === undefined
       ? EMPTY_VARIANT_FILTER_STATE
-      : (variantFilters[variantFilterKey] ?? EMPTY_VARIANT_FILTER_STATE);
+      : (variantFilters[variantFilterKey] ?? getInitialVariantFilterState(currentBrandFilterState));
   const detailVariantFilterState =
     route.view !== 'detail'
       ? EMPTY_VARIANT_FILTER_STATE
@@ -176,8 +197,26 @@ export function ListaPreciosApplication({
     (nextFilterState: VariantFilterState): void => {
       if (variantFilterKey === undefined) return;
       setVariantFilters((current) => ({ ...current, [variantFilterKey]: nextFilterState }));
+      if (currentBrandFilterKey !== undefined) {
+        setBrandFilters((current) => ({
+          ...current,
+          [currentBrandFilterKey]: {
+            ...(current[currentBrandFilterKey] ?? EMPTY_VARIANT_FILTER_STATE),
+            locationSegment: nextFilterState.locationSegment,
+            location: nextFilterState.location,
+          },
+        }));
+      }
     },
-    [variantFilterKey],
+    [currentBrandFilterKey, variantFilterKey],
+  );
+
+  const updateBrandFilterState = useCallback(
+    (nextFilterState: VariantFilterState): void => {
+      if (currentBrandFilterKey === undefined) return;
+      setBrandFilters((current) => ({ ...current, [currentBrandFilterKey]: nextFilterState }));
+    },
+    [currentBrandFilterKey],
   );
 
   return (
@@ -229,9 +268,20 @@ export function ListaPreciosApplication({
         <BrandScreen
           brand={route.brand}
           vehiclesState={vehiclesState}
-          onSelectModel={(modelo) =>
-            navigateWithinApp(buildVariantsPath(launchPath, route.brand, modelo))
-          }
+          filterState={currentBrandFilterState}
+          onFilterStateChange={updateBrandFilterState}
+          onSelectModel={(modelo) => {
+            const filterKey = getVariantFilterKey(route.brand, modelo, undefined);
+            setVariantFilters((current) => ({
+              ...current,
+              [filterKey]: {
+                ...(current[filterKey] ?? EMPTY_VARIANT_FILTER_STATE),
+                locationSegment: currentBrandFilterState.locationSegment,
+                location: currentBrandFilterState.location,
+              },
+            }));
+            navigateWithinApp(buildVariantsPath(launchPath, route.brand, modelo));
+          }}
           onSelectSubBrand={(subBrand) => navigateWithinApp(buildBrandPath(launchPath, subBrand))}
         />
       ) : null}

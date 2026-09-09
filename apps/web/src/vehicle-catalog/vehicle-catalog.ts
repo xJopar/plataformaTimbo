@@ -55,7 +55,8 @@ export interface VehicleFilters {
   anioFab: string;
 }
 
-export type VehicleLocationSegment = 'available' | 'in-transit' | 'judicial' | 'committed';
+export type VehicleLocationSegment =
+  'stripped' | 'committed' | 'available' | 'in-transit' | 'judicial';
 
 export interface VehicleLocationOption {
   label: string;
@@ -66,10 +67,25 @@ const LOCATION_SEGMENT_VALUES: Record<
   Exclude<VehicleLocationSegment, 'available'>,
   readonly string[]
 > = {
-  'in-transit': ['EN TRANSITO', 'FABRICA', 'ADUANA'],
-  judicial: ['CIUDAD DEL ESTE', 'CARNEADOS', 'PROCESO/TALLER', 'LEASING'],
+  stripped: ['CARNEADOS'],
   committed: ['PRESTAMO', 'ALQUILERES', 'USO INTERNO'],
+  'in-transit': ['EN TRANSITO', 'FABRICA', 'ADUANA'],
+  judicial: ['LIMPIO', 'LEASING'],
 };
+
+const AVAILABLE_LOCATION_VALUES = [
+  'ASUNCION',
+  'PROCESO/TALLER',
+  'LINEA 12',
+  'SANTA RITA',
+  'ENCARNACION',
+  'SANTA ROSA DEL AGUARAY',
+  'COOPERATIVA NEULAND CHACO',
+  'IZ TODO TERRENO CDE',
+  'NUEVA ESPERANZA',
+  'CURUGUATY',
+  'CIUDAD DEL ESTE',
+];
 
 export function getGroupKey(unit: VehicleResponse): string {
   return [unit.marca, unit.modelo, unit.config || unit.chasis, unit.susp, unit.tipoMotor]
@@ -370,9 +386,9 @@ function filterUnits(
 }
 
 /**
- * Clasifica las ubicaciones comerciales acordadas para la vista rápida. Las ubicaciones especiales
- * tienen prioridad sobre el indicador de disponibilidad para que una unidad no aparezca en dos
- * segmentos a la vez.
+ * Clasifica las ubicaciones comerciales acordadas para la vista rápida. Las ubicaciones con un
+ * destino operativo propio tienen prioridad: Carneados sigue siendo stock disponible, pero se
+ * consulta aparte porque requiere una reparación antes de ofrecerlo.
  */
 export function getVehicleLocationSegment(
   unit: VehicleResponse,
@@ -386,7 +402,10 @@ export function getVehicleLocationSegment(
       return segment;
     }
   }
-  return unit.disponible.trim().toUpperCase() === 'SI' ? 'available' : undefined;
+  return AVAILABLE_LOCATION_VALUES.includes(location) ||
+    unit.disponible.trim().toUpperCase() === 'SI'
+    ? 'available'
+    : undefined;
 }
 
 export function filterByVehicleLocationSegment(

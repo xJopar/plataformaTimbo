@@ -3,16 +3,21 @@ import { useMemo, useState } from 'react';
 import { AppIcon } from '../../ui/app-icon';
 import {
   filterByBrand,
+  filterByLocation,
+  filterByVehicleLocationSegment,
   groupByMarcaModelo,
-  type ModelSummary,
   type VehicleGroup,
 } from '../../vehicle-catalog/vehicle-catalog';
 import { PlatformLoadingIndicator } from '../../layout/platform-loading-indicator';
 import type { VehicleCatalogState } from '../../vehicle-catalog/use-vehicle-catalog';
+import { LocationSegmentation } from './location-segmentation';
+import type { VariantFilterState } from './variants-screen';
 
 interface BrandScreenProps {
   brand: string;
   vehiclesState: VehicleCatalogState;
+  filterState: VariantFilterState;
+  onFilterStateChange: (nextState: VariantFilterState) => void;
   onSelectModel: (modelo: string) => void;
   onSelectSubBrand: (subBrand: string) => void;
 }
@@ -24,50 +29,16 @@ function ModelCards({
   brandGroups: Map<string, VehicleGroup>;
   onSelectModel: (modelo: string) => void;
 }): React.JSX.Element {
-  const [search, setSearch] = useState('');
   const modelSummaries = useMemo(() => groupByMarcaModelo(brandGroups), [brandGroups]);
-
-  const visible = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return modelSummaries;
-    const result = new Map<string, ModelSummary>();
-    for (const [key, summary] of modelSummaries) {
-      if (summary.modelo.toLowerCase().includes(query)) result.set(key, summary);
-    }
-    return result;
-  }, [modelSummaries, search]);
 
   return (
     <>
-      <div className="lp-toolbar">
-        <div className="lp-search-bar">
-          <AppIcon icon={Search01Icon} size={16} />
-          <input
-            type="search"
-            placeholder="Buscar modelo..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            aria-label="Buscar"
-          />
-          {search ? (
-            <button
-              className="lp-search-bar-clear"
-              type="button"
-              onClick={() => setSearch('')}
-              aria-label="Limpiar"
-            >
-              <AppIcon icon={Cancel01Icon} size={14} />
-            </button>
-          ) : null}
-        </div>
-      </div>
-
       <div className="lp-section-title lp-section-title--models">
-        {visible.size} modelo{visible.size !== 1 ? 's' : ''}
+        {modelSummaries.size} modelo{modelSummaries.size !== 1 ? 's' : ''}
       </div>
 
       <div className="lp-model-list">
-        {[...visible.values()].map((summary) => {
+        {[...modelSummaries.values()].map((summary) => {
           const anioLabel =
             summary.anios.length === 0
               ? null
@@ -106,6 +77,39 @@ function ModelCards({
         })}
       </div>
     </>
+  );
+}
+
+function ModelSearch({
+  search,
+  onSearchChange,
+}: {
+  search: string;
+  onSearchChange: (search: string) => void;
+}): React.JSX.Element {
+  return (
+    <div className="lp-toolbar">
+      <div className="lp-search-bar">
+        <AppIcon icon={Search01Icon} size={16} />
+        <input
+          type="search"
+          placeholder="Buscar modelo..."
+          value={search}
+          onChange={(event) => onSearchChange(event.target.value)}
+          aria-label="Buscar"
+        />
+        {search ? (
+          <button
+            className="lp-search-bar-clear"
+            type="button"
+            onClick={() => onSearchChange('')}
+            aria-label="Limpiar"
+          >
+            <AppIcon icon={Cancel01Icon} size={14} />
+          </button>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -163,10 +167,13 @@ function OtrosSubBrands({
 export function BrandScreen({
   brand,
   vehiclesState,
+  filterState,
+  onFilterStateChange,
   onSelectModel,
   onSelectSubBrand,
 }: BrandScreenProps): React.JSX.Element {
   const isOtros = brand.toUpperCase() === 'OTROS';
+  const [modelSearch, setModelSearch] = useState('');
   const brandGroups = useMemo(
     () =>
       vehiclesState.status === 'ready'
@@ -174,6 +181,40 @@ export function BrandScreen({
         : new Map<string, VehicleGroup>(),
     [vehiclesState, brand],
   );
+  const searchedBrandGroups = useMemo(() => {
+    const query = modelSearch.trim().toLowerCase();
+    if (query === '') return brandGroups;
+    return new Map(
+      [...brandGroups].filter(([, group]) => group.modelo.toLowerCase().includes(query)),
+    );
+  }, [brandGroups, modelSearch]);
+  const selectedSegmentGroups = useMemo(
+    () =>
+      filterState.locationSegment === undefined
+        ? searchedBrandGroups
+        : filterByVehicleLocationSegment(searchedBrandGroups, filterState.locationSegment),
+    [searchedBrandGroups, filterState.locationSegment],
+  );
+  const visibleBrandGroups = useMemo(
+    () =>
+      filterState.location === ''
+        ? selectedSegmentGroups
+        : filterByLocation(selectedSegmentGroups, filterState.location),
+    [selectedSegmentGroups, filterState.location],
+  );
+
+  const handleLocationSegmentChange = (segment: VariantFilterState['locationSegment']): void => {
+    if (segment === undefined) return;
+    const nextSegment = filterState.locationSegment === segment ? undefined : segment;
+    onFilterStateChange({ ...filterState, locationSegment: nextSegment, location: '' });
+  };
+
+  const handleLocationChange = (location: string): void => {
+    onFilterStateChange({
+      ...filterState,
+      location: filterState.location === location ? '' : location,
+    });
+  };
 
   return (
     <div className="lp-page">
@@ -201,7 +242,25 @@ export function BrandScreen({
         isOtros ? (
           <OtrosSubBrands brandGroups={brandGroups} onSelectSubBrand={onSelectSubBrand} />
         ) : (
-          <ModelCards brandGroups={brandGroups} onSelectModel={onSelectModel} />
+          <>
+            <ModelSearch search={modelSearch} onSearchChange={setModelSearch} />
+            <LocationSegmentation
+              groups={searchedBrandGroups}
+              locationSegment={filterState.locationSegment}
+              location={filterState.location}
+              onLocationSegmentChange={handleLocationSegmentChange}
+              onLocationChange={handleLocationChange}
+            />
+            <ModelCards brandGroups={visibleBrandGroups} onSelectModel={onSelectModel} />
+            {visibleBrandGroups.size === 0 ? (
+              <div className="lp-state-box">
+                <span className="lp-state-box-title">Sin resultados</span>
+                <p className="lp-state-box-desc">
+                  Probá con otra ubicación o limpiá la segmentación.
+                </p>
+              </div>
+            ) : null}
+          </>
         )
       ) : null}
     </div>

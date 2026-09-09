@@ -331,13 +331,20 @@ describe('segmentación rápida por ubicación', () => {
   it('usa las categorías acordadas y no duplica una ubicación especial disponible', () => {
     expect(getVehicleLocationSegment(units[0] ?? BASE_VEHICLE)).toBe('available');
     expect(getVehicleLocationSegment(units[1] ?? BASE_VEHICLE)).toBe('in-transit');
-    expect(getVehicleLocationSegment(units[2] ?? BASE_VEHICLE)).toBe('judicial');
+    expect(getVehicleLocationSegment(units[2] ?? BASE_VEHICLE)).toBe('available');
     expect(getVehicleLocationSegment(units[3] ?? BASE_VEHICLE)).toBe('committed');
+    expect(getVehicleLocationSegment(vehicle({ ubicacion: 'Carneados', disponible: 'SI' }))).toBe(
+      'stripped',
+    );
+    expect(getVehicleLocationSegment(vehicle({ ubicacion: 'Limpio' }))).toBe('judicial');
   });
 
   it('ofrece únicamente las ubicaciones que tienen unidades en el segmento elegido', () => {
     const available = filterByVehicleLocationSegment(groups, 'available');
-    expect(getVehicleLocationOptions(available)).toEqual([{ label: 'Asunción', count: 1 }]);
+    expect(getVehicleLocationOptions(available)).toEqual([
+      { label: 'Asunción', count: 1 },
+      { label: 'Ciudad del Este', count: 1 },
+    ]);
     expect(filterByLocation(available, 'Asunción').size).toBe(1);
   });
 });
