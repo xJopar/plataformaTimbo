@@ -113,6 +113,23 @@ export function formatPrice(amount: number | null): string {
   return amount === null ? 'Precio a consultar' : `USD ${amount.toLocaleString('es-PY')}`;
 }
 
+/**
+ * Normaliza fechas de Zoho Analytics a "dd/MM/yyyy" (sin hora, que siempre viene en 00:00:00).
+ * Acepta tanto "27/11/2026 00:00:00" como "2026-09-09 00:00:00".
+ */
+export function formatShortDate(raw: string | undefined): string | undefined {
+  if (raw === undefined || raw.trim() === '') {
+    return undefined;
+  }
+  const datePart = raw.trim().split(' ')[0] ?? '';
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch;
+    return `${day}/${month}/${year}`;
+  }
+  return datePart;
+}
+
 export function groupByModel(units: VehicleResponse[]): Map<string, VehicleGroup> {
   const groups = new Map<
     string,

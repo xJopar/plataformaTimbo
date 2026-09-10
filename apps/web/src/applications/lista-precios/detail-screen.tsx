@@ -10,6 +10,8 @@ import {
   filterByLocation,
   filterByVehicleLocationSegment,
   formatPrice,
+  formatShortDate,
+  getVehicleLocationSegment,
   parsePrice,
 } from '../../vehicle-catalog/vehicle-catalog';
 import { PlatformLoadingIndicator } from '../../layout/platform-loading-indicator';
@@ -244,6 +246,17 @@ export function DetailScreen({
 
   const unitPrice = selectedUnit === null ? null : parsePrice(selectedUnit.precioLista);
   const isSemirremolque = SEMIRREMOLQUE_BRANDS.includes(group.marca.trim().toUpperCase());
+  const isInTransitUnit =
+    selectedUnit !== null && getVehicleLocationSegment(selectedUnit) === 'in-transit';
+  const aproxLlegadaLabel =
+    selectedUnit !== null ? formatShortDate(selectedUnit.aproxLlegada) : undefined;
+  const fechaSenaLabel = selectedUnit !== null ? formatShortDate(selectedUnit.fechaSena) : undefined;
+  const senaValue =
+    fechaSenaLabel === undefined
+      ? undefined
+      : [fechaSenaLabel, selectedUnit?.vendedorSena ? `Vendedor: ${selectedUnit.vendedorSena}` : null]
+          .filter(Boolean)
+          .join(' · ');
   const filterSummary = getFilterSummary(variantFilterState);
   const hasActiveFilters = filterSummary.length > 0;
 
@@ -349,6 +362,9 @@ export function DetailScreen({
                 ) : null}
 
                 <div className="lp-unit-fields-section">
+                  {senaValue !== undefined ? (
+                    <InfoRow label="Fecha de Seña" value={senaValue} highlight />
+                  ) : null}
                   <InfoRow label="Color" value={selectedUnit.color} />
                   {selectedUnit.comentario && selectedUnit.comentario !== selectedUnit.origen ? (
                     <InfoRow label="Comentario" value={selectedUnit.comentario} highlight />
@@ -373,6 +389,9 @@ export function DetailScreen({
                     }
                   />
                   <InfoRow label="Ubicacion" value={selectedUnit.ubicacion} />
+                  {isInTransitUnit ? (
+                    <InfoRow label="Aprox. Llegada" value={aproxLlegadaLabel} />
+                  ) : null}
                   <InfoRow label="Origen" value={selectedUnit.origen} />
                   {isSemirremolque ? <InfoRow label="Piso" value={selectedUnit.piso} /> : null}
                   {isSemirremolque ? <InfoRow label="Altura" value={selectedUnit.altura} /> : null}
