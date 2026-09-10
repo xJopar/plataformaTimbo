@@ -97,6 +97,22 @@ function InfoRow({
   );
 }
 
+function SpecCell({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | undefined;
+}): React.JSX.Element | null {
+  if (!value) return null;
+  return (
+    <div className="lp-spec-cell">
+      <span className="lp-shared-info-card-lbl">{label}</span>
+      <span className="lp-shared-info-card-val">{value}</span>
+    </div>
+  );
+}
+
 function AvailBadge({ disponible }: { disponible: string }): React.JSX.Element {
   const isAvailable = disponible.toUpperCase() === 'SI';
   return (
@@ -365,36 +381,40 @@ export function DetailScreen({
                   {senaValue !== undefined ? (
                     <InfoRow label="Fecha de Seña" value={senaValue} highlight />
                   ) : null}
-                  <InfoRow label="Color" value={selectedUnit.color} />
+                  <InfoRow label="Ubicacion" value={selectedUnit.ubicacion} highlight />
+                  {isInTransitUnit ? (
+                    <InfoRow label="Aprox. Llegada" value={aproxLlegadaLabel} highlight />
+                  ) : null}
                   {selectedUnit.comentario && selectedUnit.comentario !== selectedUnit.origen ? (
                     <InfoRow label="Comentario" value={selectedUnit.comentario} highlight />
                   ) : null}
-                  <InfoRow label="Tipo Caja" value={selectedUnit.tipoCaja} />
-                  <InfoRow
-                    label="Aire"
-                    value={
-                      selectedUnit.aire === 'SI'
-                        ? 'Si'
-                        : selectedUnit.aire === 'NO'
-                          ? 'No'
-                          : selectedUnit.aire
-                    }
-                  />
-                  <InfoRow
-                    label="KM"
-                    value={
-                      selectedUnit.km
-                        ? `${Number(selectedUnit.km).toLocaleString('es-PY')} km`
-                        : undefined
-                    }
-                  />
-                  <InfoRow label="Ubicacion" value={selectedUnit.ubicacion} />
-                  {isInTransitUnit ? (
-                    <InfoRow label="Aprox. Llegada" value={aproxLlegadaLabel} />
-                  ) : null}
-                  <InfoRow label="Origen" value={selectedUnit.origen} />
-                  {isSemirremolque ? <InfoRow label="Piso" value={selectedUnit.piso} /> : null}
-                  {isSemirremolque ? <InfoRow label="Altura" value={selectedUnit.altura} /> : null}
+                  <div className="lp-unit-specs-grid">
+                    <SpecCell label="Color" value={selectedUnit.color} />
+                    <SpecCell label="Tipo Caja" value={selectedUnit.tipoCaja} />
+                    <SpecCell
+                      label="Aire"
+                      value={
+                        selectedUnit.aire === 'SI'
+                          ? 'Si'
+                          : selectedUnit.aire === 'NO'
+                            ? 'No'
+                            : selectedUnit.aire
+                      }
+                    />
+                    <SpecCell
+                      label="KM"
+                      value={
+                        selectedUnit.km
+                          ? `${Number(selectedUnit.km).toLocaleString('es-PY')} km`
+                          : undefined
+                      }
+                    />
+                    <SpecCell label="Origen" value={selectedUnit.origen} />
+                    {isSemirremolque ? <SpecCell label="Piso" value={selectedUnit.piso} /> : null}
+                    {isSemirremolque ? (
+                      <SpecCell label="Altura" value={selectedUnit.altura} />
+                    ) : null}
+                  </div>
                 </div>
               </>
             )}

@@ -634,12 +634,18 @@
 }
 .lp-detail-row--highlight {
   background: #f3f6fb;
-  border-left: 4px solid #003f8f;
 }
 .lp-detail-row--highlight .lp-detail-row-label,
 .lp-detail-row--highlight .lp-detail-row-value {
-  color: #003f8f;
-  font-weight: 500;
+  color: var(--lp-c-brand);
+  font-weight: 600;
+}
+
+.lp-unit-specs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--lp-sp-3) var(--lp-sp-4);
+  padding: var(--lp-sp-3) var(--lp-sp-4);
 }
 
 .lp-stock-section-header {
