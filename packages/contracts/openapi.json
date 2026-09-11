@@ -3913,10 +3913,6 @@
       "MetaCompanyCatalogResponseDto": {
         "type": "object",
         "properties": {
-          "brandCatalogAvailable": {
-            "type": "boolean",
-            "example": true
-          },
           "empresas": {
             "type": "array",
             "items": {
@@ -3943,7 +3939,6 @@
           }
         },
         "required": [
-          "brandCatalogAvailable",
           "empresas",
           "brands",
           "businesses",

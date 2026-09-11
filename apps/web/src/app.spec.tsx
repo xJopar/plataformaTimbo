@@ -176,7 +176,6 @@ function createApi(
       listMetaCompanyCatalogs: vi
         .fn<ApplicationsApi['listMetaCompanyCatalogs']>()
         .mockResolvedValue({
-          brandCatalogAvailable: true,
           empresas: [],
           brands: [],
           businesses: [],
@@ -184,13 +183,7 @@ function createApi(
         }),
       listAllMetaCompanyCatalogs: vi
         .fn<ApplicationsApi['listAllMetaCompanyCatalogs']>()
-        .mockResolvedValue({
-          brandCatalogAvailable: true,
-          empresas: [],
-          brands: [],
-          businesses: [],
-          advisors: [],
-        }),
+        .mockResolvedValue({ empresas: [], brands: [], businesses: [], advisors: [] }),
       getMetaCompanyCapabilities: vi
         .fn<ApplicationsApi['getMetaCompanyCapabilities']>()
         .mockResolvedValue({ canManageCatalogs: false, canManageGoals: false }),

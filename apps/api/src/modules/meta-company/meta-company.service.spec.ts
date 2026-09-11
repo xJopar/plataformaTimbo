@@ -2,7 +2,6 @@ import { PrismaService } from '../../database/prisma.service';
 import { AuditEventsService } from '../audit-events/audit-events.service';
 import { MetaCompanyServiceLayerService } from './meta-company-service-layer.service';
 import { MetaCompanyService } from './meta-company.service';
-import { MetaCompanyServiceLayerUnavailableError } from './meta-company-service-layer.errors';
 
 describe('MetaCompanyService', () => {
   const serviceLayerService = {
@@ -13,8 +12,6 @@ describe('MetaCompanyService', () => {
     updateEmpresa: jest.fn(),
   };
   const auditEventsService = { append: jest.fn().mockResolvedValue(undefined) };
-  const operationalLogger = { logMetaCompanyCatalogPartialFailure: jest.fn() };
-  const requestContext = { getRequestId: jest.fn().mockReturnValue('request-1') };
   const platformPrisma = {
     $transaction: jest.fn((callback: (transactionClient: unknown) => unknown) => callback({})),
   };
@@ -22,8 +19,6 @@ describe('MetaCompanyService', () => {
     platformPrisma as unknown as PrismaService,
     auditEventsService as unknown as AuditEventsService,
     serviceLayerService as unknown as MetaCompanyServiceLayerService,
-    operationalLogger as never,
-    requestContext as never,
   );
 
   beforeEach(() => {
@@ -41,55 +36,12 @@ describe('MetaCompanyService', () => {
     serviceLayerService.listAdvisors.mockResolvedValue([]);
 
     await expect(service.listCatalogs()).resolves.toEqual({
-      brandCatalogAvailable: true,
       empresas: [{ id: 1, code: 'TIMBO', name: 'Timbo', active: true }],
       brands: [],
       businesses: [{ id: 2, empresaId: 1, name: 'Comercial', active: true }],
       advisors: [],
     });
     expect(serviceLayerService.listEmpresas).toHaveBeenCalledWith(false);
-  });
-
-  it('mantiene disponibles los demas catalogos si Service Layer no entrega marcas', async () => {
-    serviceLayerService.listEmpresas.mockResolvedValue([
-      { idEmpresa: 1, codigo: 'TIMBO', empresa: 'Timbo', activo: true },
-    ]);
-    serviceLayerService.listBrands.mockRejectedValue(
-      new MetaCompanyServiceLayerUnavailableError('Service Layer no disponible.'),
-    );
-    serviceLayerService.listBusinesses.mockResolvedValue([]);
-    serviceLayerService.listAdvisors.mockResolvedValue([
-      {
-        idAsesor: 45,
-        idEmpresa: 1,
-        idSap: 152,
-        nombre: 'Luis Reguera',
-        tipo: 'PERSON',
-        activo: true,
-      },
-    ]);
-
-    await expect(service.listCatalogs()).resolves.toEqual({
-      brandCatalogAvailable: false,
-      empresas: [{ id: 1, code: 'TIMBO', name: 'Timbo', active: true }],
-      brands: [],
-      businesses: [],
-      advisors: [
-        {
-          id: 45,
-          empresaId: 1,
-          sourceSystem: 'SAP_B1',
-          externalCode: '152',
-          displayName: 'Luis Reguera',
-          kind: 'PERSON',
-          active: true,
-        },
-      ],
-    });
-    expect(operationalLogger.logMetaCompanyCatalogPartialFailure).toHaveBeenCalledWith(
-      expect.any(MetaCompanyServiceLayerUnavailableError),
-      { catalog: 'brands', requestId: 'request-1' },
-    );
   });
 
   it('actualiza una empresa en Service Layer y conserva la auditoría de plataforma', async () => {

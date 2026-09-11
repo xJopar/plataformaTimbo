@@ -42,17 +42,13 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
   const [allCatalogs, setAllCatalogs] = useState<Catalogs>(EMPTY_CATALOGS);
   const [capabilities, setCapabilities] = useState(NO_CAPABILITIES);
   const [error, setError] = useState<string>();
-  const [catalogWarning, setCatalogWarning] = useState<string>();
   const [notice, setNotice] = useState<string>();
-  const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(false);
   const [isManagingAdvisors, setIsManagingAdvisors] = useState(false);
   const [isImportingExcel, setIsImportingExcel] = useState(false);
   const [catalogAction, setCatalogAction] = useState<string>();
 
   const loadWorkspace = async (): Promise<void> => {
     setError(undefined);
-    setCatalogWarning(undefined);
-    setIsLoadingWorkspace(true);
     try {
       const [loadedCatalogs, loadedCapabilities] = await Promise.all([
         props.api.applications.listMetaCompanyCatalogs(),
@@ -61,20 +57,9 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
       setCatalogs(loadedCatalogs);
       setCapabilities(loadedCapabilities);
       if (loadedCapabilities.canManageCatalogs) {
-        const loadedAllCatalogs = await props.api.applications.listAllMetaCompanyCatalogs();
-        setAllCatalogs(loadedAllCatalogs);
-        if (!loadedCatalogs.brandCatalogAvailable || !loadedAllCatalogs.brandCatalogAvailable) {
-          setCatalogWarning(
-            'No pudimos cargar las marcas desde Service Layer. Las metas por asesor siguen disponibles.',
-          );
-        }
+        setAllCatalogs(await props.api.applications.listAllMetaCompanyCatalogs());
       } else {
         setAllCatalogs(EMPTY_CATALOGS);
-        if (!loadedCatalogs.brandCatalogAvailable) {
-          setCatalogWarning(
-            'No pudimos cargar las marcas desde Service Layer. Las metas por asesor siguen disponibles.',
-          );
-        }
       }
     } catch (loadError: unknown) {
       reportFailure(loadError, {
@@ -84,8 +69,6 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
         provider: 'api',
       });
       setError('No pudimos cargar los catálogos. Intentá nuevamente.');
-    } finally {
-      setIsLoadingWorkspace(false);
     }
   };
 
@@ -301,19 +284,6 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
             {error}
           </p>
         )}
-        {catalogWarning === undefined ? null : (
-          <section className="mc-error" role="alert" aria-live="polite">
-            <p id="mc-brand-catalog-warning">{catalogWarning}</p>
-            <button
-              type="button"
-              className="mc-text-action"
-              disabled={isLoadingWorkspace}
-              onClick={() => void loadWorkspace()}
-            >
-              Reintentar carga de marcas
-            </button>
-          </section>
-        )}
         {notice === undefined ? null : (
           <p className="mc-notice" role="status">
             {notice}
@@ -340,7 +310,6 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                     type="button"
                     className="mc-secondary-action"
                     aria-expanded={isImportingExcel}
-                    disabled={!catalogs.brandCatalogAvailable}
                     onClick={() => setIsImportingExcel((visible) => !visible)}
                   >
                     Importar Excel
@@ -365,7 +334,6 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                     <button
                       type="button"
                       className="mc-secondary-action"
-                      disabled={!allCatalogs.brandCatalogAvailable}
                       onClick={() => props.onNavigate(buildManageMarcasPath(launchPath))}
                     >
                       Gestionar marcas
@@ -404,10 +372,6 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
               <button
                 type="button"
                 className={route.view === 'brands' ? 'is-active' : ''}
-                disabled={!catalogs.brandCatalogAvailable}
-                aria-describedby={
-                  catalogs.brandCatalogAvailable ? undefined : 'mc-brand-catalog-warning'
-                }
                 onClick={() => props.onNavigate(buildBrandGoalsPath(launchPath))}
               >
                 Por marca
@@ -442,15 +406,6 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                   props.onNavigate(buildAdvisorDetailPath(launchPath, advisorId, year))
                 }
               />
-            ) : !catalogs.brandCatalogAvailable ? (
-              <section className="mc-empty" aria-labelledby="mc-brand-catalog-unavailable-title">
-                <h2 id="mc-brand-catalog-unavailable-title">
-                  Las metas por marca no están disponibles
-                </h2>
-                <p>
-                  Reintentá la carga cuando Service Layer vuelva a entregar el catálogo de marcas.
-                </p>
-              </section>
             ) : (
               <BrandGoalsListScreen
                 brands={catalogs.brands}

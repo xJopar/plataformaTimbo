@@ -25,7 +25,6 @@ export class MetaCompanyAdvisorResponseDto {
 }
 
 export class MetaCompanyCatalogResponseDto {
-  @ApiProperty({ example: true }) brandCatalogAvailable!: boolean;
   @ApiProperty({ type: MetaCompanyEmpresaResponseDto, isArray: true })
   empresas!: MetaCompanyEmpresaResponseDto[];
   @ApiProperty({ type: MetaCompanyCatalogItemResponseDto, isArray: true })

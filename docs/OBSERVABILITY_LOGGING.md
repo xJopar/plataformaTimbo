@@ -241,12 +241,6 @@ otros datos de negocio. Al ser dos proveedores independientes no hay una transac
 si la auditoría central falla, la API propaga el error para que la operación pueda diagnosticarse y
 revisarse durante las pruebas.
 
-Si falla exclusivamente el listado de marcas, la API conserva disponibles empresas, negocios y
-asesores, devuelve `brandCatalogAvailable: false` y registra
-`api.meta-company.catalog.partial_failure`. La Web comunica el catálogo indisponible, deshabilita
-las acciones que dependen de marcas y ofrece reintento; no interpreta ese fallo como un catálogo
-vacío ni consulta PostgreSQL como respaldo.
-
 ## Analítica de uso persistente
 
 `UsageEventsService` valida cada evento contra el catálogo inyectado mediante

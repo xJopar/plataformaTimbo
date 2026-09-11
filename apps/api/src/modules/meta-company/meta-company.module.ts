@@ -3,7 +3,6 @@ import { AccessProfilesModule } from '../access-profiles/access-profiles.module'
 import { AuditEventsModule } from '../audit-events/audit-events.module';
 import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../../database/prisma.module';
-import { ObservabilityModule } from '../observability/observability.module';
 import { MetaCompanyApplicationAccessGuard } from './meta-company-application-access.guard';
 import { MetaCompanyController } from './meta-company.controller';
 import {
@@ -15,7 +14,7 @@ import { MetaCompanyServiceLayerService } from './meta-company-service-layer.ser
 import { META_COMPANY_SERVICE_LAYER_FETCH } from './meta-company-service-layer.tokens';
 
 @Module({
-  imports: [AuthModule, AccessProfilesModule, AuditEventsModule, ObservabilityModule, PrismaModule],
+  imports: [AuthModule, AccessProfilesModule, AuditEventsModule, PrismaModule],
   controllers: [MetaCompanyController],
   providers: [
     MetaCompanyApplicationAccessGuard,
