@@ -27,6 +27,11 @@ export interface UsageEventAppendFailureFields {
   actorUserId: string;
 }
 
+export interface MetaCompanyCatalogPartialFailureFields {
+  catalog: 'brands';
+  requestId: string | undefined;
+}
+
 type OperationalLogLevel = 'info' | 'error';
 
 /**
@@ -80,6 +85,23 @@ export class OperationalLoggerService {
       operation: 'usage-event.append',
       ...fields,
       ...buildErrorDiagnosticFields(error, process.env.DATABASE_URL),
+    });
+  }
+
+  public logMetaCompanyCatalogPartialFailure(
+    error: unknown,
+    fields: MetaCompanyCatalogPartialFailureFields,
+  ): void {
+    this.write('error', {
+      timestamp: new Date().toISOString(),
+      level: 'error',
+      service: SERVICE_NAME,
+      environment: resolveEnvironmentFromEnvironment(),
+      event: 'api.meta-company.catalog.partial_failure',
+      operation: 'meta-company.catalog.list',
+      provider: 'meta-company-service-layer',
+      ...fields,
+      ...buildErrorDiagnosticFields(error, process.env.DATABASE_URL, serviceLayerRedactionValues()),
     });
   }
 

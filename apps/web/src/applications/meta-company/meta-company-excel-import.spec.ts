@@ -3,6 +3,7 @@ import { parseMetaCompanyExcelImport } from './meta-company-excel-import';
 import type { Catalogs } from './meta-company-types';
 
 const catalogs: Catalogs = {
+  brandCatalogAvailable: true,
   empresas: [{ id: 1, code: 'TIMBO', name: 'Timbo', active: true }],
   advisors: [
     {

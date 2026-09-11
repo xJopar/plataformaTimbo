@@ -43,9 +43,7 @@ describe('MetaCompanyServiceLayerService', () => {
           error: null,
         }),
       )
-      .mockResolvedValueOnce(
-        response({ data: { existe: true, SlpName: 'Carlos Carranza' }, error: null }),
-      );
+      .mockResolvedValueOnce(response({ data: { exists: true, hasName: true }, error: null }));
     const service = new MetaCompanyServiceLayerService(fetchImplementation);
 
     await expect(service.verifySapAdvisor(2)).resolves.toBe(true);
@@ -90,9 +88,7 @@ describe('MetaCompanyServiceLayerService', () => {
           error: null,
         }),
       )
-      .mockResolvedValueOnce(
-        response({ data: { existe: false, nombre: null, SlpCode: 999 }, error: null }),
-      );
+      .mockResolvedValueOnce(response({ data: { exists: false, hasName: false }, error: null }));
     const service = new MetaCompanyServiceLayerService(fetchImplementation);
 
     await expect(service.verifySapAdvisor(999)).resolves.toBe(false);
@@ -133,6 +129,66 @@ describe('MetaCompanyServiceLayerService', () => {
     );
   });
 
+  it('actualiza un asesor con POST y su identificador de Service Layer', async () => {
+    const fetchImplementation = jest
+      .fn()
+      .mockResolvedValueOnce(
+        response({
+          data: {
+            token: 'access-token',
+            expiresIn: 1_800,
+            refreshToken: 'refresh-token',
+            refreshTokenExpiresIn: 28_800,
+          },
+          error: null,
+        }),
+      )
+      .mockResolvedValueOnce(
+        response({
+          data: {
+            id_asesor: 45,
+            id_empresa: 1,
+            slp_code: 152,
+            asesor: 'Luis Reguera',
+            tipo: 'PERSON',
+            activo: true,
+          },
+          error: null,
+        }),
+      );
+    const service = new MetaCompanyServiceLayerService(fetchImplementation);
+
+    await expect(
+      service.updateAdvisor(45, {
+        empresaId: 1,
+        idSap: 152,
+        nombre: 'Luis Reguera',
+        tipo: 'PERSON',
+      }),
+    ).resolves.toEqual({
+      idAsesor: 45,
+      idEmpresa: 1,
+      idSap: 152,
+      nombre: 'Luis Reguera',
+      tipo: 'PERSON',
+      activo: true,
+    });
+    expect(fetchImplementation).toHaveBeenNthCalledWith(
+      2,
+      'http://service-layer.test/public/asesores',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          id_asesor: 45,
+          id_empresa: 1,
+          slp_code: 152,
+          asesor: 'Luis Reguera',
+          tipo: 'PERSON',
+        }),
+      }),
+    );
+  });
+
   it('renueva el token con el refresh token antes de iniciar sesion nuevamente', async () => {
     const fetchImplementation = jest
       .fn()
@@ -147,7 +203,7 @@ describe('MetaCompanyServiceLayerService', () => {
           error: null,
         }),
       )
-      .mockResolvedValueOnce(response({ data: { existe: true }, error: null }))
+      .mockResolvedValueOnce(response({ data: { exists: true }, error: null }))
       .mockResolvedValueOnce(
         response({
           data: {
@@ -159,7 +215,7 @@ describe('MetaCompanyServiceLayerService', () => {
           error: null,
         }),
       )
-      .mockResolvedValueOnce(response({ data: { existe: true }, error: null }));
+      .mockResolvedValueOnce(response({ data: { exists: true }, error: null }));
     const service = new MetaCompanyServiceLayerService(fetchImplementation);
 
     await expect(service.verifySapAdvisor(2)).resolves.toBe(true);
@@ -178,6 +234,70 @@ describe('MetaCompanyServiceLayerService', () => {
           Authorization: 'Bearer refreshed-access-token',
           'Content-Type': 'application/json',
         },
+      }),
+    );
+  });
+
+  it('actualiza metas por marca y asesor con POST y sus identificadores', async () => {
+    const fetchImplementation = jest
+      .fn()
+      .mockResolvedValueOnce(
+        response({
+          data: {
+            token: 'access-token',
+            expiresIn: 1_800,
+            refreshToken: 'refresh-token',
+            refreshTokenExpiresIn: 28_800,
+          },
+          error: null,
+        }),
+      )
+      .mockResolvedValueOnce(
+        response({
+          data: {
+            id_meta_marca: 1,
+            periodo: 202601,
+            id_negocio: 5,
+            id_marca: 27,
+            meta: '1.00',
+            dias_habiles: 22,
+          },
+          error: null,
+        }),
+      )
+      .mockResolvedValueOnce(
+        response({
+          data: {
+            id_meta_asesor: 45,
+            periodo: 202601,
+            id_negocio: 3,
+            id_marca: null,
+            id_asesor: 45,
+            meta: '291419.00',
+            dias_habiles: null,
+          },
+          error: null,
+        }),
+      );
+    const service = new MetaCompanyServiceLayerService(fetchImplementation);
+
+    await service.updateBrandGoal(1, '1.00', 22);
+    await service.updateAdvisorGoal(45, '291419.00', undefined);
+
+    expect(fetchImplementation).toHaveBeenNthCalledWith(
+      2,
+      'http://service-layer.test/public/metas-marca',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ id_meta_marca: 1, meta: '1.00', dias_habiles: 22 }),
+      }),
+    );
+    expect(fetchImplementation).toHaveBeenNthCalledWith(
+      3,
+      'http://service-layer.test/public/metas-asesor',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ id_meta_asesor: 45, meta: '291419.00' }),
       }),
     );
   });

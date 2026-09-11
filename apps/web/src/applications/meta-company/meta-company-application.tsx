@@ -22,7 +22,14 @@ import {
   buildManageNegociosPath,
   parseMetaCompanyRoute,
 } from './meta-company-routes';
-import { EMPTY_CATALOGS, NO_CAPABILITIES, type Advisor, type CatalogItem, type Catalogs, type Empresa } from './meta-company-types';
+import {
+  EMPTY_CATALOGS,
+  NO_CAPABILITIES,
+  type Advisor,
+  type CatalogItem,
+  type Catalogs,
+  type Empresa,
+} from './meta-company-types';
 
 export function MetaCompanyApplication(props: ApplicationComponentProps): React.JSX.Element {
   const launchPath = props.application.launchPath;
@@ -35,13 +42,17 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
   const [allCatalogs, setAllCatalogs] = useState<Catalogs>(EMPTY_CATALOGS);
   const [capabilities, setCapabilities] = useState(NO_CAPABILITIES);
   const [error, setError] = useState<string>();
+  const [catalogWarning, setCatalogWarning] = useState<string>();
   const [notice, setNotice] = useState<string>();
+  const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(false);
   const [isManagingAdvisors, setIsManagingAdvisors] = useState(false);
   const [isImportingExcel, setIsImportingExcel] = useState(false);
   const [catalogAction, setCatalogAction] = useState<string>();
 
   const loadWorkspace = async (): Promise<void> => {
     setError(undefined);
+    setCatalogWarning(undefined);
+    setIsLoadingWorkspace(true);
     try {
       const [loadedCatalogs, loadedCapabilities] = await Promise.all([
         props.api.applications.listMetaCompanyCatalogs(),
@@ -50,9 +61,20 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
       setCatalogs(loadedCatalogs);
       setCapabilities(loadedCapabilities);
       if (loadedCapabilities.canManageCatalogs) {
-        setAllCatalogs(await props.api.applications.listAllMetaCompanyCatalogs());
+        const loadedAllCatalogs = await props.api.applications.listAllMetaCompanyCatalogs();
+        setAllCatalogs(loadedAllCatalogs);
+        if (!loadedCatalogs.brandCatalogAvailable || !loadedAllCatalogs.brandCatalogAvailable) {
+          setCatalogWarning(
+            'No pudimos cargar las marcas desde Service Layer. Las metas por asesor siguen disponibles.',
+          );
+        }
       } else {
         setAllCatalogs(EMPTY_CATALOGS);
+        if (!loadedCatalogs.brandCatalogAvailable) {
+          setCatalogWarning(
+            'No pudimos cargar las marcas desde Service Layer. Las metas por asesor siguen disponibles.',
+          );
+        }
       }
     } catch (loadError: unknown) {
       reportFailure(loadError, {
@@ -62,6 +84,8 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
         provider: 'api',
       });
       setError('No pudimos cargar los catálogos. Intentá nuevamente.');
+    } finally {
+      setIsLoadingWorkspace(false);
     }
   };
 
@@ -105,7 +129,9 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
     try {
       await props.api.applications.setMetaCompanyEmpresaActive(empresa.id, !empresa.active);
       await loadWorkspace();
-      setNotice(empresa.active ? `${empresa.name} fue desactivada.` : `${empresa.name} fue reactivada.`);
+      setNotice(
+        empresa.active ? `${empresa.name} fue desactivada.` : `${empresa.name} fue reactivada.`,
+      );
     } catch (statusError: unknown) {
       reportFailure(statusError, {
         operation: 'meta-company.update-empresa-status',
@@ -146,14 +172,19 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
         route: `/api/applications/meta-company/${kind === 'brand' ? 'brands' : 'businesses'}`,
         provider: 'api',
       });
-      setError(kind === 'brand' ? 'No pudimos guardar la marca.' : 'No pudimos guardar el negocio.');
+      setError(
+        kind === 'brand' ? 'No pudimos guardar la marca.' : 'No pudimos guardar el negocio.',
+      );
       throw creationError;
     } finally {
       setCatalogAction(undefined);
     }
   };
 
-  const toggleCatalogItemActive = async (kind: 'brand' | 'business', item: CatalogItem): Promise<void> => {
+  const toggleCatalogItemActive = async (
+    kind: 'brand' | 'business',
+    item: CatalogItem,
+  ): Promise<void> => {
     setCatalogAction(`${kind}-${item.id}`);
     setError(undefined);
     setNotice(undefined);
@@ -220,7 +251,11 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
     try {
       await props.api.applications.setMetaCompanyAdvisorActive(advisor.id, !advisor.active);
       await loadWorkspace();
-      setNotice(advisor.active ? `${advisor.displayName} fue desactivado.` : `${advisor.displayName} fue reactivado.`);
+      setNotice(
+        advisor.active
+          ? `${advisor.displayName} fue desactivado.`
+          : `${advisor.displayName} fue reactivado.`,
+      );
     } catch (statusError: unknown) {
       reportFailure(statusError, {
         operation: 'meta-company.update-advisor-status',
@@ -266,6 +301,19 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
             {error}
           </p>
         )}
+        {catalogWarning === undefined ? null : (
+          <section className="mc-error" role="alert" aria-live="polite">
+            <p id="mc-brand-catalog-warning">{catalogWarning}</p>
+            <button
+              type="button"
+              className="mc-text-action"
+              disabled={isLoadingWorkspace}
+              onClick={() => void loadWorkspace()}
+            >
+              Reintentar carga de marcas
+            </button>
+          </section>
+        )}
         {notice === undefined ? null : (
           <p className="mc-notice" role="status">
             {notice}
@@ -292,6 +340,7 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                     type="button"
                     className="mc-secondary-action"
                     aria-expanded={isImportingExcel}
+                    disabled={!catalogs.brandCatalogAvailable}
                     onClick={() => setIsImportingExcel((visible) => !visible)}
                   >
                     Importar Excel
@@ -316,6 +365,7 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                     <button
                       type="button"
                       className="mc-secondary-action"
+                      disabled={!allCatalogs.brandCatalogAvailable}
                       onClick={() => props.onNavigate(buildManageMarcasPath(launchPath))}
                     >
                       Gestionar marcas
@@ -354,6 +404,10 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
               <button
                 type="button"
                 className={route.view === 'brands' ? 'is-active' : ''}
+                disabled={!catalogs.brandCatalogAvailable}
+                aria-describedby={
+                  catalogs.brandCatalogAvailable ? undefined : 'mc-brand-catalog-warning'
+                }
                 onClick={() => props.onNavigate(buildBrandGoalsPath(launchPath))}
               >
                 Por marca
@@ -388,6 +442,15 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                   props.onNavigate(buildAdvisorDetailPath(launchPath, advisorId, year))
                 }
               />
+            ) : !catalogs.brandCatalogAvailable ? (
+              <section className="mc-empty" aria-labelledby="mc-brand-catalog-unavailable-title">
+                <h2 id="mc-brand-catalog-unavailable-title">
+                  Las metas por marca no están disponibles
+                </h2>
+                <p>
+                  Reintentá la carga cuando Service Layer vuelva a entregar el catálogo de marcas.
+                </p>
+              </section>
             ) : (
               <BrandGoalsListScreen
                 brands={catalogs.brands}
@@ -520,7 +583,8 @@ function AdvisorManagement({
   };
 
   const isSaving =
-    action === 'advisor-create' || (editingId !== undefined && action === `advisor-edit-${editingId}`);
+    action === 'advisor-create' ||
+    (editingId !== undefined && action === `advisor-edit-${editingId}`);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -597,10 +661,7 @@ function AdvisorManagement({
           </label>
           <label>
             Tipo
-            <select
-              value={form.kind}
-              onChange={(event) => updateForm('kind', event.target.value)}
-            >
+            <select value={form.kind} onChange={(event) => updateForm('kind', event.target.value)}>
               <option value="PERSON">Persona</option>
               <option value="SALES_CHANNEL">Canal de venta</option>
             </select>

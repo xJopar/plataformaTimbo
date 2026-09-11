@@ -10,5 +10,11 @@ export type Capabilities = Awaited<
   ReturnType<ApplicationComponentProps['api']['applications']['getMetaCompanyCapabilities']>
 >;
 
-export const EMPTY_CATALOGS: Catalogs = { empresas: [], brands: [], businesses: [], advisors: [] };
+export const EMPTY_CATALOGS: Catalogs = {
+  brandCatalogAvailable: false,
+  empresas: [],
+  brands: [],
+  businesses: [],
+  advisors: [],
+};
 export const NO_CAPABILITIES: Capabilities = { canManageCatalogs: false, canManageGoals: false };

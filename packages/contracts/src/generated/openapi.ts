@@ -1591,6 +1591,8 @@ export interface components {
             active: boolean;
         };
         MetaCompanyCatalogResponseDto: {
+            /** @example true */
+            brandCatalogAvailable: boolean;
             empresas: components["schemas"]["MetaCompanyEmpresaResponseDto"][];
             brands: components["schemas"]["MetaCompanyCatalogItemResponseDto"][];
             businesses: components["schemas"]["MetaCompanyCatalogItemResponseDto"][];

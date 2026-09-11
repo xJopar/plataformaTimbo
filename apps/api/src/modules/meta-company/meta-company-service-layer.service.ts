@@ -99,7 +99,7 @@ export class MetaCompanyServiceLayerService {
     const data = await this.requestRecord('POST', '/asesores/verificar-sap', {
       SlpCode: salespersonCode,
     });
-    const exists = data.existe;
+    const exists = data.exists;
     if (typeof exists !== 'boolean') this.invalidResponse('verificar el asesor SAP');
     return exists;
   }
@@ -150,22 +150,20 @@ export class MetaCompanyServiceLayerService {
     empresa: string,
   ): Promise<ServiceLayerEmpresa> {
     return mapEmpresa(
-      await this.requestRecord('PATCH', `/empresas/${String(id)}`, { codigo, empresa }),
+      await this.requestRecord('POST', '/empresas', { id_empresa: id, codigo, empresa }),
     );
   }
   public async setEmpresaActive(id: number, activo: boolean): Promise<ServiceLayerEmpresa> {
-    return mapEmpresa(
-      await this.requestRecord('PATCH', `/empresas/${String(id)}/activo`, { activo }),
-    );
+    return mapEmpresa(await this.requestRecord('POST', '/empresas', { id_empresa: id, activo }));
   }
   public async createBrand(codigo: string, marca: string): Promise<ServiceLayerBrand> {
     return mapBrand(await this.requestRecord('POST', '/marcas', { codigo, marca }));
   }
   public async updateBrand(id: number, codigo: string, marca: string): Promise<ServiceLayerBrand> {
-    return mapBrand(await this.requestRecord('PATCH', `/marcas/${String(id)}`, { codigo, marca }));
+    return mapBrand(await this.requestRecord('POST', '/marcas', { id_marca: id, codigo, marca }));
   }
   public async setBrandActive(id: number, activo: boolean): Promise<ServiceLayerBrand> {
-    return mapBrand(await this.requestRecord('PATCH', `/marcas/${String(id)}/activo`, { activo }));
+    return mapBrand(await this.requestRecord('POST', '/marcas', { id_marca: id, activo }));
   }
   public async createBusiness(
     idEmpresa: number,
@@ -183,7 +181,8 @@ export class MetaCompanyServiceLayerService {
     negocio: string,
   ): Promise<ServiceLayerBusiness> {
     return mapBusiness(
-      await this.requestRecord('PATCH', `/negocios/${String(id)}`, {
+      await this.requestRecord('POST', '/negocios', {
+        id_negocio: id,
         id_empresa: idEmpresa,
         codigo,
         negocio,
@@ -191,34 +190,31 @@ export class MetaCompanyServiceLayerService {
     );
   }
   public async setBusinessActive(id: number, activo: boolean): Promise<ServiceLayerBusiness> {
-    return mapBusiness(
-      await this.requestRecord('PATCH', `/negocios/${String(id)}/activo`, { activo }),
-    );
+    return mapBusiness(await this.requestRecord('POST', '/negocios', { id_negocio: id, activo }));
   }
   public async createAdvisor(input: AdvisorInput): Promise<ServiceLayerAdvisor> {
     return mapAdvisor(
       await this.requestRecord('POST', '/asesores', {
         id_empresa: input.empresaId,
-        id_sap: input.idSap,
-        nombre: input.nombre,
+        slp_code: input.idSap,
+        asesor: input.nombre,
         tipo: input.tipo,
       }),
     );
   }
   public async updateAdvisor(id: number, input: AdvisorInput): Promise<ServiceLayerAdvisor> {
     return mapAdvisor(
-      await this.requestRecord('PATCH', `/asesores/${String(id)}`, {
+      await this.requestRecord('POST', '/asesores', {
+        id_asesor: id,
         id_empresa: input.empresaId,
-        id_sap: input.idSap,
-        nombre: input.nombre,
+        slp_code: input.idSap,
+        asesor: input.nombre,
         tipo: input.tipo,
       }),
     );
   }
   public async setAdvisorActive(id: number, activo: boolean): Promise<ServiceLayerAdvisor> {
-    return mapAdvisor(
-      await this.requestRecord('PATCH', `/asesores/${String(id)}/activo`, { activo }),
-    );
+    return mapAdvisor(await this.requestRecord('POST', '/asesores', { id_asesor: id, activo }));
   }
   public async createBrandGoal(input: BrandGoalInput): Promise<ServiceLayerGoal> {
     return mapBrandGoal(await this.requestRecord('POST', '/metas-marca', toBrandGoalBody(input)));
@@ -229,7 +225,8 @@ export class MetaCompanyServiceLayerService {
     diasHabiles: number | undefined,
   ): Promise<ServiceLayerGoal> {
     return mapBrandGoal(
-      await this.requestRecord('PATCH', `/metas-marca/${String(id)}`, {
+      await this.requestRecord('POST', '/metas-marca', {
+        id_meta_marca: id,
         meta,
         ...(diasHabiles === undefined ? {} : { dias_habiles: diasHabiles }),
       }),
@@ -246,7 +243,8 @@ export class MetaCompanyServiceLayerService {
     diasHabiles: number | undefined,
   ): Promise<ServiceLayerGoal> {
     return mapAdvisorGoal(
-      await this.requestRecord('PATCH', `/metas-asesor/${String(id)}`, {
+      await this.requestRecord('POST', '/metas-asesor', {
+        id_meta_asesor: id,
         meta,
         ...(diasHabiles === undefined ? {} : { dias_habiles: diasHabiles }),
       }),
@@ -264,7 +262,7 @@ export class MetaCompanyServiceLayerService {
   }
 
   private async requestRecord(
-    method: 'GET' | 'POST' | 'PATCH',
+    method: 'GET' | 'POST',
     path: string,
     body?: ServiceLayerRecord,
   ): Promise<ServiceLayerRecord> {
@@ -272,7 +270,7 @@ export class MetaCompanyServiceLayerService {
   }
 
   private async request(
-    method: 'GET' | 'POST' | 'PATCH',
+    method: 'GET' | 'POST',
     path: string,
     body?: ServiceLayerRecord,
   ): Promise<ServiceLayerRecord | ServiceLayerRecord[]> {
@@ -474,8 +472,8 @@ function mapAdvisor(value: ServiceLayerRecord): ServiceLayerAdvisor {
   return {
     idAsesor: positiveInteger(value.id_asesor, 'id_asesor'),
     idEmpresa: positiveInteger(value.id_empresa, 'id_empresa'),
-    idSap: positiveInteger(value.id_sap, 'id_sap'),
-    nombre: nonEmptyString(value.nombre, 'nombre'),
+    idSap: positiveInteger(value.slp_code, 'slp_code'),
+    nombre: nonEmptyString(value.asesor, 'asesor'),
     tipo,
     activo: booleanValue(value.activo, 'activo'),
   };

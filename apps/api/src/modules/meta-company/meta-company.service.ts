@@ -3,6 +3,9 @@ import { AuditActorType } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { type AuditEventName } from '../audit-events/audit-event-catalog';
 import { AuditEventsService } from '../audit-events/audit-events.service';
+import { OperationalLoggerService } from '../observability/operational-logger.service';
+import { RequestContextService } from '../observability/request-context.service';
+import { MetaCompanyServiceLayerUnavailableError } from './meta-company-service-layer.errors';
 import {
   MetaCompanyServiceLayerService,
   type ServiceLayerAdvisor,
@@ -22,6 +25,7 @@ type MetaCompanyTargetType =
   | 'commercial_advisor_goal';
 
 export interface MetaCompanyCatalogs {
+  brandCatalogAvailable: boolean;
   empresas: { id: number; code: string; name: string; active: boolean }[];
   brands: { id: number; empresaId: number; name: string; active: boolean }[];
   businesses: { id: number; empresaId: number; name: string; active: boolean }[];
@@ -93,21 +97,43 @@ export class MetaCompanyService {
     private readonly platformPrisma: PrismaService,
     private readonly auditEventsService: AuditEventsService,
     private readonly serviceLayerService: MetaCompanyServiceLayerService,
+    private readonly operationalLogger: OperationalLoggerService,
+    private readonly requestContext: RequestContextService,
   ) {}
 
   public async listCatalogs(includeInactive = false): Promise<MetaCompanyCatalogs> {
-    const [empresas, brands, businesses, advisors] = await Promise.all([
+    const [empresas, businesses, advisors, brandCatalog] = await Promise.all([
       this.serviceLayerService.listEmpresas(includeInactive),
-      this.serviceLayerService.listBrands(includeInactive),
       this.serviceLayerService.listBusinesses(includeInactive),
       this.serviceLayerService.listAdvisors(includeInactive),
+      this.listBrandsOrEmpty(includeInactive),
     ]);
     return {
+      brandCatalogAvailable: brandCatalog.available,
       empresas: empresas.map(mapEmpresa),
-      brands: brands.map(mapBrand),
+      brands: brandCatalog.brands.map(mapBrand),
       businesses: businesses.map(mapBusiness),
       advisors: advisors.map(mapAdvisor),
     };
+  }
+
+  private async listBrandsOrEmpty(
+    includeInactive: boolean,
+  ): Promise<{ available: boolean; brands: ServiceLayerBrand[] }> {
+    try {
+      return {
+        available: true,
+        brands: await this.serviceLayerService.listBrands(includeInactive),
+      };
+    } catch (error) {
+      if (!(error instanceof MetaCompanyServiceLayerUnavailableError)) throw error;
+
+      this.operationalLogger.logMetaCompanyCatalogPartialFailure(error, {
+        catalog: 'brands',
+        requestId: this.requestContext.getRequestId(),
+      });
+      return { available: false, brands: [] };
+    }
   }
 
   public async listGoals(period?: string, empresaId?: number) {
