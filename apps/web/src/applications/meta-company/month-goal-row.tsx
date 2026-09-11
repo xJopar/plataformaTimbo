@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import type { MonthGoal } from './meta-company-mock-data';
 
 const SHORT_MONTH_NAMES = [
   'Ene',
@@ -21,8 +20,8 @@ const MONEY_FORMATTER = new Intl.NumberFormat('es-PY', {
   maximumFractionDigits: 2,
 });
 
-export function formatMonthLabel(periodo: string): string {
-  const [year, month] = periodo.split('-');
+export function formatMonthLabel(period: string): string {
+  const [year, month] = period.split('-');
   const monthName = SHORT_MONTH_NAMES[Number(month) - 1];
   return `${month}/${year} · ${monthName}`;
 }
@@ -42,10 +41,10 @@ export function parseMoneyInput(value: string): string | undefined {
 }
 
 interface MonthGoalRowProps {
-  month: MonthGoal;
+  month: { periodo: string; meta: string | null };
   canEdit: boolean;
   isSaving: boolean;
-  onSave: (periodo: string, value: string) => void;
+  onSave: (period: string, value: string) => void;
 }
 
 export function MonthGoalRow({

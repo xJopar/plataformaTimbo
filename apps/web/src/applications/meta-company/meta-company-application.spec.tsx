@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Api, AuthSession, AuthorizedApplication } from '../../api';
 import type { ApplicationComponentProps } from '../application-component';
 import { MetaCompanyApplication } from './meta-company-application';
-import * as metaCompanyMockData from './meta-company-mock-data';
 import {
   buildBrandGoalsPath,
   buildManageMarcasPath,
@@ -76,6 +75,7 @@ function renderMetaCompany(
       listMetaCompanyCatalogs: vi.fn().mockResolvedValue(catalogs),
       listAllMetaCompanyCatalogs: vi.fn().mockResolvedValue(catalogs),
       listMetaCompanyGoals: vi.fn().mockResolvedValue(catalogFixtures.goals ?? []),
+      updateMetaCompanyBrandGoal: vi.fn(),
       updateMetaCompanyAdvisorGoal: vi.fn(),
       getMetaCompanyCapabilities: vi
         .fn()
@@ -147,46 +147,17 @@ describe('MetaCompanyApplication — asesores', () => {
     );
   });
 
-  it('despliega el acordeón de un asesor y guarda un mes sin meta cargada', async () => {
-    const user = userEvent.setup();
-    const saveSpy = vi.spyOn(metaCompanyMockData, 'saveMonthGoal');
-    renderMetaCompany('/apps/meta-company', {}, { advisors });
-
-    const luisButton = await screen.findByRole('button', { name: 'Ver detalle de Luis Reguera' });
-    const luisDetails = luisButton.closest('details');
-    expect(luisDetails).not.toBeNull();
-    await user.click(within(luisDetails!).getByText('›'));
-    expect(luisDetails).toHaveProperty('open', true);
-    expect(await within(luisDetails!).findByText('01/2026 · Ene')).toBeInTheDocument();
-
-    const mirnaButton = await screen.findByRole('button', { name: 'Ver detalle de Mirna Ovelar' });
-    const mirnaDetails = mirnaButton.closest('details');
-    expect(mirnaDetails).not.toBeNull();
-    await user.click(within(mirnaDetails!).getByText('›'));
-
-    const emptyMonthInput = await within(mirnaDetails!).findByLabelText('Meta de 03/2026 · Mar');
-    await user.type(emptyMonthInput, '150000.00');
-    await user.click(
-      within(emptyMonthInput.closest('form')!).getByRole('button', { name: 'Guardar' }),
-    );
-
-    await waitFor(() =>
-      expect(saveSpy).toHaveBeenCalledWith('advisor', 153, '2026-03-01', '150000.00'),
-    );
-  });
-
-  it('el clic en el nombre del asesor navega al detalle sin desplegar el acordeón', async () => {
+  it('muestra asesores reales y navega a su detalle', async () => {
     const user = userEvent.setup();
     const onNavigate = vi.fn<ApplicationComponentProps['onNavigate']>();
     renderMetaCompany('/apps/meta-company', { onNavigate }, { advisors });
 
-    const luisButton = await screen.findByRole('button', { name: 'Ver detalle de Luis Reguera' });
-    const luisDetails = luisButton.closest('details');
-    await user.click(luisButton);
+    expect(await screen.findByRole('heading', { name: 'Luis Reguera' })).toBeInTheDocument();
+    const advisorActions = screen.getAllByRole('button', { name: 'Ver metas' });
+    await user.click(advisorActions[0]!);
 
     const currentYear = new Date().getFullYear();
     expect(onNavigate).toHaveBeenCalledWith(`/apps/meta-company/asesores/152/${currentYear}`);
-    expect(luisDetails).toHaveProperty('open', false);
   });
 
   it('la pantalla de detalle carga metas por marca desde la API y navega al siguiente', async () => {
@@ -256,19 +227,44 @@ describe('MetaCompanyApplication — metas por marca', () => {
     expect(onNavigate).toHaveBeenCalledWith(buildBrandGoalsPath(application.launchPath));
   });
 
-  it('despliega una marca y guarda un mes, en la ruta de metas por marca', async () => {
+  it('despliega una marca y actualiza una meta real, en la ruta de metas por marca', async () => {
     const user = userEvent.setup();
-    const saveSpy = vi.spyOn(metaCompanyMockData, 'saveMonthGoal');
-    renderMetaCompany(buildBrandGoalsPath(application.launchPath), {}, { brands });
+    const { api } = renderMetaCompany(
+      buildBrandGoalsPath(application.launchPath),
+      {},
+      {
+        brands,
+        goals: [
+          {
+            id: 42,
+            period: '2026-01-01',
+            businessId: 5,
+            businessName: 'Comercial',
+            brandId: 2,
+            brandName: 'Facchini',
+            salespersonCode: null,
+            advisorId: null,
+            goalType: 'Marca',
+            value: '100.00',
+            updatedAt: null,
+          },
+        ],
+      },
+    );
+    api.applications.updateMetaCompanyBrandGoal.mockResolvedValue({ value: '99999.00' });
 
     expect(await screen.findByRole('heading', { name: 'Metas por marca' })).toBeInTheDocument();
 
     await user.click(await screen.findByText('Facchini'));
-    const monthInput = await screen.findByLabelText('Meta de 01/2026 · Ene');
+    await user.click(await screen.findByText('01/2026 · Ene'));
+    const monthInput = await screen.findByLabelText('Meta de Comercial, 01/2026 · Ene');
+    await user.clear(monthInput);
     await user.type(monthInput, '99999.00');
     await user.click(within(monthInput.closest('form')!).getByRole('button', { name: 'Guardar' }));
 
-    await waitFor(() => expect(saveSpy).toHaveBeenCalledWith('brand', 2, '2026-01-01', '99999.00'));
+    await waitFor(() =>
+      expect(api.applications.updateMetaCompanyBrandGoal).toHaveBeenCalledWith(42, '99999.00'),
+    );
   });
 });
 
@@ -341,13 +337,12 @@ describe('MetaCompanyApplication — gestión de marcas', () => {
 
     expect(await screen.findByRole('heading', { name: 'Marcas' })).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText('Empresa'), '1');
     await user.type(screen.getByLabelText('Nombre'), 'Fixit');
     await user.click(screen.getByRole('button', { name: 'Agregar marca' }));
 
     await waitFor(() =>
       expect(api.applications.createMetaCompanyBrand).toHaveBeenCalledWith({
-        empresaId: 1,
+        empresaId: 0,
         name: 'Fixit',
       }),
     );

@@ -299,6 +299,23 @@ button:disabled {
   display: grid;
   gap: 12px;
 }
+.mc-advisor-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: #f7f9fb;
+  border: 1px solid #bcc9d7;
+}
+.mc-advisor-list-item h3,
+.mc-advisor-list-item p {
+  margin: 0;
+}
+.mc-advisor-list-item p {
+  margin-top: 4px;
+  color: #475569;
+}
 .mc-advisor-accordion {
   background: #f7f9fb;
   border: 1px solid #bcc9d7;
@@ -431,5 +448,9 @@ select:focus-visible {
   }
   .mc-month-value {
     justify-content: start;
+  }
+  .mc-advisor-list-item {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

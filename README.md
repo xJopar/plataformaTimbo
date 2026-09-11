@@ -31,9 +31,9 @@ anual personalizada que se usa sólo para calcular el plan local.
 `Meta Company` en `/apps/meta-company` administra las metas comerciales que consume Power BI. Sus
 perfiles permiten editar metas y, para administradores, crear y activar o desactivar marcas y
 negocios. La pantalla principal permite descargar una plantilla e importar metas desde Excel por
-asesor y por marca, validando cada fila contra los catálogos activos antes de guardarla. La aplicación usa temporalmente un proveedor PostgreSQL aislado y valida los
-asesores contra SAP mediante Service Layer; sus auditorías se conservan en la base central de la
-plataforma.
+asesor y por marca, validando cada fila contra los catálogos activos antes de guardarla. La aplicación valida los
+asesores contra SAP mediante Service Layer. Sus catálogos y metas se leen y escriben mediante
+Service Layer; sus auditorías se conservan en la base central de la plataforma.
 Administración permite asignar aplicaciones a empleados y gestionar sus perfiles y permisos
 funcionales. El Home autenticado presenta solamente las aplicaciones activas asignadas al usuario
 y abre sus rutas internas. Consultar [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md)
@@ -140,7 +140,7 @@ node --env-file=../../.env ./node_modules/prisma/build/index.js migrate dev --co
 node --env-file=../../.env ./node_modules/prisma/build/index.js migrate dev --config prisma.config.ts --name <nombre>
 ```
 
-Usar esos comandos únicamente contra la base aislada de development. Producción aplica solamente las migraciones versionadas mediante `prisma migrate deploy` antes de iniciar la API. La base principal se migra siempre; el proveedor temporal de Meta Company sólo se migra cuando `META_COMPANY_ENABLED=true`. No se usa `db push`, `migrate dev` ni `migrate reset` en producción; `migrate deploy` no genera migraciones ni modifica el schema fuera de las migraciones versionadas.
+Usar esos comandos únicamente contra la base aislada de development. Producción aplica solamente las migraciones versionadas mediante `prisma migrate deploy` antes de iniciar la API. La base principal se migra siempre; Meta Company no tiene una persistencia ni migraciones propias en PostgreSQL. No se usa `db push`, `migrate dev` ni `migrate reset` en producción; `migrate deploy` no genera migraciones ni modifica el schema fuera de las migraciones versionadas.
 
 `users_corporate_email_normalized_check` y `users_status_deactivated_at_check` son constraints PostgreSQL no representables declarativamente por Prisma. Se mantienen como SQL personalizado en la migración versionada y deben preservarse al revisar cambios futuros del schema.
 

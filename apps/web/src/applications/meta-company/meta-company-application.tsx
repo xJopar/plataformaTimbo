@@ -401,7 +401,6 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
                 advisors={catalogs.advisors}
                 year={year}
                 onYearChange={setYear}
-                canEdit={capabilities.canManageGoals}
                 onSelectAdvisor={(advisorId) =>
                   props.onNavigate(buildAdvisorDetailPath(launchPath, advisorId, year))
                 }
@@ -409,6 +408,7 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
             ) : (
               <BrandGoalsListScreen
                 brands={catalogs.brands}
+                applicationsApi={props.api.applications}
                 year={year}
                 onYearChange={setYear}
                 canEdit={capabilities.canManageGoals}
