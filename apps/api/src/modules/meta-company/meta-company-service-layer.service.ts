@@ -451,7 +451,7 @@ function mapEmpresa(value: ServiceLayerRecord): ServiceLayerEmpresa {
 }
 function mapBrand(value: ServiceLayerRecord): ServiceLayerBrand {
   return {
-    idMarca: positiveInteger(value.id_marca, 'id_marca'),
+    idMarca: positiveInteger(value.id_marca, 'id_marca', 'marcas'),
     codigo: nonEmptyString(value.codigo, 'codigo'),
     marca: nonEmptyString(value.marca, 'marca'),
     activo: booleanValue(value.activo, 'activo'),
@@ -479,17 +479,18 @@ function mapAdvisor(value: ServiceLayerRecord): ServiceLayerAdvisor {
   };
 }
 function mapBrandGoal(value: ServiceLayerRecord): ServiceLayerGoal {
-  return mapGoal(value, 'id_meta_marca', false);
+  return mapGoal(value, 'id_meta_marca', false, 'metas-marca');
 }
 function mapAdvisorGoal(value: ServiceLayerRecord): ServiceLayerGoal {
-  return mapGoal(value, 'id_meta_asesor', true);
+  return mapGoal(value, 'id_meta_asesor', true, 'metas-asesor');
 }
 function mapGoal(
   value: ServiceLayerRecord,
   idField: string,
   requiresAdvisor: boolean,
+  resource: 'metas-marca' | 'metas-asesor',
 ): ServiceLayerGoal {
-  const idMarca = nullablePositiveInteger(value.id_marca, 'id_marca');
+  const idMarca = nullablePositiveInteger(value.id_marca, 'id_marca', resource);
   const idAsesor = nullablePositiveInteger(value.id_asesor, 'id_asesor');
   if (requiresAdvisor && idAsesor === null) invalidField('id_asesor');
   return {
@@ -548,13 +549,14 @@ function asRecord(value: unknown, operation: string): ServiceLayerRecord {
 function dataRecord(value: unknown, operation: string): ServiceLayerRecord | undefined {
   return value === undefined ? undefined : asRecord(value, operation);
 }
-function positiveInteger(value: unknown, field: string): number {
-  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value <= 0) invalidField(field);
+function positiveInteger(value: unknown, field: string, resource?: string): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value <= 0)
+    invalidField(field, resource);
   return value;
 }
-function nullablePositiveInteger(value: unknown, field: string): number | null {
+function nullablePositiveInteger(value: unknown, field: string, resource?: string): number | null {
   if (value === null || value === undefined) return null;
-  return positiveInteger(value, field);
+  return positiveInteger(value, field, resource);
 }
 function nonEmptyString(value: unknown, field: string): string {
   if (typeof value !== 'string' || value.trim() === '') invalidField(field);
@@ -564,9 +566,9 @@ function booleanValue(value: unknown, field: string): boolean {
   if (typeof value !== 'boolean') invalidField(field);
   return value;
 }
-function invalidField(field: string): never {
+function invalidField(field: string, resource?: string): never {
   throw new MetaCompanyServiceLayerUnavailableError(
-    `Service Layer devolvio el campo ${field} con un formato invalido.`,
+    `Service Layer devolvio el campo ${field} con un formato invalido${resource === undefined ? '' : ` al procesar ${resource}`}.`,
   );
 }
 function expirationTimestamp(expiresInSeconds: number): number {

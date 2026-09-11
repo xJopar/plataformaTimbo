@@ -129,6 +129,42 @@ describe('MetaCompanyServiceLayerService', () => {
     );
   });
 
+  it('identifica la respuesta de metas que contiene una marca invalida', async () => {
+    const fetchImplementation = jest
+      .fn()
+      .mockResolvedValueOnce(
+        response({
+          data: {
+            token: 'access-token',
+            expiresIn: 1_800,
+            refreshToken: 'refresh-token',
+            refreshTokenExpiresIn: 28_800,
+          },
+          error: null,
+        }),
+      )
+      .mockResolvedValueOnce(
+        response({
+          data: [
+            {
+              id_meta_marca: 1,
+              periodo: 202601,
+              id_negocio: 5,
+              id_marca: 0,
+              meta: '1.00',
+              dias_habiles: 22,
+            },
+          ],
+          error: null,
+        }),
+      );
+    const service = new MetaCompanyServiceLayerService(fetchImplementation);
+
+    await expect(service.listBrandGoals(5, 2026)).rejects.toThrow(
+      'Service Layer devolvio el campo id_marca con un formato invalido al procesar metas-marca.',
+    );
+  });
+
   it('actualiza un asesor con POST y su identificador de Service Layer', async () => {
     const fetchImplementation = jest
       .fn()
