@@ -19,16 +19,12 @@ La API usa PostgreSQL mediante Prisma. Cada entorno Railway referencia solamente
 `DATABASE_URL` privado de su PostgreSQL del mismo entorno. La migración se aplica antes de
 arrancar la API mediante el `preDeployCommand` versionado en `apps/api/railway.json`.
 
-El build de la API genera siempre los dos clientes Prisma antes de compilar, porque TypeScript necesita
-resolver los tipos de Meta Company aun cuando su módulo no se cargue en ejecución. La generación no
-conecta ni migra esa base secundaria. La CLI `prisma` es una dependencia disponible en la imagen. El
+El build de la API genera el cliente Prisma de la base central antes de compilar. La CLI `prisma` es una dependencia disponible en la imagen. El
 pre-deploy ejecuta exclusivamente `prisma migrate deploy`: no genera
 migraciones ni ejecuta `migrate dev`, `db push` o `migrate reset`.
 
-La base principal siempre recibe sus migraciones versionadas. Meta Company tiene un proveedor
-PostgreSQL con ciclo de vida propio: su cliente se genera durante el build, pero sólo migra su esquema
-secundario y carga su módulo cuando `META_COMPANY_ENABLED=true`. Mientras esa variable sea `false`, Production no requiere
-`DATABASE_META_EXAMPLE_URL` ni credenciales de Service Layer.
+La base principal siempre recibe sus migraciones versionadas. Meta Company consume Service Layer para
+sus datos comerciales y requiere sus credenciales server-only en el servicio API.
 
 ## Configuración inicial histórica (no repetir)
 
@@ -138,9 +134,7 @@ Si la web muestra “API no disponible”, revisar primero el valor efectivo de
 `CORS_ORIGIN` en `api`.
 
 El pre-deploy ejecuta `corepack pnpm --filter @timbo/api prisma:migrate:deploy` desde la raíz
-real del monorepo; si una migración principal falla, Railway no inicia la API. Con
-`META_COMPANY_ENABLED=true`, aplica después las migraciones de Meta Company y una falla también
-detiene el despliegue. Con `META_COMPANY_ENABLED=false`, omite únicamente esa migración secundaria.
+real del monorepo; si una migración principal falla, Railway no inicia la API.
 En development puede comprobarse de manera controlada que no haya migraciones pendientes.
 Producción no se usa para crear, generar, validar por escritura ni resetear migraciones.
 

@@ -1,19 +1,16 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { AuditActorType, Prisma } from '../../generated/prisma/client';
-import {
-  CommercialAdvisorKind,
-  type Prisma as MetaPrisma,
-} from '../../generated/meta-company-prisma/client';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { AuditActorType } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { type AuditEventName } from '../audit-events/audit-event-catalog';
 import { AuditEventsService } from '../audit-events/audit-events.service';
-import { MetaCompanyPrismaService } from './meta-company-prisma.service';
-import { MetaCompanyServiceLayerService } from './meta-company-service-layer.service';
+import {
+  MetaCompanyServiceLayerService,
+  type ServiceLayerAdvisor,
+  type ServiceLayerBrand,
+  type ServiceLayerBusiness,
+  type ServiceLayerEmpresa,
+  type ServiceLayerGoal,
+} from './meta-company-service-layer.service';
 
 type MetaCompanyAuditEventName = Extract<AuditEventName, `meta-company.${string}`>;
 type MetaCompanyTargetType =
@@ -24,349 +21,300 @@ type MetaCompanyTargetType =
   | 'commercial_brand_goal'
   | 'commercial_advisor_goal';
 
+export interface MetaCompanyCatalogs {
+  empresas: { id: number; code: string; name: string; active: boolean }[];
+  brands: { id: number; empresaId: number; name: string; active: boolean }[];
+  businesses: { id: number; empresaId: number; name: string; active: boolean }[];
+  advisors: {
+    id: number;
+    empresaId: number;
+    sourceSystem: string;
+    externalCode: string;
+    displayName: string;
+    kind: 'PERSON' | 'SALES_CHANNEL';
+    active: boolean;
+  }[];
+}
+
+interface BrandGoalWithRelations {
+  id: number;
+  period: Date;
+  businessId: number;
+  brandId: number;
+  value: { toFixed(digits: number): string };
+  workingDays: number | null;
+  updatedAt: Date | null;
+  business: { name: string };
+  brand: { name: string };
+}
+
+interface AdvisorGoalWithRelations {
+  id: number;
+  period: Date;
+  businessId: number;
+  brandId: number | null;
+  advisorId: number;
+  value: { toFixed(digits: number): string };
+  workingDays: number | null;
+  updatedAt: Date | null;
+  business: { name: string };
+  brand: { name: string } | null;
+  advisor: { externalCode: string; displayName: string };
+}
+
+interface AdvisorInput {
+  empresaId: number;
+  sourceSystem: string;
+  externalCode: string;
+  displayName: string;
+  kind: string;
+}
+
+interface BrandGoalInput {
+  period: string;
+  businessId: number;
+  brandId: number;
+  value: string;
+  workingDays?: number;
+}
+
+interface AdvisorGoalInput {
+  period: string;
+  businessId: number;
+  brandId?: number;
+  advisorId: number;
+  value: string;
+  workingDays?: number;
+}
+
 @Injectable()
 export class MetaCompanyService {
   public constructor(
-    private readonly prisma: MetaCompanyPrismaService,
     private readonly platformPrisma: PrismaService,
     private readonly auditEventsService: AuditEventsService,
     private readonly serviceLayerService: MetaCompanyServiceLayerService,
   ) {}
 
-  public async listCatalogs(includeInactive = false) {
-    const active = includeInactive ? {} : { active: true };
+  public async listCatalogs(includeInactive = false): Promise<MetaCompanyCatalogs> {
     const [empresas, brands, businesses, advisors] = await Promise.all([
-      this.prisma.commercialEmpresa.findMany({ where: active, orderBy: { name: 'asc' } }),
-      this.prisma.commercialBrand.findMany({ where: active, orderBy: { name: 'asc' } }),
-      this.prisma.commercialBusiness.findMany({ where: active, orderBy: { name: 'asc' } }),
-      this.prisma.commercialAdvisor.findMany({ where: active, orderBy: { displayName: 'asc' } }),
+      this.serviceLayerService.listEmpresas(includeInactive),
+      this.serviceLayerService.listBrands(includeInactive),
+      this.serviceLayerService.listBusinesses(includeInactive),
+      this.serviceLayerService.listAdvisors(includeInactive),
     ]);
-    return { empresas, brands, businesses, advisors };
+    return {
+      empresas: empresas.map(mapEmpresa),
+      brands: brands.map(mapBrand),
+      businesses: businesses.map(mapBusiness),
+      advisors: advisors.map(mapAdvisor),
+    };
   }
 
   public async listGoals(period?: string, empresaId?: number) {
-    const selectedPeriod = period === undefined ? undefined : parsePeriod(period);
-    const selectedEmpresaId = empresaId === undefined ? undefined : parseId(empresaId);
-    const where = {
-      ...(selectedPeriod === undefined ? {} : { period: selectedPeriod }),
-      ...(selectedEmpresaId === undefined ? {} : { business: { empresaId: selectedEmpresaId } }),
-    };
-    const [brandGoals, advisorGoals] = await Promise.all([
-      this.prisma.commercialBrandGoal.findMany({
-        where,
-        include: { brand: true, business: true },
-        orderBy: [{ business: { name: 'asc' } }, { brand: { name: 'asc' } }],
-      }),
-      this.prisma.commercialAdvisorGoal.findMany({
-        where,
-        include: { advisor: true, brand: true, business: true },
-        orderBy: [{ business: { name: 'asc' } }, { advisor: { displayName: 'asc' } }],
-      }),
+    const year = period === undefined ? undefined : parsePeriod(period).getUTCFullYear();
+    const catalogs = await this.listCatalogs(true);
+    const businesses = catalogs.businesses.filter(
+      (business) => empresaId === undefined || business.empresaId === parseId(empresaId),
+    );
+    const [brandGoalGroups, advisorGoalGroups] = await Promise.all([
+      Promise.all(
+        businesses.map((business) => this.serviceLayerService.listBrandGoals(business.id, year)),
+      ),
+      Promise.all(
+        businesses.map((business) => this.serviceLayerService.listAdvisorGoals(business.id, year)),
+      ),
     ]);
-    return { brandGoals, advisorGoals };
+
+    return {
+      brandGoals: brandGoalGroups.flat().map((goal) => mapBrandGoal(goal, catalogs)),
+      advisorGoals: advisorGoalGroups.flat().map((goal) => mapAdvisorGoal(goal, catalogs)),
+    };
   }
 
   public async createEmpresa(code: string, name: string, actorUserId: string) {
-    const empresa = await this.prisma.commercialEmpresa.create({
-      data: { code: normalizeCode(code), name: normalizeName(name, 100) },
-    });
+    const empresa = await this.serviceLayerService.createEmpresa(
+      normalizeCode(code),
+      normalizeName(name, 100),
+    );
     await this.appendAuditEvent(
       'meta-company.empresa_created',
       actorUserId,
       'commercial_empresa',
-      empresa.id,
+      empresa.idEmpresa,
     );
-    return empresa;
+    return mapEmpresa(empresa);
   }
 
   public async updateEmpresa(id: number, code: string, name: string, actorUserId: string) {
-    const empresa = await this.prisma.commercialEmpresa
-      .update({
-        where: { id: parseId(id) },
-        data: { code: normalizeCode(code), name: normalizeName(name, 100) },
-      })
-      .catch(throwEmpresaNotFound);
+    const empresa = await this.serviceLayerService.updateEmpresa(
+      parseId(id),
+      normalizeCode(code),
+      normalizeName(name, 100),
+    );
     await this.appendAuditEvent(
       'meta-company.empresa_updated',
       actorUserId,
       'commercial_empresa',
-      empresa.id,
+      empresa.idEmpresa,
     );
-    return empresa;
+    return mapEmpresa(empresa);
   }
 
   public async setEmpresaActive(id: number, active: boolean, actorUserId: string) {
-    const empresa = await this.prisma.commercialEmpresa
-      .update({
-        where: { id: parseId(id) },
-        data: { active },
-      })
-      .catch(throwEmpresaNotFound);
+    const empresa = await this.serviceLayerService.setEmpresaActive(parseId(id), active);
     await this.appendAuditEvent(
       active ? 'meta-company.empresa_reactivated' : 'meta-company.empresa_deactivated',
       actorUserId,
       'commercial_empresa',
-      empresa.id,
+      empresa.idEmpresa,
     );
-    return empresa;
+    return mapEmpresa(empresa);
   }
 
-  public async createBrand(empresaId: number, name: string, actorUserId: string) {
-    const brand = await this.prisma.commercialBrand.create({
-      data: {
-        empresaId: await this.requireActiveEmpresa(empresaId),
-        name: normalizeName(name, 100),
-      },
-    });
+  public async createBrand(_empresaId: number, name: string, actorUserId: string) {
+    const normalizedName = normalizeName(name, 100);
+    const brand = await this.serviceLayerService.createBrand(
+      normalizeCode(normalizedName),
+      normalizedName,
+    );
     await this.appendAuditEvent(
       'meta-company.brand_created',
       actorUserId,
       'commercial_brand',
-      brand.id,
+      brand.idMarca,
     );
-    return brand;
+    return mapBrand(brand);
   }
 
-  public async updateBrand(id: number, empresaId: number, name: string, actorUserId: string) {
-    const brand = await this.prisma.commercialBrand
-      .update({
-        where: { id: parseId(id) },
-        data: {
-          empresaId: await this.requireActiveEmpresa(empresaId),
-          name: normalizeName(name, 100),
-        },
-      })
-      .catch(throwBrandNotFound);
+  public async updateBrand(id: number, _empresaId: number, name: string, actorUserId: string) {
+    const normalizedName = normalizeName(name, 100);
+    const brand = await this.serviceLayerService.updateBrand(
+      parseId(id),
+      normalizeCode(normalizedName),
+      normalizedName,
+    );
     await this.appendAuditEvent(
       'meta-company.brand_updated',
       actorUserId,
       'commercial_brand',
-      brand.id,
+      brand.idMarca,
     );
-    return brand;
+    return mapBrand(brand);
   }
 
   public async setBrandActive(id: number, active: boolean, actorUserId: string) {
-    const brand = await this.prisma.commercialBrand
-      .update({
-        where: { id: parseId(id) },
-        data: { active },
-      })
-      .catch(throwBrandNotFound);
+    const brand = await this.serviceLayerService.setBrandActive(parseId(id), active);
     await this.appendAuditEvent(
       active ? 'meta-company.brand_reactivated' : 'meta-company.brand_deactivated',
       actorUserId,
       'commercial_brand',
-      brand.id,
+      brand.idMarca,
     );
-    return brand;
+    return mapBrand(brand);
   }
 
   public async createBusiness(empresaId: number, name: string, actorUserId: string) {
-    const business = await this.prisma.commercialBusiness.create({
-      data: {
-        empresaId: await this.requireActiveEmpresa(empresaId),
-        name: normalizeName(name, 50),
-      },
-    });
+    const normalizedName = normalizeName(name, 50);
+    const business = await this.serviceLayerService.createBusiness(
+      parseId(empresaId),
+      normalizeCode(normalizedName),
+      normalizedName,
+    );
     await this.appendAuditEvent(
       'meta-company.business_created',
       actorUserId,
       'commercial_business',
-      business.id,
+      business.idNegocio,
     );
-    return business;
+    return mapBusiness(business);
   }
 
   public async updateBusiness(id: number, empresaId: number, name: string, actorUserId: string) {
-    const business = await this.prisma.commercialBusiness
-      .update({
-        where: { id: parseId(id) },
-        data: {
-          empresaId: await this.requireActiveEmpresa(empresaId),
-          name: normalizeName(name, 50),
-        },
-      })
-      .catch(throwBusinessNotFound);
+    const normalizedName = normalizeName(name, 50);
+    const business = await this.serviceLayerService.updateBusiness(
+      parseId(id),
+      parseId(empresaId),
+      normalizeCode(normalizedName),
+      normalizedName,
+    );
     await this.appendAuditEvent(
       'meta-company.business_updated',
       actorUserId,
       'commercial_business',
-      business.id,
+      business.idNegocio,
     );
-    return business;
+    return mapBusiness(business);
   }
 
   public async setBusinessActive(id: number, active: boolean, actorUserId: string) {
-    const business = await this.prisma.commercialBusiness
-      .update({
-        where: { id: parseId(id) },
-        data: { active },
-      })
-      .catch(throwBusinessNotFound);
+    const business = await this.serviceLayerService.setBusinessActive(parseId(id), active);
     await this.appendAuditEvent(
       active ? 'meta-company.business_reactivated' : 'meta-company.business_deactivated',
       actorUserId,
       'commercial_business',
-      business.id,
+      business.idNegocio,
     );
-    return business;
+    return mapBusiness(business);
   }
 
-  public async createAdvisor(
-    input: {
-      empresaId: number;
-      sourceSystem: string;
-      externalCode: string;
-      displayName: string;
-      kind: string;
-    },
-    actorUserId: string,
-  ) {
-    const kind = parseAdvisorKind(input.kind);
-    const advisorInput = normalizeAdvisorInput(input);
-    await this.requireSapAdvisor(advisorInput.externalCode);
-    const advisor = await this.prisma.commercialAdvisor.create({
-      data: {
-        empresaId: await this.requireActiveEmpresa(advisorInput.empresaId),
-        sourceSystem: advisorInput.sourceSystem,
-        externalCode: advisorInput.externalCode,
-        displayName: advisorInput.displayName,
-        kind,
-      },
-    });
+  public async createAdvisor(input: AdvisorInput, actorUserId: string) {
+    const advisor = await this.serviceLayerService.createAdvisor(normalizeAdvisorInput(input));
     await this.appendAuditEvent(
       'meta-company.advisor_created',
       actorUserId,
       'commercial_advisor',
-      advisor.id,
+      advisor.idAsesor,
     );
-    return advisor;
+    return mapAdvisor(advisor);
   }
 
-  public async updateAdvisor(
-    id: number,
-    input: {
-      empresaId: number;
-      sourceSystem: string;
-      externalCode: string;
-      displayName: string;
-      kind: string;
-    },
-    actorUserId: string,
-  ) {
-    const advisorInput = normalizeAdvisorInput(input);
-    await this.requireSapAdvisor(advisorInput.externalCode);
-    const advisor = await this.prisma.commercialAdvisor
-      .update({
-        where: { id: parseId(id) },
-        data: {
-          empresaId: await this.requireActiveEmpresa(advisorInput.empresaId),
-          sourceSystem: advisorInput.sourceSystem,
-          externalCode: advisorInput.externalCode,
-          displayName: advisorInput.displayName,
-          kind: parseAdvisorKind(input.kind),
-        },
-      })
-      .catch(throwAdvisorNotFound);
+  public async updateAdvisor(id: number, input: AdvisorInput, actorUserId: string) {
+    const advisor = await this.serviceLayerService.updateAdvisor(
+      parseId(id),
+      normalizeAdvisorInput(input),
+    );
     await this.appendAuditEvent(
       'meta-company.advisor_updated',
       actorUserId,
       'commercial_advisor',
-      advisor.id,
+      advisor.idAsesor,
     );
-    return advisor;
+    return mapAdvisor(advisor);
   }
 
   public async setAdvisorActive(id: number, active: boolean, actorUserId: string) {
-    const advisor = await this.prisma.commercialAdvisor
-      .update({
-        where: { id: parseId(id) },
-        data: { active },
-      })
-      .catch(throwAdvisorNotFound);
+    const advisor = await this.serviceLayerService.setAdvisorActive(parseId(id), active);
     await this.appendAuditEvent(
       active ? 'meta-company.advisor_reactivated' : 'meta-company.advisor_deactivated',
       actorUserId,
       'commercial_advisor',
-      advisor.id,
+      advisor.idAsesor,
     );
-    return advisor;
+    return mapAdvisor(advisor);
   }
 
-  public async createBrandGoal(
-    input: {
-      period: string;
-      businessId: number;
-      brandId: number;
-      value: string;
-      workingDays?: number;
-    },
-    actorUserId: string,
-  ) {
-    const data = {
-      period: parsePeriod(input.period),
-      businessId: parseId(input.businessId),
-      brandId: parseId(input.brandId),
-      value: parseValue(input.value),
-      workingDays: input.workingDays === undefined ? null : parseWorkingDays(input.workingDays),
-    };
-    await this.requireScope(data.businessId, data.brandId);
-    await this.ensureNoBrandGoal(data);
-    const goal = await this.prisma.commercialBrandGoal.create({
-      data,
-      include: { brand: true, business: true },
-    });
+  public async createBrandGoal(input: BrandGoalInput, actorUserId: string) {
+    const goal = await this.serviceLayerService.createBrandGoal(normalizeBrandGoalInput(input));
+    const mappedGoal = mapBrandGoal(goal, await this.listCatalogs(true));
     await this.appendAuditEvent(
       'meta-company.goal_created',
       actorUserId,
       'commercial_brand_goal',
-      goal.id,
+      mappedGoal.id,
     );
-    return goal;
+    return mappedGoal;
   }
 
-  public async createAdvisorGoal(
-    input: {
-      period: string;
-      businessId: number;
-      brandId?: number;
-      advisorId: number;
-      value: string;
-      workingDays?: number;
-    },
-    actorUserId: string,
-  ) {
-    const data = {
-      period: parsePeriod(input.period),
-      businessId: parseId(input.businessId),
-      brandId: input.brandId === undefined ? null : parseId(input.brandId),
-      advisorId: parseId(input.advisorId),
-      value: parseValue(input.value),
-      workingDays: input.workingDays === undefined ? null : parseWorkingDays(input.workingDays),
-    };
-    await this.requireScope(data.businessId, data.brandId, data.advisorId);
-    const duplicate = await this.prisma.commercialAdvisorGoal.findFirst({
-      where: {
-        period: data.period,
-        businessId: data.businessId,
-        brandId: data.brandId,
-        advisorId: data.advisorId,
-      },
-      select: { id: true },
-    });
-    if (duplicate !== null) throw new ConflictException('Ya existe una meta con ese alcance.');
-    const goal = await this.prisma.commercialAdvisorGoal.create({
-      data,
-      include: { advisor: true, brand: true, business: true },
-    });
+  public async createAdvisorGoal(input: AdvisorGoalInput, actorUserId: string) {
+    const goal = await this.serviceLayerService.createAdvisorGoal(normalizeAdvisorGoalInput(input));
+    const mappedGoal = mapAdvisorGoal(goal, await this.listCatalogs(true));
     await this.appendAuditEvent(
       'meta-company.goal_created',
       actorUserId,
       'commercial_advisor_goal',
-      goal.id,
+      mappedGoal.id,
     );
-    return goal;
+    return mappedGoal;
   }
 
   public async updateBrandGoal(
@@ -375,24 +323,19 @@ export class MetaCompanyService {
     workingDays: number | undefined,
     actorUserId: string,
   ) {
-    const goal = await this.prisma.commercialBrandGoal
-      .update({
-        where: { id: parseId(id) },
-        data: {
-          value: parseValue(value),
-          ...(workingDays === undefined ? {} : { workingDays: parseWorkingDays(workingDays) }),
-          updatedAt: new Date(),
-        },
-        include: { brand: true, business: true },
-      })
-      .catch(throwGoalNotFound);
+    const goal = await this.serviceLayerService.updateBrandGoal(
+      parseId(id),
+      normalizeGoalValue(value),
+      workingDays === undefined ? undefined : parseWorkingDays(workingDays),
+    );
+    const mappedGoal = mapBrandGoal(goal, await this.listCatalogs(true));
     await this.appendAuditEvent(
       'meta-company.goal_updated',
       actorUserId,
       'commercial_brand_goal',
-      goal.id,
+      mappedGoal.id,
     );
-    return goal;
+    return mappedGoal;
   }
 
   public async updateAdvisorGoal(
@@ -401,84 +344,19 @@ export class MetaCompanyService {
     workingDays: number | undefined,
     actorUserId: string,
   ) {
-    const goal = await this.prisma.commercialAdvisorGoal
-      .update({
-        where: { id: parseId(id) },
-        data: {
-          value: parseValue(value),
-          ...(workingDays === undefined ? {} : { workingDays: parseWorkingDays(workingDays) }),
-          updatedAt: new Date(),
-        },
-        include: { advisor: true, brand: true, business: true },
-      })
-      .catch(throwGoalNotFound);
+    const goal = await this.serviceLayerService.updateAdvisorGoal(
+      parseId(id),
+      normalizeGoalValue(value),
+      workingDays === undefined ? undefined : parseWorkingDays(workingDays),
+    );
+    const mappedGoal = mapAdvisorGoal(goal, await this.listCatalogs(true));
     await this.appendAuditEvent(
       'meta-company.goal_updated',
       actorUserId,
       'commercial_advisor_goal',
-      goal.id,
+      mappedGoal.id,
     );
-    return goal;
-  }
-
-  private async requireActiveEmpresa(id: number): Promise<number> {
-    const empresaId = parseId(id);
-    if (
-      (await this.prisma.commercialEmpresa.findFirst({
-        where: { id: empresaId, active: true },
-        select: { id: true },
-      })) === null
-    )
-      throw new BadRequestException('La empresa debe existir y estar activa.');
-    return empresaId;
-  }
-
-  private async requireSapAdvisor(externalCode: string): Promise<void> {
-    const salespersonCode = parseSapSalespersonCode(externalCode);
-    if (!(await this.serviceLayerService.verifySapAdvisor(salespersonCode))) {
-      throw new BadRequestException('El codigo SAP indicado no corresponde a un asesor existente.');
-    }
-  }
-
-  private async requireScope(businessId: number, brandId?: number | null, advisorId?: number) {
-    const [business, brand, advisor] = await Promise.all([
-      this.prisma.commercialBusiness.findFirst({
-        where: { id: businessId, active: true },
-        select: { empresaId: true },
-      }),
-      brandId === undefined || brandId === null
-        ? null
-        : this.prisma.commercialBrand.findFirst({
-            where: { id: brandId, active: true },
-            select: { empresaId: true },
-          }),
-      advisorId === undefined
-        ? null
-        : this.prisma.commercialAdvisor.findFirst({
-            where: { id: advisorId, active: true },
-            select: { empresaId: true },
-          }),
-    ]);
-    if (
-      business === null ||
-      (brandId !== undefined && brandId !== null && brand === null) ||
-      (advisorId !== undefined && advisor === null) ||
-      (brand !== null && brand.empresaId !== business.empresaId) ||
-      (advisor !== null && advisor.empresaId !== business.empresaId)
-    )
-      throw new BadRequestException(
-        'El negocio, la marca y el asesor deben estar activos y pertenecer a la misma empresa.',
-      );
-  }
-
-  private async ensureNoBrandGoal(data: MetaPrisma.CommercialBrandGoalUncheckedCreateInput) {
-    if (
-      (await this.prisma.commercialBrandGoal.findFirst({
-        where: { period: data.period, businessId: data.businessId, brandId: data.brandId },
-        select: { id: true },
-      })) !== null
-    )
-      throw new ConflictException('Ya existe una meta con ese alcance.');
+    return mappedGoal;
   }
 
   private async appendAuditEvent(
@@ -497,20 +375,113 @@ export class MetaCompanyService {
   }
 }
 
-function throwGoalNotFound(): never {
-  throw new NotFoundException('No se encontro la meta solicitada.');
+function mapEmpresa(empresa: ServiceLayerEmpresa) {
+  return {
+    id: empresa.idEmpresa,
+    code: empresa.codigo,
+    name: empresa.empresa,
+    active: empresa.activo,
+  };
 }
-function throwAdvisorNotFound(): never {
-  throw new NotFoundException('No se encontro el asesor solicitado.');
+function mapBrand(brand: ServiceLayerBrand) {
+  return { id: brand.idMarca, empresaId: 0, name: brand.marca, active: brand.activo };
 }
-function throwEmpresaNotFound(): never {
-  throw new NotFoundException('No se encontro la empresa solicitada.');
+function mapBusiness(business: ServiceLayerBusiness) {
+  return {
+    id: business.idNegocio,
+    empresaId: business.idEmpresa,
+    name: business.negocio,
+    active: business.activo,
+  };
 }
-function throwBrandNotFound(): never {
-  throw new NotFoundException('No se encontro la marca solicitada.');
+function mapAdvisor(advisor: ServiceLayerAdvisor) {
+  return {
+    id: advisor.idAsesor,
+    empresaId: advisor.idEmpresa,
+    sourceSystem: 'SAP_B1',
+    externalCode: String(advisor.idSap),
+    displayName: advisor.nombre,
+    kind: advisor.tipo,
+    active: advisor.activo,
+  };
 }
-function throwBusinessNotFound(): never {
-  throw new NotFoundException('No se encontro el negocio solicitado.');
+function mapBrandGoal(
+  goal: ServiceLayerGoal,
+  catalogs: MetaCompanyCatalogs,
+): BrandGoalWithRelations {
+  const business = findCatalog(catalogs.businesses, goal.idNegocio, 'negocio');
+  const brand = findCatalog(catalogs.brands, goal.idMarca, 'marca');
+  return {
+    id: goal.id,
+    period: periodToDate(goal.periodo),
+    businessId: goal.idNegocio,
+    brandId: goal.idMarca ?? 0,
+    value: goalValue(goal.meta),
+    workingDays: goal.diasHabiles,
+    updatedAt: null,
+    business: { name: business.name },
+    brand: { name: brand.name },
+  };
+}
+function mapAdvisorGoal(
+  goal: ServiceLayerGoal,
+  catalogs: MetaCompanyCatalogs,
+): AdvisorGoalWithRelations {
+  const business = findCatalog(catalogs.businesses, goal.idNegocio, 'negocio');
+  const advisor = findCatalog(catalogs.advisors, goal.idAsesor, 'asesor');
+  const brand = goal.idMarca === null ? null : findCatalog(catalogs.brands, goal.idMarca, 'marca');
+  return {
+    id: goal.id,
+    period: periodToDate(goal.periodo),
+    businessId: goal.idNegocio,
+    brandId: goal.idMarca,
+    advisorId: goal.idAsesor ?? 0,
+    value: goalValue(goal.meta),
+    workingDays: goal.diasHabiles,
+    updatedAt: null,
+    business: { name: business.name },
+    brand: brand === null ? null : { name: brand.name },
+    advisor: { externalCode: advisor.externalCode, displayName: advisor.displayName },
+  };
+}
+function findCatalog<T extends { id: number }>(items: T[], id: number | null, label: string): T {
+  const item = id === null ? undefined : items.find((candidate) => candidate.id === id);
+  if (item === undefined)
+    throw new BadRequestException(`Service Layer devolvio una ${label} inexistente.`);
+  return item;
+}
+function goalValue(value: string) {
+  return { toFixed: () => value };
+}
+function normalizeAdvisorInput(input: AdvisorInput) {
+  const idSap = parseSapSalespersonCode(input.externalCode);
+  if (input.sourceSystem.trim() !== 'SAP_B1')
+    throw new BadRequestException('El sistema de origen del asesor debe ser SAP_B1.');
+  return {
+    empresaId: parseId(input.empresaId),
+    idSap,
+    nombre: normalizeName(input.displayName, 150),
+    tipo: parseAdvisorKind(input.kind),
+  };
+}
+function normalizeBrandGoalInput(input: BrandGoalInput) {
+  return {
+    periodo: periodToNumber(input.period),
+    idNegocio: parseId(input.businessId),
+    idMarca: parseId(input.brandId),
+    meta: normalizeGoalValue(input.value),
+    diasHabiles: input.workingDays === undefined ? undefined : parseWorkingDays(input.workingDays),
+  };
+}
+function normalizeAdvisorGoalInput(input: AdvisorGoalInput) {
+  return {
+    periodo: periodToNumber(input.period),
+    idNegocio: parseId(input.businessId),
+    idMarca: input.brandId === undefined ? null : parseId(input.brandId),
+    idAsesor: parseId(input.advisorId),
+    meta: normalizeGoalValue(input.value),
+    diasHabiles: input.workingDays === undefined ? undefined : parseWorkingDays(input.workingDays),
+  };
 }
 function parsePeriod(value: string): Date {
   if (!/^\d{4}-\d{2}-01$/.test(value))
@@ -519,17 +490,28 @@ function parsePeriod(value: string): Date {
   if (Number.isNaN(date.valueOf())) throw new BadRequestException('El periodo no es valido.');
   return date;
 }
+function periodToNumber(value: string): number {
+  const date = parsePeriod(value);
+  return date.getUTCFullYear() * 100 + date.getUTCMonth() + 1;
+}
+function periodToDate(value: number): Date {
+  const year = Math.floor(value / 100);
+  const month = value % 100;
+  if (month < 1 || month > 12)
+    throw new BadRequestException('Service Layer devolvio un periodo invalido.');
+  return new Date(Date.UTC(year, month - 1, 1));
+}
 function parseId(value: number): number {
   if (!Number.isSafeInteger(value) || value <= 0)
     throw new BadRequestException('El identificador es invalido.');
   return value;
 }
-function parseValue(value: string): Prisma.Decimal {
+function normalizeGoalValue(value: string): string {
   if (!/^\d{1,16}(?:\.\d{1,2})?$/.test(value))
     throw new BadRequestException(
       'La meta debe ser un decimal no negativo con hasta dos decimales.',
     );
-  return new Prisma.Decimal(value);
+  return value;
 }
 function parseWorkingDays(value: number): number {
   if (!Number.isSafeInteger(value) || value <= 0)
@@ -543,31 +525,19 @@ function normalizeName(value: string, maximumLength: number): string {
   return normalized;
 }
 function normalizeCode(value: string): string {
-  const code = normalizeName(value, 30).toUpperCase();
-  if (!/^[A-Z0-9_]+$/.test(code))
+  const code = normalizeName(value, 30)
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  if (code === '')
     throw new BadRequestException('El codigo solo admite letras, numeros y guion bajo.');
   return code;
 }
-function parseAdvisorKind(value: string): CommercialAdvisorKind {
-  if (value !== CommercialAdvisorKind.PERSON && value !== CommercialAdvisorKind.SALES_CHANNEL)
-    throw new BadRequestException('El tipo de asesor no es valido.');
-  return value;
+function parseAdvisorKind(value: string): 'PERSON' | 'SALES_CHANNEL' {
+  if (value === 'PERSON' || value === 'SALES_CHANNEL') return value;
+  throw new BadRequestException('El tipo de asesor es invalido.');
 }
 function parseSapSalespersonCode(value: string): number {
-  if (!/^\d+$/u.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) <= 0)
-    throw new BadRequestException('El codigo SAP del asesor debe ser un entero positivo.');
-  return Number(value);
-}
-function normalizeAdvisorInput(input: {
-  empresaId: number;
-  sourceSystem: string;
-  externalCode: string;
-  displayName: string;
-}): { empresaId: number; sourceSystem: string; externalCode: string; displayName: string } {
-  return {
-    empresaId: input.empresaId,
-    sourceSystem: normalizeName(input.sourceSystem, 30),
-    externalCode: normalizeName(input.externalCode, 100),
-    displayName: normalizeName(input.displayName, 150),
-  };
+  if (!/^\d+$/.test(value)) throw new BadRequestException('El codigo SAP del asesor es invalido.');
+  return parseId(Number(value));
 }

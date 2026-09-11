@@ -98,6 +98,41 @@ describe('MetaCompanyServiceLayerService', () => {
     await expect(service.verifySapAdvisor(999)).resolves.toBe(false);
   });
 
+  it('consulta las empresas por el endpoint de listado de Service Layer', async () => {
+    const fetchImplementation = jest
+      .fn()
+      .mockResolvedValueOnce(
+        response({
+          data: {
+            token: 'access-token',
+            expiresIn: 1_800,
+            refreshToken: 'refresh-token',
+            refreshTokenExpiresIn: 28_800,
+          },
+          error: null,
+        }),
+      )
+      .mockResolvedValueOnce(
+        response({
+          data: [{ id_empresa: 1, codigo: 'TIMBO', empresa: 'Timbo', activo: true }],
+          error: null,
+        }),
+      );
+    const service = new MetaCompanyServiceLayerService(fetchImplementation);
+
+    await expect(service.listEmpresas(false)).resolves.toEqual([
+      { idEmpresa: 1, codigo: 'TIMBO', empresa: 'Timbo', activo: true },
+    ]);
+    expect(fetchImplementation).toHaveBeenNthCalledWith(
+      2,
+      'http://service-layer.test/public/empresas/listar',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ activo: true }),
+      }),
+    );
+  });
+
   it('renueva el token con el refresh token antes de iniciar sesion nuevamente', async () => {
     const fetchImplementation = jest
       .fn()

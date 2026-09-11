@@ -1,4 +1,4 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { HealthModule } from './health/health.module';
 import { AuditEventsModule } from './modules/audit-events/audit-events.module';
@@ -17,7 +17,7 @@ import { PlatformBootstrapModule } from './modules/platform-bootstrap/platform-b
 
 @Module({})
 export class AppModule {
-  public static register(metaCompanyEnabled: boolean): DynamicModule {
+  public static register() {
     return {
       module: AppModule,
       imports: [
@@ -32,7 +32,7 @@ export class AppModule {
         HelloWorldModule,
         ListaPreciosModule,
         CalculadoraCuotasModule,
-        ...(metaCompanyEnabled ? [MetaCompanyModule] : []),
+        MetaCompanyModule,
         Seguimiento5sModule,
       ],
       providers: [{ provide: APP_FILTER, useClass: AuthExceptionFilter }],

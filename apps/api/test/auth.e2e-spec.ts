@@ -7,7 +7,6 @@ import { UserStatus, type User } from '../src/generated/prisma/client';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/bootstrap';
 import { PrismaService } from '../src/database/prisma.service';
-import { MetaCompanyPrismaService } from '../src/modules/meta-company/meta-company-prisma.service';
 import { SESSION_DURATION_MS } from '../src/runtime-config';
 import { AuditEventsService } from '../src/modules/audit-events/audit-events.service';
 import { GoogleOAuthService } from '../src/modules/auth/google-oauth.service';
@@ -76,12 +75,10 @@ describe('autenticación HTTP (e2e)', () => {
     process.env.CORS_ORIGIN = TEST_ORIGIN;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule.register(true)],
+      imports: [AppModule.register()],
     })
       .overrideProvider(PrismaService)
       .useValue(prismaService)
-      .overrideProvider(MetaCompanyPrismaService)
-      .useValue({})
       .overrideProvider(GoogleOAuthService)
       .useValue(googleOAuthService)
       .overrideProvider(OAuthLoginAttemptsService)

@@ -39,10 +39,9 @@ descarga PNG se genera en el navegador y no envía ni persiste el contenido del 
 por visita la entrada y la incorporación desde Lista de Precios, y al exportar conserva sólo el
 identificador visible de ocho caracteres como objetivo `calculator_image` y el origen agregado de
 las unidades (`manual`, `lista_precios` o `mixed`).
-`Meta Company` usa de forma temporal un proveedor PostgreSQL separado de la base central. La API
-valida altas y ediciones de asesores contra SAP mediante Service Layer y mantiene las reglas de
-acceso y las auditorías administrativas en la plataforma; los demás datos comerciales se
-sustituirán gradualmente por ese proveedor.
+`Meta Company` consume sus catálogos y metas comerciales exclusivamente desde Service Layer. La
+base central conserva identidad, acceso y las auditorías administrativas de la plataforma; no
+almacena una copia temporal de los datos comerciales de Meta Company.
 
 ## Componentes del workspace
 
@@ -55,7 +54,7 @@ API NestJS y única propietaria de PostgreSQL y Prisma. Sus módulos vigentes so
 - `hello-world`: endpoint funcional protegido y obtención de chistes desde icanhazdadjoke;
 - `lista-precios`: catálogos protegidos de vehículos y tarifas de alquiler de maquinarias desde
   Zoho Analytics, además de eventos de uso del recorrido comercial;
-- `meta-company`: metas comerciales y catálogos de marcas y negocios en un proveedor aislado;
+- `meta-company`: metas comerciales y catálogos de marcas y negocios mediante Service Layer;
 - `users`: preautorización, consulta y cambios administrativos de usuarios;
 - `access-profiles`: perfil de sistema `PLATFORM_ADMIN` y autorización funcional por aplicación;
 - `administration`: endpoints protegidos para usuarios, aplicaciones, asignaciones, perfiles,

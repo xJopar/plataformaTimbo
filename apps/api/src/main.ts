@@ -8,7 +8,7 @@ import { createStartupFailureDiagnostic } from './startup-failure-diagnostic';
 async function bootstrap(): Promise<void> {
   const runtimeConfig = resolveRuntimeConfig();
 
-  const app = await NestFactory.create(AppModule.register(runtimeConfig.metaCompanyEnabled));
+  const app = await NestFactory.create(AppModule.register());
   configureApp(app, runtimeConfig.corsOrigin);
 
   await app.listen(runtimeConfig.port);

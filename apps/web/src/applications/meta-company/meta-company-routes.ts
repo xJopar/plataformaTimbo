@@ -60,8 +60,12 @@ export function parseMetaCompanyRoute(pathname: string, launchPath: string): Met
   return { view: 'not-found' };
 }
 
-export function buildAdvisorDetailPath(launchPath: string, advisorId: number, year: number): string {
-  return `${launchPath}/asesores/${advisorId}/${year}`;
+export function buildAdvisorDetailPath(
+  launchPath: string,
+  advisorId: number,
+  year: number,
+): string {
+  return `${launchPath}/asesores/${String(advisorId)}/${String(year)}`;
 }
 
 export function buildBrandGoalsPath(launchPath: string): string {

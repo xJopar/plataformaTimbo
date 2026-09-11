@@ -50,14 +50,18 @@ export function CatalogItemManagementScreen({
   };
 
   const isSaving =
-    action === `${kind}-create` || (editingId !== undefined && action === `${kind}-edit-${editingId}`);
+    action === `${kind}-create` ||
+    (editingId !== undefined && action === `${kind}-edit-${editingId}`);
 
   const singularLabel = kind === 'brand' ? 'marca' : 'negocio';
 
   const submit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     try {
-      await onSave({ empresaId: Number(form.empresaId), name: form.name }, editingId);
+      await onSave(
+        { empresaId: kind === 'brand' ? 0 : Number(form.empresaId), name: form.name },
+        editingId,
+      );
       resetForm();
     } catch {
       // el error ya se reporta en el estado compartido de la página
@@ -86,23 +90,25 @@ export function CatalogItemManagementScreen({
           )}
         </div>
         <div className="mc-manage-form-grid">
-          <label>
-            Empresa
-            <select
-              required
-              value={form.empresaId}
-              onChange={(event) => updateForm('empresaId', event.target.value)}
-            >
-              <option value="" disabled>
-                Seleccioná una empresa
-              </option>
-              {empresas.map((empresa) => (
-                <option key={empresa.id} value={empresa.id}>
-                  {empresa.name}
+          {kind === 'brand' ? null : (
+            <label>
+              Empresa
+              <select
+                required
+                value={form.empresaId}
+                onChange={(event) => updateForm('empresaId', event.target.value)}
+              >
+                <option value="" disabled>
+                  Seleccioná una empresa
                 </option>
-              ))}
-            </select>
-          </label>
+                {empresas.map((empresa) => (
+                  <option key={empresa.id} value={empresa.id}>
+                    {empresa.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label>
             Nombre
             <input
@@ -113,7 +119,11 @@ export function CatalogItemManagementScreen({
           </label>
         </div>
         <button className="mc-primary-action" disabled={isSaving}>
-          {isSaving ? 'Guardando…' : editingId === undefined ? `Agregar ${singularLabel}` : 'Guardar cambios'}
+          {isSaving
+            ? 'Guardando…'
+            : editingId === undefined
+              ? `Agregar ${singularLabel}`
+              : 'Guardar cambios'}
         </button>
       </form>
       <div className="mc-manage-table-wrapper">
@@ -122,7 +132,7 @@ export function CatalogItemManagementScreen({
           <thead>
             <tr>
               <th scope="col">Nombre</th>
-              <th scope="col">Empresa</th>
+              <th scope="col">Alcance</th>
               <th scope="col">Estado</th>
               <th scope="col">Acciones</th>
             </tr>
@@ -131,7 +141,11 @@ export function CatalogItemManagementScreen({
             {items.map((item) => (
               <tr key={item.id}>
                 <td>{item.name}</td>
-                <td>{empresas.find((empresa) => empresa.id === item.empresaId)?.name ?? '—'}</td>
+                <td>
+                  {kind === 'brand'
+                    ? 'Global'
+                    : (empresas.find((empresa) => empresa.id === item.empresaId)?.name ?? '—')}
+                </td>
                 <td>{item.active ? 'Activo' : 'Inactivo'}</td>
                 <td className="mc-manage-actions">
                   <button

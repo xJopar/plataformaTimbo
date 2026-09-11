@@ -15,12 +15,12 @@ export interface MonthGoal {
 const goalValues = new Map<string, string>();
 
 function goalKey(kind: MonthGoalKind, id: number, periodo: string): string {
-  return `${kind}:${id}:${periodo}`;
+  return `${kind}:${String(id)}:${periodo}`;
 }
 
 function buildTwelveMonths(kind: MonthGoalKind, id: number, anio: number): MonthGoal[] {
   return Array.from({ length: 12 }, (_, index) => {
-    const periodo = `${anio}-${String(index + 1).padStart(2, '0')}-01`;
+    const periodo = `${String(anio)}-${String(index + 1).padStart(2, '0')}-01`;
     return { periodo, meta: goalValues.get(goalKey(kind, id, periodo)) ?? null };
   });
 }

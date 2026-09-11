@@ -229,11 +229,9 @@ operación completa.
 
 ### Proveedor externo de Meta Company
 
-Durante desarrollo, Meta Company usa `DATABASE_META_EXAMPLE_URL` como proveedor temporal de
-metas, marcas y negocios. Antes de crear o editar un asesor, consulta Service Layer para validar
-el `SlpCode` de SAP; esa consulta no produce auditoría ni evento de uso. La URL, credenciales y
-tokens de Service Layer son server-only y no se incluyen en diagnósticos. Después de que el
-proveedor temporal confirma una creación, edición, desactivación o reactivación,
+Meta Company usa Service Layer como proveedor de metas, marcas, negocios y asesores. La URL,
+credenciales y tokens de Service Layer son server-only y no se incluyen en diagnósticos. Después
+de que Service Layer confirma una creación, edición, desactivación o reactivación,
 `MetaCompanyService` abre una transacción en la base central e invoca `AuditEventsService` con
 uno de los eventos `meta-company.*`.
 

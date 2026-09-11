@@ -1,52 +1,55 @@
 import { PrismaService } from '../../database/prisma.service';
 import { AuditEventsService } from '../audit-events/audit-events.service';
-import { MetaCompanyPrismaService } from './meta-company-prisma.service';
 import { MetaCompanyServiceLayerService } from './meta-company-service-layer.service';
 import { MetaCompanyService } from './meta-company.service';
 
 describe('MetaCompanyService', () => {
-  const secondaryPrisma = {
-    commercialEmpresa: { findMany: jest.fn(), update: jest.fn() },
-    commercialBrand: { findMany: jest.fn(), update: jest.fn() },
-    commercialBusiness: { findMany: jest.fn() },
-    commercialAdvisor: { findMany: jest.fn(), create: jest.fn(), update: jest.fn() },
+  const serviceLayerService = {
+    listEmpresas: jest.fn(),
+    listBrands: jest.fn(),
+    listBusinesses: jest.fn(),
+    listAdvisors: jest.fn(),
+    updateEmpresa: jest.fn(),
   };
   const auditEventsService = { append: jest.fn().mockResolvedValue(undefined) };
   const platformPrisma = {
-    $transaction: jest.fn((callback: (tx: unknown) => unknown) => callback({})),
+    $transaction: jest.fn((callback: (transactionClient: unknown) => unknown) => callback({})),
   };
-  const serviceLayerService = { verifySapAdvisor: jest.fn() };
   const service = new MetaCompanyService(
-    secondaryPrisma as unknown as MetaCompanyPrismaService,
     platformPrisma as unknown as PrismaService,
     auditEventsService as unknown as AuditEventsService,
     serviceLayerService as unknown as MetaCompanyServiceLayerService,
   );
 
-  it('lista las dimensiones activas del espacio comercial', async () => {
-    secondaryPrisma.commercialEmpresa.findMany.mockResolvedValue([{ id: 1, name: 'Timbo' }]);
-    secondaryPrisma.commercialBrand.findMany.mockResolvedValue([]);
-    secondaryPrisma.commercialBusiness.findMany.mockResolvedValue([{ id: 2, name: 'Comercial' }]);
-    secondaryPrisma.commercialAdvisor.findMany.mockResolvedValue([]);
-
-    await expect(service.listCatalogs()).resolves.toEqual({
-      empresas: [{ id: 1, name: 'Timbo' }],
-      brands: [],
-      businesses: [{ id: 2, name: 'Comercial' }],
-      advisors: [],
-    });
-    expect(secondaryPrisma.commercialEmpresa.findMany).toHaveBeenCalledWith({
-      where: { active: true },
-      orderBy: { name: 'asc' },
-    });
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('actualiza una empresa y audita el evento correspondiente', async () => {
-    secondaryPrisma.commercialEmpresa.update.mockResolvedValue({
-      id: 1,
-      code: 'TIMBO',
-      name: 'Timbo SA',
-      active: true,
+  it('lista las dimensiones comerciales exclusivamente desde Service Layer', async () => {
+    serviceLayerService.listEmpresas.mockResolvedValue([
+      { idEmpresa: 1, codigo: 'TIMBO', empresa: 'Timbo', activo: true },
+    ]);
+    serviceLayerService.listBrands.mockResolvedValue([]);
+    serviceLayerService.listBusinesses.mockResolvedValue([
+      { idNegocio: 2, idEmpresa: 1, codigo: 'COM', negocio: 'Comercial', activo: true },
+    ]);
+    serviceLayerService.listAdvisors.mockResolvedValue([]);
+
+    await expect(service.listCatalogs()).resolves.toEqual({
+      empresas: [{ id: 1, code: 'TIMBO', name: 'Timbo', active: true }],
+      brands: [],
+      businesses: [{ id: 2, empresaId: 1, name: 'Comercial', active: true }],
+      advisors: [],
+    });
+    expect(serviceLayerService.listEmpresas).toHaveBeenCalledWith(false);
+  });
+
+  it('actualiza una empresa en Service Layer y conserva la auditoría de plataforma', async () => {
+    serviceLayerService.updateEmpresa.mockResolvedValue({
+      idEmpresa: 1,
+      codigo: 'TIMBO',
+      empresa: 'Timbo SA',
+      activo: true,
     });
 
     await expect(service.updateEmpresa(1, 'timbo', 'Timbo SA', 'user-1')).resolves.toEqual({
@@ -55,57 +58,10 @@ describe('MetaCompanyService', () => {
       name: 'Timbo SA',
       active: true,
     });
-    expect(secondaryPrisma.commercialEmpresa.update).toHaveBeenCalledWith({
-      where: { id: 1 },
-      data: { code: 'TIMBO', name: 'Timbo SA' },
-    });
+    expect(serviceLayerService.updateEmpresa).toHaveBeenCalledWith(1, 'TIMBO', 'Timbo SA');
     expect(auditEventsService.append).toHaveBeenCalledWith(
       {},
       expect.objectContaining({ eventName: 'meta-company.empresa_updated' }),
     );
-  });
-
-  it('activa/desactiva una marca y audita el evento correspondiente', async () => {
-    secondaryPrisma.commercialBrand.update.mockResolvedValue({
-      id: 2,
-      empresaId: 1,
-      name: 'Facchini',
-      active: false,
-    });
-
-    await expect(service.setBrandActive(2, false, 'user-1')).resolves.toEqual({
-      id: 2,
-      empresaId: 1,
-      name: 'Facchini',
-      active: false,
-    });
-    expect(secondaryPrisma.commercialBrand.update).toHaveBeenCalledWith({
-      where: { id: 2 },
-      data: { active: false },
-    });
-    expect(auditEventsService.append).toHaveBeenCalledWith(
-      {},
-      expect.objectContaining({ eventName: 'meta-company.brand_deactivated' }),
-    );
-  });
-
-  it('no registra un asesor cuando SAP no reconoce su codigo', async () => {
-    serviceLayerService.verifySapAdvisor.mockResolvedValue(false);
-
-    await expect(
-      service.createAdvisor(
-        {
-          empresaId: 1,
-          sourceSystem: 'SAP_B1',
-          externalCode: '999',
-          displayName: 'No existe',
-          kind: 'PERSON',
-        },
-        'user-1',
-      ),
-    ).rejects.toThrow('El codigo SAP indicado no corresponde a un asesor existente.');
-
-    expect(serviceLayerService.verifySapAdvisor).toHaveBeenCalledWith(999);
-    expect(secondaryPrisma.commercialAdvisor.create).not.toHaveBeenCalled();
   });
 });

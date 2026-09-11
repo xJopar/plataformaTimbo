@@ -10,18 +10,11 @@ import {
   MetaCompanyGoalManagementGuard,
 } from './meta-company-permission.guards';
 import { MetaCompanyService } from './meta-company.service';
-import { MetaCompanyPrismaModule } from './meta-company-prisma.module';
 import { MetaCompanyServiceLayerService } from './meta-company-service-layer.service';
 import { META_COMPANY_SERVICE_LAYER_FETCH } from './meta-company-service-layer.tokens';
 
 @Module({
-  imports: [
-    AuthModule,
-    AccessProfilesModule,
-    AuditEventsModule,
-    PrismaModule,
-    MetaCompanyPrismaModule,
-  ],
+  imports: [AuthModule, AccessProfilesModule, AuditEventsModule, PrismaModule],
   controllers: [MetaCompanyController],
   providers: [
     MetaCompanyApplicationAccessGuard,

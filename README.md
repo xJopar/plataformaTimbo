@@ -96,7 +96,6 @@ Copiar `.env.example` a `.env` (en la **raíz del workspace**) y ajustar si es n
 | `VITE_API_BASE_URL`           | Origen que usa la web local para llamar a la API.                                                                        | `http://localhost:3000` |
 | `API_INTERNAL_ORIGIN`         | Origen interno de la API para el gateway de `apps/web/server` (`/api/*`). Server-only; no se carga desde el `.env` raíz. | Sin valor por defecto   |
 | `DATABASE_URL`                | URL secreta de PostgreSQL para la API y las migraciones.                                                                 | Sin valor por defecto   |
-| `META_COMPANY_ENABLED`        | Habilita Meta Company y sus migraciones secundarias; con `false` no exige su PostgreSQL ni Service Layer.                | `true`                  |
 | `GOOGLE_OAUTH_CLIENT_ID`      | Identificador del cliente OAuth de Google.                                                                               | Sin valor por defecto   |
 | `GOOGLE_OAUTH_CLIENT_SECRET`  | Secreto del cliente OAuth de Google.                                                                                     | Sin valor por defecto   |
 | `GOOGLE_OAUTH_REDIRECT_URI`   | Callback exacto `/api/auth/google/callback`; HTTPS fuera de localhost.                                                   | Sin valor por defecto   |
