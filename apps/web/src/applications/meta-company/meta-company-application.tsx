@@ -421,6 +421,7 @@ export function MetaCompanyApplication(props: ApplicationComponentProps): React.
           <AdvisorDetailScreen
             advisorId={route.advisorId}
             advisors={catalogs.advisors}
+            applicationsApi={props.api.applications}
             year={route.year ?? year}
             canEdit={capabilities.canManageGoals}
             onNavigateYear={(newYear) => {

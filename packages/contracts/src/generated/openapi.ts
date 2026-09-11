@@ -1547,6 +1547,8 @@ export interface components {
             brandName: string;
             /** @example 10 */
             salespersonCode?: number | null;
+            /** @example 1 */
+            advisorId?: number | null;
             /** @enum {string} */
             goalType: "Marca" | "Vendedor";
             /** @example 38237.42 */

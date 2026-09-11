@@ -5,7 +5,15 @@ import type { Api, AuthSession, AuthorizedApplication } from '../../api';
 import type { ApplicationComponentProps } from '../application-component';
 import { MetaCompanyApplication } from './meta-company-application';
 import * as metaCompanyMockData from './meta-company-mock-data';
-import { buildBrandGoalsPath, buildManageMarcasPath, buildManageEmpresasPath } from './meta-company-routes';
+import {
+  buildBrandGoalsPath,
+  buildManageMarcasPath,
+  buildManageEmpresasPath,
+} from './meta-company-routes';
+
+type AdvisorGoals = Awaited<
+  ReturnType<ApplicationComponentProps['api']['applications']['listMetaCompanyGoals']>
+>;
 
 const application: AuthorizedApplication = {
   key: 'meta-company',
@@ -49,6 +57,7 @@ interface CatalogFixtures {
   advisors?: typeof advisors;
   brands?: typeof brands;
   businesses?: { id: number; empresaId: number; name: string; active: boolean }[];
+  goals?: AdvisorGoals;
 }
 
 function renderMetaCompany(
@@ -66,6 +75,8 @@ function renderMetaCompany(
     applications: {
       listMetaCompanyCatalogs: vi.fn().mockResolvedValue(catalogs),
       listAllMetaCompanyCatalogs: vi.fn().mockResolvedValue(catalogs),
+      listMetaCompanyGoals: vi.fn().mockResolvedValue(catalogFixtures.goals ?? []),
+      updateMetaCompanyAdvisorGoal: vi.fn(),
       getMetaCompanyCapabilities: vi
         .fn()
         .mockResolvedValue({ canManageCatalogs: true, canManageGoals: true }),
@@ -159,7 +170,9 @@ describe('MetaCompanyApplication — asesores', () => {
       within(emptyMonthInput.closest('form')!).getByRole('button', { name: 'Guardar' }),
     );
 
-    await waitFor(() => expect(saveSpy).toHaveBeenCalledWith('advisor', 153, '2026-03-01', '150000.00'));
+    await waitFor(() =>
+      expect(saveSpy).toHaveBeenCalledWith('advisor', 153, '2026-03-01', '150000.00'),
+    );
   });
 
   it('el clic en el nombre del asesor navega al detalle sin desplegar el acordeón', async () => {
@@ -176,13 +189,37 @@ describe('MetaCompanyApplication — asesores', () => {
     expect(luisDetails).toHaveProperty('open', false);
   });
 
-  it('la pantalla de detalle carga un año por URL y navega al siguiente', async () => {
+  it('la pantalla de detalle carga metas por marca desde la API y navega al siguiente', async () => {
     const user = userEvent.setup();
     const onNavigate = vi.fn<ApplicationComponentProps['onNavigate']>();
-    renderMetaCompany('/apps/meta-company/asesores/152/2026', { onNavigate }, { advisors });
+    renderMetaCompany(
+      '/apps/meta-company/asesores/152/2026',
+      { onNavigate },
+      {
+        advisors,
+        goals: [
+          {
+            id: 35,
+            period: '2026-01-01',
+            businessId: 3,
+            businessName: 'Comercial',
+            brandId: 2,
+            brandName: 'Facchini',
+            salespersonCode: 152,
+            advisorId: 152,
+            goalType: 'Vendedor',
+            value: '24944.91',
+            updatedAt: null,
+          },
+        ],
+      },
+    );
 
     expect(await screen.findByRole('heading', { name: 'Luis Reguera' })).toBeInTheDocument();
-    expect(await screen.findByLabelText('Meta de 01/2026 · Ene')).toHaveValue('');
+    expect(await screen.findByText('Facchini')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Meta de Facchini, 01/2026 · Ene')).toHaveValue(
+      '24.944,91',
+    );
 
     await user.click(screen.getByRole('button', { name: 'Año siguiente' }));
 
@@ -205,7 +242,9 @@ describe('MetaCompanyApplication — metas por marca', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Importar Excel' }));
 
-    expect(await screen.findByRole('heading', { name: 'Importar metas desde Excel' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Importar metas desde Excel' }),
+    ).toBeInTheDocument();
   });
 
   it('el tab de marca navega a su propia ruta', async () => {
@@ -237,9 +276,24 @@ describe('MetaCompanyApplication — gestión de empresas', () => {
   it('crea, edita y desactiva una empresa desde su ruta propia', async () => {
     const user = userEvent.setup();
     const { api } = renderMetaCompany(buildManageEmpresasPath(application.launchPath));
-    api.applications.createMetaCompanyEmpresa.mockResolvedValue({ id: 2, code: 'FIXIT', name: 'Fixit', active: true });
-    api.applications.updateMetaCompanyEmpresa.mockResolvedValue({ id: 1, code: 'TIMBO', name: 'Timbo SA', active: true });
-    api.applications.setMetaCompanyEmpresaActive.mockResolvedValue({ id: 1, code: 'TIMBO', name: 'Timbo', active: false });
+    api.applications.createMetaCompanyEmpresa.mockResolvedValue({
+      id: 2,
+      code: 'FIXIT',
+      name: 'Fixit',
+      active: true,
+    });
+    api.applications.updateMetaCompanyEmpresa.mockResolvedValue({
+      id: 1,
+      code: 'TIMBO',
+      name: 'Timbo SA',
+      active: true,
+    });
+    api.applications.setMetaCompanyEmpresaActive.mockResolvedValue({
+      id: 1,
+      code: 'TIMBO',
+      name: 'Timbo',
+      active: false,
+    });
 
     expect(await screen.findByRole('heading', { name: 'Empresas' })).toBeInTheDocument();
 
@@ -247,7 +301,10 @@ describe('MetaCompanyApplication — gestión de empresas', () => {
     await user.type(screen.getByLabelText('Nombre'), 'Fixit');
     await user.click(screen.getByRole('button', { name: 'Agregar empresa' }));
     await waitFor(() =>
-      expect(api.applications.createMetaCompanyEmpresa).toHaveBeenCalledWith({ code: 'FIXIT', name: 'Fixit' }),
+      expect(api.applications.createMetaCompanyEmpresa).toHaveBeenCalledWith({
+        code: 'FIXIT',
+        name: 'Fixit',
+      }),
     );
 
     const row = (await screen.findByText('Timbo')).closest('tr')!;
@@ -265,7 +322,9 @@ describe('MetaCompanyApplication — gestión de empresas', () => {
     );
 
     await user.click(within(row).getByRole('button', { name: 'Desactivar' }));
-    await waitFor(() => expect(api.applications.setMetaCompanyEmpresaActive).toHaveBeenCalledWith(1, false));
+    await waitFor(() =>
+      expect(api.applications.setMetaCompanyEmpresaActive).toHaveBeenCalledWith(1, false),
+    );
   });
 });
 
@@ -273,7 +332,12 @@ describe('MetaCompanyApplication — gestión de marcas', () => {
   it('crea una marca desde su ruta propia (mismo componente compartido con Negocio)', async () => {
     const user = userEvent.setup();
     const { api } = renderMetaCompany(buildManageMarcasPath(application.launchPath));
-    api.applications.createMetaCompanyBrand.mockResolvedValue({ id: 3, empresaId: 1, name: 'Fixit', active: true });
+    api.applications.createMetaCompanyBrand.mockResolvedValue({
+      id: 3,
+      empresaId: 1,
+      name: 'Fixit',
+      active: true,
+    });
 
     expect(await screen.findByRole('heading', { name: 'Marcas' })).toBeInTheDocument();
 
@@ -282,7 +346,10 @@ describe('MetaCompanyApplication — gestión de marcas', () => {
     await user.click(screen.getByRole('button', { name: 'Agregar marca' }));
 
     await waitFor(() =>
-      expect(api.applications.createMetaCompanyBrand).toHaveBeenCalledWith({ empresaId: 1, name: 'Fixit' }),
+      expect(api.applications.createMetaCompanyBrand).toHaveBeenCalledWith({
+        empresaId: 1,
+        name: 'Fixit',
+      }),
     );
   });
 });

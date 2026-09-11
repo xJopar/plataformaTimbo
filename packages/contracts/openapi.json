@@ -3784,6 +3784,11 @@
             "example": 10,
             "nullable": true
           },
+          "advisorId": {
+            "type": "number",
+            "example": 1,
+            "nullable": true
+          },
           "goalType": {
             "type": "string",
             "enum": [

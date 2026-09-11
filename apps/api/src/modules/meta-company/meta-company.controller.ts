@@ -91,6 +91,7 @@ export class MetaCompanyController {
         brandId: goal.brandId,
         brandName: goal.brand.name,
         salespersonCode: null,
+        advisorId: null,
         goalType: 'Marca' as const,
         value: goal.value.toFixed(2),
         updatedAt: goal.updatedAt?.toISOString() ?? null,
@@ -105,6 +106,7 @@ export class MetaCompanyController {
         salespersonCode: Number.isSafeInteger(Number(goal.advisor.externalCode))
           ? Number(goal.advisor.externalCode)
           : null,
+        advisorId: goal.advisorId,
         goalType: 'Vendedor' as const,
         value: goal.value.toFixed(2),
         updatedAt: goal.updatedAt?.toISOString() ?? null,

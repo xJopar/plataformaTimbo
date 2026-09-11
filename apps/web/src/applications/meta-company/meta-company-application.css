@@ -341,6 +341,34 @@ button:disabled {
   background: #f7f9fb;
   border: 1px solid #bcc9d7;
 }
+.mc-advisor-month + .mc-advisor-month {
+  border-top: 1px solid #bcc9d7;
+}
+.mc-advisor-month-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.mc-advisor-month-summary:hover {
+  background: #e7eef7;
+}
+.mc-advisor-month-count {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 400;
+}
+.mc-advisor-month-brands {
+  border-top: 1px solid #bcc9d7;
+}
+.mc-advisor-month .mc-state {
+  margin: 0;
+  padding: 16px;
+}
 .mc-month-row {
   display: grid;
   grid-template-columns: 1fr 130px auto;

@@ -137,6 +137,7 @@ export class MetaCompanyAdvisorGoalListItemDto {
   @ApiProperty({ example: 'No aplica' }) brandName!: string;
   @ApiPropertyOptional({ example: 10, nullable: true, type: Number }) salespersonCode!:
     number | null;
+  @ApiPropertyOptional({ example: 1, nullable: true, type: Number }) advisorId!: number | null;
   @ApiProperty({ enum: ['Marca', 'Vendedor'] }) goalType!: 'Marca' | 'Vendedor';
   @ApiProperty({ example: '38237.42' }) value!: string;
   @ApiPropertyOptional({ example: '2026-09-01T12:00:00.000Z', nullable: true, type: String })
