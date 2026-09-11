@@ -102,7 +102,7 @@ export class MetaCompanyController {
         businessId: goal.businessId,
         businessName: goal.business.name,
         brandId: goal.brandId,
-        brandName: goal.brand?.name ?? 'No aplica',
+        brandName: goal.brand?.name ?? 'Meta general',
         salespersonCode: Number.isSafeInteger(Number(goal.advisor.externalCode))
           ? Number(goal.advisor.externalCode)
           : null,

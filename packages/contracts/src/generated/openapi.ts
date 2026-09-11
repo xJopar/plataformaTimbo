@@ -1543,7 +1543,7 @@ export interface components {
             businessName: string;
             /** @example 1 */
             brandId?: number | null;
-            /** @example No aplica */
+            /** @example Meta general */
             brandName: string;
             /** @example 10 */
             salespersonCode?: number | null;

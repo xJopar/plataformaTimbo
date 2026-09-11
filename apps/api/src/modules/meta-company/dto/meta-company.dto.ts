@@ -134,7 +134,7 @@ export class MetaCompanyAdvisorGoalListItemDto {
   @ApiProperty({ example: 1 }) businessId!: number;
   @ApiProperty({ example: 'Comercial' }) businessName!: string;
   @ApiPropertyOptional({ example: 1, nullable: true, type: Number }) brandId!: number | null;
-  @ApiProperty({ example: 'No aplica' }) brandName!: string;
+  @ApiProperty({ example: 'Meta general' }) brandName!: string;
   @ApiPropertyOptional({ example: 10, nullable: true, type: Number }) salespersonCode!:
     number | null;
   @ApiPropertyOptional({ example: 1, nullable: true, type: Number }) advisorId!: number | null;
