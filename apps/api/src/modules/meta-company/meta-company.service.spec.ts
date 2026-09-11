@@ -9,6 +9,8 @@ describe('MetaCompanyService', () => {
     listBrands: jest.fn(),
     listBusinesses: jest.fn(),
     listAdvisors: jest.fn(),
+    listBrandGoals: jest.fn(),
+    listAdvisorGoals: jest.fn(),
     updateEmpresa: jest.fn(),
   };
   const auditEventsService = { append: jest.fn().mockResolvedValue(undefined) };
@@ -42,6 +44,21 @@ describe('MetaCompanyService', () => {
       advisors: [],
     });
     expect(serviceLayerService.listEmpresas).toHaveBeenCalledWith(false);
+  });
+
+  it('consulta las metas por el año solicitado en Service Layer', async () => {
+    serviceLayerService.listEmpresas.mockResolvedValue([]);
+    serviceLayerService.listBrands.mockResolvedValue([]);
+    serviceLayerService.listBusinesses.mockResolvedValue([
+      { idNegocio: 3, idEmpresa: 1, codigo: 'COM', negocio: 'Comercial', activo: true },
+    ]);
+    serviceLayerService.listAdvisors.mockResolvedValue([]);
+    serviceLayerService.listBrandGoals.mockResolvedValue([]);
+    serviceLayerService.listAdvisorGoals.mockResolvedValue([]);
+
+    await expect(service.listGoals('2025')).resolves.toEqual({ brandGoals: [], advisorGoals: [] });
+    expect(serviceLayerService.listBrandGoals).toHaveBeenCalledWith(3, 2025);
+    expect(serviceLayerService.listAdvisorGoals).toHaveBeenCalledWith(3, 2025);
   });
 
   it('actualiza una empresa en Service Layer y conserva la auditoría de plataforma', async () => {

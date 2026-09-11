@@ -111,7 +111,7 @@ export class MetaCompanyService {
   }
 
   public async listGoals(period?: string, empresaId?: number) {
-    const year = period === undefined ? undefined : parsePeriod(period).getUTCFullYear();
+    const year = period === undefined ? undefined : parseGoalListYear(period);
     const catalogs = await this.listCatalogs(true);
     const businesses = catalogs.businesses.filter(
       (business) => empresaId === undefined || business.empresaId === parseId(empresaId),
@@ -489,6 +489,11 @@ function parsePeriod(value: string): Date {
   const date = new Date(`${value}T00:00:00.000Z`);
   if (Number.isNaN(date.valueOf())) throw new BadRequestException('El periodo no es valido.');
   return date;
+}
+function parseGoalListYear(value: string): number {
+  if (!/^\d{4}$/.test(value))
+    throw new BadRequestException('El periodo de listado debe ser un año de cuatro digitos.');
+  return Number(value);
 }
 function periodToNumber(value: string): number {
   const date = parsePeriod(value);
