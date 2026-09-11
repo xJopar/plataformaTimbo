@@ -550,9 +550,15 @@ function dataRecord(value: unknown, operation: string): ServiceLayerRecord | und
   return value === undefined ? undefined : asRecord(value, operation);
 }
 function positiveInteger(value: unknown, field: string, resource?: string): number {
-  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value <= 0)
+  const numericValue =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && /^[0-9]+$/u.test(value.trim())
+        ? Number(value.trim())
+        : undefined;
+  if (numericValue === undefined || !Number.isSafeInteger(numericValue) || numericValue <= 0)
     invalidField(field, resource);
-  return value;
+  return numericValue;
 }
 function nullablePositiveInteger(value: unknown, field: string, resource?: string): number | null {
   if (value === null || value === undefined) return null;

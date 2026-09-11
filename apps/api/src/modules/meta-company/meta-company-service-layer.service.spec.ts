@@ -129,6 +129,33 @@ describe('MetaCompanyServiceLayerService', () => {
     );
   });
 
+  it('acepta identificadores enteros serializados como texto por Service Layer', async () => {
+    const fetchImplementation = jest
+      .fn()
+      .mockResolvedValueOnce(
+        response({
+          data: {
+            token: 'access-token',
+            expiresIn: 1_800,
+            refreshToken: 'refresh-token',
+            refreshTokenExpiresIn: 28_800,
+          },
+          error: null,
+        }),
+      )
+      .mockResolvedValueOnce(
+        response({
+          data: [{ id_marca: '23', codigo: 'BAIC', marca: 'BAIC', activo: true }],
+          error: null,
+        }),
+      );
+    const service = new MetaCompanyServiceLayerService(fetchImplementation);
+
+    await expect(service.listBrands(false)).resolves.toEqual([
+      { idMarca: 23, codigo: 'BAIC', marca: 'BAIC', activo: true },
+    ]);
+  });
+
   it('identifica la respuesta de metas que contiene una marca invalida', async () => {
     const fetchImplementation = jest
       .fn()
